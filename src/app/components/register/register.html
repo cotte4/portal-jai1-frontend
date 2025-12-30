@@ -1,0 +1,154 @@
+<div class="register-container">
+  <!-- Left side - Branding -->
+  <div class="branding-section">
+    <div class="branding-content">
+      <div class="logo">JAI1</div>
+      <h1>Bienvenido a JAI1</h1>
+      <p>Creá tu cuenta o iniciá sesión para gestionar todos tus trámites como J1 en Estados Unidos.</p>
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Gestioná tus documentos fiscales</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Seguimiento en tiempo real</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Soporte personalizado 24/7</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right side - Register Form -->
+  <div class="form-section">
+    <div class="form-container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab" (click)="goToLogin()">Iniciar sesión</button>
+        <button class="tab active">Registrarse</button>
+      </div>
+
+      <!-- Success/Error Messages -->
+      <div class="success-message" *ngIf="successMessage">
+        <span class="message-icon">✓</span>
+        {{ successMessage }}
+      </div>
+      <div class="error-message" *ngIf="errorMessage">
+        <span class="message-icon">⚠</span>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Form -->
+      <form class="register-form" (ngSubmit)="onRegister()">
+        <!-- Name Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Nombre *</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              [(ngModel)]="firstName"
+              name="firstName"
+              placeholder="Juan"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Apellido *</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              [(ngModel)]="lastName"
+              name="lastName"
+              placeholder="Pérez"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="email"
+            name="email"
+            placeholder="juan.perez@ejemplo.com"
+            required
+          >
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Contraseña *</label>
+          <div class="password-input">
+            <input 
+              [type]="showPassword ? 'text' : 'password'"
+              id="password" 
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Mínimo 6 caracteres"
+              required
+            >
+            <button 
+              type="button" 
+              class="toggle-password"
+              (click)="togglePassword()"
+            >
+              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Contraseña *</label>
+          <div class="password-input">
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword" 
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              placeholder="Repetí tu contraseña"
+              required
+            >
+            <button 
+              type="button" 
+              class="toggle-password"
+              (click)="toggleConfirmPassword()"
+            >
+              {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Terms Checkbox -->
+        <div class="form-group-checkbox">
+          <input 
+            type="checkbox" 
+            id="agreeToTerms" 
+            [(ngModel)]="agreeToTerms"
+            name="agreeToTerms"
+          >
+          <label for="agreeToTerms">
+            Acepto los <a href="#" class="link">Términos y Condiciones</a> y la <a href="#" class="link">Política de Privacidad</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          <span>Crear Cuenta</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </form>
+
+      <p class="login-link">
+        ¿Ya tenés una cuenta? <a (click)="goToLogin()">Iniciá sesión acá</a>
+      </p>
+    </div>
+  </div>
+</div>

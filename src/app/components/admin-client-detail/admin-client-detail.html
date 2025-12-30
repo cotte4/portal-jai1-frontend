@@ -1,0 +1,322 @@
+<div class="client-detail-container">
+  <!-- Header -->
+  <header class="detail-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()">
+        <span class="back-icon">←</span>
+        <span>Volver al Dashboard</span>
+      </button>
+      <div class="logo">JAI1</div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando datos del cliente...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Success Message -->
+  <div class="success-message" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <!-- Main Content -->
+  <main class="detail-main" *ngIf="client && !isLoading">
+    <!-- Client Info Header -->
+    <div class="client-header">
+      <div class="client-avatar-large">
+        {{ client.user.firstName.charAt(0) }}{{ client.user.lastName.charAt(0) }}
+      </div>
+      <div class="client-info">
+        <h1>{{ client.user.firstName }} {{ client.user.lastName }}</h1>
+        <div class="client-meta">
+          <span class="meta-item">
+            <span class="meta-icon">📧</span>
+            {{ client.user.email }}
+          </span>
+          <span class="meta-item" *ngIf="client.user.phone">
+            <span class="meta-icon">📱</span>
+            {{ client.user.phone }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">📅</span>
+            Registrado: {{ client.user.createdAt | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+      </div>
+      <div class="status-control">
+        <label for="internalStatus">Estado Interno</label>
+        <select id="internalStatus" [(ngModel)]="selectedInternalStatus">
+          <option *ngFor="let status of internalStatusOptions" [value]="status">
+            {{ getInternalStatusLabel(status) }}
+          </option>
+        </select>
+        <label for="clientStatus">Estado Cliente</label>
+        <select id="clientStatus" [(ngModel)]="selectedClientStatus">
+          <option *ngFor="let status of clientStatusOptions" [value]="status">
+            {{ getClientStatusLabel(status) }}
+          </option>
+        </select>
+        <input type="text" [(ngModel)]="statusComment" placeholder="Comentario (opcional)">
+        <button class="btn-update-status" (click)="updateStatus()" [disabled]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Actualizar Estado' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn-action btn-paid" (click)="markPaid()" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
+        Marcar Pago Recibido
+      </button>
+      <button class="btn-action btn-delete" (click)="deleteClient()">
+        Eliminar Cliente
+      </button>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Profile Section -->
+        <section class="detail-section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-icon">📋</span>
+              <h2>Perfil del Cliente</h2>
+            </div>
+          </div>
+
+          <div class="form-preview" *ngIf="client.profile">
+            <!-- Personal Info -->
+            <div class="form-group-preview">
+              <h3>Informacion Personal</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Nombre Completo</span>
+                  <span class="info-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">SSN</span>
+                  <span class="info-value">{{ client.profile.ssn || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fecha de Nacimiento</span>
+                  <span class="info-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Telefono</span>
+                  <span class="info-value">{{ client.user.phone || 'No proporcionado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group-preview" *ngIf="client.profile.address">
+              <h3>Direccion</h3>
+              <div class="info-grid">
+                <div class="info-item full-width">
+                  <span class="info-label">Direccion</span>
+                  <span class="info-value">{{ client.profile.address.street || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Ciudad</span>
+                  <span class="info-value">{{ client.profile.address.city || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Estado</span>
+                  <span class="info-value">{{ client.profile.address.state || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Codigo Postal</span>
+                  <span class="info-value">{{ client.profile.address.zip || 'No proporcionado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Employment -->
+            <div class="form-group-preview">
+              <h3>Informacion de Empleo</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Estado donde trabajo</span>
+                  <span class="info-value">{{ client.profile.workState || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Empleador</span>
+                  <span class="info-value">{{ client.profile.employerName || 'No proporcionado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank Info -->
+            <div class="form-group-preview" *ngIf="client.profile.bank">
+              <h3>Informacion Bancaria</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Banco</span>
+                  <span class="info-value">{{ client.profile.bank.name || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Routing Number</span>
+                  <span class="info-value">{{ client.profile.bank.routingNumber || 'No proporcionado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Account Number</span>
+                  <span class="info-value">{{ client.profile.bank.accountNumber || 'No proporcionado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tax Case Info -->
+            <div class="form-group-preview" *ngIf="client.taxCases && client.taxCases.length > 0">
+              <h3>Caso Fiscal</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Ano Fiscal</span>
+                  <span class="info-value">{{ client.taxCases[0].taxYear }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Reembolso Estimado</span>
+                  <span class="info-value">{{ client.taxCases[0].estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Pago Recibido</span>
+                  <span class="info-value">{{ client.taxCases[0].paymentReceived ? 'Si' : 'No' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-form" *ngIf="!client.profile">
+            <span class="empty-icon">📋</span>
+            <p>El cliente aun no ha completado su perfil</p>
+          </div>
+        </section>
+
+        <!-- Documents Section -->
+        <section class="detail-section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-icon">📁</span>
+              <h2>Documentos ({{ client.documents?.length || 0 }})</h2>
+            </div>
+          </div>
+
+          <div class="documents-list" *ngIf="client.documents && client.documents.length > 0">
+            <div class="document-card" *ngFor="let doc of client.documents">
+              <div class="doc-icon">{{ getFileIcon(doc.mimeType) }}</div>
+              <div class="doc-info">
+                <div class="doc-name">{{ doc.fileName }}</div>
+                <div class="doc-meta">
+                  {{ formatFileSize(doc.fileSize) }} | {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+                  <span *ngIf="doc.isReviewed" class="reviewed-badge">Revisado</span>
+                </div>
+              </div>
+              <button class="btn-doc-download" (click)="downloadDocument(doc)">
+                Descargar
+              </button>
+            </div>
+          </div>
+
+          <div class="empty-docs" *ngIf="!client.documents || client.documents.length === 0">
+            <span class="empty-icon">📁</span>
+            <p>No hay documentos subidos todavia</p>
+          </div>
+        </section>
+
+        <!-- Status History -->
+        <section class="detail-section" *ngIf="client.statusHistory && client.statusHistory.length > 0">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-icon">📜</span>
+              <h2>Historial de Estados</h2>
+            </div>
+          </div>
+
+          <div class="status-history-list">
+            <div class="history-item" *ngFor="let history of client.statusHistory">
+              <div class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+              <div class="history-change">
+                <span class="old-status">{{ history.previousStatus || 'Nuevo' }}</span>
+                →
+                <span class="new-status">{{ history.newStatus }}</span>
+              </div>
+              <div class="history-comment" *ngIf="history.comment">{{ history.comment }}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column - Tickets -->
+      <div class="right-column">
+        <section class="messages-section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-icon">💬</span>
+              <h2>Tickets de Soporte</h2>
+            </div>
+          </div>
+
+          <div class="tickets-list" *ngIf="tickets.length > 0">
+            <div class="ticket-card"
+                 *ngFor="let ticket of tickets"
+                 [class.selected]="selectedTicketId === ticket.id"
+                 (click)="selectTicket(ticket.id)">
+              <div class="ticket-subject">{{ ticket.subject }}</div>
+              <div class="ticket-status">{{ ticket.status }}</div>
+              <div class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</div>
+            </div>
+          </div>
+
+          <div class="messages-container" *ngIf="selectedTicketId">
+            <div class="messages-list">
+              <div
+                class="message-bubble"
+                *ngFor="let ticket of tickets"
+              >
+                <div *ngIf="ticket.id === selectedTicketId && ticket.messages">
+                  <div class="message-item" *ngFor="let msg of ticket.messages">
+                    <div class="message-header">
+                      <span class="message-sender">
+                        {{ msg.sender?.firstName || 'Usuario' }}
+                      </span>
+                      <span class="message-time">
+                        {{ msg.createdAt | date:'dd/MM HH:mm' }}
+                      </span>
+                    </div>
+                    <div class="message-text">{{ msg.message }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <textarea
+                [(ngModel)]="newMessage"
+                placeholder="Escribe tu respuesta..."
+                rows="3"
+                (keydown.enter)="sendMessage(); $event.preventDefault()"
+              ></textarea>
+              <button class="btn-send" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+                <span>Enviar</span>
+                <span class="send-icon">→</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="empty-messages" *ngIf="tickets.length === 0">
+            <span class="empty-icon">💬</span>
+            <p>No hay tickets de soporte</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

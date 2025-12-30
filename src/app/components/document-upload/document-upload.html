@@ -1,0 +1,142 @@
+<div class="upload-container">
+  <!-- Header -->
+  <header class="upload-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()">
+        <span class="back-icon">←</span>
+        <span>Volver al inicio</span>
+      </button>
+      <div class="logo">JAI1</div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="upload-main">
+    <!-- Page Title -->
+    <div class="page-title">
+      <h1>Subir Documentos</h1>
+      <p>Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)</p>
+    </div>
+
+    <!-- Messages -->
+    <div class="message success-message" *ngIf="successMessage">
+      <span class="message-icon">✓</span>
+      {{ successMessage }}
+    </div>
+    <div class="message error-message" *ngIf="errorMessage">
+      <span class="message-icon">⚠</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Document Type Selection -->
+    <div class="document-type-selector">
+      <label for="docType">Tipo de documento:</label>
+      <select id="docType" [(ngModel)]="selectedType">
+        <option *ngFor="let type of documentTypes" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Upload Zone -->
+    <div
+      class="upload-zone"
+      [class.drag-over]="dragOver"
+      [class.uploading]="isUploading"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <div class="upload-icon-wrapper">
+        <span class="upload-icon">{{ isUploading ? '⏳' : '📤' }}</span>
+      </div>
+      <h2>{{ isUploading ? 'Subiendo archivo...' : 'Arrastra y suelta tus archivos aqui' }}</h2>
+      <p class="upload-or" *ngIf="!isUploading">o</p>
+      <label for="fileInput" class="btn-browse" *ngIf="!isUploading">
+        <span>Seleccionar archivos</span>
+      </label>
+      <input
+        type="file"
+        id="fileInput"
+        (change)="onFileSelected($event)"
+        accept=".pdf,.png,.jpg,.jpeg"
+        multiple
+        hidden
+        [disabled]="isUploading"
+      >
+      <div class="upload-info">
+        <div class="info-item">
+          <span class="info-icon">📄</span>
+          <span>PDF, PNG, JPG</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">💾</span>
+          <span>Maximo 25MB por archivo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Cargando documentos...</p>
+    </div>
+
+    <!-- Uploaded Files Section -->
+    <div class="files-section" *ngIf="uploadedFiles.length > 0 && !isLoading">
+      <div class="section-header">
+        <h2>Documentos cargados</h2>
+        <span class="file-count">{{ uploadedFiles.length }} archivo<span *ngIf="uploadedFiles.length !== 1">s</span></span>
+      </div>
+
+      <div class="files-list">
+        <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+          <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
+          <div class="file-details">
+            <div class="file-name">{{ file.fileName }}</div>
+            <div class="file-meta">
+              <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
+              <span class="file-separator">|</span>
+              <span class="file-date">{{ file.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span class="file-separator">|</span>
+              <span class="file-type">{{ getDocumentTypeLabel(file.type) }}</span>
+              <span *ngIf="file.isReviewed" class="reviewed-badge">Revisado</span>
+            </div>
+          </div>
+          <button class="btn-download" (click)="downloadFile(file)" title="Descargar">
+            <span>⬇️</span>
+          </button>
+          <button
+            class="btn-remove"
+            (click)="removeFile(file, i)"
+            title="Eliminar archivo"
+            *ngIf="!file.isReviewed"
+          >
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="uploadedFiles.length === 0 && !isLoading">
+      <div class="empty-icon">📁</div>
+      <h3>No hay documentos cargados todavia</h3>
+      <p>Comienza subiendo tus primeros archivos usando el area de arriba</p>
+    </div>
+
+    <!-- Tips Section -->
+    <div class="tips-card">
+      <div class="tips-header">
+        <span class="tips-icon">💡</span>
+        <h3>Consejos para subir documentos</h3>
+      </div>
+      <ul class="tips-list">
+        <li>Asegurate de que los documentos sean legibles y esten completos</li>
+        <li>Nombra tus archivos de forma clara (ej: "W2-2024.pdf")</li>
+        <li>Si tienes dudas sobre que documentos necesitas, contactanos</li>
+        <li>Puedes subir multiples archivos a la vez</li>
+      </ul>
+    </div>
+  </main>
+</div>

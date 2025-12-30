@@ -1,0 +1,52 @@
+<div class="admin-login-container">
+  <div class="login-card">
+    <div class="admin-badge">
+      <span class="badge-icon">🔐</span>
+      <span>Panel de Administración</span>
+    </div>
+    
+    <div class="logo">JAI1</div>
+    <h1>Acceso Administrativo</h1>
+    <p>Ingresá con tus credenciales de administrador</p>
+
+    <div class="error-message" *ngIf="errorMessage">
+      <span class="message-icon">⚠</span>
+      {{ errorMessage }}
+    </div>
+
+    <form class="login-form" (ngSubmit)="onLogin()">
+      <div class="form-group">
+        <label for="email">Email de Administrador</label>
+        <input 
+          type="email" 
+          id="email" 
+          [(ngModel)]="email"
+          name="email"
+          placeholder="admin@jai1.com"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input 
+          type="password" 
+          id="password" 
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn-primary">
+        <span>Acceder al Panel</span>
+        <span class="btn-icon">→</span>
+      </button>
+    </form>
+
+    <div class="demo-credentials">
+      <p><strong>Demo:</strong> admin@jai1.com / admin123</p>
+    </div>
+  </div>
+</div>

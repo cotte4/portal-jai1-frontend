@@ -1,0 +1,268 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  background: #ffffff;
+}
+
+/* Left Side - Branding */
+.branding-section {
+  flex: 1;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.branding-section::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  top: -100px;
+  right: -100px;
+}
+
+.branding-content {
+  max-width: 500px;
+  color: white;
+  z-index: 1;
+}
+
+.logo {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+}
+
+.branding-content h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+}
+
+.branding-content p {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
+}
+
+/* Right Side - Form */
+.form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #fafafa;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 40px;
+  background: #e8e8e8;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: white;
+  color: #1D345D;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tab:hover:not(.active) {
+  color: #333;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #fff0f0;
+  color: #B21B43;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  border: 1px solid #ffd0d0;
+}
+
+/* Form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.form-group input {
+  padding: 16px 18px;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1D345D;
+  box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+/* Password Input with Toggle */
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input input {
+  width: 100%;
+  padding-right: 50px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.toggle-password:hover {
+  opacity: 1;
+}
+
+/* Form Options */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -8px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1D345D;
+}
+
+.forgot-password {
+  color: #1D345D;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Primary Button */
+.btn-primary {
+  background: #1D345D;
+  color: white;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.btn-primary:hover {
+  background: #152844;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .login-container {
+    flex-direction: column;
+  }
+
+  .branding-section {
+    padding: 40px 20px;
+    min-height: 300px;
+  }
+
+  .branding-content h1 {
+    font-size: 32px;
+  }
+
+  .branding-content p {
+    font-size: 16px;
+  }
+
+  .form-section {
+    padding: 40px 20px;
+  }
+}

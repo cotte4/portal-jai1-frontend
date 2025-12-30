@@ -1,0 +1,176 @@
+<div class="admin-container">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo">JAI1</div>
+        <span class="admin-badge">Panel Admin</span>
+      </div>
+      <div class="header-right">
+        <div class="admin-info">
+          <span class="admin-icon">👤</span>
+          <span class="admin-email">Administrador</span>
+        </div>
+        <button class="btn-refresh" (click)="refreshData()">
+          🔄 Actualizar
+        </button>
+        <button class="btn-export" (click)="exportToExcel()">
+          📊 Exportar Excel
+        </button>
+        <button class="btn-logout" (click)="logout()">
+          <span>Cerrar sesion</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div>
+        <h1>Dashboard de Administracion</h1>
+        <p>Gestiona todos los clientes y sus declaraciones</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card total" [class.active]="selectedFilter === 'all'" (click)="filterClients('all')">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-label">Total Clientes</div>
+        </div>
+      </div>
+
+      <div class="stat-card pending" [class.active]="selectedFilter === 'sin_asignar'" (click)="filterClients('sin_asignar')">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.pending }}</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+      </div>
+
+      <div class="stat-card review" [class.active]="selectedFilter === 'en_proceso'" (click)="filterClients('en_proceso')">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.inReview }}</div>
+          <div class="stat-label">En Proceso</div>
+        </div>
+      </div>
+
+      <div class="stat-card completed" [class.active]="selectedFilter === 'proceso_finalizado'" (click)="filterClients('proceso_finalizado')">
+        <div class="stat-icon">✓</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.completed }}</div>
+          <div class="stat-label">Completados</div>
+        </div>
+      </div>
+
+      <div class="stat-card attention" [class.active]="selectedFilter === 'falta_documentacion'" (click)="filterClients('falta_documentacion')">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.needsAttention }}</div>
+          <div class="stat-label">Requieren Atencion</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="search-filter-bar">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Buscar por nombre o email..."
+        (keyup.enter)="onSearch()"
+      />
+      <select [(ngModel)]="selectedFilter" (change)="filterClients(selectedFilter)">
+        <option *ngFor="let filter of statusFilters" [value]="filter.value">
+          {{ filter.label }}
+        </option>
+      </select>
+      <button class="btn-search" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Cargando clientes...</p>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="clients-section" *ngIf="!isLoading">
+      <div class="section-header">
+        <h2>Lista de Clientes</h2>
+        <div class="filter-info" *ngIf="selectedFilter !== 'all'">
+          <button class="btn-clear-filter" (click)="filterClients('all')">
+            Mostrar todos
+          </button>
+        </div>
+      </div>
+
+      <div class="clients-table">
+        <div class="table-header">
+          <div class="col-client">Cliente</div>
+          <div class="col-email">Email</div>
+          <div class="col-status">Estado</div>
+          <div class="col-payment">Pago</div>
+          <div class="col-activity">Fecha Registro</div>
+          <div class="col-actions">Acciones</div>
+        </div>
+
+        <div class="table-body">
+          <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
+            <div class="col-client">
+              <div class="client-avatar">
+                {{ getInitials(client.user?.firstName, client.user?.lastName) }}
+              </div>
+              <div class="client-name">
+                {{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}
+              </div>
+            </div>
+
+            <div class="col-email">
+              {{ client.user?.email || 'Sin email' }}
+            </div>
+
+            <div class="col-status">
+              <span class="status-badge" [ngClass]="getStatusClass(client.internalStatus)">
+                {{ getStatusLabel(client.internalStatus) }}
+              </span>
+            </div>
+
+            <div class="col-payment">
+              <span class="badge" [class.success]="client.paymentReceived" [class.pending]="!client.paymentReceived">
+                {{ client.paymentReceived ? '✓ Recibido' : '⏳ Pendiente' }}
+              </span>
+            </div>
+
+            <div class="col-activity">
+              {{ client.createdAt | date:'dd/MM/yyyy' }}
+            </div>
+
+            <div class="col-actions">
+              <button class="btn-view" (click)="viewClient(client.id); $event.stopPropagation()">
+                Ver detalles →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredClients.length === 0">
+        <div class="empty-icon">📋</div>
+        <h3>No hay clientes en esta categoria</h3>
+        <p>Selecciona "Mostrar todos" para ver todos los clientes</p>
+      </div>
+    </div>
+  </main>
+</div>

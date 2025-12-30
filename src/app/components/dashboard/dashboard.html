@@ -1,0 +1,174 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo">JAI1</div>
+      <div class="user-section">
+        <!-- Notifications Bell -->
+        <div class="notifications-wrapper">
+          <button class="btn-notifications" (click)="toggleNotificationsPanel()">
+            <span class="notification-icon">🔔</span>
+            <span class="notification-badge" *ngIf="unreadNotifications > 0">
+              {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}
+            </span>
+          </button>
+
+          <!-- Notifications Panel -->
+          <div class="notifications-panel" *ngIf="showNotificationsPanel">
+            <div class="notifications-header">
+              <h3>Notificaciones</h3>
+              <button class="btn-mark-all" (click)="markAllAsRead()" *ngIf="unreadNotifications > 0">
+                Marcar todas como leidas
+              </button>
+            </div>
+            <div class="notifications-list">
+              <div
+                class="notification-item"
+                *ngFor="let notification of notifications"
+                [class.unread]="!notification.isRead"
+                (click)="markAsRead(notification)">
+                <span class="notification-type-icon">{{ getNotificationIcon(notification.type) }}</span>
+                <div class="notification-content">
+                  <span class="notification-title">{{ notification.title }}</span>
+                  <span class="notification-message">{{ notification.message }}</span>
+                  <span class="notification-time">{{ formatNotificationDate(notification.createdAt) }}</span>
+                </div>
+              </div>
+              <div class="no-notifications" *ngIf="notifications.length === 0">
+                <span class="no-notifications-icon">📭</span>
+                <span>No tienes notificaciones</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="user-info">
+          <span class="user-icon">👤</span>
+          <span class="user-email">{{ userEmail }}</span>
+        </div>
+        <button class="btn-logout" (click)="logout()">
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+      <div class="welcome-content">
+        <h1>¡Bienvenido de nuevo!</h1>
+        <p>Gestioná tus documentos e información tributaria en un solo lugar</p>
+      </div>
+      <div class="welcome-illustration">
+        <div class="illustration-circle"></div>
+        <span class="illustration-icon">📊</span>
+      </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="status-card">
+      <div class="status-header">
+        <h2>Estado de tu declaración</h2>
+        <span class="status-badge pending">En progreso</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 33%"></div>
+      </div>
+      <p class="progress-text">Completado 33%</p>
+      
+      <div class="status-steps">
+        <div class="step completed">
+          <div class="step-icon">✓</div>
+          <div class="step-info">
+            <span class="step-title">Cuenta creada</span>
+            <span class="step-date">Completado</span>
+          </div>
+        </div>
+        <div class="step active">
+          <div class="step-icon">📝</div>
+          <div class="step-info">
+            <span class="step-title">Documentación enviada</span>
+            <span class="step-date">En progreso</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">⏱️</div>
+          <div class="step-info">
+            <span class="step-title">En revisión</span>
+            <span class="step-date">Pendiente</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">💰</div>
+          <div class="step-info">
+            <span class="step-title">Reembolso recibido</span>
+            <span class="step-date">Pendiente</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Cards Grid -->
+    <div class="section-header">
+      <h2>Acciones rápidas</h2>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Tax Form Card -->
+      <div class="action-card primary" (click)="navigateTo('/tax-form')">
+        <div class="card-header">
+          <div class="card-icon-wrapper blue">
+            <span class="card-icon">📋</span>
+          </div>
+          <span class="card-badge">Importante</span>
+        </div>
+        <h3>Formulario de Impuestos</h3>
+        <p>Completá tu información personal y tributaria</p>
+        <div class="card-footer">
+          <span class="card-action">Comenzar →</span>
+        </div>
+      </div>
+
+      <!-- Upload Documents Card -->
+      <div class="action-card" (click)="navigateTo('/documents')">
+        <div class="card-header">
+          <div class="card-icon-wrapper purple">
+            <span class="card-icon">📁</span>
+          </div>
+        </div>
+        <h3>Subir Documentos</h3>
+        <p>Cargá tus documentos fiscales (W-2, 1099, recibos)</p>
+        <div class="card-footer">
+          <span class="card-action">Subir archivos →</span>
+        </div>
+      </div>
+
+      <!-- Track Status Card -->
+      <div class="action-card disabled">
+        <div class="card-header">
+          <div class="card-icon-wrapper green">
+            <span class="card-icon">📊</span>
+          </div>
+          <span class="card-badge coming-soon">Próximamente</span>
+        </div>
+        <h3>Seguir Reembolso</h3>
+        <p>Verificá el estado de tu devolución de impuestos</p>
+        <div class="card-footer">
+          <span class="card-action disabled">No disponible</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="help-card">
+      <div class="help-icon">💬</div>
+      <div class="help-content">
+        <h3>¿Necesitas ayuda?</h3>
+        <p>Nuestro equipo esta listo para asistirte con tus consultas</p>
+      </div>
+      <button class="btn-help" (click)="navigateTo('/messages')">Contactar soporte</button>
+    </div>
+  </main>
+</div>
