@@ -3,6 +3,8 @@ import { Login } from './components/login/login';
 import { Register } from './components/register/register';
 import { Dashboard } from './components/dashboard/dashboard';
 import { TaxForm } from './components/tax-form/tax-form';
+import { TaxCalculator } from './components/tax-calculator/tax-calculator';
+import { TaxTracking } from './components/tax-tracking/tax-tracking';
 import { DocumentUpload } from './components/document-upload/document-upload';
 import { AdminLogin } from './components/admin-login/admin-login';
 import { authGuard } from './guards/auth-guard';
@@ -49,6 +51,8 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'tax-form', component: TaxForm },
+      { path: 'tax-calculator', component: TaxCalculator },
+      { path: 'tax-tracking', component: TaxTracking },
       { path: 'documents', component: DocumentUpload },
       { path: 'messages', component: UserMessages },
       { path: 'chatbot', component: Chatbot },

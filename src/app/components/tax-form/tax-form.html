@@ -1,32 +1,18 @@
 <div class="form-content">
-  <!-- Page Title -->
-  <div class="page-title">
-    <h1>Formulario de Informacion Fiscal</h1>
-    <p>Completa tu informacion personal y tributaria</p>
-  </div>
-
-  <!-- Progress Bar -->
-  <div class="progress-section">
-    <div class="progress-steps">
-      <div class="progress-step active">
-        <div class="step-number">1</div>
-        <span>Personal</span>
-      </div>
-      <div class="progress-line"></div>
-      <div class="progress-step">
-        <div class="step-number">2</div>
-        <span>Direccion</span>
-      </div>
-      <div class="progress-line"></div>
-      <div class="progress-step">
-        <div class="step-number">3</div>
-        <span>Empleo</span>
-      </div>
-      <div class="progress-line"></div>
-      <div class="progress-step">
-        <div class="step-number">4</div>
-        <span>Banco</span>
-      </div>
+  <!-- Page Header with Title and Actions -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Formulario de Informacion Fiscal</h1>
+      <p>Completa tu informacion personal y tributaria</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSavingDraft">
+        <span>{{ isSavingDraft ? 'Guardando...' : 'Guardar Borrador' }}</span>
+      </button>
+      <button type="button" class="btn-submit" (click)="onSubmit()" [disabled]="isLoading || !isFormComplete()">
+        <span>{{ isLoading ? 'Enviando...' : 'Enviar información' }}</span>
+        <span class="submit-icon">→</span>
+      </button>
     </div>
   </div>
 
@@ -43,188 +29,196 @@
   <!-- Form -->
   <form class="tax-form" (ngSubmit)="onSubmit()">
 
-    <!-- Personal Information Section -->
-    <section class="form-section">
-      <div class="section-header">
-        <div class="section-icon">👤</div>
-        <div class="section-title">
-          <h2>Informacion Personal</h2>
-          <p>Datos basicos para tu declaracion</p>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="ssn">Numero de Seguro Social (SSN) *</label>
-          <input
-            type="text"
-            id="ssn"
-            [(ngModel)]="formData.ssn"
-            name="ssn"
-            placeholder="XXX-XX-XXXX"
-            required
-          >
+    <!-- Personal & Employment Row -->
+    <div class="sections-row">
+      <!-- Personal Information Section -->
+      <section class="form-section compact-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <div class="section-title">
+            <h2>Informacion Personal</h2>
+            <p>Datos basicos para tu declaracion</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="dateOfBirth">Fecha de Nacimiento *</label>
-          <input
-            type="date"
-            id="dateOfBirth"
-            [(ngModel)]="formData.dateOfBirth"
-            name="dateOfBirth"
-            required
-          >
+        <div class="form-stack">
+          <div class="form-group">
+            <label for="ssn">Numero de Seguro Social (SSN) *</label>
+            <input
+              type="text"
+              id="ssn"
+              [(ngModel)]="formData.ssn"
+              name="ssn"
+              placeholder="XXX-XX-XXXX"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="dateOfBirth">Fecha de Nacimiento *</label>
+            <input
+              type="date"
+              id="dateOfBirth"
+              [(ngModel)]="formData.dateOfBirth"
+              name="dateOfBirth"
+              required
+            >
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Address Section -->
-    <section class="form-section">
-      <div class="section-header">
-        <div class="section-icon">📍</div>
-        <div class="section-title">
-          <h2>Direccion en USA</h2>
-          <p>Tu direccion durante el Work & Travel</p>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="addressStreet">Direccion *</label>
-        <input
-          type="text"
-          id="addressStreet"
-          [(ngModel)]="formData.addressStreet"
-          name="addressStreet"
-          placeholder="123 Main Street"
-          required
-        >
-      </div>
-
-      <div class="form-grid three-columns">
-        <div class="form-group">
-          <label for="addressCity">Ciudad *</label>
-          <input
-            type="text"
-            id="addressCity"
-            [(ngModel)]="formData.addressCity"
-            name="addressCity"
-            placeholder="New York"
-            required
-          >
+      <!-- Employment Section -->
+      <section class="form-section compact-section">
+        <div class="section-header">
+          <div class="section-icon">💼</div>
+          <div class="section-title">
+            <h2>Informacion de Empleo</h2>
+            <p>Detalles sobre tu trabajo en USA</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="addressState">Estado *</label>
-          <input
-            type="text"
-            id="addressState"
-            [(ngModel)]="formData.addressState"
-            name="addressState"
-            placeholder="NY"
-            required
-          >
+        <div class="form-stack">
+          <div class="form-group">
+            <label for="workState">Estado donde trabajaste *</label>
+            <input
+              type="text"
+              id="workState"
+              [(ngModel)]="formData.workState"
+              name="workState"
+              placeholder="NY"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="employerName">Nombre del Empleador *</label>
+            <input
+              type="text"
+              id="employerName"
+              [(ngModel)]="formData.employerName"
+              name="employerName"
+              placeholder="Nombre de la empresa"
+              required
+            >
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Address & Bank Row -->
+    <div class="sections-row">
+      <!-- Address Section -->
+      <section class="form-section compact-section">
+        <div class="section-header">
+          <div class="section-icon">📍</div>
+          <div class="section-title">
+            <h2>Direccion en USA</h2>
+            <p>Tu direccion durante el Work & Travel</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="addressZip">Codigo Postal *</label>
-          <input
-            type="text"
-            id="addressZip"
-            [(ngModel)]="formData.addressZip"
-            name="addressZip"
-            placeholder="10001"
-            required
-          >
+        <div class="form-stack">
+          <div class="form-group">
+            <label for="addressStreet">Direccion *</label>
+            <input
+              type="text"
+              id="addressStreet"
+              [(ngModel)]="formData.addressStreet"
+              name="addressStreet"
+              placeholder="123 Main Street"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="addressCity">Ciudad *</label>
+            <input
+              type="text"
+              id="addressCity"
+              [(ngModel)]="formData.addressCity"
+              name="addressCity"
+              placeholder="New York"
+              required
+            >
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addressState">Estado *</label>
+              <input
+                type="text"
+                id="addressState"
+                [(ngModel)]="formData.addressState"
+                name="addressState"
+                placeholder="NY"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="addressZip">Codigo Postal *</label>
+              <input
+                type="text"
+                id="addressZip"
+                [(ngModel)]="formData.addressZip"
+                name="addressZip"
+                placeholder="10001"
+                required
+              >
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Employment Section -->
-    <section class="form-section">
-      <div class="section-header">
-        <div class="section-icon">💼</div>
-        <div class="section-title">
-          <h2>Informacion de Empleo</h2>
-          <p>Detalles sobre tu trabajo en USA</p>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="workState">Estado donde trabajaste *</label>
-          <input
-            type="text"
-            id="workState"
-            [(ngModel)]="formData.workState"
-            name="workState"
-            placeholder="NY"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="employerName">Nombre del Empleador *</label>
-          <input
-            type="text"
-            id="employerName"
-            [(ngModel)]="formData.employerName"
-            name="employerName"
-            placeholder="Nombre de la empresa"
-            required
-          >
-        </div>
-      </div>
-    </section>
-
-    <!-- Bank Information Section -->
-    <section class="form-section">
-      <div class="section-header">
-        <div class="section-icon">🏦</div>
-        <div class="section-title">
-          <h2>Informacion Bancaria</h2>
-          <p>Datos para depositar tu reembolso</p>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="bankName">Nombre del Banco *</label>
-        <input
-          type="text"
-          id="bankName"
-          [(ngModel)]="formData.bankName"
-          name="bankName"
-          placeholder="Bank of America"
-          required
-        >
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="bankRoutingNumber">Routing Number *</label>
-          <input
-            type="text"
-            id="bankRoutingNumber"
-            [(ngModel)]="formData.bankRoutingNumber"
-            name="bankRoutingNumber"
-            placeholder="123456789"
-            required
-          >
+      <!-- Bank Information Section -->
+      <section class="form-section compact-section">
+        <div class="section-header">
+          <div class="section-icon">🏦</div>
+          <div class="section-title">
+            <h2>Informacion Bancaria</h2>
+            <p>Datos para depositar tu reembolso</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="bankAccountNumber">Account Number *</label>
-          <input
-            type="text"
-            id="bankAccountNumber"
-            [(ngModel)]="formData.bankAccountNumber"
-            name="bankAccountNumber"
-            placeholder="987654321"
-            required
-          >
+        <div class="form-stack">
+          <div class="form-group">
+            <label for="bankName">Nombre del Banco *</label>
+            <input
+              type="text"
+              id="bankName"
+              [(ngModel)]="formData.bankName"
+              name="bankName"
+              placeholder="Bank of America"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="bankRoutingNumber">Routing Number *</label>
+            <input
+              type="text"
+              id="bankRoutingNumber"
+              [(ngModel)]="formData.bankRoutingNumber"
+              name="bankRoutingNumber"
+              placeholder="123456789"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="bankAccountNumber">Account Number *</label>
+            <input
+              type="text"
+              id="bankAccountNumber"
+              [(ngModel)]="formData.bankAccountNumber"
+              name="bankAccountNumber"
+              placeholder="987654321"
+              required
+            >
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <!-- TurboTax Section (Optional) -->
     <section class="form-section">
@@ -261,16 +255,6 @@
       </div>
     </section>
 
-    <!-- Submit Buttons -->
-    <div class="form-actions">
-      <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSavingDraft">
-        <span>{{ isSavingDraft ? 'Guardando...' : 'Guardar Borrador' }}</span>
-      </button>
-      <button type="submit" class="btn-submit" [disabled]="isLoading">
-        <span>{{ isLoading ? 'Enviando...' : 'Enviar Formulario' }}</span>
-        <span class="submit-icon">→</span>
-      </button>
-    </div>
   </form>
 
   <!-- Help Card -->

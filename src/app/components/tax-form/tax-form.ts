@@ -166,4 +166,20 @@ export class TaxForm implements OnInit {
   goBack() {
     this.router.navigate(['/dashboard']);
   }
+
+  isFormComplete(): boolean {
+    return !!(
+      this.formData.ssn &&
+      this.formData.dateOfBirth &&
+      this.formData.addressStreet &&
+      this.formData.addressCity &&
+      this.formData.addressState &&
+      this.formData.addressZip &&
+      this.formData.workState &&
+      this.formData.employerName &&
+      this.formData.bankName &&
+      this.formData.bankRoutingNumber &&
+      this.formData.bankAccountNumber
+    );
+  }
 }

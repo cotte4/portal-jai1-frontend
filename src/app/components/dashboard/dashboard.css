@@ -11,200 +11,427 @@
 /* ==================== TOP SECTION ==================== */
 .top-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.5fr;
   gap: 20px;
-  flex-shrink: 0;
 }
 
-/* Primary CTA */
-.btn-primary-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px;
+/* ==================== REFUND CARD ==================== */
+.refund-card {
   background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(29, 52, 93, 0.25);
-}
-
-.btn-primary-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(29, 52, 93, 0.35);
-}
-
-.cta-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.cta-icon {
-  font-size: 36px;
-}
-
-.cta-text {
+  border-radius: 20px;
+  padding: 28px;
+  color: white;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
-.cta-title {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.cta-subtitle {
-  color: rgba(255,255,255,0.7);
-  font-size: 13px;
-}
-
-.cta-arrow {
-  color: white;
-  font-size: 24px;
-  opacity: 0.7;
-}
-
-/* Info Card */
-.info-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.refund-row {
+.refund-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
-.refund-info {
-  display: flex;
-  flex-direction: column;
+.refund-icon {
+  font-size: 24px;
 }
 
 .refund-label {
-  font-size: 13px;
-  color: #666;
+  font-size: 14px;
+  opacity: 0.8;
+  font-weight: 500;
 }
 
 .refund-amount {
-  font-size: 28px;
-  font-weight: 700;
-  color: #059669;
-  letter-spacing: -0.5px;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
 }
 
-.status-badge {
-  background: linear-gradient(135deg, #1D345D, #B21B43);
+.refund-calculated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.check-icon {
+  width: 18px;
+  height: 18px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.btn-recalculate {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: auto;
+}
+
+.btn-recalculate:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.refund-not-calculated {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.question-icon {
+  font-size: 32px;
+}
+
+.btn-calculate-cta {
+  background: white;
+  color: #1D345D;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
-  padding: 8px 16px;
-  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
 }
 
-.progress-track {
-  height: 8px;
+.btn-calculate-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-calculate-cta .arrow {
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+
+.btn-calculate-cta:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* ==================== PROGRESS CARD ==================== */
+.progress-card {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.progress-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.progress-icon {
+  font-size: 24px;
+}
+
+.progress-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.progress-badge.complete {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.progress-bar-container {
+  margin-bottom: 24px;
+}
+
+.progress-bar {
+  height: 10px;
   background: #e5e7eb;
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
-  margin-bottom: 16px;
 }
 
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #1D345D 0%, #B21B43 100%);
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: width 0.5s ease;
 }
 
-.status-steps-row {
+/* Checklist */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.checklist-item.done {
+  background: #ecfdf5;
+}
+
+.item-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.checklist-item.done .item-check {
+  background: #10b981;
+  color: white;
+}
+
+.item-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.checklist-item.done .item-text {
+  color: #065f46;
+}
+
+.item-action {
+  background: #1D345D;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item-action:hover {
+  background: #152844;
+}
+
+/* ==================== IRS SECTION ==================== */
+.irs-section {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.irs-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.mini-step {
+.irs-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.irs-icon {
+  font-size: 32px;
+}
+
+.irs-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.irs-title p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.irs-badge {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.irs-badge.complete {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.irs-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.irs-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.irs-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.irs-step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  flex: 1;
+  text-align: center;
+  padding: 16px 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  transition: all 0.2s;
 }
 
-.step-dot {
-  width: 14px;
-  height: 14px;
+.irs-step.done {
+  background: #ecfdf5;
+}
+
+.irs-step.active {
+  background: #eef2ff;
+  border: 2px solid #6366f1;
+}
+
+.step-indicator {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #d1d5db;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 
-.mini-step.done .step-dot {
-  background: #059669;
+.irs-step.done .step-indicator {
+  background: #10b981;
 }
 
-.mini-step.current .step-dot {
-  background: #1D345D;
-  box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.2);
+.irs-step.active .step-indicator {
+  background: #6366f1;
 }
 
-.step-label {
-  font-size: 12px;
+.step-number {
+  font-size: 16px;
+  font-weight: 700;
   color: #9ca3af;
-  font-weight: 500;
 }
 
-.mini-step.done .step-label {
-  color: #059669;
+.step-check {
+  font-size: 18px;
+  color: white;
 }
 
-.mini-step.current .step-label {
-  color: #1D345D;
-  font-weight: 600;
-}
-
-/* ==================== BOTTOM SECTION ==================== */
-.bottom-section {
-  flex: 1;
+.step-info {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  gap: 4px;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1D345D;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.irs-step.done .step-title {
+  color: #065f46;
+}
+
+/* ==================== ACTIONS SECTION ==================== */
+.actions-section {
+  flex: 1;
 }
 
 .section-title {
   font-size: 18px;
   color: #1D345D;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 16px;
 }
 
-/* Action Cards Grid */
 .action-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  flex: 1;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .action-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
 }
 
 .action-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   border-color: #1D345D;
 }
 
@@ -212,17 +439,21 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .card-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 24px;
+}
+
+.card-icon.purple {
+  background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
 }
 
 .card-icon.blue {
@@ -238,7 +469,7 @@
 }
 
 .card-badge {
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
   font-size: 10px;
   font-weight: 700;
@@ -256,27 +487,27 @@
 }
 
 .card-title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   color: #1D345D;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .card-desc {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.5;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
   flex: 1;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .card-action {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #1D345D;
 }
 
-/* Help Footer */
+/* ==================== HELP FOOTER ==================== */
 .help-footer {
   display: flex;
   align-items: center;
@@ -284,7 +515,6 @@
   padding: 20px 24px;
   background: linear-gradient(135deg, #f8f9fb, #eef0f4);
   border-radius: 16px;
-  margin-top: 20px;
   border: 1px dashed #d1d5db;
 }
 
@@ -328,13 +558,19 @@
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 1024px) {
-  .top-section {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 1200px) {
   .action-cards-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .irs-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .top-section {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -348,29 +584,31 @@
     grid-template-columns: 1fr;
   }
 
+  .irs-steps {
+    grid-template-columns: 1fr;
+  }
+
   .help-footer {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
 
-  .btn-primary-cta {
-    padding: 20px;
-  }
-
-  .cta-icon {
-    font-size: 28px;
-  }
-
-  .cta-title {
-    font-size: 16px;
-  }
-
-  .info-card {
+  .refund-card, .progress-card, .irs-section {
     padding: 20px;
   }
 
   .refund-amount {
-    font-size: 24px;
+    font-size: 32px;
+  }
+
+  .checklist-item {
+    flex-wrap: wrap;
+  }
+
+  .item-action {
+    width: 100%;
+    margin-top: 8px;
+    text-align: center;
   }
 }

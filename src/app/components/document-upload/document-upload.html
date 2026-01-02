@@ -1,3 +1,20 @@
+<!-- W2 Calculator Popup -->
+<div class="popup-overlay" *ngIf="showW2Popup" (click)="closeW2Popup()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <div class="popup-icon">🧮</div>
+    <h2>¡W2 detectado!</h2>
+    <p>¿Querés calcular tu posible devolución ahora mismo con este documento?</p>
+    <div class="popup-actions">
+      <button class="btn-popup-secondary" (click)="closeW2Popup()">
+        Ahora no
+      </button>
+      <button class="btn-popup-primary" (click)="goToCalculator()">
+        ¡Sí, calcular! 🚀
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="upload-content">
   <!-- Page Title -->
   <div class="page-title">

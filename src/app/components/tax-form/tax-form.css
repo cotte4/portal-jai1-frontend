@@ -6,9 +6,17 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
 }
 
-/* Page Title */
-.page-title {
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
   margin-bottom: 32px;
+}
+
+.page-title {
+  flex: 1;
 }
 
 .page-title h1 {
@@ -24,66 +32,39 @@
   margin: 0;
 }
 
-/* Progress Section */
-.progress-section {
-  background: white;
-  border-radius: 20px;
-  padding: 32px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.progress-steps {
+.header-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.progress-step {
+/* Sections Row - Side by side layout */
+.sections-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.compact-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
 }
 
-.step-number {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #f0f0f0;
-  color: #999;
+.compact-section .section-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.form-stack {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
-  transition: all 0.3s ease;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.progress-step.active .step-number {
-  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(178, 27, 67, 0.3);
-}
-
-.progress-step span {
-  color: #999;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.progress-step.active span {
-  color: #1D345D;
-  font-weight: 600;
-}
-
-.progress-line {
-  flex: 1;
-  height: 3px;
-  background: #e8e8e8;
-  margin: 0 8px;
-  margin-bottom: 36px;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 /* Messages */
@@ -241,14 +222,6 @@
   padding-right: 40px;
 }
 
-/* Form Actions */
-.form-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-top: 16px;
-}
-
 .btn-draft {
   background: white;
   color: #1D345D;
@@ -364,26 +337,40 @@
 }
 
 /* Responsive */
+@media (max-width: 900px) {
+  .sections-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .form-content {
     padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .header-actions .btn-draft,
+  .header-actions .btn-submit {
+    width: 100%;
+    justify-content: center;
   }
 
   .page-title h1 {
     font-size: 24px;
   }
 
-  .progress-steps {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .progress-line {
-    display: none;
-  }
-
   .form-grid,
-  .form-grid.three-columns {
+  .form-grid.three-columns,
+  .form-row {
     grid-template-columns: 1fr;
   }
 
@@ -398,15 +385,5 @@
 
   .form-section {
     padding: 24px 20px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .btn-draft,
-  .btn-submit {
-    width: 100%;
-    justify-content: center;
   }
 }

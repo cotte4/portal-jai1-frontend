@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentService } from '../../core/services/document.service';
+import { W2SharedService } from '../../core/services/w2-shared.service';
 import { Document, DocumentType } from '../../core/models';
 
 @Component({
@@ -14,6 +15,7 @@ import { Document, DocumentType } from '../../core/models';
 export class DocumentUpload implements OnInit {
   private router = inject(Router);
   private documentService = inject(DocumentService);
+  private w2SharedService = inject(W2SharedService);
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -21,6 +23,10 @@ export class DocumentUpload implements OnInit {
   errorMessage: string = '';
   isLoading: boolean = false;
   isUploading: boolean = false;
+
+  // W2 Calculator Popup
+  showW2Popup: boolean = false;
+  lastUploadedW2: Document | null = null;
 
   // Selected document type for upload
   selectedType: DocumentType = DocumentType.W2;
@@ -116,6 +122,12 @@ export class DocumentUpload implements OnInit {
         this.uploadedFiles.push(response.document);
         this.successMessage = `Archivo "${file.name}" subido correctamente!`;
         this.isUploading = false;
+
+        // If it's a W2, show the calculator popup
+        if (this.selectedType === DocumentType.W2) {
+          this.lastUploadedW2 = response.document;
+          this.showW2Popup = true;
+        }
       },
       error: (error) => {
         this.errorMessage = error.message || `Error al subir "${file.name}"`;
@@ -173,5 +185,23 @@ export class DocumentUpload implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  // W2 Popup actions
+  goToCalculator() {
+    this.showW2Popup = false;
+    if (this.lastUploadedW2) {
+      this.w2SharedService.notifyW2Uploaded({
+        file: new File([], this.lastUploadedW2.fileName),
+        source: 'documents',
+        document: this.lastUploadedW2
+      });
+    }
+    this.router.navigate(['/tax-calculator']);
+  }
+
+  closeW2Popup() {
+    this.showW2Popup = false;
+    this.lastUploadedW2 = null;
   }
 }
