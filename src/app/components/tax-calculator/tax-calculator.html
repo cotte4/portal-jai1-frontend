@@ -1,0 +1,184 @@
+<div class="calculator-container">
+  <!-- Background decoration -->
+  <div class="bg-decoration">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+  </div>
+
+  <!-- Upload State -->
+  <div class="calculator-card" *ngIf="state === 'upload'">
+    <div class="card-header">
+      <div class="header-icon">📄</div>
+      <h1>Calculadora de Reembolso</h1>
+      <p>Descubre cuánto podrías recibir de tu tax return en segundos</p>
+    </div>
+
+    <div class="upload-section">
+      <h2>Sube tu formulario W2</h2>
+      <p class="upload-hint">Tu W2 contiene toda la información que necesitamos para calcular tu reembolso estimado</p>
+
+      <div 
+        class="upload-zone"
+        [class.dragging]="isDragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+      >
+        <input 
+          type="file" 
+          #fileInput 
+          hidden 
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
+          (change)="onFileSelect($event)"
+        >
+        
+        <div class="upload-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        
+        <div class="upload-text">
+          <span class="upload-main">Arrastra tu W2 aquí</span>
+          <span class="upload-or">o</span>
+          <span class="upload-browse">haz clic para seleccionar</span>
+        </div>
+        
+        <div class="upload-formats">
+          <span>PDF</span>
+          <span>JPG</span>
+          <span>PNG</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="security-note">
+      <span class="security-icon">🔒</span>
+      <span>Tu información está protegida con encriptación de nivel bancario</span>
+    </div>
+
+    <div class="demo-section">
+      <span class="demo-text">¿No tienes tu W2 a mano?</span>
+      <button class="demo-button" (click)="runDemo()">Ver demostración →</button>
+    </div>
+  </div>
+
+  <!-- Calculating State -->
+  <div class="calculator-card calculating-card" *ngIf="state === 'calculating'">
+    <div class="calculating-content">
+      <div class="calculating-animation">
+        <div class="calc-ring"></div>
+        <div class="calc-ring calc-ring-2"></div>
+        <div class="calc-ring calc-ring-3"></div>
+        <div class="calc-icon">💰</div>
+      </div>
+
+      <h2 class="calculating-title">Estamos calculando tu posible devolución...</h2>
+      
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="calculationProgress"></div>
+        </div>
+        <span class="progress-text">{{ calculationProgress | number:'1.0-0' }}%</span>
+      </div>
+
+      <div class="calculating-steps">
+        <div class="step" [class.active]="calculationProgress >= 0">
+          <span class="step-icon">✓</span>
+          <span>Analizando documento...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 35">
+          <span class="step-icon">✓</span>
+          <span>Extrayendo información fiscal...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 70">
+          <span class="step-icon">✓</span>
+          <span>Calculando deducciones...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 95">
+          <span class="step-icon">✓</span>
+          <span>Generando estimado...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result State -->
+  <div class="calculator-card result-card" *ngIf="state === 'result'">
+    <div class="result-celebration">
+      <div class="confetti confetti-1">🎉</div>
+      <div class="confetti confetti-2">✨</div>
+      <div class="confetti confetti-3">💵</div>
+      <div class="confetti confetti-4">🎊</div>
+      <div class="confetti confetti-5">⭐</div>
+    </div>
+
+    <div class="result-content">
+      <div class="result-badge">¡Excelentes noticias!</div>
+      
+      <h2 class="result-title">Tu reembolso estimado es de</h2>
+      
+      <div class="result-amount">
+        <span class="currency">$</span>
+        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+        <span class="cents">.00</span>
+      </div>
+
+      <p class="result-subtitle">
+        Basado en la información de tu W2, podrías recibir este monto de regreso del IRS
+      </p>
+
+      <div class="result-highlights">
+        <div class="highlight">
+          <span class="highlight-icon">⚡</span>
+          <span>Proceso 100% online</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">📅</span>
+          <span>Recibe tu dinero en 2-3 semanas</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">💳</span>
+          <span>Depósito directo a tu cuenta</span>
+        </div>
+      </div>
+
+      <button class="cta-button" (click)="startProcess()">
+        <span>¡Quiero mi reembolso!</span>
+        <span class="cta-arrow">→</span>
+      </button>
+
+      <button class="reset-button" (click)="resetCalculator()">
+        Calcular con otro documento
+      </button>
+
+      <!-- Document saved indicator -->
+      <div class="saved-indicator" *ngIf="documentSaved">
+        <span class="saved-icon">✓</span>
+        <span>Documento guardado en tus archivos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save to Documents Popup -->
+  <div class="popup-overlay" *ngIf="showSavePopup" (click)="closeSavePopup()">
+    <div class="popup-card" (click)="$event.stopPropagation()">
+      <div class="popup-icon">📁</div>
+      <h2>¿Guardar tu W2?</h2>
+      <p>¿Querés guardar este documento en tus archivos de JAI1 para tenerlo disponible cuando completes tu declaración?</p>
+      <div class="popup-actions">
+        <button class="btn-popup-secondary" (click)="closeSavePopup()" [disabled]="isSavingDocument">
+          No, gracias
+        </button>
+        <button class="btn-popup-primary" (click)="saveToDocuments()" [disabled]="isSavingDocument">
+          {{ isSavingDocument ? 'Guardando...' : '¡Sí, guardar! 📥' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

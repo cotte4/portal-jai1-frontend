@@ -1,0 +1,163 @@
+<div class="tracking-container">
+  <!-- Header Section -->
+  <div class="tracking-header">
+    <div class="header-content">
+      <div class="header-icon">📍</div>
+      <div class="header-text">
+        <h1>Seguimiento de tu Declaración</h1>
+        <p>Conocé el estado actual de tu proceso de taxes</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="manualRefresh()" [disabled]="isRefreshing">
+        <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
+        <span>{{ isRefreshing ? 'Actualizando...' : 'Actualizar' }}</span>
+      </button>
+      <span class="last-update">Última actualización: {{ lastRefreshFormatted }}</span>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  @if (!isLoading) {
+    <div class="summary-cards">
+      <!-- Progress Card -->
+      <div class="summary-card progress-summary">
+        <div class="card-icon-bg">
+          <span>📊</span>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Progreso Total</span>
+          <div class="progress-display">
+            <span class="progress-value">{{ progressPercent }}%</span>
+            <div class="mini-progress">
+              <div class="mini-progress-fill" [style.width.%]="progressPercent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estimated Refund Card -->
+      <div class="summary-card refund-summary">
+        <div class="card-icon-bg green">
+          <span>💵</span>
+        </div>
+        <div class="card-content">
+          <span class="card-label">Reembolso Estimado</span>
+          <span class="card-value">
+            {{ estimatedRefund ? ('$' + estimatedRefund.toLocaleString()) : 'Por calcular' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Actual Refund Card (if available) -->
+      @if (actualRefund) {
+        <div class="summary-card actual-summary">
+          <div class="card-icon-bg gold">
+            <span>🏆</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Reembolso Final</span>
+            <span class="card-value highlight">${{ actualRefund.toLocaleString() }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando tu estado...</p>
+    </div>
+  } @else {
+    <!-- Timeline -->
+    <div class="timeline-container">
+      <div class="timeline-progress">
+        <div class="timeline-line">
+          <div class="timeline-line-fill" [style.height.%]="progressPercent"></div>
+        </div>
+      </div>
+
+      <div class="timeline-steps">
+        @for (step of steps; track step.id; let i = $index) {
+          <div 
+            class="timeline-step"
+            [class.completed]="step.status === 'completed'"
+            [class.active]="step.status === 'active'"
+            [class.rejected]="step.status === 'rejected'"
+            [class.pending]="step.status === 'pending'"
+            [style.animation-delay.ms]="i * 100"
+          >
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+              @if (step.status === 'completed') {
+                <span class="indicator-icon check">✓</span>
+              } @else if (step.status === 'rejected') {
+                <span class="indicator-icon cross">✗</span>
+              } @else if (step.status === 'active') {
+                <span class="indicator-icon pulse">●</span>
+              } @else {
+                <span class="indicator-number">{{ i + 1 }}</span>
+              }
+            </div>
+
+            <!-- Step Content -->
+            <div class="step-content">
+              <div class="step-header">
+                <span class="step-icon">{{ step.icon }}</span>
+                <div class="step-titles">
+                  <h3 class="step-title">{{ step.title }}</h3>
+                  <p class="step-description">{{ step.description }}</p>
+                </div>
+              </div>
+
+              <div class="step-details">
+                @if (step.date) {
+                  <div class="detail-item date">
+                    <span class="detail-icon">📅</span>
+                    <span>{{ step.date }}</span>
+                  </div>
+                }
+                <div class="detail-item status" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
+                  <span class="detail-text">{{ step.detail }}</span>
+                </div>
+              </div>
+
+              <!-- Active Step Animation -->
+              @if (step.status === 'active') {
+                <div class="active-indicator">
+                  <div class="pulse-ring"></div>
+                  <span class="active-text">En proceso</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <div class="help-card">
+      <div class="help-icon">💬</div>
+      <div class="help-content">
+        <h3>¿Tenés dudas sobre tu estado?</h3>
+        <p>Nuestro equipo está disponible para ayudarte con cualquier consulta</p>
+      </div>
+      <button class="btn-help" (click)="navigateTo('/messages')">
+        Contactar soporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Note -->
+  <div class="info-note">
+    <span class="note-icon">ℹ️</span>
+    <span class="note-text">
+      El estado se actualiza automáticamente cada 30 segundos. Los tiempos de procesamiento del IRS pueden variar.
+    </span>
+  </div>
+</div>
+
