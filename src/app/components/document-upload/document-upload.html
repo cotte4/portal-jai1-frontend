@@ -115,8 +115,10 @@
           (click)="removeFile(file, i)"
           title="Eliminar archivo"
           *ngIf="!file.isReviewed"
+          [disabled]="deletingDocId === file.id"
+          [class.deleting]="deletingDocId === file.id"
         >
-          <span>🗑️</span>
+          <span>{{ deletingDocId === file.id ? '⏳' : '🗑️' }}</span>
         </button>
       </div>
     </div>

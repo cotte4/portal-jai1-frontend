@@ -276,6 +276,29 @@ export interface UpdateStatusRequest {
   comment?: string;
 }
 
+// ============= CALCULATOR =============
+
+export type OcrConfidence = 'high' | 'medium' | 'low';
+
+export interface W2EstimateResponse {
+  box2Federal: number;
+  box17State: number;
+  estimatedRefund: number;
+  ocrConfidence: OcrConfidence;
+  w2FileName: string;
+  estimateId: string;
+}
+
+export interface W2EstimateHistoryItem {
+  id: string;
+  box2Federal: number;
+  box17State: number;
+  estimatedRefund: number;
+  w2FileName: string;
+  ocrConfidence: OcrConfidence;
+  createdAt: string;
+}
+
 // ============= API RESPONSES =============
 
 export interface ApiError {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ export class AdminDashboard implements OnInit {
   private router = inject(Router);
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   allClients: AdminClientListItem[] = []; // Full list for stats
   clients: AdminClientListItem[] = [];
@@ -65,11 +66,13 @@ export class AdminDashboard implements OnInit {
         this.applyLocalFilter();
         this.calculateStats();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading clients:', error);
         this.errorMessage = error?.error?.message || error?.message || 'Error al cargar clientes';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

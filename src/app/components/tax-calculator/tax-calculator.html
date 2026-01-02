@@ -56,6 +56,12 @@
       </div>
     </div>
 
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <span class="error-icon">⚠️</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+
     <div class="security-note">
       <span class="security-icon">🔒</span>
       <span>Tu información está protegida con encriptación de nivel bancario</span>
@@ -131,6 +137,27 @@
       <p class="result-subtitle">
         Basado en la información de tu W2, podrías recibir este monto de regreso del IRS
       </p>
+
+      <!-- Breakdown Section -->
+      <div class="result-breakdown">
+        <div class="breakdown-item">
+          <span class="breakdown-label">Federal (Box 2)</span>
+          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+        </div>
+        <div class="breakdown-divider">+</div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Estatal (Box 17)</span>
+          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+        </div>
+      </div>
+
+      <!-- Confidence Badge -->
+      <div class="confidence-badge" [class]="getConfidenceClass()">
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'high'">✓</span>
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'medium'">○</span>
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'low'">!</span>
+        <span>{{ getConfidenceLabel() }}</span>
+      </div>
 
       <div class="result-highlights">
         <div class="highlight">

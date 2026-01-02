@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,7 @@ export class AdminClientDetail implements OnInit {
   private adminService = inject(AdminService);
   private documentService = inject(DocumentService);
   private ticketService = inject(TicketService);
+  private cdr = inject(ChangeDetectorRef);
 
   clientId: string = '';
   client: ClientDetail | null = null;
@@ -61,10 +62,12 @@ export class AdminClientDetail implements OnInit {
           this.selectedClientStatus = data.taxCases[0].clientStatus;
         }
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al cargar cliente';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -73,9 +76,11 @@ export class AdminClientDetail implements OnInit {
     this.ticketService.getTickets(undefined, this.clientId).subscribe({
       next: (tickets) => {
         this.tickets = tickets;
+        this.cdr.detectChanges();
       },
       error: () => {
         // Silent fail for tickets
+        this.cdr.detectChanges();
       }
     });
   }
@@ -98,11 +103,13 @@ export class AdminClientDetail implements OnInit {
         this.successMessage = 'Estado actualizado correctamente';
         this.statusComment = '';
         this.isSaving = false;
+        this.cdr.detectChanges();
         this.loadClientData(); // Reload to get updated data
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al actualizar estado';
         this.isSaving = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -111,10 +118,12 @@ export class AdminClientDetail implements OnInit {
     this.adminService.markPaid(this.clientId).subscribe({
       next: () => {
         this.successMessage = 'Pago marcado como recibido';
+        this.cdr.detectChanges();
         this.loadClientData();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al marcar pago';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -130,6 +139,7 @@ export class AdminClientDetail implements OnInit {
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al eliminar cliente';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -141,6 +151,7 @@ export class AdminClientDetail implements OnInit {
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al descargar documento';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -153,9 +164,11 @@ export class AdminClientDetail implements OnInit {
         this.newMessage = '';
         this.loadTickets();
         this.successMessage = 'Mensaje enviado';
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al enviar mensaje';
+        this.cdr.detectChanges();
       }
     });
   }

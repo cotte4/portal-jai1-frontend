@@ -1,10 +1,11 @@
-import { Component, inject, NgZone, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
-import { DocumentType } from '../../core/models';
+import { CalculatorApiService } from '../../core/services/calculator-api.service';
+import { DocumentType, OcrConfidence } from '../../core/models';
 
 type CalculatorState = 'upload' | 'calculating' | 'result';
 
@@ -20,12 +21,20 @@ export class TaxCalculator implements OnInit {
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private calculatorResultService = inject(CalculatorResultService);
+  private calculatorApiService = inject(CalculatorApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   state: CalculatorState = 'upload';
   uploadedFile: File | null = null;
   isDragging = false;
   estimatedRefund = 0;
   calculationProgress = 0;
+
+  // Result breakdown
+  box2Federal = 0;
+  box17State = 0;
+  ocrConfidence: OcrConfidence = 'high';
+  errorMessage = '';
 
   // Popup states
   showSavePopup = false;
@@ -90,8 +99,50 @@ export class TaxCalculator implements OnInit {
   startCalculation() {
     this.state = 'calculating';
     this.calculationProgress = 0;
+    this.errorMessage = '';
 
-    // Simulate calculation progress with proper Angular zone
+    // If no file (demo mode), use mock calculation
+    if (!this.uploadedFile) {
+      this.runMockCalculation();
+      return;
+    }
+
+    // Start progress animation
+    const progressInterval = setInterval(() => {
+      if (this.calculationProgress < 90) {
+        this.calculationProgress += Math.random() * 10 + 3;
+        this.cdr.detectChanges();
+      }
+    }, 500);
+
+    // Call real API
+    this.calculatorApiService.estimateRefund(this.uploadedFile).subscribe({
+      next: (response) => {
+        clearInterval(progressInterval);
+        this.calculationProgress = 100;
+
+        this.box2Federal = response.box2Federal;
+        this.box17State = response.box17State;
+        this.estimatedRefund = response.estimatedRefund;
+        this.ocrConfidence = response.ocrConfidence;
+
+        setTimeout(() => {
+          this.showResult();
+        }, 600);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        clearInterval(progressInterval);
+        console.error('Calculator API error:', error);
+        this.errorMessage = error?.error?.message || 'Error al procesar el documento. Intenta nuevamente.';
+        this.state = 'upload';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  runMockCalculation() {
+    // Demo mode with simulated progress
     this.ngZone.runOutsideAngular(() => {
       const progressInterval = setInterval(() => {
         this.ngZone.run(() => {
@@ -99,8 +150,13 @@ export class TaxCalculator implements OnInit {
           if (this.calculationProgress >= 100) {
             this.calculationProgress = 100;
             clearInterval(progressInterval);
-            
-            // Show result after a brief pause
+
+            // Generate mock values
+            this.box2Federal = Math.floor(Math.random() * 1500) + 500;
+            this.box17State = Math.floor(Math.random() * 500) + 200;
+            this.estimatedRefund = this.box2Federal + this.box17State;
+            this.ocrConfidence = 'high';
+
             setTimeout(() => {
               this.showResult();
             }, 600);
@@ -111,8 +167,6 @@ export class TaxCalculator implements OnInit {
   }
 
   showResult() {
-    // Generate a realistic refund estimate between $800 and $2500
-    this.estimatedRefund = Math.floor(Math.random() * 1700) + 800;
     this.state = 'result';
 
     // Save the calculator result
@@ -127,6 +181,7 @@ export class TaxCalculator implements OnInit {
         this.showSavePopup = true;
       }, 1500);
     }
+    this.cdr.detectChanges();
   }
 
   resetCalculator() {
@@ -134,9 +189,26 @@ export class TaxCalculator implements OnInit {
     this.uploadedFile = null;
     this.estimatedRefund = 0;
     this.calculationProgress = 0;
+    this.box2Federal = 0;
+    this.box17State = 0;
+    this.ocrConfidence = 'high';
+    this.errorMessage = '';
     this.showSavePopup = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
+  }
+
+  getConfidenceLabel(): string {
+    const labels = {
+      high: 'Alta confianza',
+      medium: 'Confianza media',
+      low: 'Baja confianza'
+    };
+    return labels[this.ocrConfidence] || 'Alta confianza';
+  }
+
+  getConfidenceClass(): string {
+    return `confidence-${this.ocrConfidence}`;
   }
 
   runDemo() {

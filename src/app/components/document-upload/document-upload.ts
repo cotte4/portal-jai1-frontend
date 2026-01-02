@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ export class DocumentUpload implements OnInit {
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
+  private cdr = inject(ChangeDetectorRef);
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -23,6 +24,7 @@ export class DocumentUpload implements OnInit {
   errorMessage: string = '';
   isLoading: boolean = false;
   isUploading: boolean = false;
+  deletingDocId: string | null = null;
 
   // W2 Calculator Popup
   showW2Popup: boolean = false;
@@ -46,10 +48,12 @@ export class DocumentUpload implements OnInit {
       next: (documents) => {
         this.uploadedFiles = documents;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al cargar documentos';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -128,10 +132,12 @@ export class DocumentUpload implements OnInit {
           this.lastUploadedW2 = response.document;
           this.showW2Popup = true;
         }
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = error.message || `Error al subir "${file.name}"`;
         this.isUploading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -148,18 +154,30 @@ export class DocumentUpload implements OnInit {
   }
 
   removeFile(doc: Document, index: number) {
+    // Prevent double-click
+    if (this.deletingDocId) {
+      return;
+    }
+
     if (doc.isReviewed) {
       this.errorMessage = 'Este documento ya fue revisado. Contacta soporte para eliminarlo.';
       return;
     }
 
+    this.deletingDocId = doc.id;
+    this.errorMessage = '';
+
     this.documentService.delete(doc.id).subscribe({
       next: () => {
         this.uploadedFiles.splice(index, 1);
         this.successMessage = 'Archivo eliminado correctamente';
+        this.deletingDocId = null;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al eliminar archivo';
+        this.deletingDocId = null;
+        this.cdr.detectChanges();
       }
     });
   }
