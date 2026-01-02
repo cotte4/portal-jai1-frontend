@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.portaljai1.com/v1',
+  apiUrl: 'https://portal-jai1-backend-production-7bc7.up.railway.app',
   appName: 'Portal JAI1'
 };
