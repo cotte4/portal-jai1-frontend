@@ -52,6 +52,7 @@ export class Profile implements OnInit {
     firstName: '',
     lastName: '',
     phone: '',
+    dateOfBirth: '',
     street: '',
     city: '',
     state: '',
@@ -94,10 +95,13 @@ export class Profile implements OnInit {
       this.userEmail = 'demo@jai1.com';
     }
 
-    // Load profile picture from localStorage
-    const savedPicture = localStorage.getItem('profilePicture');
-    if (savedPicture) {
-      this.profilePicture = savedPicture;
+    // Load profile picture from localStorage (user-specific)
+    const userId = this.authService.currentUser?.id;
+    if (userId) {
+      const savedPicture = localStorage.getItem(`profilePicture_${userId}`);
+      if (savedPicture) {
+        this.profilePicture = savedPicture;
+      }
     }
 
     // Try to fetch profile data with a timeout
@@ -113,7 +117,13 @@ export class Profile implements OnInit {
           this.dni = response.profile.ssn || '';
           this.dateOfBirth = response.profile.dateOfBirth || '';
           this.isVerified = response.profile.profileComplete || false;
-          
+
+          // Initialize dateOfBirth in edit form (format for date input)
+          if (response.profile.dateOfBirth) {
+            const dob = new Date(response.profile.dateOfBirth);
+            this.editForm.dateOfBirth = dob.toISOString().split('T')[0];
+          }
+
           if (response.profile.address) {
             this.address = response.profile.address;
             this.editForm.street = response.profile.address.street || '';
@@ -167,8 +177,11 @@ export class Profile implements OnInit {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         this.profilePicture = result;
-        // Save to localStorage for persistence
-        localStorage.setItem('profilePicture', result);
+        // Save to localStorage for persistence (user-specific)
+        const userId = this.authService.currentUser?.id;
+        if (userId) {
+          localStorage.setItem(`profilePicture_${userId}`, result);
+        }
         this.successMessage = '¡Foto de perfil actualizada!';
         setTimeout(() => this.successMessage = '', 3000);
       };
@@ -178,7 +191,11 @@ export class Profile implements OnInit {
 
   removeProfilePicture() {
     this.profilePicture = null;
-    localStorage.removeItem('profilePicture');
+    // Remove from localStorage (user-specific)
+    const userId = this.authService.currentUser?.id;
+    if (userId) {
+      localStorage.removeItem(`profilePicture_${userId}`);
+    }
     this.successMessage = 'Foto de perfil eliminada';
     setTimeout(() => this.successMessage = '', 3000);
   }
@@ -199,30 +216,58 @@ export class Profile implements OnInit {
       return;
     }
     this.isSaving = true;
+    this.errorMessage = '';
 
-    // Save locally (in a real app, this would call an API)
-    setTimeout(() => {
-      this.userName = `${this.editForm.firstName} ${this.editForm.lastName}`.trim();
-      this.userPhone = this.editForm.phone;
-      this.address = {
+    // Call the API to persist changes
+    this.profileService.updateUserInfo({
+      firstName: this.editForm.firstName,
+      lastName: this.editForm.lastName,
+      phone: this.editForm.phone,
+      dateOfBirth: this.editForm.dateOfBirth || undefined,
+      address: {
         street: this.editForm.street,
         city: this.editForm.city,
         state: this.editForm.state,
         zip: this.editForm.zip
-      };
-      
-      // Save to localStorage for persistence
-      localStorage.setItem('profileData', JSON.stringify({
-        userName: this.userName,
-        phone: this.userPhone,
-        address: this.address
-      }));
-      
-      this.isSaving = false;
-      this.isEditing = false;
-      this.successMessage = '¡Cambios guardados correctamente!';
-      setTimeout(() => this.successMessage = '', 3000);
-    }, 500);
+      }
+    }).subscribe({
+      next: (response) => {
+        // Update local state with response data
+        this.userName = `${response.user.first_name} ${response.user.last_name}`.trim();
+        this.userPhone = response.user.phone || '';
+
+        if (response.address) {
+          this.address = {
+            street: response.address.street || '',
+            city: response.address.city || '',
+            state: response.address.state || '',
+            zip: response.address.zip || ''
+          };
+        }
+
+        if (response.dateOfBirth) {
+          this.dateOfBirth = response.dateOfBirth;
+        }
+
+        // Update authService currentUser
+        const currentUser = this.authService.currentUser;
+        if (currentUser) {
+          currentUser.firstName = response.user.first_name;
+          currentUser.lastName = response.user.last_name;
+          currentUser.phone = response.user.phone;
+        }
+
+        this.isSaving = false;
+        this.isEditing = false;
+        this.successMessage = '¡Cambios guardados correctamente!';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        this.isSaving = false;
+        this.errorMessage = error?.error?.message || 'Error al guardar los cambios';
+        setTimeout(() => this.errorMessage = '', 5000);
+      }
+    });
   }
 
   formatDate(dateStr: string): string {

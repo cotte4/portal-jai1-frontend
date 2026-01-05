@@ -30,6 +30,10 @@ export class Register {
   showConfirmPassword: boolean = false;
   isLoading: boolean = false;
 
+  // Modal state
+  showTermsModal: boolean = false;
+  showPrivacyModal: boolean = false;
+
   onRegister() {
     this.errorMessage = '';
     this.successMessage = '';
@@ -108,5 +112,20 @@ export class Register {
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  openTermsModal(event: Event) {
+    event.preventDefault();
+    this.showTermsModal = true;
+  }
+
+  openPrivacyModal(event: Event) {
+    event.preventDefault();
+    this.showPrivacyModal = true;
+  }
+
+  closeModal() {
+    this.showTermsModal = false;
+    this.showPrivacyModal = false;
   }
 }

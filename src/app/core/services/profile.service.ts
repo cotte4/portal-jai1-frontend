@@ -61,6 +61,27 @@ export class ProfileService {
     );
   }
 
+  updateUserInfo(data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    dateOfBirth?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      zip?: string;
+    };
+  }): Observable<{ user: any; address?: any; dateOfBirth?: string; message: string }> {
+    console.log('Updating user info:', data);
+    return this.http.patch<{ user: any; address?: any; message: string }>(
+      `${this.apiUrl}/profile/user-info`,
+      data
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Profile error:', error);
     return throwError(() => error);

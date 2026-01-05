@@ -193,14 +193,14 @@
         <!-- Terms Checkbox -->
         <div class="terms-check">
           <label class="custom-checkbox">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               [(ngModel)]="agreeToTerms"
               name="agreeToTerms"
             >
             <span class="checkmark"></span>
             <span class="terms-text">
-              Acepto los <a href="#" class="terms-link">Términos y Condiciones</a> y la <a href="#" class="terms-link">Política de Privacidad</a>
+              Acepto los <a href="#" class="terms-link" (click)="openTermsModal($event)">Términos y Condiciones</a> y la <a href="#" class="terms-link" (click)="openPrivacyModal($event)">Política de Privacidad</a>
             </span>
           </label>
         </div>
@@ -218,9 +218,128 @@
 
       <!-- Footer -->
       <p class="form-footer">
-        ¿Ya tenés cuenta? 
+        ¿Ya tenés cuenta?
         <a (click)="goToLogin()">Iniciá sesión</a>
       </p>
     </div>
   </div>
+
+  <!-- Terms Modal -->
+  @if (showTermsModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Términos y Condiciones</h3>
+          <button class="modal-close" (click)="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <h4>1. Aceptación de los Términos</h4>
+          <p>Al registrarte y utilizar los servicios de J/AI1, aceptás estos términos y condiciones en su totalidad. Si no estás de acuerdo con alguna parte de estos términos, no deberías utilizar nuestros servicios.</p>
+
+          <h4>2. Descripción del Servicio</h4>
+          <p>J/AI1 proporciona servicios de asistencia para la recuperación de impuestos para estudiantes con visa J1 en Estados Unidos. Nuestro equipo de profesionales te ayudará a presentar tu declaración de impuestos de manera eficiente.</p>
+
+          <h4>3. Requisitos del Usuario</h4>
+          <p>Para utilizar nuestros servicios, debés:</p>
+          <ul>
+            <li>Ser mayor de 18 años</li>
+            <li>Proporcionar información veraz y actualizada</li>
+            <li>Tener derecho legal a trabajar en Estados Unidos con visa J1</li>
+            <li>Mantener la confidencialidad de tus credenciales de acceso</li>
+          </ul>
+
+          <h4>4. Responsabilidades del Usuario</h4>
+          <p>El usuario es responsable de:</p>
+          <ul>
+            <li>La exactitud de la información proporcionada</li>
+            <li>Mantener sus datos de acceso seguros</li>
+            <li>Notificar cualquier uso no autorizado de su cuenta</li>
+            <li>Cumplir con las leyes fiscales aplicables</li>
+          </ul>
+
+          <h4>5. Tarifas y Pagos</h4>
+          <p>Nuestras tarifas se descontarán del reembolso obtenido. No hay costos ocultos ni pagos por adelantado. Solo cobramos si obtenés tu reembolso.</p>
+
+          <h4>6. Limitación de Responsabilidad</h4>
+          <p>J/AI1 no se hace responsable por errores en la información proporcionada por el usuario ni por decisiones del IRS que estén fuera de nuestro control.</p>
+
+          <h4>7. Modificaciones</h4>
+          <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados a través de nuestra plataforma.</p>
+
+          <p class="modal-footer-text">Última actualización: Enero 2025</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-close" (click)="closeModal()">Entendido</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Privacy Policy Modal -->
+  @if (showPrivacyModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Política de Privacidad</h3>
+          <button class="modal-close" (click)="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <h4>1. Información que Recopilamos</h4>
+          <p>Recopilamos la siguiente información para procesar tu declaración de impuestos:</p>
+          <ul>
+            <li>Datos personales: nombre, email, teléfono</li>
+            <li>Información fiscal: SSN, W-2, dirección</li>
+            <li>Información bancaria para el depósito del reembolso</li>
+            <li>Información de empleo y visa</li>
+          </ul>
+
+          <h4>2. Uso de la Información</h4>
+          <p>Utilizamos tu información exclusivamente para:</p>
+          <ul>
+            <li>Procesar tu declaración de impuestos</li>
+            <li>Comunicarnos contigo sobre el estado de tu caso</li>
+            <li>Cumplir con requisitos legales y regulatorios</li>
+            <li>Mejorar nuestros servicios</li>
+          </ul>
+
+          <h4>3. Protección de Datos</h4>
+          <p>Implementamos medidas de seguridad avanzadas para proteger tu información:</p>
+          <ul>
+            <li>Encriptación AES-256 para datos sensibles</li>
+            <li>Servidores seguros con certificación SSL</li>
+            <li>Acceso restringido solo a personal autorizado</li>
+            <li>Auditorías de seguridad regulares</li>
+          </ul>
+
+          <h4>4. Compartir Información</h4>
+          <p>No vendemos ni compartimos tu información personal con terceros, excepto cuando sea necesario para:</p>
+          <ul>
+            <li>Cumplir con obligaciones legales (IRS)</li>
+            <li>Procesar tu declaración de impuestos</li>
+            <li>Proteger nuestros derechos legales</li>
+          </ul>
+
+          <h4>5. Retención de Datos</h4>
+          <p>Conservamos tu información durante el tiempo necesario para cumplir con las obligaciones fiscales y legales, generalmente 7 años según las regulaciones del IRS.</p>
+
+          <h4>6. Tus Derechos</h4>
+          <p>Tenés derecho a:</p>
+          <ul>
+            <li>Acceder a tu información personal</li>
+            <li>Solicitar la corrección de datos incorrectos</li>
+            <li>Solicitar la eliminación de tu cuenta</li>
+            <li>Retirar tu consentimiento en cualquier momento</li>
+          </ul>
+
+          <h4>7. Contacto</h4>
+          <p>Para cualquier consulta sobre privacidad, podés contactarnos a través de nuestro sistema de soporte.</p>
+
+          <p class="modal-footer-text">Última actualización: Enero 2025</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-close" (click)="closeModal()">Entendido</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

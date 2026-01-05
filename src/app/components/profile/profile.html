@@ -118,6 +118,11 @@
             <input type="tel" [(ngModel)]="editForm.phone" placeholder="+54 9 XXX XXX XXXX" />
           </div>
 
+          <div class="form-group">
+            <label>Fecha de nacimiento</label>
+            <input type="date" [(ngModel)]="editForm.dateOfBirth" />
+          </div>
+
           <button class="btn-save" (click)="saveChanges()" [disabled]="isSaving">
             @if (isSaving) {
               <span class="spinner"></span>

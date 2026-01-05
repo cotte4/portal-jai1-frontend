@@ -537,9 +537,23 @@
   cursor: not-allowed;
 }
 
+.btn-google {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.btn-google:hover {
+  border-color: #4285F4;
+  background: #f8fafc;
+}
+
 .social-icon {
   font-size: 18px;
   font-weight: 700;
+}
+
+.google-icon {
+  flex-shrink: 0;
 }
 
 /* Form Footer */

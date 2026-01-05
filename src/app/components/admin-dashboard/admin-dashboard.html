@@ -128,11 +128,19 @@
         <div class="table-body">
           <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
             <div class="col-client">
-              <div class="client-avatar">
+              <div class="client-avatar" [class.ready]="client.isReadyToPresent">
                 {{ getInitials(client.user?.firstName, client.user?.lastName) }}
               </div>
-              <div class="client-name">
-                {{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}
+              <div class="client-info">
+                <div class="client-name">
+                  {{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}
+                  <span class="ready-badge" *ngIf="client.isReadyToPresent">✓</span>
+                </div>
+                <div class="missing-tags" *ngIf="client.missingItems && client.missingItems.length > 0">
+                  <span class="missing-tag" *ngFor="let item of client.missingItems">
+                    {{ item }}
+                  </span>
+                </div>
               </div>
             </div>
 

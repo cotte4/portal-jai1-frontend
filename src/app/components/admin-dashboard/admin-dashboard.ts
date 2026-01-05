@@ -40,6 +40,8 @@ export class AdminDashboard implements OnInit {
   // Status filter options
   statusFilters = [
     { value: 'all', label: 'Todos' },
+    { value: 'ready_to_present', label: '✓ Listos para Presentar' },
+    { value: 'incomplete', label: '⚠ Incompletos' },
     { value: 'sin_asignar', label: 'Sin Asignar' },
     { value: InternalStatus.REVISION_DE_REGISTRO, label: 'Revision de Registro' },
     { value: InternalStatus.ESPERANDO_DATOS, label: 'Esperando Datos' },
@@ -80,15 +82,23 @@ export class AdminDashboard implements OnInit {
   // Apply filter locally instead of making API calls
   applyLocalFilter() {
     if (this.selectedFilter === 'all') {
-      this.filteredClients = this.searchQuery 
+      this.filteredClients = this.searchQuery
         ? this.allClients.filter(c => this.matchesSearch(c))
         : this.allClients;
+    } else if (this.selectedFilter === 'ready_to_present') {
+      this.filteredClients = this.allClients.filter(c =>
+        c.isReadyToPresent && this.matchesSearch(c)
+      );
+    } else if (this.selectedFilter === 'incomplete') {
+      this.filteredClients = this.allClients.filter(c =>
+        !c.isReadyToPresent && this.matchesSearch(c)
+      );
     } else if (this.selectedFilter === 'sin_asignar') {
-      this.filteredClients = this.allClients.filter(c => 
+      this.filteredClients = this.allClients.filter(c =>
         !c.internalStatus && this.matchesSearch(c)
       );
     } else {
-      this.filteredClients = this.allClients.filter(c => 
+      this.filteredClients = this.allClients.filter(c =>
         c.internalStatus === this.selectedFilter && this.matchesSearch(c)
       );
     }

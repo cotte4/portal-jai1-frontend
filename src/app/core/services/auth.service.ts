@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
 import {
@@ -25,12 +25,57 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   private apiUrl = environment.apiUrl;
+  private initialized = false;
 
   constructor() {
     // Load user from storage on init
     const user = this.storage.getUser<User>();
     if (user) {
       this.currentUserSubject.next(user);
+    }
+  }
+
+  /**
+   * Initialize auth state - check if tokens need refresh
+   * Call this on app startup
+   */
+  async initializeAuth(): Promise<void> {
+    if (this.initialized) return;
+    this.initialized = true;
+
+    const accessToken = this.storage.getAccessToken();
+    const refreshToken = this.storage.getRefreshToken();
+
+    if (!accessToken || !refreshToken) {
+      return;
+    }
+
+    // Check if access token is expired or about to expire (within 1 minute)
+    if (this.isTokenExpired(accessToken, 60)) {
+      console.log('Access token expired, attempting refresh...');
+      try {
+        await this.refreshToken().toPromise();
+        console.log('Token refreshed successfully');
+      } catch (error) {
+        console.log('Token refresh failed, clearing session');
+        this.storage.clearAuth();
+        this.currentUserSubject.next(null);
+      }
+    }
+  }
+
+  /**
+   * Check if JWT token is expired
+   * @param token JWT token string
+   * @param bufferSeconds Seconds before actual expiry to consider it expired
+   */
+  private isTokenExpired(token: string, bufferSeconds: number = 0): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000; // Convert to milliseconds
+      return Date.now() >= (exp - bufferSeconds * 1000);
+    } catch {
+      return true; // If we can't parse, consider it expired
     }
   }
 
@@ -137,6 +182,18 @@ export class AuthService {
 
     this.storage.setAccessToken(accessToken);
     this.storage.setRefreshToken(refreshToken);
+    this.storage.setUser(user);
+    this.currentUserSubject.next(user);
+  }
+
+  /**
+   * Handle Google OAuth callback - stores tokens and updates user state
+   */
+  handleGoogleAuth(response: { access_token: string; refresh_token: string; user: any }): void {
+    const user = this.mapUserFromApi(response.user);
+
+    this.storage.setAccessToken(response.access_token);
+    this.storage.setRefreshToken(response.refresh_token);
     this.storage.setUser(user);
     this.currentUserSubject.next(user);
   }

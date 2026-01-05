@@ -73,6 +73,7 @@ export enum ProblemType {
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
@@ -252,6 +253,7 @@ export interface Notification {
 export interface AdminClientListItem {
   id: string;
   user: {
+    id?: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -259,6 +261,10 @@ export interface AdminClientListItem {
   internalStatus: InternalStatus;
   clientStatus: ClientStatus;
   paymentReceived: boolean;
+  profileComplete: boolean;
+  isDraft: boolean;
+  missingItems: string[];
+  isReadyToPresent: boolean;
   createdAt: string;
 }
 

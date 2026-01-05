@@ -17,16 +17,18 @@ import { ResetPassword } from './components/reset-password/reset-password';
 import { Chatbot } from './components/chatbot/chatbot';
 import { MainLayout } from './components/main-layout/main-layout';
 import { Profile } from './components/profile/profile';
+import { GoogleCallback } from './components/google-callback/google-callback';
 
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  
+
   // Public routes
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
   { path: 'reset-password', component: ResetPassword },
+  { path: 'auth/google/callback', component: GoogleCallback },
 
   // Admin routes
   { path: 'admin-login', component: AdminLogin },
