@@ -76,17 +76,27 @@
       </div>
     }
 
+    <!-- Profile Locked Notice -->
+    @if (isVerified) {
+      <div class="alert info">
+        <span>🔒</span>
+        <span>Perfil bloqueado. Contacta soporte para realizar cambios.</span>
+      </div>
+    }
+
     <!-- Personal Data Section -->
     <div class="info-section">
       <div class="section-header">
         <h2>Mis datos personales</h2>
-        <button class="btn-edit" (click)="toggleEdit()">
-          @if (isEditing) {
-            <span>Cancelar</span>
-          } @else {
-            <span>✏️ Editar</span>
-          }
-        </button>
+        @if (!isVerified) {
+          <button class="btn-edit" (click)="toggleEdit()">
+            @if (isEditing) {
+              <span>Cancelar</span>
+            } @else {
+              <span>✏️ Editar</span>
+            }
+          </button>
+        }
       </div>
 
       @if (isEditing) {
@@ -180,7 +190,9 @@
             <div class="empty-address">
               <span class="empty-icon">🏠</span>
               <span>No has agregado tu domicilio</span>
-              <button class="btn-add-address" (click)="toggleEdit()">Agregar dirección</button>
+              @if (!isVerified) {
+                <button class="btn-add-address" (click)="toggleEdit()">Agregar dirección</button>
+              }
             </div>
           }
         </div>

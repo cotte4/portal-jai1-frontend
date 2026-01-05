@@ -54,6 +54,12 @@ export class TaxForm implements OnInit {
     this.profileService.getDraft().subscribe({
       next: (profile) => {
         if (profile) {
+          // If profile is already complete (not a draft), redirect to dashboard
+          if (profile.profileComplete && !profile.isDraft) {
+            this.router.navigate(['/dashboard']);
+            return;
+          }
+
           this.formData = {
             ssn: profile.ssn || '',
             dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',

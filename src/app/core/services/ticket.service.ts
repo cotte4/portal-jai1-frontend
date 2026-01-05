@@ -20,7 +20,7 @@ export class TicketService {
   getTickets(status?: TicketStatus, userId?: string): Observable<Ticket[]> {
     const params: any = {};
     if (status) params.status = status;
-    if (userId) params.userId = userId;
+    if (userId) params.user_id = userId;
 
     return this.http.get<Ticket[]>(`${this.apiUrl}/tickets`, { params }).pipe(
       catchError(this.handleError)

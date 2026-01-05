@@ -53,7 +53,19 @@ export enum NotificationType {
   STATUS_CHANGE = 'status_change',
   DOCS_MISSING = 'docs_missing',
   MESSAGE = 'message',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
+  PROBLEM_ALERT = 'problem_alert'
+}
+
+export enum ProblemType {
+  MISSING_DOCUMENTS = 'missing_documents',
+  INCORRECT_INFORMATION = 'incorrect_information',
+  IRS_VERIFICATION = 'irs_verification',
+  BANK_ISSUE = 'bank_issue',
+  STATE_ISSUE = 'state_issue',
+  FEDERAL_ISSUE = 'federal_issue',
+  CLIENT_UNRESPONSIVE = 'client_unresponsive',
+  OTHER = 'other'
 }
 
 // ============= AUTH =============
@@ -162,6 +174,12 @@ export interface TaxCase {
   paymentReceived: boolean;
   commissionPaid: boolean;
   statusUpdatedAt: string;
+  adminStep?: number;
+  hasProblem: boolean;
+  problemStep?: number;
+  problemType?: ProblemType;
+  problemDescription?: string;
+  problemResolvedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

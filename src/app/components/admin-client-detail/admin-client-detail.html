@@ -70,6 +70,51 @@
       </div>
     </div>
 
+    <!-- Step Control Section -->
+    <section class="step-control-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="step-control-header">
+        <h3>Control de Pasos</h3>
+        <div class="step-control-actions">
+          <button class="btn-problem" [class.has-problem]="hasProblem" (click)="openProblemModal()">
+            <span *ngIf="hasProblem" class="problem-indicator"></span>
+            {{ hasProblem ? 'Ver Problema' : 'Marcar Problema' }}
+          </button>
+          <button class="btn-notify" (click)="openNotifyModal()">
+            Enviar Notificacion
+          </button>
+        </div>
+      </div>
+      <div class="step-progress">
+        <div class="step-track">
+          <div class="step-track-fill" [style.width.%]="((currentStep - 1) / 4) * 100"></div>
+        </div>
+        <div class="step-buttons">
+          <button
+            *ngFor="let label of stepLabels; let i = index"
+            class="step-button"
+            [class.active]="currentStep === i + 1"
+            [class.completed]="currentStep > i + 1"
+            [class.has-problem]="hasProblem && client.taxCases[0].problemStep === i + 1"
+            (click)="setStep(i + 1)"
+            [disabled]="isSaving"
+          >
+            <span class="step-number">{{ i + 1 }}</span>
+            <span class="step-label">{{ label }}</span>
+          </button>
+        </div>
+      </div>
+      <div class="problem-banner" *ngIf="hasProblem">
+        <span class="problem-icon">!</span>
+        <div class="problem-info">
+          <strong>{{ getProblemTypeLabel(selectedProblemType) }}</strong>
+          <p *ngIf="problemDescription">{{ problemDescription }}</p>
+        </div>
+        <button class="btn-resolve" (click)="resolveProblem()" [disabled]="isSaving">
+          Resolver
+        </button>
+      </div>
+    </section>
+
     <!-- Action Buttons -->
     <div class="action-buttons">
       <button class="btn-action btn-paid" (click)="markPaid()" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
@@ -240,15 +285,28 @@
             </div>
           </div>
 
-          <div class="status-history-list">
-            <div class="history-item" *ngFor="let history of client.statusHistory">
-              <div class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-              <div class="history-change">
-                <span class="old-status">{{ history.previousStatus || 'Nuevo' }}</span>
-                →
-                <span class="new-status">{{ history.newStatus }}</span>
+          <div class="status-history-timeline">
+            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index">
+              <div class="history-marker">
+                <div class="marker-dot" [class.first]="i === 0"></div>
+                <div class="marker-line" *ngIf="i < client.statusHistory.length - 1"></div>
               </div>
-              <div class="history-comment" *ngIf="history.comment">{{ history.comment }}</div>
+              <div class="history-content">
+                <div class="history-header">
+                  <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="history-admin" *ngIf="history.changedBy">
+                    por {{ history.changedBy.firstName }} {{ history.changedBy.lastName }}
+                  </span>
+                </div>
+                <div class="history-change">
+                  <span class="status-badge old">{{ history.previousStatus || 'Nuevo' }}</span>
+                  <span class="arrow">→</span>
+                  <span class="status-badge new">{{ history.newStatus }}</span>
+                </div>
+                <div class="history-comment" *ngIf="history.comment">
+                  "{{ history.comment }}"
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -275,26 +333,26 @@
             </div>
           </div>
 
-          <div class="messages-container" *ngIf="selectedTicketId">
+          <div class="messages-container" *ngIf="selectedTicket">
             <div class="messages-list">
-              <div
-                class="message-bubble"
-                *ngFor="let ticket of tickets"
-              >
-                <div *ngIf="ticket.id === selectedTicketId && ticket.messages">
-                  <div class="message-item" *ngFor="let msg of ticket.messages">
-                    <div class="message-header">
-                      <span class="message-sender">
-                        {{ msg.sender?.firstName || 'Usuario' }}
-                      </span>
-                      <span class="message-time">
-                        {{ msg.createdAt | date:'dd/MM HH:mm' }}
-                      </span>
-                    </div>
-                    <div class="message-text">{{ msg.message }}</div>
-                  </div>
+              <div class="message-item"
+                   *ngFor="let msg of selectedTicket.messages"
+                   [class.admin-message]="msg.sender?.role === 'admin'"
+                   [class.client-message]="msg.sender?.role !== 'admin'">
+                <div class="message-header">
+                  <span class="sender-name">{{ msg.sender?.firstName || 'Usuario' }}</span>
+                  <span class="message-date">{{ msg.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
+                <div class="message-text">{{ msg.message }}</div>
               </div>
+            </div>
+
+            <!-- Ticket Messages -->
+            <div class="ticket-error-message" *ngIf="ticketErrorMessage">
+              {{ ticketErrorMessage }}
+            </div>
+            <div class="ticket-success-message" *ngIf="ticketSuccessMessage">
+              {{ ticketSuccessMessage }}
             </div>
 
             <div class="message-input">
@@ -302,11 +360,12 @@
                 [(ngModel)]="newMessage"
                 placeholder="Escribe tu respuesta..."
                 rows="3"
+                [disabled]="isSendingMessage"
                 (keydown.enter)="sendMessage(); $event.preventDefault()"
               ></textarea>
-              <button class="btn-send" (click)="sendMessage()" [disabled]="!newMessage.trim()">
-                <span>Enviar</span>
-                <span class="send-icon">→</span>
+              <button class="btn-send" (click)="sendMessage()" [disabled]="!newMessage.trim() || isSendingMessage">
+                <span>{{ isSendingMessage ? 'Enviando...' : 'Enviar' }}</span>
+                <span class="send-icon" *ngIf="!isSendingMessage">-></span>
               </button>
             </div>
           </div>
@@ -319,4 +378,107 @@
       </div>
     </div>
   </main>
+
+  <!-- Problem Modal -->
+  <div class="modal-overlay" *ngIf="showProblemModal" (click)="closeProblemModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ hasProblem ? 'Problema Actual' : 'Marcar Problema' }}</h3>
+        <button class="modal-close" (click)="closeProblemModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" *ngIf="!hasProblem">
+          <label>Tipo de Problema</label>
+          <select [(ngModel)]="selectedProblemType">
+            <option [ngValue]="null" disabled>Seleccione un tipo...</option>
+            <option *ngFor="let type of problemTypeOptions" [ngValue]="type">
+              {{ getProblemTypeLabel(type) }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descripcion</label>
+          <textarea
+            [(ngModel)]="problemDescription"
+            placeholder="Describa el problema..."
+            rows="4"
+            [readonly]="hasProblem"
+          ></textarea>
+        </div>
+        <div class="current-problem-info" *ngIf="hasProblem">
+          <div class="info-row">
+            <span class="info-label">Tipo:</span>
+            <span class="info-value">{{ getProblemTypeLabel(selectedProblemType) }}</span>
+          </div>
+          <div class="info-row" *ngIf="client?.taxCases?.[0]?.problemStep">
+            <span class="info-label">Paso afectado:</span>
+            <span class="info-value">{{ stepLabels[(client?.taxCases?.[0]?.problemStep || 1) - 1] }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeProblemModal()">Cancelar</button>
+        <button
+          *ngIf="!hasProblem"
+          class="btn-save"
+          (click)="saveProblem()"
+          [disabled]="isSaving || !selectedProblemType"
+        >
+          {{ isSaving ? 'Guardando...' : 'Guardar Problema' }}
+        </button>
+        <button
+          *ngIf="hasProblem"
+          class="btn-resolve-modal"
+          (click)="resolveProblem()"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? 'Resolviendo...' : 'Marcar como Resuelto' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div class="modal-overlay" *ngIf="showNotifyModal" (click)="closeNotifyModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Enviar Notificacion al Cliente</h3>
+        <button class="modal-close" (click)="closeNotifyModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Titulo</label>
+          <input
+            type="text"
+            [(ngModel)]="notifyTitle"
+            placeholder="Titulo de la notificacion..."
+          />
+        </div>
+        <div class="form-group">
+          <label>Mensaje</label>
+          <textarea
+            [(ngModel)]="notifyMessage"
+            placeholder="Escriba el mensaje..."
+            rows="4"
+          ></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="notifySendEmail" />
+            <span>Enviar tambien por email</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeNotifyModal()">Cancelar</button>
+        <button
+          class="btn-save"
+          (click)="sendNotification()"
+          [disabled]="isSaving || !notifyTitle.trim() || !notifyMessage.trim()"
+        >
+          {{ isSaving ? 'Enviando...' : 'Enviar Notificacion' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

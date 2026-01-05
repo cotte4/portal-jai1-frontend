@@ -97,6 +97,47 @@ export class AdminService {
     );
   }
 
+  updateAdminStep(clientId: string, step: number): Observable<{ message: string; step: number }> {
+    return this.http.patch<{ message: string; step: number }>(
+      `${this.apiUrl}/admin/clients/${clientId}/step`,
+      { step }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  setProblem(
+    clientId: string,
+    problemData: {
+      hasProblem: boolean;
+      problemType?: string;
+      problemDescription?: string;
+    }
+  ): Observable<{ message: string; hasProblem: boolean }> {
+    return this.http.patch<{ message: string; hasProblem: boolean }>(
+      `${this.apiUrl}/admin/clients/${clientId}/problem`,
+      problemData
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  sendClientNotification(
+    clientId: string,
+    notifyData: {
+      title: string;
+      message: string;
+      sendEmail?: boolean;
+    }
+  ): Observable<{ message: string; emailSent: boolean }> {
+    return this.http.post<{ message: string; emailSent: boolean }>(
+      `${this.apiUrl}/admin/clients/${clientId}/notify`,
+      notifyData
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

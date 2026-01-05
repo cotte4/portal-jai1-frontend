@@ -11,7 +11,8 @@ import {
   ClientStatus,
   Document,
   Ticket,
-  UpdateStatusRequest
+  UpdateStatusRequest,
+  ProblemType
 } from '../../core/models';
 
 @Component({
@@ -42,14 +43,37 @@ export class AdminClientDetail implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
 
+  // Ticket loading states
+  isLoadingTickets: boolean = false;
+  isSendingMessage: boolean = false;
+  ticketErrorMessage: string = '';
+  ticketSuccessMessage: string = '';
+
   // Status options
   internalStatusOptions = Object.values(InternalStatus);
   clientStatusOptions = Object.values(ClientStatus);
+  problemTypeOptions = Object.values(ProblemType);
+
+  // Step control
+  currentStep: number = 1;
+  stepLabels = ['Recepcion', 'Revision', 'Proceso', 'Verificacion', 'Finalizado'];
+
+  // Problem tracking
+  showProblemModal: boolean = false;
+  hasProblem: boolean = false;
+  selectedProblemType: ProblemType | null = null;
+  problemDescription: string = '';
+
+  // Notification
+  showNotifyModal: boolean = false;
+  notifyTitle: string = '';
+  notifyMessage: string = '';
+  notifySendEmail: boolean = false;
 
   ngOnInit() {
     this.clientId = this.route.snapshot.params['id'];
     this.loadClientData();
-    this.loadTickets();
+    // Tickets will be loaded after client data is loaded (need userId, not clientId)
   }
 
   loadClientData() {
@@ -58,29 +82,46 @@ export class AdminClientDetail implements OnInit {
       next: (data) => {
         this.client = data;
         if (data.taxCases && data.taxCases.length > 0) {
-          this.selectedInternalStatus = data.taxCases[0].internalStatus;
-          this.selectedClientStatus = data.taxCases[0].clientStatus;
+          const taxCase = data.taxCases[0];
+          this.selectedInternalStatus = taxCase.internalStatus;
+          this.selectedClientStatus = taxCase.clientStatus;
+          this.currentStep = taxCase.adminStep || 1;
+          this.hasProblem = taxCase.hasProblem || false;
+          this.selectedProblemType = taxCase.problemType || null;
+          this.problemDescription = taxCase.problemDescription || '';
         }
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+        // Load tickets using the user ID (not profile ID)
+        if (data.user?.id) {
+          this.loadTickets(data.user.id);
+        }
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al cargar cliente';
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
 
-  loadTickets() {
-    this.ticketService.getTickets(undefined, this.clientId).subscribe({
+  loadTickets(userId?: string) {
+    const userIdToUse = userId || this.client?.user?.id;
+    if (!userIdToUse) return;
+
+    this.isLoadingTickets = true;
+    this.ticketErrorMessage = '';
+    this.ticketService.getTickets(undefined, userIdToUse).subscribe({
       next: (tickets) => {
         this.tickets = tickets;
-        this.cdr.detectChanges();
+        this.isLoadingTickets = false;
+        this.cdr.markForCheck();
       },
-      error: () => {
-        // Silent fail for tickets
-        this.cdr.detectChanges();
+      error: (error) => {
+        this.ticketErrorMessage = 'Error al cargar los tickets';
+        this.isLoadingTickets = false;
+        console.error('Error loading tickets:', error);
+        this.cdr.markForCheck();
       }
     });
   }
@@ -100,16 +141,16 @@ export class AdminClientDetail implements OnInit {
 
     this.adminService.updateStatus(this.clientId, request).subscribe({
       next: () => {
-        this.successMessage = 'Estado actualizado correctamente';
         this.statusComment = '';
         this.isSaving = false;
-        this.cdr.detectChanges();
-        this.loadClientData(); // Reload to get updated data
+        setTimeout(() => {
+          this.successMessage = 'Estado actualizado correctamente';
+          this.loadClientData();
+        }, 0);
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al actualizar estado';
         this.isSaving = false;
-        this.cdr.detectChanges();
       }
     });
   }
@@ -118,12 +159,10 @@ export class AdminClientDetail implements OnInit {
     this.adminService.markPaid(this.clientId).subscribe({
       next: () => {
         this.successMessage = 'Pago marcado como recibido';
-        this.cdr.detectChanges();
         this.loadClientData();
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al marcar pago';
-        this.cdr.detectChanges();
       }
     });
   }
@@ -139,7 +178,6 @@ export class AdminClientDetail implements OnInit {
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al eliminar cliente';
-        this.cdr.detectChanges();
       }
     });
   }
@@ -151,30 +189,41 @@ export class AdminClientDetail implements OnInit {
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al descargar documento';
-        this.cdr.detectChanges();
       }
     });
   }
 
   sendMessage() {
-    if (!this.newMessage.trim() || !this.selectedTicketId) return;
+    if (!this.newMessage.trim() || !this.selectedTicketId || this.isSendingMessage) return;
 
+    this.isSendingMessage = true;
+    this.ticketErrorMessage = '';
     this.ticketService.addMessage(this.selectedTicketId, { message: this.newMessage }).subscribe({
       next: () => {
         this.newMessage = '';
+        this.ticketSuccessMessage = 'Mensaje enviado';
+        this.isSendingMessage = false;
         this.loadTickets();
-        this.successMessage = 'Mensaje enviado';
-        this.cdr.detectChanges();
+        setTimeout(() => this.ticketSuccessMessage = '', 3000);
+        this.cdr.markForCheck();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al enviar mensaje';
-        this.cdr.detectChanges();
+        this.ticketErrorMessage = 'Error al enviar el mensaje';
+        this.isSendingMessage = false;
+        console.error('Error sending message:', error);
+        this.cdr.markForCheck();
       }
     });
   }
 
   selectTicket(ticketId: string) {
     this.selectedTicketId = ticketId;
+    this.ticketErrorMessage = '';
+    this.ticketSuccessMessage = '';
+  }
+
+  get selectedTicket(): Ticket | undefined {
+    return this.tickets.find(t => t.id === this.selectedTicketId);
   }
 
   getInternalStatusLabel(status: InternalStatus): string {
@@ -223,5 +272,161 @@ export class AdminClientDetail implements OnInit {
 
   goBack() {
     this.router.navigate(['/admin/dashboard']);
+  }
+
+  // Step Control Methods
+  setStep(step: number) {
+    if (step < 1 || step > 5) return;
+    this.isSaving = true;
+    this.adminService.updateAdminStep(this.clientId, step).subscribe({
+      next: () => {
+        this.currentStep = step;
+        this.successMessage = `Paso actualizado a: ${this.stepLabels[step - 1]}`;
+        this.isSaving = false;
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error al actualizar paso';
+        this.isSaving = false;
+      }
+    });
+  }
+
+  // Problem Modal Methods
+  openProblemModal() {
+    this.showProblemModal = true;
+  }
+
+  closeProblemModal() {
+    this.showProblemModal = false;
+  }
+
+  toggleProblem() {
+    this.isSaving = true;
+    const problemData = {
+      hasProblem: !this.hasProblem,
+      problemType: !this.hasProblem ? this.selectedProblemType || undefined : undefined,
+      problemDescription: !this.hasProblem ? this.problemDescription : undefined
+    };
+
+    this.adminService.setProblem(this.clientId, problemData).subscribe({
+      next: () => {
+        this.hasProblem = !this.hasProblem;
+        if (!this.hasProblem) {
+          this.selectedProblemType = null;
+          this.problemDescription = '';
+        }
+        this.successMessage = this.hasProblem ? 'Problema marcado' : 'Problema resuelto';
+        this.showProblemModal = false;
+        this.isSaving = false;
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error al actualizar problema';
+        this.isSaving = false;
+      }
+    });
+  }
+
+  saveProblem() {
+    if (!this.selectedProblemType) {
+      this.errorMessage = 'Seleccione un tipo de problema';
+      return;
+    }
+
+    this.isSaving = true;
+    const problemData = {
+      hasProblem: true,
+      problemType: this.selectedProblemType,
+      problemDescription: this.problemDescription
+    };
+
+    this.adminService.setProblem(this.clientId, problemData).subscribe({
+      next: () => {
+        this.hasProblem = true;
+        this.successMessage = 'Problema registrado';
+        this.showProblemModal = false;
+        this.isSaving = false;
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error al guardar problema';
+        this.isSaving = false;
+      }
+    });
+  }
+
+  resolveProblem() {
+    this.isSaving = true;
+    this.adminService.setProblem(this.clientId, { hasProblem: false }).subscribe({
+      next: () => {
+        this.hasProblem = false;
+        this.selectedProblemType = null;
+        this.problemDescription = '';
+        this.successMessage = 'Problema resuelto';
+        this.showProblemModal = false;
+        this.isSaving = false;
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error al resolver problema';
+        this.isSaving = false;
+      }
+    });
+  }
+
+  getProblemTypeLabel(type: ProblemType | null): string {
+    if (!type) return '';
+    const labels: Record<ProblemType, string> = {
+      [ProblemType.MISSING_DOCUMENTS]: 'Documentos faltantes',
+      [ProblemType.INCORRECT_INFORMATION]: 'Informacion incorrecta',
+      [ProblemType.IRS_VERIFICATION]: 'Verificacion IRS',
+      [ProblemType.BANK_ISSUE]: 'Problema bancario',
+      [ProblemType.STATE_ISSUE]: 'Problema estatal',
+      [ProblemType.FEDERAL_ISSUE]: 'Problema federal',
+      [ProblemType.CLIENT_UNRESPONSIVE]: 'Cliente no responde',
+      [ProblemType.OTHER]: 'Otro'
+    };
+    return labels[type] || type;
+  }
+
+  // Notification Modal Methods
+  openNotifyModal() {
+    this.notifyTitle = '';
+    this.notifyMessage = '';
+    this.notifySendEmail = false;
+    this.showNotifyModal = true;
+  }
+
+  closeNotifyModal() {
+    this.showNotifyModal = false;
+  }
+
+  sendNotification() {
+    if (!this.notifyTitle.trim() || !this.notifyMessage.trim()) {
+      this.errorMessage = 'Titulo y mensaje son requeridos';
+      return;
+    }
+
+    this.isSaving = true;
+    this.adminService.sendClientNotification(this.clientId, {
+      title: this.notifyTitle,
+      message: this.notifyMessage,
+      sendEmail: this.notifySendEmail
+    }).subscribe({
+      next: (response) => {
+        this.successMessage = response.emailSent
+          ? 'Notificacion enviada (app + email)'
+          : 'Notificacion enviada (solo app)';
+        this.showNotifyModal = false;
+        this.isSaving = false;
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error al enviar notificacion';
+        this.isSaving = false;
+      }
+    });
   }
 }

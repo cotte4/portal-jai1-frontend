@@ -184,14 +184,22 @@ export class Profile implements OnInit {
   }
 
   toggleEdit() {
+    // Block editing if profile is already verified (completed F2 form)
+    if (this.isVerified) {
+      return;
+    }
     this.isEditing = !this.isEditing;
     this.errorMessage = '';
     this.successMessage = '';
   }
 
   saveChanges() {
+    // Block saving if profile is already verified (completed F2 form)
+    if (this.isVerified) {
+      return;
+    }
     this.isSaving = true;
-    
+
     // Save locally (in a real app, this would call an API)
     setTimeout(() => {
       this.userName = `${this.editForm.firstName} ${this.editForm.lastName}`.trim();
