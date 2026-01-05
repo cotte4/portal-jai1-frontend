@@ -796,3 +796,73 @@
     padding: 16px 20px;
   }
 }
+
+/* ==================== SOCIAL LOGIN ==================== */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.divider span {
+  color: #94a3b8;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-social {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-social:hover:not(:disabled) {
+  border-color: #1D345D;
+  color: #1D345D;
+  background: #f8fafc;
+}
+
+.btn-google {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.btn-google:hover {
+  border-color: #4285F4;
+  background: #f8fafc;
+}
+
+.google-icon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .social-buttons {
+    flex-direction: column;
+  }
+}

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -127,5 +128,11 @@ export class Register {
   closeModal() {
     this.showTermsModal = false;
     this.showPrivacyModal = false;
+  }
+
+  registerWithGoogle() {
+    // Redirect to backend Google OAuth endpoint
+    // The backend handles both login and registration automatically
+    window.location.href = `${environment.apiUrl}/auth/google`;
   }
 }
