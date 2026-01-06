@@ -6,9 +6,14 @@
       <h1>Mensajes con Soporte</h1>
       <p>Comunicacion directa con nuestro equipo de asistencia fiscal</p>
     </div>
-    <button class="btn-new-ticket" (click)="showNewTicketForm = true" *ngIf="!showNewTicketForm">
-      <span>+ Nuevo mensaje</span>
-    </button>
+    <div class="title-actions">
+      <button class="btn-refresh" (click)="loadTickets()" [disabled]="isLoading">
+        <span>{{ isLoading ? '⏳' : '🔄' }}</span>
+      </button>
+      <button class="btn-new-ticket" (click)="showNewTicketForm = true" *ngIf="!showNewTicketForm">
+        <span>+ Nuevo mensaje</span>
+      </button>
+    </div>
   </div>
 
   <!-- Error Message -->
@@ -119,6 +124,13 @@
         <div class="empty-icon">👈</div>
         <h3>Selecciona una conversacion</h3>
         <p>Elige un ticket del panel izquierdo para ver los mensajes</p>
+      </div>
+
+      <!-- Active Ticket but No Messages -->
+      <div class="empty-state" *ngIf="!isLoading && activeTicket && messages.length === 0">
+        <div class="empty-icon">💬</div>
+        <h3>Sin mensajes en este ticket</h3>
+        <p>Enviá el primer mensaje para iniciar la conversación</p>
       </div>
 
       <!-- Message Input -->

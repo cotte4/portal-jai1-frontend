@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, filter } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
 import { TicketService } from '../../core/services/ticket.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import {
   AdminClientDetail as ClientDetail,
   InternalStatus,
@@ -21,13 +23,15 @@ import {
   templateUrl: './admin-client-detail.html',
   styleUrl: './admin-client-detail.css'
 })
-export class AdminClientDetail implements OnInit {
+export class AdminClientDetail implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private adminService = inject(AdminService);
   private documentService = inject(DocumentService);
   private ticketService = inject(TicketService);
+  private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   clientId: string = '';
   client: ClientDetail | null = null;
@@ -74,6 +78,29 @@ export class AdminClientDetail implements OnInit {
     this.clientId = this.route.snapshot.params['id'];
     this.loadClientData();
     // Tickets will be loaded after client data is loaded (need userId, not clientId)
+
+    // Auto-refresh on navigation (dynamic route)
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects.startsWith('/admin/client/'))
+      ).subscribe(() => {
+        const newClientId = this.route.snapshot.params['id'];
+        if (newClientId !== this.clientId) {
+          this.clientId = newClientId;
+        }
+        this.loadClientData();
+      })
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/admin/client').subscribe(() => this.loadClientData())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadClientData() {

@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, ClientStatus, TaxStatus } from '../../core/models';
-import { interval, Subscription } from 'rxjs';
+import { interval, Subscription, filter, skip } from 'rxjs';
 
 interface TrackingStep {
   id: string;
@@ -26,46 +27,106 @@ export class TaxTracking implements OnInit, OnDestroy {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private notificationService = inject(NotificationService);
+  private dataRefreshService = inject(DataRefreshService);
+  private cdr = inject(ChangeDetectorRef);
 
   profileData: ProfileResponse | null = null;
   isLoading = true;
   lastRefresh: Date = new Date();
   isRefreshing = false;
-  
-  private refreshSubscription?: Subscription;
+
+  private subscriptions = new Subscription();
   private previousStatus?: ClientStatus;
 
   steps: TrackingStep[] = [];
 
+  private isInitialized = false;
+
   ngOnInit() {
-    this.loadTrackingData();
-    
+    console.log('[TaxTracking] ngOnInit - loading data');
+
+    // Load initial data - isInitialized will be set after load completes
+    this.loadTrackingData(true);
+
     // Auto-refresh every 30 seconds
-    this.refreshSubscription = interval(30000).subscribe(() => {
-      this.silentRefresh();
-    });
+    this.subscriptions.add(
+      interval(30000).subscribe(() => {
+        this.silentRefresh();
+      })
+    );
+
+    // Auto-refresh on navigation - skip(1) to ignore the initial navigation that created this component
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects.includes('/tax-tracking')),
+        skip(1)
+      ).subscribe(() => {
+        if (!this.isLoading) {
+          console.log('[TaxTracking] NavigationEnd detected, refreshing');
+          this.loadTrackingData();
+        }
+      })
+    );
+
+    // Allow other components to trigger refresh - only after initial load is complete
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/tax-tracking').subscribe(() => {
+        if (this.isInitialized && !this.isLoading) {
+          console.log('[TaxTracking] DataRefreshService triggered, refreshing');
+          this.loadTrackingData();
+        }
+      })
+    );
   }
 
   ngOnDestroy() {
-    this.refreshSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
-  loadTrackingData() {
+  loadTrackingData(isInitialLoad = false) {
+    console.log('[TaxTracking] loadTrackingData called, isInitialLoad:', isInitialLoad);
     this.isLoading = true;
     // Build default steps first
     this.buildSteps();
-    
+
+    // Safety timeout - stop loading after 20 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
+      if (this.isLoading) {
+        this.isLoading = false;
+        console.warn('[TaxTracking] Safety timeout triggered');
+        if (isInitialLoad) {
+          this.isInitialized = true;
+        }
+      }
+    }, 20000);
+
     this.profileService.getProfile().subscribe({
       next: (data) => {
-        this.profileData = data;
-        this.previousStatus = data.taxCase?.clientStatus;
-        this.buildSteps();
+        clearTimeout(safetyTimeout);
+        if (data) {
+          this.profileData = data;
+          this.previousStatus = data.taxCase?.clientStatus;
+          this.buildSteps();
+        }
         this.isLoading = false;
         this.lastRefresh = new Date();
+        console.log('[TaxTracking] Data loaded successfully');
+        // Mark as initialized AFTER the load completes
+        if (isInitialLoad) {
+          console.log('[TaxTracking] Initial load complete, setting isInitialized = true');
+          this.isInitialized = true;
+        }
+        this.cdr.detectChanges(); // Force Angular to update the view
       },
       error: () => {
+        clearTimeout(safetyTimeout);
         this.isLoading = false;
         // Keep default steps even on error
+        if (isInitialLoad) {
+          this.isInitialized = true;
+        }
+        this.cdr.detectChanges(); // Force Angular to update the view
       }
     });
   }
@@ -77,11 +138,12 @@ export class TaxTracking implements OnInit, OnDestroy {
         if (this.previousStatus && data.taxCase?.clientStatus !== this.previousStatus) {
           this.onStatusChanged(data.taxCase?.clientStatus);
         }
-        
+
         this.previousStatus = data.taxCase?.clientStatus;
         this.profileData = data;
         this.buildSteps();
         this.lastRefresh = new Date();
+        this.cdr.detectChanges();
       }
     });
   }
@@ -94,15 +156,17 @@ export class TaxTracking implements OnInit, OnDestroy {
         if (this.previousStatus && data.taxCase?.clientStatus !== this.previousStatus) {
           this.onStatusChanged(data.taxCase?.clientStatus);
         }
-        
+
         this.previousStatus = data.taxCase?.clientStatus;
         this.profileData = data;
         this.buildSteps();
         this.lastRefresh = new Date();
         this.isRefreshing = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isRefreshing = false;
+        this.cdr.detectChanges();
       }
     });
   }

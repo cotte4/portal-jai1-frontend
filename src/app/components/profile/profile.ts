@@ -1,12 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, Address } from '../../core/models';
-import { timeout, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { timeout, catchError, filter } from 'rxjs/operators';
+import { of, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -15,10 +16,12 @@ import { of } from 'rxjs';
   templateUrl: './profile.html',
   styleUrl: './profile.css'
 })
-export class Profile implements OnInit {
+export class Profile implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
+  private dataRefreshService = inject(DataRefreshService);
+  private subscriptions = new Subscription();
 
   // User data
   userName: string = '';
@@ -61,6 +64,23 @@ export class Profile implements OnInit {
 
   ngOnInit() {
     this.loadProfile();
+
+    // Auto-refresh on navigation
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects === '/profile')
+      ).subscribe(() => this.loadProfile())
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/profile').subscribe(() => this.loadProfile())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   get userInitials(): string {

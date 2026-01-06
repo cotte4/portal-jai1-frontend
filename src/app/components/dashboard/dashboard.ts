@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from '../../core/models';
 
 @Component({
@@ -13,12 +15,14 @@ import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private documentService = inject(DocumentService);
   private calculatorResultService = inject(CalculatorResultService);
+  private dataRefreshService = inject(DataRefreshService);
+  private subscriptions = new Subscription();
 
   profileData: ProfileResponse | null = null;
   documents: Document[] = [];
@@ -28,9 +32,28 @@ export class Dashboard implements OnInit {
 
   ngOnInit() {
     this.loadData();
-    this.calculatorResultService.result$.subscribe(result => {
-      this.calculatorResult = result;
-    });
+    this.subscriptions.add(
+      this.calculatorResultService.result$.subscribe(result => {
+        this.calculatorResult = result;
+      })
+    );
+
+    // Auto-refresh on navigation
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects === '/dashboard')
+      ).subscribe(() => this.loadData())
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/dashboard').subscribe(() => this.loadData())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadData() {

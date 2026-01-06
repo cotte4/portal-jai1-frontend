@@ -1,8 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Subscription, filter } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { CompleteProfileRequest } from '../../core/models';
 
 @Component({
@@ -11,9 +13,11 @@ import { CompleteProfileRequest } from '../../core/models';
   templateUrl: './tax-form.html',
   styleUrl: './tax-form.css'
 })
-export class TaxForm implements OnInit {
+export class TaxForm implements OnInit, OnDestroy {
   private router = inject(Router);
   private profileService = inject(ProfileService);
+  private dataRefreshService = inject(DataRefreshService);
+  private subscriptions = new Subscription();
 
   // Form data mapped to API
   formData = {
@@ -48,6 +52,23 @@ export class TaxForm implements OnInit {
 
   ngOnInit() {
     this.loadDraft();
+
+    // Auto-refresh on navigation
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects === '/tax-form')
+      ).subscribe(() => this.loadDraft())
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/tax-form').subscribe(() => this.loadDraft())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadDraft() {

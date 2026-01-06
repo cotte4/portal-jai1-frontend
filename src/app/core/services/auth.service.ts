@@ -57,9 +57,8 @@ export class AuthService {
         await this.refreshToken().toPromise();
         console.log('Token refreshed successfully');
       } catch (error) {
-        console.log('Token refresh failed, clearing session');
-        this.storage.clearAuth();
-        this.currentUserSubject.next(null);
+        console.log('Token refresh failed, redirecting to login');
+        this.clearSession(); // This clears auth AND redirects to login
       }
     }
   }

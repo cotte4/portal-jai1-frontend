@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, filter } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { AdminClientListItem, InternalStatus } from '../../core/models';
 
 @Component({
@@ -12,11 +14,13 @@ import { AdminClientListItem, InternalStatus } from '../../core/models';
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
-export class AdminDashboard implements OnInit {
+export class AdminDashboard implements OnInit, OnDestroy {
   private router = inject(Router);
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
+  private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   allClients: AdminClientListItem[] = []; // Full list for stats
   clients: AdminClientListItem[] = [];
@@ -54,6 +58,23 @@ export class AdminDashboard implements OnInit {
 
   ngOnInit() {
     this.loadAllClients();
+
+    // Auto-refresh on navigation
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects === '/admin/dashboard')
+      ).subscribe(() => this.loadAllClients())
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/admin/dashboard').subscribe(() => this.loadAllClients())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   // Load all clients for both display and stats

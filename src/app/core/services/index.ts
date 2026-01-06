@@ -5,3 +5,4 @@ export * from './document.service';
 export * from './ticket.service';
 export * from './notification.service';
 export * from './admin.service';
+export * from './data-refresh.service';

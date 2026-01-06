@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, filter } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Document, DocumentType } from '../../core/models';
 
 @Component({
@@ -12,11 +14,13 @@ import { Document, DocumentType } from '../../core/models';
   templateUrl: './document-upload.html',
   styleUrl: './document-upload.css'
 })
-export class DocumentUpload implements OnInit {
+export class DocumentUpload implements OnInit, OnDestroy {
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
+  private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -40,6 +44,23 @@ export class DocumentUpload implements OnInit {
 
   ngOnInit() {
     this.loadDocuments();
+
+    // Auto-refresh on navigation
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects === '/documents')
+      ).subscribe(() => this.loadDocuments())
+    );
+
+    // Allow other components to trigger refresh
+    this.subscriptions.add(
+      this.dataRefreshService.onRefresh('/documents').subscribe(() => this.loadDocuments())
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadDocuments() {

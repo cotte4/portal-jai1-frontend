@@ -3,6 +3,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/rou
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
 
 @Component({
@@ -16,6 +17,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private dataRefreshService = inject(DataRefreshService);
   private chatbotScriptId = 'relevance-ai-chatbot';
 
   userName: string = '';
@@ -141,6 +143,22 @@ export class MainLayout implements OnInit, OnDestroy {
 
   closeSidebar() {
     this.sidebarOpen = false;
+  }
+
+  navigateToProfile() {
+    this.closeSidebar();
+    this.router.navigate(['/profile']);
+  }
+
+  navigateWithRefresh(route: string) {
+    this.closeSidebar();
+    // Navigate first, then trigger refresh AFTER component is ready
+    this.router.navigate([route]).then(() => {
+      // Small delay to ensure component has subscribed
+      setTimeout(() => {
+        this.dataRefreshService.triggerRefresh(route);
+      }, 50);
+    });
   }
 
   logout() {
