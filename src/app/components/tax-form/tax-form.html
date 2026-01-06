@@ -1,4 +1,131 @@
-<div class="form-content">
+<!-- Success Screen -->
+<div class="success-screen" *ngIf="showSuccessScreen">
+  <div class="success-container">
+    <!-- Celebration Animation -->
+    <div class="success-celebration">
+      <div class="confetti confetti-1">🎉</div>
+      <div class="confetti confetti-2">✨</div>
+      <div class="confetti confetti-3">🎊</div>
+      <div class="confetti confetti-4">⭐</div>
+      <div class="confetti confetti-5">🎉</div>
+    </div>
+
+    <!-- Success Icon -->
+    <div class="success-icon-wrapper">
+      <div class="success-icon-bg"></div>
+      <div class="success-icon">✓</div>
+    </div>
+
+    <!-- Success Message -->
+    <h1 class="success-title">¡Formulario Enviado!</h1>
+    <p class="success-subtitle">Tu información fiscal ha sido recibida correctamente</p>
+
+    <!-- What's Next Card -->
+    <div class="next-steps-card">
+      <div class="next-step-icon">📄</div>
+      <div class="next-step-content">
+        <h3>Siguiente paso</h3>
+        <p>Sube tu documento W2 para que podamos procesar tu declaración de impuestos</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="success-actions">
+      <button class="btn-continue" (click)="continueToDocuments()">
+        <span>Continuar a Documentos</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <button class="btn-later" (click)="goToDashboard()">
+        Volver al inicio
+      </button>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-steps">
+      <div class="step completed">
+        <div class="step-dot">✓</div>
+        <span>Registro</span>
+      </div>
+      <div class="step-line completed"></div>
+      <div class="step completed">
+        <div class="step-dot">✓</div>
+        <span>Formulario</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step current">
+        <div class="step-dot">3</div>
+        <span>Documentos</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-dot">4</div>
+        <span>Revisión</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Screen -->
+<div class="success-screen" *ngIf="!hasLoadedProfile && !showSuccessScreen">
+  <div class="success-container">
+    <div class="loading-spinner"></div>
+    <p class="success-subtitle">Cargando tu informacion...</p>
+  </div>
+</div>
+
+<!-- Already Completed Info Screen -->
+<div class="success-screen" *ngIf="hasLoadedProfile && showAlreadyCompletedScreen && !showSuccessScreen">
+  <div class="success-container">
+    <!-- Info Icon -->
+    <div class="success-icon-wrapper info-icon-wrapper">
+      <div class="success-icon-bg info-bg"></div>
+      <div class="success-icon info-check">✓</div>
+    </div>
+
+    <!-- Message -->
+    <h1 class="success-title">Tu formulario ya fue enviado</h1>
+    <p class="success-subtitle">Ya completaste tu informacion fiscal. Si necesitas modificar algo, contacta a nuestro equipo de soporte.</p>
+
+    <!-- Status Cards -->
+    <div class="completed-status-list">
+      <div class="completed-status-item">
+        <span class="status-check">✓</span>
+        <span>Formulario fiscal completado</span>
+      </div>
+      <div class="completed-status-item">
+        <span class="status-check">✓</span>
+        <span>Informacion personal enviada</span>
+      </div>
+      <div class="completed-status-item">
+        <span class="status-check">✓</span>
+        <span>Datos bancarios registrados</span>
+      </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="next-steps-card info-card">
+      <div class="next-step-icon">💡</div>
+      <div class="next-step-content">
+        <h3>Necesitas hacer cambios?</h3>
+        <p>Por seguridad, los cambios en tu informacion fiscal deben ser solicitados a traves de soporte</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="success-actions">
+      <button class="btn-continue" (click)="goToSupport()">
+        <span>Contactar Soporte</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <button class="btn-later" (click)="goToDashboard()">
+        Volver al inicio
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Form Content (hidden when loading or showing other screens) -->
+<div class="form-content" *ngIf="hasLoadedProfile && !showSuccessScreen && !showAlreadyCompletedScreen">
   <!-- Page Header with Title and Actions -->
   <div class="page-header">
     <div class="page-title">

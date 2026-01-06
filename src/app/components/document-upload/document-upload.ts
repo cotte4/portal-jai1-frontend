@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, finalize } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
@@ -27,6 +27,8 @@ export class DocumentUpload implements OnInit, OnDestroy {
   successMessage: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
+  hasLoaded: boolean = false;
+  private isLoadingInProgress: boolean = false;
   isUploading: boolean = false;
   deletingDocId: string | null = null;
 
@@ -71,11 +73,20 @@ export class DocumentUpload implements OnInit, OnDestroy {
   }
 
   loadDocuments() {
+    if (this.isLoadingInProgress) return;
+    this.isLoadingInProgress = true;
     this.isLoading = true;
-    this.documentService.getDocuments().subscribe({
+
+    this.documentService.getDocuments().pipe(
+      finalize(() => {
+        this.hasLoaded = true;
+        this.isLoading = false;
+        this.isLoadingInProgress = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (documents) => {
         this.uploadedFiles = documents;
-        this.isLoading = false;
 
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
@@ -83,8 +94,6 @@ export class DocumentUpload implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al cargar documentos';
-        this.isLoading = false;
-        this.cdr.detectChanges();
       }
     });
   }

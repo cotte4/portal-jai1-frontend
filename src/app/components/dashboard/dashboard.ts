@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, forkJoin, finalize, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -22,13 +23,15 @@ export class Dashboard implements OnInit, OnDestroy {
   private documentService = inject(DocumentService);
   private calculatorResultService = inject(CalculatorResultService);
   private dataRefreshService = inject(DataRefreshService);
+  private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
   profileData: ProfileResponse | null = null;
   documents: Document[] = [];
   calculatorResult: CalculatorResult | null = null;
-  isLoading: boolean = true;
+  hasLoaded: boolean = false; // True after first load completes
   errorMessage: string = '';
+  private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
 
   ngOnInit() {
     this.loadData();
@@ -43,12 +46,16 @@ export class Dashboard implements OnInit, OnDestroy {
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         filter(event => event.urlAfterRedirects === '/dashboard')
-      ).subscribe(() => this.loadData())
+      ).subscribe(() => {
+        this.loadData();
+      })
     );
 
     // Allow other components to trigger refresh
     this.subscriptions.add(
-      this.dataRefreshService.onRefresh('/dashboard').subscribe(() => this.loadData())
+      this.dataRefreshService.onRefresh('/dashboard').subscribe(() => {
+        this.loadData();
+      })
     );
   }
 
@@ -57,27 +64,33 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   loadData() {
-    this.isLoading = true;
-    
-    // Load profile
-    this.profileService.getProfile().subscribe({
-      next: (data) => {
-        this.profileData = data;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = error.message || 'Error al cargar perfil';
-        this.isLoading = false;
-      }
-    });
+    // Prevent concurrent API calls
+    if (this.isLoadingInProgress) return;
+    this.isLoadingInProgress = true;
 
-    // Load documents
-    this.documentService.getDocuments().subscribe({
-      next: (docs) => {
-        this.documents = docs;
-      },
-      error: () => {
-        // Silent fail for documents
+    // Load both profile and documents in parallel, wait for both to complete
+    forkJoin({
+      profile: this.profileService.getProfile().pipe(
+        catchError(error => {
+          this.errorMessage = error.message || 'Error al cargar perfil';
+          return of(null);
+        })
+      ),
+      documents: this.documentService.getDocuments().pipe(
+        catchError(() => of([] as Document[]))
+      )
+    }).pipe(
+      finalize(() => {
+        this.hasLoaded = true;
+        this.isLoadingInProgress = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (results) => {
+        if (results.profile) {
+          this.profileData = results.profile;
+        }
+        this.documents = results.documents || [];
       }
     });
   }

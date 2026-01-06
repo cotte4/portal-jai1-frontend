@@ -2,6 +2,36 @@
    USER MESSAGES - JAI1 Apple Style
    ========================================== */
 
+/* ==================== INITIAL LOADING ==================== */
+.initial-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  gap: 16px;
+  color: #64748b;
+}
+
+.initial-loading .loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1D345D;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.initial-loading p {
+  font-size: 15px;
+  font-weight: 500;
+}
+
 /* Messages Content */
 .messages-content {
   height: 100%;

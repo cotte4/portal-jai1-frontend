@@ -3,7 +3,7 @@
   <aside class="sidebar" [class.open]="sidebarOpen">
     <!-- Sidebar Header -->
     <div class="sidebar-header">
-      <div class="logo" routerLink="/dashboard">
+      <div class="logo" (click)="navigateWithRefresh('/dashboard')" style="cursor: pointer;">
         <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="sidebar-logo">
       </div>
       <button class="btn-close-sidebar" (click)="sidebarOpen = false">✕</button>
@@ -11,31 +11,31 @@
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/dashboard')">
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick('/dashboard')">
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Inicio</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/tax-form')">
+      <a class="nav-link" routerLink="/tax-form" routerLinkActive="active" (click)="onNavClick('/tax-form')">
         <span class="nav-icon">📝</span>
         <span class="nav-text">Mi Declaración</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/documents')">
+      <a class="nav-link" routerLink="/documents" routerLinkActive="active" (click)="onNavClick('/documents')">
         <span class="nav-icon">📁</span>
         <span class="nav-text">Mis Documentos</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/tax-calculator')">
+      <a class="nav-link" routerLink="/tax-calculator" routerLinkActive="active" (click)="onNavClick('/tax-calculator')">
         <span class="nav-icon">🧮</span>
         <span class="nav-text">Calculadora</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/tax-tracking')">
+      <a class="nav-link" routerLink="/tax-tracking" routerLinkActive="active" (click)="onNavClick('/tax-tracking')">
         <span class="nav-icon">📍</span>
         <span class="nav-text">Seguimiento</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/chatbot')">
+      <a class="nav-link" routerLink="/chatbot" routerLinkActive="active" (click)="onNavClick('/chatbot')">
         <span class="nav-icon">🤖</span>
         <span class="nav-text">Asistente</span>
       </a>
-      <a class="nav-link" routerLinkActive="active" (click)="navigateWithRefresh('/messages')">
+      <a class="nav-link" routerLink="/messages" routerLinkActive="active" (click)="onNavClick('/messages')">
         <span class="nav-icon">💬</span>
         <span class="nav-text">Soporte</span>
       </a>
@@ -51,14 +51,14 @@
 
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-      <div class="user-card" (click)="navigateToProfile()">
+      <a class="user-card" routerLink="/profile" (click)="closeSidebar()">
         <div class="user-avatar-sm">{{ userInitials }}</div>
         <div class="user-info">
           <span class="user-name">{{ userName || 'Usuario' }}</span>
           <span class="user-email">{{ userEmail }}</span>
         </div>
         <span class="user-card-arrow">›</span>
-      </div>
+      </a>
       <button class="btn-logout" (click)="logout()">
         <span>🚪</span>
         <span>Cerrar sesión</span>
@@ -128,4 +128,7 @@
     </main>
   </div>
 </div>
+
+<!-- Toast Notifications -->
+<app-toast></app-toast>
 

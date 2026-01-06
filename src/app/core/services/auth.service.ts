@@ -175,10 +175,23 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: any): void {
+    // Guard against invalid response
+    if (!response) {
+      console.error('handleAuthResponse called with invalid response:', response);
+      return;
+    }
+
     // Handle snake_case from API
     const accessToken = response.accessToken || response.access_token;
     const refreshToken = response.refreshToken || response.refresh_token;
     const user = this.mapUserFromApi(response.user);
+
+    // If user mapping failed, clear session and redirect to login
+    if (!user) {
+      console.error('Failed to map user from auth response, clearing session');
+      this.clearSession();
+      return;
+    }
 
     this.storage.setAccessToken(accessToken);
     this.storage.setRefreshToken(refreshToken);
@@ -198,7 +211,13 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  private mapUserFromApi(apiUser: any): User {
+  private mapUserFromApi(apiUser: any): User | null {
+    // Guard against undefined or null user data
+    if (!apiUser || typeof apiUser !== 'object') {
+      console.error('mapUserFromApi called with invalid user data:', apiUser);
+      return null;
+    }
+
     return {
       id: apiUser.id,
       email: apiUser.email,

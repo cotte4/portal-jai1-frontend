@@ -1,3 +1,402 @@
+/* =============================================
+   SUCCESS SCREEN STYLES
+   ============================================= */
+
+.success-screen {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: linear-gradient(180deg, #f8fafc 0%, #e8f4f8 100%);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.success-container {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+/* Confetti Animation */
+.success-celebration {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 120px;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  font-size: 28px;
+  animation: confettiFall 2s ease-out forwards;
+  opacity: 0;
+}
+
+.confetti-1 { left: 10%; animation-delay: 0.1s; }
+.confetti-2 { left: 30%; animation-delay: 0.2s; }
+.confetti-3 { left: 50%; animation-delay: 0s; }
+.confetti-4 { left: 70%; animation-delay: 0.15s; }
+.confetti-5 { left: 90%; animation-delay: 0.25s; }
+
+@keyframes confettiFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) rotate(15deg) scale(1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: translateY(80px) rotate(45deg) scale(0.8);
+  }
+}
+
+/* Success Icon */
+.success-icon-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 24px;
+}
+
+.success-icon-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  animation: scaleIn 0.5s ease 0.2s both, pulse 2s ease-in-out 0.7s infinite;
+}
+
+.success-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: white;
+  font-weight: bold;
+  animation: checkmarkIn 0.4s ease 0.5s both;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkIn {
+  from {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
+  }
+}
+
+/* Success Text */
+.success-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 12px 0;
+  animation: slideUp 0.5s ease 0.3s both;
+}
+
+.success-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0 0 32px 0;
+  animation: slideUp 0.5s ease 0.4s both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Next Steps Card */
+.next-steps-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
+  animation: slideUp 0.5s ease 0.5s both;
+}
+
+.next-step-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e0edff 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.next-step-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1D345D;
+  margin: 0 0 6px 0;
+}
+
+.next-step-content p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Action Buttons */
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 40px;
+  animation: slideUp 0.5s ease 0.6s both;
+}
+
+.btn-continue {
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  padding: 18px 32px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(178, 27, 67, 0.3);
+}
+
+.btn-continue:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(178, 27, 67, 0.4);
+}
+
+.btn-arrow {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.btn-continue:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+.btn-later {
+  background: transparent;
+  color: #64748b;
+  padding: 14px 24px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.btn-later:hover {
+  color: #1D345D;
+}
+
+/* Progress Steps */
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  animation: slideUp 0.5s ease 0.7s both;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step.completed .step-dot {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.step.current .step-dot {
+  background: linear-gradient(135deg, #1D345D 0%, #2d4a7c 100%);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.2);
+}
+
+.step span:not(.step-dot) {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.step.completed span:not(.step-dot),
+.step.current span:not(.step-dot) {
+  color: #1D345D;
+}
+
+.step-line {
+  width: 40px;
+  height: 3px;
+  background: #e2e8f0;
+  margin: 0 4px;
+  margin-bottom: 24px;
+  border-radius: 2px;
+}
+
+.step-line.completed {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+/* =============================================
+   LOADING SPINNER STYLES
+   ============================================= */
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1D345D;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 24px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================
+   ALREADY COMPLETED INFO SCREEN STYLES
+   ============================================= */
+
+.info-icon-wrapper .info-bg {
+  background: linear-gradient(135deg, #1D345D 0%, #2d4a7c 100%);
+}
+
+.info-icon-wrapper .info-check {
+  color: white;
+}
+
+.completed-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  animation: slideUp 0.5s ease 0.5s both;
+}
+
+.completed-status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #1D345D;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.completed-status-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.completed-status-item:first-child {
+  padding-top: 0;
+}
+
+.status-check {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.info-card {
+  border: 2px solid #e8f0ff;
+  background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+}
+
+.info-card .next-step-icon {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+/* =============================================
+   FORM CONTENT STYLES
+   ============================================= */
+
 /* Form Content */
 .form-content {
   padding: 24px;
@@ -385,5 +784,28 @@
 
   .form-section {
     padding: 24px 20px;
+  }
+
+  /* Success Screen Responsive */
+  .success-screen {
+    padding: 24px 16px;
+  }
+
+  .success-title {
+    font-size: 26px;
+  }
+
+  .next-steps-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .step-line {
+    display: none;
   }
 }

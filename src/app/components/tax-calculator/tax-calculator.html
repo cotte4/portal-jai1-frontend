@@ -6,6 +6,63 @@
     <div class="bg-circle bg-circle-3"></div>
   </div>
 
+  <!-- Loading State -->
+  <div class="calculator-card" *ngIf="state === 'loading'">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Cargando calculadora...</p>
+    </div>
+  </div>
+
+  <!-- Already Calculated State -->
+  <div class="calculator-card already-calculated-card" *ngIf="state === 'already-calculated'">
+    <div class="result-content">
+      <div class="already-calculated-icon">
+        <div class="check-circle">✓</div>
+      </div>
+
+      <h2 class="result-title">Ya calculaste tu reembolso</h2>
+
+      <div class="result-amount">
+        <span class="currency">$</span>
+        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+        <span class="cents">.00</span>
+      </div>
+
+      <p class="result-subtitle">
+        Este es tu reembolso estimado basado en el W2 que subiste anteriormente
+      </p>
+
+      <!-- Status badges -->
+      <div class="status-badges">
+        <div class="status-badge success">
+          <span class="badge-icon">✓</span>
+          <span>W2 guardado</span>
+        </div>
+        <div class="status-badge success">
+          <span class="badge-icon">✓</span>
+          <span>Cálculo completado</span>
+        </div>
+      </div>
+
+      <div class="result-highlights">
+        <div class="highlight">
+          <span class="highlight-icon">📋</span>
+          <span>Continúa con tu declaración para recibir tu dinero</span>
+        </div>
+      </div>
+
+      <button class="cta-button" (click)="startProcess()">
+        <span>Continuar con mi declaración</span>
+        <span class="cta-arrow">→</span>
+      </button>
+
+      <button class="reset-button" (click)="resetCalculator()">
+        Recalcular con otro documento
+      </button>
+    </div>
+  </div>
+
   <!-- Upload State -->
   <div class="calculator-card" *ngIf="state === 'upload'">
     <div class="card-header">
@@ -26,11 +83,11 @@
         (drop)="onDrop($event)"
         (click)="fileInput.click()"
       >
-        <input 
-          type="file" 
-          #fileInput 
-          hidden 
-          accept=".pdf,.jpg,.jpeg,.png,.webp"
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept=".jpg,.jpeg,.png"
           (change)="onFileSelect($event)"
         >
         
@@ -49,7 +106,6 @@
         </div>
         
         <div class="upload-formats">
-          <span>PDF</span>
           <span>JPG</span>
           <span>PNG</span>
         </div>
@@ -83,8 +139,26 @@
         <div class="calc-icon">💰</div>
       </div>
 
-      <h2 class="calculating-title">Estamos calculando tu posible devolución...</h2>
-      
+      <!-- Mode Indicator Badge -->
+      <div class="mode-badge" *ngIf="uploadedFile" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(29, 52, 93, 0.1); border-radius: 20px; margin-bottom: 12px; font-size: 14px; color: #1D345D;">
+        <span style="font-size: 16px;">🤖</span>
+        <span style="font-weight: 600;">Análisis con IA</span>
+      </div>
+      <div class="mode-badge" *ngIf="!uploadedFile" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255, 152, 0, 0.1); border-radius: 20px; margin-bottom: 12px; font-size: 14px; color: #ff9800;">
+        <span style="font-size: 16px;">🎭</span>
+        <span style="font-weight: 600;">Modo Demostración</span>
+      </div>
+
+      <h2 class="calculating-title">
+        <span *ngIf="uploadedFile">Analizando tu W2 con inteligencia artificial...</span>
+        <span *ngIf="!uploadedFile">Generando resultados de demostración...</span>
+      </h2>
+
+      <!-- File name indicator -->
+      <p class="file-name-indicator" *ngIf="uploadedFile" style="color: #666; font-size: 14px; margin-top: 8px;">
+        📄 {{ uploadedFile.name }}
+      </p>
+
       <div class="progress-container">
         <div class="progress-bar">
           <div class="progress-fill" [style.width.%]="calculationProgress"></div>
@@ -95,11 +169,13 @@
       <div class="calculating-steps">
         <div class="step" [class.active]="calculationProgress >= 0">
           <span class="step-icon">✓</span>
-          <span>Analizando documento...</span>
+          <span *ngIf="uploadedFile">Analizando documento...</span>
+          <span *ngIf="!uploadedFile">Iniciando demostración...</span>
         </div>
         <div class="step" [class.active]="calculationProgress >= 35">
           <span class="step-icon">✓</span>
-          <span>Extrayendo información fiscal...</span>
+          <span *ngIf="uploadedFile">Extrayendo información fiscal...</span>
+          <span *ngIf="!uploadedFile">Generando datos de ejemplo...</span>
         </div>
         <div class="step" [class.active]="calculationProgress >= 70">
           <span class="step-icon">✓</span>
@@ -183,27 +259,14 @@
         Calcular con otro documento
       </button>
 
-      <!-- Document saved indicator -->
-      <div class="saved-indicator" *ngIf="documentSaved">
-        <span class="saved-icon">✓</span>
-        <span>Documento guardado en tus archivos</span>
+      <!-- Document auto-save indicator -->
+      <div class="saved-indicator saving" *ngIf="isSavingDocument && uploadedFile">
+        <span class="saved-icon spinning">⏳</span>
+        <span>Guardando W2 automáticamente...</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Save to Documents Popup -->
-  <div class="popup-overlay" *ngIf="showSavePopup" (click)="closeSavePopup()">
-    <div class="popup-card" (click)="$event.stopPropagation()">
-      <div class="popup-icon">📁</div>
-      <h2>¿Guardar tu W2?</h2>
-      <p>¿Querés guardar este documento en tus archivos de JAI1 para tenerlo disponible cuando completes tu declaración?</p>
-      <div class="popup-actions">
-        <button class="btn-popup-secondary" (click)="closeSavePopup()" [disabled]="isSavingDocument">
-          No, gracias
-        </button>
-        <button class="btn-popup-primary" (click)="saveToDocuments()" [disabled]="isSavingDocument">
-          {{ isSavingDocument ? 'Guardando...' : '¡Sí, guardar! 📥' }}
-        </button>
+      <div class="saved-indicator" *ngIf="documentSaved && !isSavingDocument">
+        <span class="saved-icon">✓</span>
+        <span>W2 guardado en tus documentos</span>
       </div>
     </div>
   </div>

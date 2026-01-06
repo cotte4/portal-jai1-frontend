@@ -1,3 +1,12 @@
+<!-- Initial Loading Screen -->
+@if (!hasLoaded) {
+  <div class="initial-loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando seguimiento...</p>
+  </div>
+}
+
+@if (hasLoaded) {
 <div class="tracking-container">
   <!-- Header Section -->
   <div class="tracking-header">
@@ -160,4 +169,5 @@
     </span>
   </div>
 </div>
+}
 

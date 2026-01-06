@@ -1,15 +1,18 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
+import { ToastComponent } from '../toast/toast';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css'
 })
@@ -17,8 +20,10 @@ export class MainLayout implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
   private chatbotScriptId = 'relevance-ai-chatbot';
+  private subscriptions = new Subscription();
 
   userName: string = '';
   userEmail: string = '';
@@ -29,12 +34,45 @@ export class MainLayout implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadUserData();
-    this.loadNotifications();
+    this.setupNotifications();
     this.loadChatbotScript();
   }
 
   ngOnDestroy() {
     this.removeChatbotScript();
+    this.notificationService.stopPolling();
+    this.subscriptions.unsubscribe();
+  }
+
+  private setupNotifications() {
+    // Subscribe to notifications observable
+    this.subscriptions.add(
+      this.notificationService.notifications$.subscribe((notifications) => {
+        this.notifications = notifications;
+      })
+    );
+
+    // Subscribe to unread count
+    this.subscriptions.add(
+      this.notificationService.unreadCount$.subscribe((count) => {
+        this.unreadNotifications = count;
+      })
+    );
+
+    // Subscribe to new notifications for toast alerts
+    this.subscriptions.add(
+      this.notificationService.newNotification$.subscribe((newNotifications) => {
+        newNotifications.forEach((notification) => {
+          this.toastService.notification(
+            notification.message,
+            notification.title
+          );
+        });
+      })
+    );
+
+    // Start polling every 30 seconds
+    this.notificationService.startPolling(30000);
   }
 
   private loadChatbotScript() {
@@ -84,16 +122,6 @@ export class MainLayout implements OnInit, OnDestroy {
     }
   }
 
-  loadNotifications() {
-    this.notificationService.getNotifications().subscribe({
-      next: (notifications) => {
-        this.notifications = notifications;
-        this.unreadNotifications = notifications.filter(n => !n.isRead).length;
-      },
-      error: () => {}
-    });
-  }
-
   toggleNotificationsPanel() {
     this.showNotificationsPanel = !this.showNotificationsPanel;
   }
@@ -102,8 +130,11 @@ export class MainLayout implements OnInit, OnDestroy {
     if (notification.isRead) return;
     this.notificationService.markAsRead(notification.id).subscribe({
       next: () => {
-        notification.isRead = true;
-        this.unreadNotifications = this.notifications.filter(n => !n.isRead).length;
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al marcar como leída');
+        console.error('Mark as read error:', error);
       }
     });
   }
@@ -111,8 +142,11 @@ export class MainLayout implements OnInit, OnDestroy {
   markAllAsRead() {
     this.notificationService.markAllAsRead().subscribe({
       next: () => {
-        this.notifications.forEach(n => n.isRead = true);
-        this.unreadNotifications = 0;
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al marcar todas como leídas');
+        console.error('Mark all as read error:', error);
       }
     });
   }
@@ -122,6 +156,8 @@ export class MainLayout implements OnInit, OnDestroy {
       case 'status_change': return '📊';
       case 'docs_missing': return '📁';
       case 'message': return '💬';
+      case 'system': return '⚙️';
+      case 'problem_alert': return '⚠️';
       default: return '🔔';
     }
   }
@@ -150,15 +186,46 @@ export class MainLayout implements OnInit, OnDestroy {
     this.router.navigate(['/profile']);
   }
 
-  navigateWithRefresh(route: string) {
+  /**
+   * Handle nav link clicks - works with routerLink for navigation
+   * Triggers refresh to ensure fresh data
+   */
+  onNavClick(route: string) {
     this.closeSidebar();
-    // Navigate first, then trigger refresh AFTER component is ready
-    this.router.navigate([route]).then(() => {
-      // Small delay to ensure component has subscribed
+
+    const currentUrl = this.router.url.split('?')[0];
+    const isAlreadyOnRoute = currentUrl === route;
+
+    if (isAlreadyOnRoute) {
+      // Already on the route - routerLink won't navigate, so trigger refresh immediately
+      this.dataRefreshService.triggerRefresh(route);
+    } else {
+      // Navigating to different route - trigger refresh after navigation completes
       setTimeout(() => {
         this.dataRefreshService.triggerRefresh(route);
-      }, 50);
-    });
+      }, 150);
+    }
+  }
+
+  navigateWithRefresh(route: string) {
+    this.closeSidebar();
+
+    // Check if we're already on the target route
+    const currentUrl = this.router.url.split('?')[0]; // Remove query params
+    const isAlreadyOnRoute = currentUrl === route;
+
+    if (isAlreadyOnRoute) {
+      // Already on the route - just trigger refresh immediately
+      this.dataRefreshService.triggerRefresh(route);
+    } else {
+      // Navigate first, then trigger refresh AFTER component is ready
+      this.router.navigate([route]).then(() => {
+        // Small delay to ensure component has subscribed
+        setTimeout(() => {
+          this.dataRefreshService.triggerRefresh(route);
+        }, 100);
+      });
+    }
   }
 
   logout() {
@@ -168,4 +235,3 @@ export class MainLayout implements OnInit, OnDestroy {
     });
   }
 }
-

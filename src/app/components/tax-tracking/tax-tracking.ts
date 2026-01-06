@@ -5,7 +5,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, ClientStatus, TaxStatus } from '../../core/models';
-import { interval, Subscription, filter, skip } from 'rxjs';
+import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 
 interface TrackingStep {
   id: string;
@@ -32,21 +32,19 @@ export class TaxTracking implements OnInit, OnDestroy {
 
   profileData: ProfileResponse | null = null;
   isLoading = true;
+  hasLoaded = false;
   lastRefresh: Date = new Date();
   isRefreshing = false;
 
   private subscriptions = new Subscription();
   private previousStatus?: ClientStatus;
+  private isLoadingInProgress = false;
 
   steps: TrackingStep[] = [];
 
-  private isInitialized = false;
-
   ngOnInit() {
-    console.log('[TaxTracking] ngOnInit - loading data');
-
-    // Load initial data - isInitialized will be set after load completes
-    this.loadTrackingData(true);
+    // Load initial data
+    this.loadTrackingData();
 
     // Auto-refresh every 30 seconds
     this.subscriptions.add(
@@ -55,25 +53,23 @@ export class TaxTracking implements OnInit, OnDestroy {
       })
     );
 
-    // Auto-refresh on navigation - skip(1) to ignore the initial navigation that created this component
+    // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         filter(event => event.urlAfterRedirects.includes('/tax-tracking')),
         skip(1)
       ).subscribe(() => {
-        if (!this.isLoading) {
-          console.log('[TaxTracking] NavigationEnd detected, refreshing');
+        if (this.hasLoaded) {
           this.loadTrackingData();
         }
       })
     );
 
-    // Allow other components to trigger refresh - only after initial load is complete
+    // Allow other components to trigger refresh
     this.subscriptions.add(
       this.dataRefreshService.onRefresh('/tax-tracking').subscribe(() => {
-        if (this.isInitialized && !this.isLoading) {
-          console.log('[TaxTracking] DataRefreshService triggered, refreshing');
+        if (this.hasLoaded) {
           this.loadTrackingData();
         }
       })
@@ -84,49 +80,31 @@ export class TaxTracking implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  loadTrackingData(isInitialLoad = false) {
-    console.log('[TaxTracking] loadTrackingData called, isInitialLoad:', isInitialLoad);
+  loadTrackingData() {
+    if (this.isLoadingInProgress) return;
+    this.isLoadingInProgress = true;
     this.isLoading = true;
     // Build default steps first
     this.buildSteps();
 
-    // Safety timeout - stop loading after 20 seconds no matter what
-    const safetyTimeout = setTimeout(() => {
-      if (this.isLoading) {
+    this.profileService.getProfile().pipe(
+      finalize(() => {
+        this.hasLoaded = true;
         this.isLoading = false;
-        console.warn('[TaxTracking] Safety timeout triggered');
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-      }
-    }, 20000);
-
-    this.profileService.getProfile().subscribe({
+        this.isLoadingInProgress = false;
+        this.lastRefresh = new Date();
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (data) => {
-        clearTimeout(safetyTimeout);
         if (data) {
           this.profileData = data;
           this.previousStatus = data.taxCase?.clientStatus;
           this.buildSteps();
         }
-        this.isLoading = false;
-        this.lastRefresh = new Date();
-        console.log('[TaxTracking] Data loaded successfully');
-        // Mark as initialized AFTER the load completes
-        if (isInitialLoad) {
-          console.log('[TaxTracking] Initial load complete, setting isInitialized = true');
-          this.isInitialized = true;
-        }
-        this.cdr.detectChanges(); // Force Angular to update the view
       },
       error: () => {
-        clearTimeout(safetyTimeout);
-        this.isLoading = false;
         // Keep default steps even on error
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-        this.cdr.detectChanges(); // Force Angular to update the view
       }
     });
   }

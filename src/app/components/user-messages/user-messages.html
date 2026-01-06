@@ -1,4 +1,10 @@
-<div class="messages-content">
+<!-- Initial Loading Screen -->
+<div class="initial-loading" *ngIf="!hasLoaded">
+  <div class="loading-spinner"></div>
+  <p>Cargando mensajes...</p>
+</div>
+
+<div class="messages-content" *ngIf="hasLoaded">
   <!-- Title Section -->
   <div class="messages-title-section">
     <div class="title-icon">💬</div>

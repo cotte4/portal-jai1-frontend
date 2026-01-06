@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, finalize } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { CompleteProfileRequest } from '../../core/models';
@@ -17,6 +17,7 @@ export class TaxForm implements OnInit, OnDestroy {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
   // Form data mapped to API
@@ -49,6 +50,11 @@ export class TaxForm implements OnInit, OnDestroy {
   errorMessage: string = '';
   isLoading: boolean = false;
   isSavingDraft: boolean = false;
+  hasLoadedProfile: boolean = false; // True after first profile load completes
+  showSuccessScreen: boolean = false; // Show success animation after submit
+  showAlreadyCompletedScreen: boolean = false; // Show info for users who already completed the form
+  private justSubmitted: boolean = false; // Prevent redirect race condition after submit
+  private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
 
   ngOnInit() {
     this.loadDraft();
@@ -72,34 +78,54 @@ export class TaxForm implements OnInit, OnDestroy {
   }
 
   loadDraft() {
-    this.profileService.getDraft().subscribe({
-      next: (profile) => {
-        if (profile) {
-          // If profile is already complete (not a draft), redirect to dashboard
-          if (profile.profileComplete && !profile.isDraft) {
-            this.router.navigate(['/dashboard']);
-            return;
-          }
+    // Don't reload if user just submitted (showing success screen)
+    if (this.justSubmitted) return;
 
-          this.formData = {
-            ssn: profile.ssn || '',
-            dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',
-            addressStreet: profile.address?.street || '',
-            addressCity: profile.address?.city || '',
-            addressState: profile.address?.state || '',
-            addressZip: profile.address?.zip || '',
-            workState: profile.workState || '',
-            employerName: profile.employerName || '',
-            bankName: profile.bank?.name || '',
-            bankRoutingNumber: profile.bank?.routingNumber || '',
-            bankAccountNumber: profile.bank?.accountNumber || '',
-            turbotaxEmail: profile.turbotaxEmail || '',
-            turbotaxPassword: profile.turbotaxPassword || ''
-          };
+    // Don't reload if already loading (prevent race conditions)
+    if (this.isLoadingInProgress) return;
+
+    this.isLoadingInProgress = true;
+
+    this.profileService.getDraft().pipe(
+      finalize(() => {
+        // Always runs when Observable completes (success, error, or empty)
+        this.hasLoadedProfile = true;
+        this.isLoadingInProgress = false;
+        this.cdr.detectChanges(); // Force Angular to update the view
+      })
+    ).subscribe({
+      next: (profile) => {
+        // Determine which screen to show based on profile state
+        if (profile && profile.profileComplete && !profile.isDraft) {
+          // Profile is complete - show info screen
+          this.showAlreadyCompletedScreen = true;
+        } else {
+          // Profile is draft, incomplete, or doesn't exist - show form
+          this.showAlreadyCompletedScreen = false;
+
+          if (profile) {
+            // Populate form with existing data
+            this.formData = {
+              ssn: profile.ssn || '',
+              dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',
+              addressStreet: profile.address?.street || '',
+              addressCity: profile.address?.city || '',
+              addressState: profile.address?.state || '',
+              addressZip: profile.address?.zip || '',
+              workState: profile.workState || '',
+              employerName: profile.employerName || '',
+              bankName: profile.bank?.name || '',
+              bankRoutingNumber: profile.bank?.routingNumber || '',
+              bankAccountNumber: profile.bank?.accountNumber || '',
+              turbotaxEmail: profile.turbotaxEmail || '',
+              turbotaxPassword: profile.turbotaxPassword || ''
+            };
+          }
         }
       },
       error: () => {
-        // No draft exists, continue with empty form
+        // Error or no draft exists - show empty form
+        this.showAlreadyCompletedScreen = false;
       }
     });
   }
@@ -173,13 +199,14 @@ export class TaxForm implements OnInit, OnDestroy {
 
         if (isDraft) {
           this.successMessage = 'Borrador guardado correctamente';
+          window.scrollTo(0, 0);
         } else {
-          this.successMessage = 'Formulario enviado correctamente!';
-          setTimeout(() => {
-            this.router.navigate(['/documents']);
-          }, 2000);
+          // Set flag to prevent redirect race condition in loadDraft()
+          this.justSubmitted = true;
+          // Show success screen with animation
+          this.showSuccessScreen = true;
+          window.scrollTo(0, 0);
         }
-        window.scrollTo(0, 0);
       },
       error: (error) => {
         this.isLoading = false;
@@ -192,6 +219,18 @@ export class TaxForm implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  continueToDocuments() {
+    this.router.navigate(['/documents']);
+  }
+
+  goToDashboard() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  goToSupport() {
+    this.router.navigate(['/messages']);
   }
 
   isFormComplete(): boolean {

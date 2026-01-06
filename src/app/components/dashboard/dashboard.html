@@ -1,3 +1,13 @@
+<!-- Loading Screen -->
+@if (!hasLoaded) {
+  <div class="dashboard-loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando tu dashboard...</p>
+  </div>
+}
+
+<!-- Dashboard Content -->
+@if (hasLoaded) {
 <div class="dashboard-content">
   <!-- Top Section: Two Cards Side by Side -->
   <div class="top-section">
@@ -221,3 +231,4 @@
     <button class="btn-help" (click)="navigateTo('/messages')">Contactar soporte</button>
   </div>
 </div>
+}

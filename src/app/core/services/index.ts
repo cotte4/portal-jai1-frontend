@@ -7,3 +7,4 @@ export * from './notification.service';
 export * from './admin.service';
 export * from './data-refresh.service';
 export * from './referral.service';
+export * from './toast.service';

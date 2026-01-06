@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter, skip } from 'rxjs';
+import { Subscription, filter, skip, finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
@@ -29,6 +29,7 @@ export class UserMessages implements OnInit, OnDestroy {
   messages: TicketMessage[] = [];
   newMessage: string = '';
   isLoading: boolean = true;
+  hasLoaded: boolean = false;
   isSending: boolean = false;
   errorMessage: string = '';
 
@@ -37,16 +38,13 @@ export class UserMessages implements OnInit, OnDestroy {
   newTicketSubject: string = '';
   newTicketMessage: string = '';
 
-  private isInitialized = false;
+  private isLoadingInProgress: boolean = false;
 
   ngOnInit() {
-    console.log('[UserMessages] ngOnInit - loading tickets');
     const user = this.authService.currentUser;
     const isAuth = this.authService.isAuthenticated;
-    console.log('[UserMessages] Auth check - user:', user?.email, 'isAuthenticated:', isAuth);
 
     if (!isAuth) {
-      console.log('[UserMessages] NOT AUTHENTICATED - redirecting to login');
       this.router.navigate(['/login']);
       return;
     }
@@ -56,28 +54,26 @@ export class UserMessages implements OnInit, OnDestroy {
       this.userId = user.id;
     }
 
-    // Load initial data - isInitialized will be set after load completes
-    this.loadTickets(true);
+    // Load initial data
+    this.loadTickets();
 
-    // Auto-refresh on navigation - skip(1) to ignore the initial navigation that created this component
+    // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         filter(event => event.urlAfterRedirects.includes('/messages')),
         skip(1)
       ).subscribe(() => {
-        if (!this.isLoading) {
-          console.log('[UserMessages] NavigationEnd detected, refreshing');
+        if (this.hasLoaded) {
           this.loadTickets();
         }
       })
     );
 
-    // Allow other components to trigger refresh - only after initial load is complete
+    // Allow other components to trigger refresh
     this.subscriptions.add(
       this.dataRefreshService.onRefresh('/messages').subscribe(() => {
-        if (this.isInitialized && !this.isLoading) {
-          console.log('[UserMessages] DataRefreshService triggered, refreshing');
+        if (this.hasLoaded) {
           this.loadTickets();
         }
       })
@@ -88,112 +84,59 @@ export class UserMessages implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  loadTickets(isInitialLoad = false) {
-    console.log('[UserMessages] loadTickets called, isInitialLoad:', isInitialLoad);
+  loadTickets() {
+    if (this.isLoadingInProgress) return;
+    this.isLoadingInProgress = true;
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Safety timeout - stop loading after 20 seconds no matter what
-    const safetyTimeout = setTimeout(() => {
-      if (this.isLoading) {
-        this.isLoading = false;
-        this.errorMessage = 'Tiempo de espera agotado. Intenta de nuevo.';
-        console.warn('[UserMessages] Safety timeout triggered');
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-      }
-    }, 20000);
-
-    console.log('[UserMessages] About to call ticketService.getTickets()');
-    this.ticketService.getTickets().subscribe({
+    this.ticketService.getTickets().pipe(
+      finalize(() => {
+        this.hasLoaded = true;
+        this.isLoadingInProgress = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (tickets) => {
-        console.log('[UserMessages] Tickets API response:', tickets);
-        console.log('[UserMessages] Tickets loaded:', tickets?.length || 0);
-        clearTimeout(safetyTimeout);
         this.tickets = tickets || [];
-        console.log('[UserMessages] this.tickets set to:', this.tickets.length);
         // Auto-select the most recent open ticket or first ticket
         if (this.tickets.length > 0) {
           const openTicket = this.tickets.find(t => t.status !== TicketStatus.CLOSED) || this.tickets[0];
-          console.log('[UserMessages] Selecting ticket:', openTicket?.id);
-          this.selectTicket(openTicket, isInitialLoad);
+          this.selectTicket(openTicket);
         } else {
           this.isLoading = false;
-          console.log('[UserMessages] No tickets, showing empty state');
-          if (isInitialLoad) {
-            this.isInitialized = true;
-          }
-          this.cdr.detectChanges(); // Force Angular to update the view
         }
       },
       error: (error) => {
-        clearTimeout(safetyTimeout);
         this.errorMessage = 'Error al cargar los tickets: ' + (error?.message || 'Unknown');
         this.isLoading = false;
-        console.error('[UserMessages] Subscribe error:', error);
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-        this.cdr.detectChanges(); // Force Angular to update the view
       }
     });
   }
 
-  selectTicket(ticket: Ticket, isInitialLoad = false) {
+  selectTicket(ticket: Ticket) {
     this.activeTicket = ticket;
-    this.loadMessages(ticket.id, isInitialLoad);
+    this.loadMessages(ticket.id);
   }
 
-  loadMessages(ticketId: string, isInitialLoad = false) {
-    console.log('[UserMessages] loadMessages called for ticket:', ticketId, 'isInitialLoad:', isInitialLoad);
+  loadMessages(ticketId: string) {
     this.isLoading = true;
 
-    // Safety timeout for loading messages
-    const safetyTimeout = setTimeout(() => {
-      if (this.isLoading) {
+    this.ticketService.getTicket(ticketId).pipe(
+      finalize(() => {
         this.isLoading = false;
-        this.errorMessage = 'Tiempo de espera agotado cargando mensajes.';
-        console.warn('[UserMessages] loadMessages safety timeout triggered');
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-      }
-    }, 20000);
-
-    console.log('[UserMessages] Making API call to get ticket:', ticketId);
-    this.ticketService.getTicket(ticketId).subscribe({
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (ticket) => {
-        console.log('[UserMessages] API response received for ticket');
-        clearTimeout(safetyTimeout);
         if (ticket) {
-          console.log('[UserMessages] Messages loaded:', ticket.messages?.length || 0);
           this.activeTicket = ticket;
           this.messages = ticket.messages || [];
-        } else {
-          console.warn('[UserMessages] Ticket response was null/undefined');
         }
-        this.isLoading = false;
         this.scrollToBottom();
-        // Mark as initialized AFTER the full load sequence completes
-        if (isInitialLoad) {
-          console.log('[UserMessages] Initial load complete, setting isInitialized = true');
-          this.isInitialized = true;
-        }
-        this.cdr.detectChanges(); // Force Angular to update the view
       },
-      error: (error) => {
-        console.error('[UserMessages] getTicket API error:', error);
-        clearTimeout(safetyTimeout);
+      error: () => {
         this.errorMessage = 'Error al cargar los mensajes';
-        this.isLoading = false;
-        if (isInitialLoad) {
-          this.isInitialized = true;
-        }
-        this.cdr.detectChanges(); // Force Angular to update the view
-      },
-      complete: () => {
-        console.log('[UserMessages] getTicket observable completed');
       }
     });
   }

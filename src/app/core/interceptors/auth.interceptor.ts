@@ -1,6 +1,6 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError, of, EMPTY } from 'rxjs';
 import { StorageService } from '../services/storage.service';
 import { AuthService } from '../services/auth.service';
 
@@ -34,7 +34,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
     catchError((error: HttpErrorResponse) => {
       const refreshToken = storage.getRefreshToken();
 
-      // Only attempt refresh if we have a refresh token
+      // Only attempt refresh if we have a refresh token and not already refreshing
       if (error.status === 401 && !isRefreshing && !req.url.includes('/auth/refresh') && refreshToken) {
         isRefreshing = true;
 
@@ -42,6 +42,13 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           switchMap(() => {
             isRefreshing = false;
             const newToken = storage.getAccessToken();
+
+            // If no new token after refresh, don't retry - session is invalid
+            if (!newToken) {
+              console.log('No new token after refresh, session invalid');
+              return throwError(() => error);
+            }
+
             const retryReq = req.clone({
               setHeaders: {
                 Authorization: `Bearer ${newToken}`
@@ -51,6 +58,8 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           }),
           catchError(refreshError => {
             isRefreshing = false;
+            console.log('Token refresh failed in interceptor:', refreshError);
+            // AuthService.refreshToken already calls clearSession on error
             return throwError(() => refreshError);
           })
         );

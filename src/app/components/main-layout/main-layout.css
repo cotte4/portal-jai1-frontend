@@ -93,10 +93,12 @@
   font-size: 20px;
   width: 24px;
   text-align: center;
+  pointer-events: none; /* Ensure clicks go to parent anchor */
 }
 
 .nav-text {
   flex: 1;
+  pointer-events: none; /* Ensure clicks go to parent anchor */
 }
 
 .nav-badge {
@@ -154,6 +156,7 @@
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
+  color: inherit;
 }
 
 .user-card:hover {

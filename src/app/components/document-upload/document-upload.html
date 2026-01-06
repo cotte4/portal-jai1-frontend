@@ -34,7 +34,13 @@
   </div>
 </div>
 
-<div class="upload-content">
+<!-- Initial Loading Screen -->
+<div class="initial-loading" *ngIf="!hasLoaded">
+  <div class="loading-spinner"></div>
+  <p>Cargando tus documentos...</p>
+</div>
+
+<div class="upload-content" *ngIf="hasLoaded">
   <!-- Page Title -->
   <div class="page-title">
     <h1>Subir Documentos</h1>
