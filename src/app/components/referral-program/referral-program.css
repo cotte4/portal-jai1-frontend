@@ -334,13 +334,14 @@
 
 /* ==================== CONTAINER ==================== */
 .referral-container {
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  position: relative;
-  overflow-x: hidden;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-}
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    z-index: 1;
+ }
 
 /* ==================== BACKGROUND EFFECTS ==================== */
 .bg-effects {

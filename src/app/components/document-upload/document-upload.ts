@@ -34,6 +34,13 @@ export class DocumentUpload implements OnInit, OnDestroy {
   showW2Popup: boolean = false;
   lastUploadedW2: Document | null = null;
 
+  // Confirmation popup
+  showConfirmPopup: boolean = false;
+  pendingFile: File | null = null;
+
+  // Track which document types have been uploaded
+  uploadedTypes: Set<DocumentType> = new Set();
+
   // Selected document type for upload
   selectedType: DocumentType = DocumentType.W2;
   documentTypes = [
@@ -69,7 +76,10 @@ export class DocumentUpload implements OnInit, OnDestroy {
       next: (documents) => {
         this.uploadedFiles = documents;
         this.isLoading = false;
-        this.cdr.detectChanges();
+
+        // Populate uploadedTypes from existing documents
+        this.uploadedTypes.clear();
+        documents.forEach(doc => this.uploadedTypes.add(doc.type));
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error al cargar documentos';
@@ -130,13 +140,36 @@ export class DocumentUpload implements OnInit, OnDestroy {
         continue;
       }
 
-      // Upload file
-      this.uploadFile(file);
+      // Show confirmation popup instead of direct upload
+      this.pendingFile = file;
+      this.showConfirmPopup = true;
+      break; // Only process one file at a time for confirmation
     }
 
     // Clear the input
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     if (input) input.value = '';
+  }
+
+  // Confirmation popup actions
+  confirmUpload() {
+    this.showConfirmPopup = false;
+    if (this.pendingFile) {
+      this.uploadFile(this.pendingFile);
+      this.pendingFile = null;
+    }
+  }
+
+  cancelUpload() {
+    this.showConfirmPopup = false;
+    this.pendingFile = null;
+    this.successMessage = '';
+    this.errorMessage = '';
+  }
+
+  getSelectedTypeLabel(): string {
+    const found = this.documentTypes.find(t => t.value === this.selectedType);
+    return found?.label || '';
   }
 
   uploadFile(file: File) {
@@ -147,6 +180,9 @@ export class DocumentUpload implements OnInit, OnDestroy {
         this.uploadedFiles.push(response.document);
         this.successMessage = `Archivo "${file.name}" subido correctamente!`;
         this.isUploading = false;
+
+        // Mark this document type as uploaded (for green checkmark)
+        this.uploadedTypes.add(this.selectedType);
 
         // If it's a W2, show the calculator popup
         if (this.selectedType === DocumentType.W2) {
