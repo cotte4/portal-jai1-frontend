@@ -141,7 +141,8 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    const request: RefreshTokenRequest = { refreshToken };
+    // Backend expects snake_case: refresh_token
+    const request = { refresh_token: refreshToken };
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/refresh`, request).pipe(
       tap((response) => this.handleAuthResponse(response)),
       catchError((err) => {
