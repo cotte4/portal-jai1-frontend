@@ -105,11 +105,17 @@
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-}
-
-.nav-badge.new {
   background: #059669;
   color: white;
+}
+
+.referral-link {
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.referral-link:hover {
+  background: rgba(5, 150, 105, 0.2);
 }
 
 /* Sidebar Footer */

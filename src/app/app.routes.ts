@@ -18,6 +18,8 @@ import { Chatbot } from './components/chatbot/chatbot';
 import { MainLayout } from './components/main-layout/main-layout';
 import { Profile } from './components/profile/profile';
 import { GoogleCallback } from './components/google-callback/google-callback';
+import { Onboarding } from './components/onboarding/onboarding';
+import { ReferralProgram } from './components/referral-program/referral-program';
 
 
 export const routes: Routes = [
@@ -39,12 +41,26 @@ export const routes: Routes = [
   canActivate: [adminGuard]
   },
 
-  { 
-  path: 'admin/client/:id', 
+  {
+  path: 'admin/client/:id',
   component: AdminClientDetail,
   canActivate: [adminGuard]
   },
-  
+
+  // Onboarding (full-screen, protected)
+  {
+    path: 'onboarding',
+    component: Onboarding,
+    canActivate: [authGuard]
+  },
+
+  // Referral Program (full-screen, protected)
+  {
+    path: 'referral-program',
+    component: ReferralProgram,
+    canActivate: [authGuard]
+  },
+
   // Protected user routes - wrapped in MainLayout with sidebar
   { 
     path: '',
