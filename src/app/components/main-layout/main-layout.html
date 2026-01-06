@@ -4,7 +4,7 @@
     <!-- Sidebar Header -->
     <div class="sidebar-header">
       <div class="logo" routerLink="/dashboard">
-        <span class="logo-j">J</span><span class="logo-slash">/</span><span class="logo-ai">AI1</span>
+        <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="sidebar-logo">
       </div>
       <button class="btn-close-sidebar" (click)="sidebarOpen = false">✕</button>
     </div>
@@ -38,6 +38,14 @@
       <a class="nav-link" routerLink="/messages" routerLinkActive="active" (click)="closeSidebar()">
         <span class="nav-icon">💬</span>
         <span class="nav-text">Soporte</span>
+      </a>
+
+      <!-- Referral Program - Special Link -->
+      <div class="nav-divider"></div>
+      <a class="nav-link referral-link" routerLink="/referral-program" (click)="closeSidebar()">
+        <span class="nav-icon">🎁</span>
+        <span class="nav-text">Programa de Referidos</span>
+        <span class="nav-badge new">NUEVO</span>
       </a>
     </nav>
 

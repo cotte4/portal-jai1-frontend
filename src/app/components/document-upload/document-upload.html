@@ -1,3 +1,22 @@
+<!-- Document Confirmation Popup -->
+<div class="popup-overlay" *ngIf="showConfirmPopup" (click)="cancelUpload()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <div class="popup-icon">📄</div>
+    <h2>Confirmar documento</h2>
+    <p>¿Estás seguro que este es tu documento <strong>{{ getSelectedTypeLabel() }}</strong>?</p>
+    <p class="file-name-preview" *ngIf="pendingFile">{{ pendingFile.name }}</p>
+    <p class="warning-message">⚠️ No podrás eliminar este documento luego de subirlo.</p>
+    <div class="popup-actions">
+      <button class="btn-popup-secondary" (click)="cancelUpload()">
+        No, cancelar
+      </button>
+      <button class="btn-popup-primary" (click)="confirmUpload()">
+        Sí, subir documento
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- W2 Calculator Popup -->
 <div class="popup-overlay" *ngIf="showW2Popup" (click)="closeW2Popup()">
   <div class="popup-card" (click)="$event.stopPropagation()">
@@ -32,14 +51,18 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Document Type Selection -->
-  <div class="document-type-selector">
-    <label for="docType">Tipo de documento:</label>
-    <select id="docType" [(ngModel)]="selectedType">
-      <option *ngFor="let type of documentTypes" [value]="type.value">
-        {{ type.label }}
-      </option>
-    </select>
+ <!-- Document Type Tabs -->
+  <div class="document-type-tabs">
+    <button
+      *ngFor="let type of documentTypes"
+      class="doc-tab"
+      [class.active]="selectedType === type.value"
+      [class.uploaded]="uploadedTypes.has(type.value)"
+      (click)="selectedType = type.value">
+      <span class="tab-icon">{{ type.value === 'w2' ? '📋' : type.value === 'payment_proof' ? '💳' : '📎' }}</span>
+      <span class="tab-label">{{ type.label }}</span>
+      <span class="tab-check" *ngIf="uploadedTypes.has(type.value)">✓</span>
+    </button>
   </div>
 
   <!-- Upload Zone -->
@@ -109,14 +132,6 @@
         </div>
         <button class="btn-download" (click)="downloadFile(file)" title="Descargar">
           <span>⬇️</span>
-        </button>
-        <button
-          class="btn-remove"
-          (click)="removeFile(file, i)"
-          title="Eliminar archivo"
-          *ngIf="!file.isReviewed"
-        >
-          <span>🗑️</span>
         </button>
       </div>
     </div>

@@ -35,14 +35,14 @@
 .logo {
   display: flex;
   align-items: center;
-  font-weight: 700;
-  font-size: 26px;
   cursor: pointer;
 }
 
-.logo-j { color: white; }
-.logo-slash { color: #B21B43; margin: 0 3px; }
-.logo-ai { color: #B21B43; }
+.sidebar-logo {
+  height: 48px;
+  width: auto;
+  filter: brightness(0) invert(1); /* Makes SVG white for dark sidebar */
+}
 
 .btn-close-sidebar {
   display: none;
@@ -110,6 +110,34 @@
 .nav-badge.new {
   background: #059669;
   color: white;
+}
+
+/* Nav Divider */
+.nav-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 12px 16px;
+}
+
+/* Referral Link - Special Styling */
+.nav-link.referral-link {
+  background: linear-gradient(135deg, rgba(178, 27, 67, 0.2) 0%, rgba(178, 27, 67, 0.1) 100%);
+  border: 1px solid rgba(178, 27, 67, 0.3);
+  margin-top: 4px;
+}
+
+.nav-link.referral-link:hover {
+  background: linear-gradient(135deg, rgba(178, 27, 67, 0.3) 0%, rgba(178, 27, 67, 0.2) 100%);
+  border-color: rgba(178, 27, 67, 0.5);
+}
+
+.nav-link.referral-link .nav-badge {
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 /* Sidebar Footer */
