@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError, BehaviorSubject, tap, interval, Subscription, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Notification } from '../models';
+import { Notification, NotificationType } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -122,5 +122,28 @@ export class NotificationService {
   private handleError(error: any): Observable<never> {
     console.error('Notification error:', error);
     return throwError(() => error);
+  }
+
+  // Emit a local notification for immediate UI feedback
+  emitLocalNotification(title: string, message: string, type: NotificationType = NotificationType.STATUS_CHANGE): void {
+    const localNotification: Notification = {
+      id: `local-${Date.now()}`,
+      userId: '',
+      title,
+      message,
+      type,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    };
+
+    // Add to current notifications
+    const currentNotifications = this.notificationsSubject.value;
+    this.notificationsSubject.next([localNotification, ...currentNotifications]);
+
+    // Update unread count
+    this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
+
+    // Emit as new notification for toast/alert display
+    this.newNotificationSubject.next([localNotification]);
   }
 }
