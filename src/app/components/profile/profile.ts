@@ -5,6 +5,7 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ToastService } from '../../core/services/toast.service';
 import { ProfileResponse, Address } from '../../core/models';
 import { timeout, catchError, filter } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
@@ -21,6 +22,7 @@ export class Profile implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private toastService = inject(ToastService);
   private subscriptions = new Subscription();
 
   // User data
@@ -181,15 +183,13 @@ export class Profile implements OnInit, OnDestroy {
       
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Por favor selecciona una imagen válida';
-        setTimeout(() => this.errorMessage = '', 3000);
+        this.toastService.error('Por favor selecciona una imagen válida');
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'La imagen no puede superar los 5MB';
-        setTimeout(() => this.errorMessage = '', 3000);
+        this.toastService.error('La imagen no puede superar los 5MB');
         return;
       }
 
@@ -202,8 +202,7 @@ export class Profile implements OnInit, OnDestroy {
         if (userId) {
           localStorage.setItem(`profilePicture_${userId}`, result);
         }
-        this.successMessage = '¡Foto de perfil actualizada!';
-        setTimeout(() => this.successMessage = '', 3000);
+        this.toastService.success('¡Foto de perfil actualizada!');
       };
       reader.readAsDataURL(file);
     }
@@ -216,8 +215,7 @@ export class Profile implements OnInit, OnDestroy {
     if (userId) {
       localStorage.removeItem(`profilePicture_${userId}`);
     }
-    this.successMessage = 'Foto de perfil eliminada';
-    setTimeout(() => this.successMessage = '', 3000);
+    this.toastService.success('Foto de perfil eliminada');
   }
 
   toggleEdit() {
@@ -279,13 +277,11 @@ export class Profile implements OnInit, OnDestroy {
 
         this.isSaving = false;
         this.isEditing = false;
-        this.successMessage = '¡Cambios guardados correctamente!';
-        setTimeout(() => this.successMessage = '', 3000);
+        this.toastService.success('¡Cambios guardados correctamente!');
       },
       error: (error) => {
         this.isSaving = false;
-        this.errorMessage = error?.error?.message || 'Error al guardar los cambios';
-        setTimeout(() => this.errorMessage = '', 5000);
+        this.toastService.error(error?.error?.message || 'Error al guardar los cambios');
       }
     });
   }
