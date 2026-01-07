@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(timeout:*)",
+      "Bash(git add:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(npm start)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

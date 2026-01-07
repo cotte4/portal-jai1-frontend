@@ -13,8 +13,8 @@
     <div class="header-content">
       <div class="header-icon">📍</div>
       <div class="header-text">
-        <h1>Seguimiento de tu Declaración</h1>
-        <p>Conocé el estado actual de tu proceso de taxes</p>
+        <h1>Seguimiento de tu Declaracion</h1>
+        <p>Conoce el estado de tu proceso Federal y Estatal</p>
       </div>
     </div>
     <div class="header-actions">
@@ -22,7 +22,7 @@
         <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
         <span>{{ isRefreshing ? 'Actualizando...' : 'Actualizar' }}</span>
       </button>
-      <span class="last-update">Última actualización: {{ lastRefreshFormatted }}</span>
+      <span class="last-update">Ultima actualizacion: {{ lastRefreshFormatted }}</span>
     </div>
   </div>
 
@@ -37,9 +37,9 @@
         <div class="card-content">
           <span class="card-label">Progreso Total</span>
           <div class="progress-display">
-            <span class="progress-value">{{ progressPercent }}%</span>
+            <span class="progress-value">{{ overallProgressPercent }}%</span>
             <div class="mini-progress">
-              <div class="mini-progress-fill" [style.width.%]="progressPercent"></div>
+              <div class="mini-progress-fill" [style.width.%]="overallProgressPercent"></div>
             </div>
           </div>
         </div>
@@ -80,69 +80,170 @@
       <p>Cargando tu estado...</p>
     </div>
   } @else {
-    <!-- Timeline -->
-    <div class="timeline-container">
-      <div class="timeline-progress">
-        <div class="timeline-line">
-          <div class="timeline-line-fill" [style.height.%]="progressPercent"></div>
-        </div>
+    <!-- SHARED STEPS (Steps 1-2) -->
+    <div class="shared-timeline">
+      <div class="timeline-section-title">
+        <span class="section-icon">📄</span>
+        <span>Etapa Inicial</span>
       </div>
-
-      <div class="timeline-steps">
-        @for (step of steps; track step.id; let i = $index) {
-          <div 
-            class="timeline-step"
+      <div class="shared-steps">
+        @for (step of sharedSteps; track step.id; let i = $index) {
+          <div
+            class="shared-step"
             [class.completed]="step.status === 'completed'"
             [class.active]="step.status === 'active'"
-            [class.rejected]="step.status === 'rejected'"
             [class.pending]="step.status === 'pending'"
-            [style.animation-delay.ms]="i * 100"
           >
-            <!-- Step Indicator -->
             <div class="step-indicator">
               @if (step.status === 'completed') {
                 <span class="indicator-icon check">✓</span>
-              } @else if (step.status === 'rejected') {
-                <span class="indicator-icon cross">✗</span>
               } @else if (step.status === 'active') {
                 <span class="indicator-icon pulse">●</span>
               } @else {
                 <span class="indicator-number">{{ i + 1 }}</span>
               }
             </div>
-
-            <!-- Step Content -->
-            <div class="step-content">
-              <div class="step-header">
-                <span class="step-icon">{{ step.icon }}</span>
-                <div class="step-titles">
-                  <h3 class="step-title">{{ step.title }}</h3>
-                  <p class="step-description">{{ step.description }}</p>
-                </div>
-              </div>
-
-              <div class="step-details">
+            <div class="step-info">
+              <span class="step-icon">{{ step.icon }}</span>
+              <div class="step-text">
+                <h3>{{ step.title }}</h3>
+                <p>{{ step.description }}</p>
                 @if (step.date) {
-                  <div class="detail-item date">
-                    <span class="detail-icon">📅</span>
-                    <span>{{ step.date }}</span>
-                  </div>
+                  <span class="step-date">📅 {{ step.date }}</span>
                 }
-                <div class="detail-item status" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
-                  <span class="detail-text">{{ step.detail }}</span>
-                </div>
               </div>
-
-              <!-- Active Step Animation -->
-              @if (step.status === 'active') {
-                <div class="active-indicator">
-                  <div class="pulse-ring"></div>
-                  <span class="active-text">En proceso</span>
-                </div>
-              }
+            </div>
+            <div class="step-status-badge" [class.success]="step.status === 'completed'">
+              {{ step.detail }}
             </div>
           </div>
         }
+      </div>
+    </div>
+
+    <!-- BRANCH SPLIT VISUAL -->
+    <div class="branch-split">
+      <div class="split-line"></div>
+      <div class="split-icon">↓</div>
+      <div class="split-line"></div>
+    </div>
+
+    <!-- DUAL TRACK - Federal & Estatal Side by Side -->
+    <div class="dual-track">
+      <!-- FEDERAL TRACK (Left) -->
+      <div class="track federal-track">
+        <div class="track-header federal">
+          <span class="track-icon">🦅</span>
+          <h2>Federal</h2>
+          <div class="track-progress">
+            <span>{{ federalProgressPercent }}%</span>
+            <div class="track-progress-bar">
+              <div class="track-progress-fill" [style.width.%]="federalProgressPercent"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="track-timeline">
+          <div class="track-line">
+            <div class="track-line-fill" [style.height.%]="federalProgressPercent"></div>
+          </div>
+          <div class="track-steps">
+            @for (step of federalSteps; track step.id; let i = $index) {
+              <div
+                class="track-step"
+                [class.completed]="step.status === 'completed'"
+                [class.active]="step.status === 'active'"
+                [class.rejected]="step.status === 'rejected'"
+                [class.pending]="step.status === 'pending'"
+              >
+                <div class="step-dot">
+                  @if (step.status === 'completed') {
+                    <span class="dot-icon">✓</span>
+                  } @else if (step.status === 'rejected') {
+                    <span class="dot-icon rejected">✗</span>
+                  } @else if (step.status === 'active') {
+                    <span class="dot-icon active">●</span>
+                  } @else {
+                    <span class="dot-number">{{ i + 1 }}</span>
+                  }
+                </div>
+                <div class="step-card">
+                  <div class="step-card-header">
+                    <span class="card-icon">{{ step.icon }}</span>
+                    <span class="card-title">{{ step.title }}</span>
+                  </div>
+                  <p class="card-desc">{{ step.description }}</p>
+                  <div class="card-footer">
+                    <span class="card-detail" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
+                      {{ step.detail }}
+                    </span>
+                    @if (step.date) {
+                      <span class="card-date">{{ step.date }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTATAL TRACK (Right) -->
+      <div class="track estatal-track">
+        <div class="track-header estatal">
+          <span class="track-icon">🗽</span>
+          <h2>Estatal</h2>
+          <div class="track-progress">
+            <span>{{ estatalProgressPercent }}%</span>
+            <div class="track-progress-bar">
+              <div class="track-progress-fill estatal" [style.width.%]="estatalProgressPercent"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="track-timeline">
+          <div class="track-line estatal">
+            <div class="track-line-fill estatal" [style.height.%]="estatalProgressPercent"></div>
+          </div>
+          <div class="track-steps">
+            @for (step of estatalSteps; track step.id; let i = $index) {
+              <div
+                class="track-step"
+                [class.completed]="step.status === 'completed'"
+                [class.active]="step.status === 'active'"
+                [class.rejected]="step.status === 'rejected'"
+                [class.pending]="step.status === 'pending'"
+              >
+                <div class="step-dot estatal">
+                  @if (step.status === 'completed') {
+                    <span class="dot-icon">✓</span>
+                  } @else if (step.status === 'rejected') {
+                    <span class="dot-icon rejected">✗</span>
+                  } @else if (step.status === 'active') {
+                    <span class="dot-icon active">●</span>
+                  } @else {
+                    <span class="dot-number">{{ i + 1 }}</span>
+                  }
+                </div>
+                <div class="step-card">
+                  <div class="step-card-header">
+                    <span class="card-icon">{{ step.icon }}</span>
+                    <span class="card-title">{{ step.title }}</span>
+                  </div>
+                  <p class="card-desc">{{ step.description }}</p>
+                  <div class="card-footer">
+                    <span class="card-detail" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
+                      {{ step.detail }}
+                    </span>
+                    @if (step.date) {
+                      <span class="card-date">{{ step.date }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
       </div>
     </div>
   }
@@ -152,8 +253,8 @@
     <div class="help-card">
       <div class="help-icon">💬</div>
       <div class="help-content">
-        <h3>¿Tenés dudas sobre tu estado?</h3>
-        <p>Nuestro equipo está disponible para ayudarte con cualquier consulta</p>
+        <h3>¿Tenes dudas sobre tu estado?</h3>
+        <p>Nuestro equipo esta disponible para ayudarte con cualquier consulta</p>
       </div>
       <button class="btn-help" (click)="navigateTo('/messages')">
         Contactar soporte
@@ -165,9 +266,8 @@
   <div class="info-note">
     <span class="note-icon">ℹ️</span>
     <span class="note-text">
-      El estado se actualiza automáticamente cada 30 segundos. Los tiempos de procesamiento del IRS pueden variar.
+      El estado se actualiza automaticamente cada 30 segundos. Los tiempos de procesamiento del IRS pueden variar entre Federal y Estatal.
     </span>
   </div>
 </div>
 }
-
