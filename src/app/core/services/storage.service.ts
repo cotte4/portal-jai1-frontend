@@ -4,6 +4,8 @@ const TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 const ONBOARDING_KEY = 'onboarding_completed';
+const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
+const PROFILE_CACHE_KEY = 'jai1_cached_profile';
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +48,8 @@ export class StorageService {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(DASHBOARD_CACHE_KEY);
+    localStorage.removeItem(PROFILE_CACHE_KEY);
   }
 
   isAuthenticated(): boolean {

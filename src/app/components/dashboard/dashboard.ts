@@ -11,6 +11,16 @@ import { CalculatorApiService } from '../../core/services/calculator-api.service
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from '../../core/models';
 
+const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
+
+interface DashboardCacheData {
+  profileData: ProfileResponse | null;
+  documents: Document[];
+  calculatorResult: CalculatorResult | null;
+  cachedAt: number;
+  userId: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule],
@@ -74,6 +84,10 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
 
+    // Load cached dashboard data FIRST (instant, from localStorage)
+    // This shows last-known state instead of empty defaults
+    this.loadCachedData();
+
     // Immediately load user data from auth service (instant, no API call)
     // This allows us to show the dashboard shell right away
     const user = this.authService.currentUser;
@@ -123,6 +137,9 @@ export class Dashboard implements OnInit, OnDestroy {
             results.calculatorResult.w2FileName
           );
         }
+
+        // Cache dashboard data for faster loads on refresh
+        this.cacheDashboardData();
       }
     });
 
@@ -235,5 +252,62 @@ export class Dashboard implements OnInit, OnDestroy {
   // ============ NAVIGATION ============
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  // ============ CACHING ============
+  private loadCachedData(): void {
+    const userId = this.authService.currentUser?.id;
+    if (!userId) return;
+
+    try {
+      const cached = localStorage.getItem(DASHBOARD_CACHE_KEY);
+      if (!cached) return;
+
+      const cacheData: DashboardCacheData = JSON.parse(cached);
+
+      // Verify cache belongs to current user
+      if (cacheData.userId !== userId) {
+        localStorage.removeItem(DASHBOARD_CACHE_KEY);
+        return;
+      }
+
+      // Check staleness (24 hours max)
+      const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+      if (Date.now() - cacheData.cachedAt > CACHE_MAX_AGE_MS) {
+        return;
+      }
+
+      // Apply cached data
+      if (cacheData.profileData) {
+        this.profileData = cacheData.profileData;
+      }
+      if (cacheData.documents) {
+        this.documents = cacheData.documents;
+      }
+      if (cacheData.calculatorResult) {
+        this.calculatorResult = cacheData.calculatorResult;
+      }
+    } catch (e) {
+      console.warn('Failed to load dashboard cache:', e);
+    }
+  }
+
+  private cacheDashboardData(): void {
+    const userId = this.authService.currentUser?.id;
+    if (!userId) return;
+
+    const cacheData: DashboardCacheData = {
+      profileData: this.profileData,
+      documents: this.documents,
+      calculatorResult: this.calculatorResult,
+      cachedAt: Date.now(),
+      userId: userId
+    };
+
+    try {
+      localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn('Failed to cache dashboard data:', e);
+    }
   }
 }
