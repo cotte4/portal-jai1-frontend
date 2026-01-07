@@ -279,8 +279,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         description: 'Reembolso federal',
         icon: '📅',
         status: this.getFederalEstimateStatus(federalStatus, clientStatus),
-        date: taxCase?.refundDepositDate ? this.formatDate(taxCase.refundDepositDate) : undefined,
-        detail: this.getFederalEstimateDetail(federalStatus, taxCase?.refundDepositDate)
+        date: taxCase?.federalEstimatedDate ? this.formatDate(taxCase.federalEstimatedDate) : undefined,
+        detail: this.getFederalEstimateDetail(federalStatus, taxCase?.federalEstimatedDate)
       },
       {
         id: 'federal-sent',
@@ -288,8 +288,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         description: 'Federal depositado',
         icon: '💵',
         status: this.getFederalRefundStatus(federalStatus, clientStatus),
-        date: taxCase?.refundDepositDate ? this.formatDate(taxCase.refundDepositDate) : undefined,
-        detail: this.getFederalRefundDetail(federalStatus, taxCase?.actualRefund)
+        date: taxCase?.federalDepositDate ? this.formatDate(taxCase.federalDepositDate) : undefined,
+        detail: this.getFederalRefundDetail(federalStatus, taxCase?.federalActualRefund)
       }
     ];
 
@@ -310,8 +310,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         description: 'Reembolso estatal',
         icon: '📅',
         status: this.getStateEstimateStatus(stateStatus, clientStatus),
-        date: taxCase?.refundDepositDate ? this.formatDate(taxCase.refundDepositDate) : undefined,
-        detail: this.getStateEstimateDetail(stateStatus, taxCase?.refundDepositDate)
+        date: taxCase?.stateEstimatedDate ? this.formatDate(taxCase.stateEstimatedDate) : undefined,
+        detail: this.getStateEstimateDetail(stateStatus, taxCase?.stateEstimatedDate)
       },
       {
         id: 'state-sent',
@@ -319,8 +319,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         description: 'Estatal depositado',
         icon: '💵',
         status: this.getStateRefundStatus(stateStatus, clientStatus),
-        date: taxCase?.refundDepositDate ? this.formatDate(taxCase.refundDepositDate) : undefined,
-        detail: this.getStateRefundDetail(stateStatus, taxCase?.actualRefund)
+        date: taxCase?.stateDepositDate ? this.formatDate(taxCase.stateDepositDate) : undefined,
+        detail: this.getStateRefundDetail(stateStatus, taxCase?.stateActualRefund)
       }
     ];
   }

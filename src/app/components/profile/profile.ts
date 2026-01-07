@@ -196,13 +196,13 @@ export class Profile implements OnInit, OnDestroy {
 
         // Update from API response user data if available
         if (response?.user) {
-          this.userName = `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() || 'Usuario';
+          this.userName = `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim() || 'Usuario';
           this.userEmail = response.user.email || this.userEmail;
           this.userPhone = response.user.phone || '';
 
           // Update edit form with fresh data
-          this.editForm.firstName = response.user.first_name || '';
-          this.editForm.lastName = response.user.last_name || '';
+          this.editForm.firstName = response.user.firstName || '';
+          this.editForm.lastName = response.user.lastName || '';
           this.editForm.phone = response.user.phone || '';
 
           // Cache for next refresh
@@ -307,7 +307,7 @@ export class Profile implements OnInit, OnDestroy {
     }).subscribe({
       next: (response) => {
         // Update local state with response data
-        this.userName = `${response.user.first_name} ${response.user.last_name}`.trim();
+        this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
         this.userPhone = response.user.phone || '';
 
         if (response.address) {
@@ -326,8 +326,8 @@ export class Profile implements OnInit, OnDestroy {
         // Update authService currentUser
         const currentUser = this.authService.currentUser;
         if (currentUser) {
-          currentUser.firstName = response.user.first_name;
-          currentUser.lastName = response.user.last_name;
+          currentUser.firstName = response.user.firstName;
+          currentUser.lastName = response.user.lastName;
           currentUser.phone = response.user.phone;
         }
 

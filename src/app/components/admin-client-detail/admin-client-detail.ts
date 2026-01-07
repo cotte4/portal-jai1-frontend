@@ -12,6 +12,7 @@ import {
   AdminClientDetail as ClientDetail,
   InternalStatus,
   ClientStatus,
+  TaxStatus,
   Document,
   Ticket,
   UpdateStatusRequest,
@@ -60,7 +61,19 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Status options
   internalStatusOptions = Object.values(InternalStatus);
   clientStatusOptions = Object.values(ClientStatus);
+  taxStatusOptions = Object.values(TaxStatus);
   problemTypeOptions = Object.values(ProblemType);
+
+  // Federal/State tracking
+  selectedFederalStatus: TaxStatus | null = null;
+  selectedStateStatus: TaxStatus | null = null;
+  federalEstimatedDate: string = '';
+  stateEstimatedDate: string = '';
+  federalActualRefund: number | null = null;
+  stateActualRefund: number | null = null;
+  federalDepositDate: string = '';
+  stateDepositDate: string = '';
+  isSavingFederalState: boolean = false;
 
   // Step control
   currentStep: number = 1;
@@ -120,6 +133,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.hasProblem = taxCase.hasProblem || false;
           this.selectedProblemType = taxCase.problemType || null;
           this.problemDescription = taxCase.problemDescription || '';
+          // Load federal/state tracking data
+          this.selectedFederalStatus = taxCase.federalStatus || null;
+          this.selectedStateStatus = taxCase.stateStatus || null;
+          this.federalEstimatedDate = taxCase.federalEstimatedDate ? this.formatDateForInput(taxCase.federalEstimatedDate) : '';
+          this.stateEstimatedDate = taxCase.stateEstimatedDate ? this.formatDateForInput(taxCase.stateEstimatedDate) : '';
+          this.federalActualRefund = taxCase.federalActualRefund || null;
+          this.stateActualRefund = taxCase.stateActualRefund || null;
+          this.federalDepositDate = taxCase.federalDepositDate ? this.formatDateForInput(taxCase.federalDepositDate) : '';
+          this.stateDepositDate = taxCase.stateDepositDate ? this.formatDateForInput(taxCase.stateDepositDate) : '';
         }
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -461,6 +483,85 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       error: (error) => {
         this.isSaving = false;
         this.toastService.error(error.message || 'Error al enviar notificación');
+      }
+    });
+  }
+
+  // Federal/State Status Methods
+  getTaxStatusLabel(status: TaxStatus | null): string {
+    if (!status) return 'Sin estado';
+    const labels: Record<TaxStatus, string> = {
+      [TaxStatus.PENDING]: 'Pendiente',
+      [TaxStatus.PROCESSING]: 'En Proceso',
+      [TaxStatus.APPROVED]: 'Aprobado',
+      [TaxStatus.REJECTED]: 'Rechazado',
+      [TaxStatus.DEPOSITED]: 'Depositado'
+    };
+    return labels[status] || status;
+  }
+
+  formatDateForInput(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toISOString().split('T')[0];
+  }
+
+  updateFederalStatus() {
+    this.isSavingFederalState = true;
+    const updateData: any = {};
+
+    if (this.selectedFederalStatus) {
+      updateData.federalStatus = this.selectedFederalStatus;
+    }
+    if (this.federalEstimatedDate) {
+      updateData.federalEstimatedDate = this.federalEstimatedDate;
+    }
+    if (this.federalActualRefund !== null) {
+      updateData.federalActualRefund = this.federalActualRefund;
+    }
+    if (this.federalDepositDate) {
+      updateData.federalDepositDate = this.federalDepositDate;
+    }
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.toastService.success('Estado Federal actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        this.toastService.error(error.message || 'Error al actualizar estado federal');
+      }
+    });
+  }
+
+  updateStateStatus() {
+    this.isSavingFederalState = true;
+    const updateData: any = {};
+
+    if (this.selectedStateStatus) {
+      updateData.stateStatus = this.selectedStateStatus;
+    }
+    if (this.stateEstimatedDate) {
+      updateData.stateEstimatedDate = this.stateEstimatedDate;
+    }
+    if (this.stateActualRefund !== null) {
+      updateData.stateActualRefund = this.stateActualRefund;
+    }
+    if (this.stateDepositDate) {
+      updateData.stateDepositDate = this.stateDepositDate;
+    }
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.toastService.success('Estado Estatal actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        this.toastService.error(error.message || 'Error al actualizar estado estatal');
       }
     });
   }

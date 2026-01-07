@@ -172,6 +172,19 @@ export interface TaxCase {
   estimatedRefund?: number;
   actualRefund?: number;
   refundDepositDate?: string;
+  // Separate federal/state tracking
+  federalEstimatedDate?: string;
+  stateEstimatedDate?: string;
+  federalActualRefund?: number;
+  stateActualRefund?: number;
+  federalDepositDate?: string;
+  stateDepositDate?: string;
+  // Year-specific employment and banking
+  workState?: string;
+  employerName?: string;
+  bankName?: string;
+  bankRoutingNumber?: string;
+  bankAccountNumber?: string;
   paymentReceived: boolean;
   commissionPaid: boolean;
   statusUpdatedAt: string;

@@ -115,6 +115,92 @@
       </div>
     </section>
 
+    <!-- Federal/State Tracking Section -->
+    <section class="federal-state-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">🏛️</span>
+          <h2>Seguimiento Federal / Estatal</h2>
+        </div>
+      </div>
+
+      <div class="federal-state-grid">
+        <!-- Federal Track -->
+        <div class="track-card federal-track">
+          <div class="track-header">
+            <span class="track-icon">🦅</span>
+            <h3>Federal</h3>
+            <span class="track-status" [class]="'status-' + (selectedFederalStatus || 'pending')">
+              {{ getTaxStatusLabel(selectedFederalStatus) }}
+            </span>
+          </div>
+          <div class="track-body">
+            <div class="track-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedFederalStatus">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                  {{ getTaxStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="track-field">
+              <label>Fecha Estimada</label>
+              <input type="date" [(ngModel)]="federalEstimatedDate">
+            </div>
+            <div class="track-field">
+              <label>Monto Real ($)</label>
+              <input type="number" [(ngModel)]="federalActualRefund" placeholder="0.00" step="0.01">
+            </div>
+            <div class="track-field">
+              <label>Fecha Deposito</label>
+              <input type="date" [(ngModel)]="federalDepositDate">
+            </div>
+            <button class="btn-track-update" (click)="updateFederalStatus()" [disabled]="isSavingFederalState">
+              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- State Track -->
+        <div class="track-card state-track">
+          <div class="track-header">
+            <span class="track-icon">🗽</span>
+            <h3>Estatal</h3>
+            <span class="track-status" [class]="'status-' + (selectedStateStatus || 'pending')">
+              {{ getTaxStatusLabel(selectedStateStatus) }}
+            </span>
+          </div>
+          <div class="track-body">
+            <div class="track-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedStateStatus">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                  {{ getTaxStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="track-field">
+              <label>Fecha Estimada</label>
+              <input type="date" [(ngModel)]="stateEstimatedDate">
+            </div>
+            <div class="track-field">
+              <label>Monto Real ($)</label>
+              <input type="number" [(ngModel)]="stateActualRefund" placeholder="0.00" step="0.01">
+            </div>
+            <div class="track-field">
+              <label>Fecha Deposito</label>
+              <input type="date" [(ngModel)]="stateDepositDate">
+            </div>
+            <button class="btn-track-update" (click)="updateStateStatus()" [disabled]="isSavingFederalState">
+              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Action Buttons -->
     <div class="action-buttons">
       <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
