@@ -7,8 +7,8 @@ import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProfileResponse, Address } from '../../core/models';
-import { timeout, catchError, filter } from 'rxjs/operators';
-import { of, Subscription } from 'rxjs';
+import { timeout, catchError, filter, retry, delay, take } from 'rxjs/operators';
+import { of, Subscription, timer } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -65,7 +65,26 @@ export class Profile implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    this.loadProfile();
+    // Wait for auth to be ready before loading profile
+    // On page refresh, currentUser might be null initially
+    this.subscriptions.add(
+      this.authService.currentUser$.pipe(
+        filter(user => user !== null),
+        take(1)
+      ).subscribe(() => {
+        this.loadProfile();
+      })
+    );
+
+    // Fallback: if no user after 500ms, try loading anyway (might redirect to login)
+    this.subscriptions.add(
+      timer(500).subscribe(() => {
+        if (this.isLoading && !this.authService.currentUser) {
+          console.log('Profile: Auth timeout, attempting load anyway');
+          this.loadProfile();
+        }
+      })
+    );
 
     // Auto-refresh on navigation
     this.subscriptions.add(
@@ -98,7 +117,7 @@ export class Profile implements OnInit, OnDestroy {
 
   loadProfile() {
     this.isLoading = true;
-    
+
     // First, load user data from auth service (this is instant)
     const user = this.authService.currentUser;
     if (user) {
@@ -106,15 +125,27 @@ export class Profile implements OnInit, OnDestroy {
       this.userEmail = user.email || 'usuario@ejemplo.com';
       this.userPhone = user.phone || '';
       this.memberSince = user.createdAt || '';
-      
+
       // Initialize edit form
       this.editForm.firstName = user.firstName || '';
       this.editForm.lastName = user.lastName || '';
       this.editForm.phone = user.phone || '';
     } else {
-      // Fallback to mock data if no user
-      this.userName = 'Usuario Demo';
-      this.userEmail = 'demo@jai1.com';
+      // No user in auth service - try to load from cached profile
+      const cachedProfile = localStorage.getItem('jai1_cached_profile');
+      if (cachedProfile) {
+        try {
+          const cached = JSON.parse(cachedProfile);
+          this.userName = cached.userName || 'Usuario';
+          this.userEmail = cached.userEmail || '';
+          this.userPhone = cached.userPhone || '';
+        } catch {
+          this.userName = 'Usuario';
+        }
+      } else {
+        this.userName = 'Usuario';
+        this.userEmail = '';
+      }
     }
 
     // Load profile picture from localStorage (user-specific)
@@ -126,11 +157,16 @@ export class Profile implements OnInit, OnDestroy {
       }
     }
 
-    // Try to fetch profile data with a timeout
+    // Try to fetch profile data with retry logic
     this.profileService.getProfile().pipe(
-      timeout(5000), // 5 second timeout
-      catchError(() => {
-        // Return null on error, we'll use what we have
+      timeout(8000), // 8 second timeout
+      retry({ count: 2, delay: 1000 }), // Retry up to 2 times with 1s delay
+      catchError((error) => {
+        console.error('Profile: Failed to load after retries', error);
+        // Show toast only if it's not a 401 (auth redirect will handle that)
+        if (error?.status !== 401) {
+          this.toastService.error('Error al cargar el perfil. Intenta recargar la página.');
+        }
         return of(null);
       })
     ).subscribe({
@@ -153,22 +189,50 @@ export class Profile implements OnInit, OnDestroy {
             this.editForm.state = response.profile.address.state || '';
             this.editForm.zip = response.profile.address.zip || '';
           }
+
+          // Cache profile data for faster loads on refresh
+          this.cacheProfileData();
         }
-        // Always stop loading
+
+        // Update from API response user data if available
+        if (response?.user) {
+          this.userName = `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() || 'Usuario';
+          this.userEmail = response.user.email || this.userEmail;
+          this.userPhone = response.user.phone || '';
+
+          // Update edit form with fresh data
+          this.editForm.firstName = response.user.first_name || '';
+          this.editForm.lastName = response.user.last_name || '';
+          this.editForm.phone = response.user.phone || '';
+
+          // Cache for next refresh
+          this.cacheProfileData();
+        }
+
         this.isLoading = false;
       },
       error: () => {
-        // Stop loading even on error
         this.isLoading = false;
       }
     });
 
-    // Safety timeout - stop loading after 3 seconds no matter what
+    // Safety timeout - stop loading after 10 seconds no matter what
     setTimeout(() => {
       if (this.isLoading) {
         this.isLoading = false;
+        console.log('Profile: Safety timeout triggered');
       }
-    }, 3000);
+    }, 10000);
+  }
+
+  private cacheProfileData(): void {
+    const cacheData = {
+      userName: this.userName,
+      userEmail: this.userEmail,
+      userPhone: this.userPhone,
+      cachedAt: Date.now()
+    };
+    localStorage.setItem('jai1_cached_profile', JSON.stringify(cacheData));
   }
 
   triggerFileInput() {
