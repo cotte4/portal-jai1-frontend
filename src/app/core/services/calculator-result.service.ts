@@ -5,6 +5,10 @@ export interface CalculatorResult {
   estimatedRefund: number;
   calculatedAt: string;
   documentName?: string;
+  box2Federal?: number;
+  box17State?: number;
+  ocrConfidence?: string;
+  fromBackend?: boolean; // True if synced from backend (cross-device)
 }
 
 @Injectable({
@@ -12,7 +16,7 @@ export interface CalculatorResult {
 })
 export class CalculatorResultService {
   private readonly STORAGE_KEY = 'jai1_calculator_result';
-  
+
   private resultSubject = new BehaviorSubject<CalculatorResult | null>(this.loadFromStorage());
   result$ = this.resultSubject.asObservable();
 
@@ -28,11 +32,37 @@ export class CalculatorResultService {
     return null;
   }
 
-  saveResult(estimatedRefund: number, documentName?: string): void {
+  saveResult(estimatedRefund: number, documentName?: string, extra?: Partial<CalculatorResult>): void {
     const result: CalculatorResult = {
       estimatedRefund,
       calculatedAt: new Date().toISOString(),
-      documentName
+      documentName,
+      ...extra
+    };
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(result));
+    this.resultSubject.next(result);
+  }
+
+  /**
+   * Sync result from backend API response
+   * Used when loading existing estimate from server (cross-device sync)
+   */
+  syncFromBackend(backendEstimate: {
+    estimatedRefund: number;
+    w2FileName?: string;
+    box2Federal?: number;
+    box17State?: number;
+    ocrConfidence?: string;
+    createdAt?: string;
+  }): void {
+    const result: CalculatorResult = {
+      estimatedRefund: backendEstimate.estimatedRefund,
+      calculatedAt: backendEstimate.createdAt || new Date().toISOString(),
+      documentName: backendEstimate.w2FileName,
+      box2Federal: backendEstimate.box2Federal,
+      box17State: backendEstimate.box17State,
+      ocrConfidence: backendEstimate.ocrConfidence,
+      fromBackend: true
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(result));
     this.resultSubject.next(result);

@@ -1,7 +1,8 @@
 import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter, finalize } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
@@ -83,34 +84,67 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   /**
    * Check if user already has a W2 document and/or calculator result
+   * IMPORTANT: Fetches from BACKEND first to ensure cross-device sync
    */
   checkExistingW2() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
     this.state = 'loading';
 
-    // Check for saved calculator result first
-    this.savedCalculatorResult = this.calculatorResultService.getResult();
-
-    this.documentService.getDocuments().pipe(
+    // Fetch both documents AND backend estimate in parallel
+    forkJoin({
+      documents: this.documentService.getDocuments().pipe(
+        catchError(() => of([] as Document[]))
+      ),
+      backendEstimate: this.calculatorApiService.getLatestEstimate().pipe(
+        catchError(() => of(null))
+      )
+    }).pipe(
       finalize(() => {
         this.isLoadingInProgress = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (docs) => {
-        this.existingW2 = docs.find(d => d.type === DocumentType.W2) || null;
+      next: (results) => {
+        this.existingW2 = results.documents.find(d => d.type === DocumentType.W2) || null;
 
-        // Determine which state to show
-        if (this.existingW2 && this.savedCalculatorResult) {
-          // User has both W2 and calculator result - show already calculated
+        // Check if backend has an existing estimate (cross-device sync)
+        const backendData = results.backendEstimate as any;
+        if (backendData?.hasEstimate && backendData?.estimate) {
+          const estimate = backendData.estimate;
+
+          // Sync backend estimate to local storage and service
+          this.calculatorResultService.syncFromBackend({
+            estimatedRefund: estimate.estimatedRefund,
+            w2FileName: estimate.w2FileName,
+            box2Federal: estimate.box2Federal,
+            box17State: estimate.box17State,
+            ocrConfidence: estimate.ocrConfidence,
+            createdAt: estimate.createdAt
+          });
+
+          // Populate component state with backend data
+          this.estimatedRefund = estimate.estimatedRefund;
+          this.box2Federal = estimate.box2Federal || 0;
+          this.box17State = estimate.box17State || 0;
+          this.ocrConfidence = estimate.ocrConfidence || 'high';
+          this.savedCalculatorResult = this.calculatorResultService.getResult();
+
+          // Show already-calculated state - user cannot recalculate
+          this.state = 'already-calculated';
+          console.log('=== CALCULATOR: Existing estimate found in backend ===', estimate);
+          return;
+        }
+
+        // No backend estimate - check localStorage as fallback
+        this.savedCalculatorResult = this.calculatorResultService.getResult();
+
+        if (this.savedCalculatorResult) {
+          // Has local result but not in backend (edge case) - show it
           this.estimatedRefund = this.savedCalculatorResult.estimatedRefund;
           this.state = 'already-calculated';
-        } else if (this.existingW2) {
-          // User has W2 but no calculator result - they can recalculate
-          this.state = 'upload';
         } else {
-          // No W2 - show upload screen
+          // No estimate anywhere - show upload screen
           this.state = 'upload';
         }
       },

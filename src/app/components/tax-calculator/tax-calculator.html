@@ -14,14 +14,14 @@
     </div>
   </div>
 
-  <!-- Already Calculated State -->
+  <!-- Already Calculated State (LOCKED - user cannot recalculate) -->
   <div class="calculator-card already-calculated-card" *ngIf="state === 'already-calculated'">
     <div class="result-content">
       <div class="already-calculated-icon">
         <div class="check-circle">✓</div>
       </div>
 
-      <h2 class="result-title">Ya calculaste tu reembolso</h2>
+      <h2 class="result-title">Tu Reembolso Estimado</h2>
 
       <div class="result-amount">
         <span class="currency">$</span>
@@ -29,26 +29,44 @@
         <span class="cents">.00</span>
       </div>
 
-      <p class="result-subtitle">
-        Este es tu reembolso estimado basado en el W2 que subiste anteriormente
-      </p>
+      <!-- Breakdown Section (if data available) -->
+      <div class="result-breakdown" *ngIf="box2Federal > 0 || box17State > 0">
+        <div class="breakdown-item">
+          <span class="breakdown-label">Federal (Box 2)</span>
+          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+        </div>
+        <div class="breakdown-divider">+</div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Estatal (Box 17)</span>
+          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+        </div>
+      </div>
 
       <!-- Status badges -->
       <div class="status-badges">
         <div class="status-badge success">
           <span class="badge-icon">✓</span>
-          <span>W2 guardado</span>
+          <span>W2 Procesado</span>
         </div>
         <div class="status-badge success">
           <span class="badge-icon">✓</span>
-          <span>Cálculo completado</span>
+          <span>Sincronizado</span>
         </div>
       </div>
 
+      <p class="result-subtitle">
+        Este cálculo está guardado y sincronizado en todos tus dispositivos.
+        Continúa con tu declaración para recibir tu dinero.
+      </p>
+
       <div class="result-highlights">
         <div class="highlight">
-          <span class="highlight-icon">📋</span>
-          <span>Continúa con tu declaración para recibir tu dinero</span>
+          <span class="highlight-icon">🔒</span>
+          <span>Solo puedes calcular una vez por año fiscal</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">📱</span>
+          <span>Disponible en todos tus dispositivos</span>
         </div>
       </div>
 
@@ -57,9 +75,10 @@
         <span class="cta-arrow">→</span>
       </button>
 
-      <button class="reset-button" (click)="resetCalculator()">
-        Recalcular con otro documento
-      </button>
+      <!-- Info note instead of recalculate button -->
+      <p class="info-note">
+        ¿Necesitas corregir tu W2? <a href="/messages">Contacta soporte</a>
+      </p>
     </div>
   </div>
 
