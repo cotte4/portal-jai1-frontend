@@ -1,13 +1,165 @@
 /* You can add global styles to this file, and also import other style files */
 
-/* Global Reset */
+/* ==================== CSS CUSTOM PROPERTIES ==================== */
+:root {
+  /* Spacing - Desktop */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Typography - Desktop */
+  --font-xs: 11px;
+  --font-sm: 13px;
+  --font-base: 15px;
+  --font-lg: 18px;
+  --font-xl: 22px;
+  --font-2xl: 28px;
+  --font-3xl: 36px;
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Card padding */
+  --card-padding: 24px;
+  --page-padding: 24px;
+}
+
+/* ==================== MOBILE VARIABLES (max-width: 768px) ==================== */
+@media (max-width: 768px) {
+  :root {
+    /* Spacing - Mobile (reduced) */
+    --spacing-xs: 2px;
+    --spacing-sm: 6px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --spacing-2xl: 28px;
+
+    /* Typography - Mobile (smaller) */
+    --font-xs: 10px;
+    --font-sm: 12px;
+    --font-base: 14px;
+    --font-lg: 16px;
+    --font-xl: 18px;
+    --font-2xl: 22px;
+    --font-3xl: 28px;
+
+    /* Border radius - slightly smaller on mobile */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 16px;
+
+    /* Card padding - reduced on mobile */
+    --card-padding: 16px;
+    --page-padding: 12px;
+  }
+}
+
+/* ==================== SMALL MOBILE (max-width: 480px) ==================== */
+@media (max-width: 480px) {
+  :root {
+    /* Even tighter spacing for small phones */
+    --spacing-md: 10px;
+    --spacing-lg: 14px;
+    --spacing-xl: 18px;
+
+    /* Smaller fonts for small screens */
+    --font-sm: 11px;
+    --font-base: 13px;
+    --font-lg: 15px;
+    --font-xl: 17px;
+    --font-2xl: 20px;
+    --font-3xl: 24px;
+
+    --card-padding: 14px;
+    --page-padding: 10px;
+  }
+}
+
+/* ==================== GLOBAL RESET ==================== */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll, allow vertical */
+  -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* ==================== GLOBAL MOBILE FIXES ==================== */
+/* Prevent overflow on all elements */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Better tap targets on mobile */
+@media (max-width: 768px) {
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on buttons */
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Smoother scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Remove tap highlight on mobile */
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Truncate text */
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Safe area padding for notched phones */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+  }
 }

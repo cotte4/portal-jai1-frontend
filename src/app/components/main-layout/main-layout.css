@@ -515,11 +515,90 @@
   }
 
   .topbar {
-    padding: 12px 16px;
+    padding: var(--spacing-md) var(--page-padding);
+    gap: var(--spacing-sm);
   }
 
   .welcome-text {
-    font-size: 16px;
+    font-size: var(--font-lg);
+  }
+
+  .btn-notifications {
+    width: 38px;
+    height: 38px;
+  }
+
+  .notif-icon {
+    font-size: 18px;
+  }
+
+  /* Sidebar adjustments */
+  .sidebar-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .sidebar-nav {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-sm);
+  }
+
+  .sidebar-footer {
+    padding: var(--spacing-md);
+  }
+
+  .user-card {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .user-avatar-sm {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+
+  .user-name {
+    font-size: var(--font-sm);
+  }
+
+  .user-email {
+    font-size: var(--font-xs);
+  }
+}
+
+/* ==================== SMALL MOBILE ==================== */
+@media (max-width: 480px) {
+  .topbar {
+    padding: var(--spacing-sm) var(--page-padding);
+  }
+
+  .welcome-text {
+    font-size: var(--font-base);
+  }
+
+  .btn-notifications {
+    width: 36px;
+    height: 36px;
+  }
+
+  .notifications-panel {
+    max-width: 100%;
+  }
+
+  .notification-item {
+    padding: var(--spacing-md) var(--page-padding);
+  }
+
+  .notification-title {
+    font-size: var(--font-sm);
+  }
+
+  .notification-message {
+    font-size: var(--font-xs);
   }
 }
 

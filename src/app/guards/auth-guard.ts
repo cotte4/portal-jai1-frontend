@@ -1,12 +1,10 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
-
-// DESIGN MODE - Set to true to bypass auth during development
-const DESIGN_MODE = false;
+import { environment } from '../../environments/environment';
 
 export const authGuard: CanActivateFn = (route, state) => {
-  if (DESIGN_MODE) {
+  if (environment.DESIGN_GOD_MODE) {
     return true;
   }
 

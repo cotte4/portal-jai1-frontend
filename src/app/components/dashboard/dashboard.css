@@ -600,39 +600,179 @@
 
 @media (max-width: 768px) {
   .dashboard-content {
-    padding: 16px;
-    gap: 16px;
+    padding: var(--page-padding);
+    gap: var(--spacing-lg);
   }
 
   .action-cards-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .irs-steps {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .help-footer {
     flex-direction: column;
     text-align: center;
-    gap: 12px;
+    gap: var(--spacing-md);
+    padding: var(--card-padding);
   }
 
   .refund-card, .progress-card, .irs-section {
-    padding: 20px;
+    padding: var(--card-padding);
+    border-radius: var(--radius-lg);
   }
 
   .refund-amount {
-    font-size: 32px;
+    font-size: var(--font-2xl);
+  }
+
+  .refund-label {
+    font-size: var(--font-sm);
+  }
+
+  .progress-title {
+    font-size: var(--font-lg);
   }
 
   .checklist-item {
     flex-wrap: wrap;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .item-text {
+    font-size: var(--font-sm);
   }
 
   .item-action {
     width: 100%;
-    margin-top: 8px;
+    margin-top: var(--spacing-sm);
     text-align: center;
+  }
+
+  .action-card {
+    padding: var(--card-padding);
+    border-radius: var(--radius-md);
+  }
+
+  .card-title {
+    font-size: var(--font-base);
+  }
+
+  .card-desc {
+    font-size: var(--font-sm);
+  }
+
+  .section-title {
+    font-size: var(--font-lg);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .irs-title h3 {
+    font-size: var(--font-lg);
+  }
+
+  .irs-title p {
+    font-size: var(--font-sm);
+  }
+
+  .step-title {
+    font-size: var(--font-sm);
+  }
+
+  .step-desc {
+    font-size: var(--font-xs);
+  }
+
+  .help-title {
+    font-size: var(--font-base);
+  }
+
+  .help-desc {
+    font-size: var(--font-sm);
+  }
+}
+
+/* ==================== SMALL MOBILE ==================== */
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: var(--page-padding);
+    gap: var(--spacing-md);
+  }
+
+  .top-section {
+    gap: var(--spacing-md);
+  }
+
+  .refund-card {
+    padding: var(--card-padding);
+  }
+
+  .refund-amount {
+    font-size: 26px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .refund-header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .refund-calculated {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .btn-recalculate, .btn-calculate-cta {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-sm);
+  }
+
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .progress-badge {
+    font-size: var(--font-xs);
+    padding: 4px 10px;
+  }
+
+  .irs-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .irs-badge {
+    font-size: var(--font-xs);
+    padding: 6px 12px;
+  }
+
+  .irs-step {
+    padding: var(--spacing-md);
+  }
+
+  .step-indicator {
+    width: 32px;
+    height: 32px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .help-icon {
+    font-size: 28px;
+  }
+
+  .btn-help {
+    width: 100%;
+    padding: var(--spacing-md);
   }
 }
