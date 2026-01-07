@@ -89,9 +89,22 @@ export class TaxCalculator implements OnInit, OnDestroy {
   checkExistingW2() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
-    this.state = 'loading';
 
-    // Fetch both documents AND backend estimate in parallel
+    // Check localStorage FIRST for cached calculator result (instant)
+    const cachedResult = this.calculatorResultService.getResult();
+    if (cachedResult) {
+      this.estimatedRefund = cachedResult.estimatedRefund;
+      this.box2Federal = cachedResult.box2Federal || 0;
+      this.box17State = cachedResult.box17State || 0;
+      this.ocrConfidence = (cachedResult.ocrConfidence as OcrConfidence) || 'high';
+      this.savedCalculatorResult = cachedResult;
+      this.state = 'already-calculated';
+      this.cdr.detectChanges();
+    } else {
+      this.state = 'loading';
+    }
+
+    // Fetch both documents AND backend estimate in parallel (to sync/update)
     forkJoin({
       documents: this.documentService.getDocuments().pipe(
         catchError(() => of([] as Document[]))
