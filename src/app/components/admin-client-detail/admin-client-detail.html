@@ -117,11 +117,21 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button class="btn-action btn-paid" (click)="markPaid()" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
-        Marcar Pago Recibido
+      <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
+        @if (isMarkingPaid) {
+          <span class="spinner"></span>
+          <span>Procesando...</span>
+        } @else {
+          Marcar Pago Recibido
+        }
       </button>
-      <button class="btn-action btn-delete" (click)="deleteClient()">
-        Eliminar Cliente
+      <button class="btn-action btn-delete" (click)="deleteClient()" [disabled]="isDeleting">
+        @if (isDeleting) {
+          <span class="spinner"></span>
+          <span>Eliminando...</span>
+        } @else {
+          Eliminar Cliente
+        }
       </button>
     </div>
 

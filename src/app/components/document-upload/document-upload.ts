@@ -6,6 +6,7 @@ import { Subscription, filter, finalize } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Document, DocumentType } from '../../core/models';
 
 @Component({
@@ -19,6 +20,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -42,6 +44,9 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
   // Track which document types have been uploaded
   uploadedTypes: Set<DocumentType> = new Set();
+
+  // Toggle to show upload view even when all docs are complete
+  showUploadView: boolean = false;
 
   // Selected document type for upload
   selectedType: DocumentType = DocumentType.W2;
@@ -93,7 +98,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
         documents.forEach(doc => this.uploadedTypes.add(doc.type));
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al cargar documentos';
+        this.toastService.error(error.message || 'Error al cargar documentos');
       }
     });
   }
@@ -139,13 +144,13 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
       // Validate file type
       if (!allowedTypes.includes(file.type)) {
-        this.errorMessage = `El archivo "${file.name}" no es valido. Solo se permiten PDF, PNG o JPG.`;
+        this.toastService.warning(`El archivo "${file.name}" no es válido. Solo se permiten PDF, PNG o JPG.`);
         continue;
       }
 
       // Validate file size
       if (file.size > maxSize) {
-        this.errorMessage = `El archivo "${file.name}" es muy grande. Maximo 25MB.`;
+        this.toastService.warning(`El archivo "${file.name}" es muy grande. Máximo 25MB.`);
         continue;
       }
 
@@ -187,7 +192,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.documentService.upload(file, this.selectedType).subscribe({
       next: (response) => {
         this.uploadedFiles.push(response.document);
-        this.successMessage = `Archivo "${file.name}" subido correctamente!`;
+        this.toastService.success(`Archivo "${file.name}" subido correctamente!`);
         this.isUploading = false;
 
         // Mark this document type as uploaded (for green checkmark)
@@ -201,7 +206,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        this.errorMessage = error.message || `Error al subir "${file.name}"`;
+        this.toastService.error(error.message || `Error al subir "${file.name}"`);
         this.isUploading = false;
         this.cdr.detectChanges();
       }
@@ -214,7 +219,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
         window.open(response.url, '_blank');
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al descargar archivo';
+        this.toastService.error(error.message || 'Error al descargar archivo');
       }
     });
   }
@@ -236,12 +241,12 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.documentService.delete(doc.id).subscribe({
       next: () => {
         this.uploadedFiles.splice(index, 1);
-        this.successMessage = 'Archivo eliminado correctamente';
+        this.toastService.success('Archivo eliminado correctamente');
         this.deletingDocId = null;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al eliminar archivo';
+        this.toastService.error(error.message || 'Error al eliminar archivo');
         this.deletingDocId = null;
         this.cdr.detectChanges();
       }
@@ -269,6 +274,28 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  // Check if all required documents are uploaded
+  get allRequiredDocsUploaded(): boolean {
+    return this.uploadedTypes.has(DocumentType.W2) &&
+           this.uploadedTypes.has(DocumentType.PAYMENT_PROOF);
+  }
+
+  get hasW2(): boolean {
+    return this.uploadedTypes.has(DocumentType.W2);
+  }
+
+  get hasPaymentProof(): boolean {
+    return this.uploadedTypes.has(DocumentType.PAYMENT_PROOF);
+  }
+
+  goToDashboard() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  goToTaxForm() {
+    this.router.navigate(['/tax-form']);
   }
 
   // W2 Popup actions

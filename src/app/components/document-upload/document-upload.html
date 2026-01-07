@@ -41,11 +41,58 @@
 </div>
 
 <div class="upload-content" *ngIf="hasLoaded">
-  <!-- Page Title -->
-  <div class="page-title">
-    <h1>Subir Documentos</h1>
-    <p>Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)</p>
+  <!-- Success Screen when all required docs uploaded -->
+  <div class="success-screen" *ngIf="allRequiredDocsUploaded && !showUploadView">
+    <div class="success-card">
+      <div class="success-icon-big">🎉</div>
+      <h1>¡Documentos Completos!</h1>
+      <p class="success-subtitle">Has subido todos los documentos necesarios</p>
+
+      <div class="success-checklist">
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Documento W2</span>
+        </div>
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Comprobante de Pago</span>
+        </div>
+      </div>
+
+      <p class="success-message">Tu documentación está lista para ser procesada. Nuestro equipo revisará todo y te notificaremos cualquier novedad.</p>
+
+      <div class="success-actions">
+        <button class="btn-primary-action" (click)="goToDashboard()">
+          <span>Ver mi Progreso</span>
+          <span>→</span>
+        </button>
+        <button class="btn-secondary-action" (click)="goToTaxForm()">
+          Completar mi Declaración
+        </button>
+      </div>
+    </div>
+
+    <!-- Link to view uploaded documents -->
+    <div class="view-docs-section">
+      <p class="view-docs-text">{{ uploadedFiles.length }} documentos cargados</p>
+      <button class="btn-view-docs" (click)="showUploadView = true">
+        Ver mis documentos
+      </button>
+    </div>
   </div>
+
+  <!-- Regular upload view -->
+  <div *ngIf="!allRequiredDocsUploaded || showUploadView">
+    <!-- Back to success button when viewing docs after completion -->
+    <button class="btn-back-to-success" *ngIf="allRequiredDocsUploaded && showUploadView" (click)="showUploadView = false">
+      ← Volver al resumen
+    </button>
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+    </div>
 
   <!-- Messages -->
   <div class="message success-message" *ngIf="successMessage">
@@ -163,4 +210,5 @@
       <li>Puedes subir multiples archivos a la vez</li>
     </ul>
   </div>
+  </div><!-- End of regular upload view -->
 </div>

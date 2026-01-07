@@ -7,6 +7,7 @@ import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ToastService } from '../../core/services/toast.service';
 import {
   AdminClientDetail as ClientDetail,
   InternalStatus,
@@ -30,6 +31,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   private documentService = inject(DocumentService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -44,6 +46,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   isLoading: boolean = true;
   isSaving: boolean = false;
+  isMarkingPaid: boolean = false;
+  isDeleting: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -170,41 +174,46 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       next: () => {
         this.statusComment = '';
         this.isSaving = false;
-        setTimeout(() => {
-          this.successMessage = 'Estado actualizado correctamente';
-          this.loadClientData();
-        }, 0);
+        this.toastService.success('Estado actualizado correctamente');
+        this.loadClientData();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al actualizar estado';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al actualizar estado');
       }
     });
   }
 
   markPaid() {
+    this.isMarkingPaid = true;
     this.adminService.markPaid(this.clientId).subscribe({
       next: () => {
-        this.successMessage = 'Pago marcado como recibido';
+        this.isMarkingPaid = false;
+        this.toastService.success('Pago marcado como recibido');
         this.loadClientData();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al marcar pago';
+        this.isMarkingPaid = false;
+        this.toastService.error(error.message || 'Error al marcar pago');
       }
     });
   }
 
   deleteClient() {
-    if (!confirm('Estas seguro de eliminar este cliente? Esta accion no se puede deshacer.')) {
+    if (!confirm('¿Estás seguro de eliminar este cliente? Esta acción no se puede deshacer.')) {
       return;
     }
 
+    this.isDeleting = true;
     this.adminService.deleteClient(this.clientId).subscribe({
       next: () => {
+        this.isDeleting = false;
+        this.toastService.success('Cliente eliminado correctamente');
         this.router.navigate(['/admin/dashboard']);
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al eliminar cliente';
+        this.isDeleting = false;
+        this.toastService.error(error.message || 'Error al eliminar cliente');
       }
     });
   }
@@ -308,15 +317,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.adminService.updateAdminStep(this.clientId, step).subscribe({
       next: () => {
         this.currentStep = step;
-        this.successMessage = `Paso actualizado a: ${this.stepLabels[step - 1]}`;
         this.isSaving = false;
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
+        this.toastService.success(`Paso actualizado a: ${this.stepLabels[step - 1]}`);
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al actualizar paso';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al actualizar paso');
       }
     });
   }
@@ -345,21 +351,21 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.selectedProblemType = null;
           this.problemDescription = '';
         }
-        this.successMessage = this.hasProblem ? 'Problema marcado' : 'Problema resuelto';
         this.showProblemModal = false;
         this.isSaving = false;
+        this.toastService.success(this.hasProblem ? 'Problema marcado' : 'Problema resuelto');
         this.loadClientData();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al actualizar problema';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al actualizar problema');
       }
     });
   }
 
   saveProblem() {
     if (!this.selectedProblemType) {
-      this.errorMessage = 'Seleccione un tipo de problema';
+      this.toastService.warning('Seleccione un tipo de problema');
       return;
     }
 
@@ -373,14 +379,14 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.adminService.setProblem(this.clientId, problemData).subscribe({
       next: () => {
         this.hasProblem = true;
-        this.successMessage = 'Problema registrado';
         this.showProblemModal = false;
         this.isSaving = false;
+        this.toastService.success('Problema registrado');
         this.loadClientData();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al guardar problema';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al guardar problema');
       }
     });
   }
@@ -392,14 +398,14 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.hasProblem = false;
         this.selectedProblemType = null;
         this.problemDescription = '';
-        this.successMessage = 'Problema resuelto';
         this.showProblemModal = false;
         this.isSaving = false;
+        this.toastService.success('Problema resuelto');
         this.loadClientData();
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al resolver problema';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al resolver problema');
       }
     });
   }
@@ -433,7 +439,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   sendNotification() {
     if (!this.notifyTitle.trim() || !this.notifyMessage.trim()) {
-      this.errorMessage = 'Titulo y mensaje son requeridos';
+      this.toastService.warning('Título y mensaje son requeridos');
       return;
     }
 
@@ -444,15 +450,17 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       sendEmail: this.notifySendEmail
     }).subscribe({
       next: (response) => {
-        this.successMessage = response.emailSent
-          ? 'Notificacion enviada (app + email)'
-          : 'Notificacion enviada (solo app)';
         this.showNotifyModal = false;
         this.isSaving = false;
+        this.toastService.success(
+          response.emailSent
+            ? 'Notificación enviada (app + email)'
+            : 'Notificación enviada (solo app)'
+        );
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al enviar notificacion';
         this.isSaving = false;
+        this.toastService.error(error.message || 'Error al enviar notificación');
       }
     });
   }

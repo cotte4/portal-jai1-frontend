@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ToastService } from '../../core/services/toast.service';
 import { CompleteProfileRequest } from '../../core/models';
 
 @Component({
@@ -17,6 +18,7 @@ export class TaxForm implements OnInit, OnDestroy {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -145,21 +147,21 @@ export class TaxForm implements OnInit, OnDestroy {
     // Basic validation for final submit
     if (!isDraft) {
       if (!this.formData.ssn || !this.formData.dateOfBirth) {
-        this.errorMessage = 'Por favor completa los campos requeridos (SSN y fecha de nacimiento)';
+        this.toastService.warning('Por favor completa los campos requeridos (SSN y fecha de nacimiento)');
         window.scrollTo(0, 0);
         return;
       }
 
       if (!this.formData.addressStreet || !this.formData.addressCity ||
           !this.formData.addressState || !this.formData.addressZip) {
-        this.errorMessage = 'Por favor completa tu direccion';
+        this.toastService.warning('Por favor completa tu dirección');
         window.scrollTo(0, 0);
         return;
       }
 
       if (!this.formData.bankName || !this.formData.bankRoutingNumber ||
           !this.formData.bankAccountNumber) {
-        this.errorMessage = 'Por favor completa tu informacion bancaria';
+        this.toastService.warning('Por favor completa tu información bancaria');
         window.scrollTo(0, 0);
         return;
       }
@@ -198,8 +200,7 @@ export class TaxForm implements OnInit, OnDestroy {
         this.isSavingDraft = false;
 
         if (isDraft) {
-          this.successMessage = 'Borrador guardado correctamente';
-          window.scrollTo(0, 0);
+          this.toastService.success('Borrador guardado correctamente');
         } else {
           // Set flag to prevent redirect race condition in loadDraft()
           this.justSubmitted = true;
@@ -211,8 +212,7 @@ export class TaxForm implements OnInit, OnDestroy {
       error: (error) => {
         this.isLoading = false;
         this.isSavingDraft = false;
-        this.errorMessage = error.message || 'Error al guardar. Intenta nuevamente.';
-        window.scrollTo(0, 0);
+        this.toastService.error(error.message || 'Error al guardar. Intenta nuevamente.');
       }
     });
   }

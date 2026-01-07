@@ -71,6 +71,23 @@ export class CalculatorApiService {
     );
   }
 
+  /**
+   * Get the latest estimate from backend (syncs across devices)
+   */
+  getLatestEstimate(): Observable<W2EstimateResponse | null> {
+    return this.http.get<W2EstimateResponse | null>(
+      `${this.apiUrl}/calculator/latest`
+    ).pipe(
+      catchError(() => {
+        // Return null if no estimate exists or error
+        return new Observable<null>(subscriber => {
+          subscriber.next(null);
+          subscriber.complete();
+        });
+      })
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Calculator API error:', error);
     return throwError(() => error);

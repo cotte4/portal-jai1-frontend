@@ -219,20 +219,12 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   toggleEdit() {
-    // Block editing if profile is already verified (completed F2 form)
-    if (this.isVerified) {
-      return;
-    }
     this.isEditing = !this.isEditing;
     this.errorMessage = '';
     this.successMessage = '';
   }
 
   saveChanges() {
-    // Block saving if profile is already verified (completed F2 form)
-    if (this.isVerified) {
-      return;
-    }
     this.isSaving = true;
     this.errorMessage = '';
 

@@ -2,11 +2,12 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, forkJoin, finalize, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
+import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from '../../core/models';
 
@@ -22,6 +23,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private profileService = inject(ProfileService);
   private documentService = inject(DocumentService);
   private calculatorResultService = inject(CalculatorResultService);
+  private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
@@ -68,16 +70,22 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
 
-    // Load both profile and documents in parallel, wait for both to complete
+    // Load profile, documents, and calculator result in parallel with timeout protection
     forkJoin({
       profile: this.profileService.getProfile().pipe(
+        timeout(8000),
         catchError(error => {
-          this.errorMessage = error.message || 'Error al cargar perfil';
+          console.warn('Profile load error or timeout:', error);
           return of(null);
         })
       ),
       documents: this.documentService.getDocuments().pipe(
+        timeout(8000),
         catchError(() => of([] as Document[]))
+      ),
+      calculatorResult: this.calculatorApiService.getLatestEstimate().pipe(
+        timeout(5000),
+        catchError(() => of(null))
       )
     }).pipe(
       finalize(() => {
@@ -91,6 +99,15 @@ export class Dashboard implements OnInit, OnDestroy {
           this.profileData = results.profile;
         }
         this.documents = results.documents || [];
+
+        // Sync calculator result from backend (for cross-device support)
+        if (results.calculatorResult && results.calculatorResult.estimatedRefund) {
+          // Save to localStorage for consistency and update local state
+          this.calculatorResultService.saveResult(
+            results.calculatorResult.estimatedRefund,
+            results.calculatorResult.w2FileName
+          );
+        }
       }
     });
   }
