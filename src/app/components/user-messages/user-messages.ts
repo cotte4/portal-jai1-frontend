@@ -52,9 +52,12 @@ export class UserMessages implements OnInit, OnDestroy {
     if (user) {
       this.userEmail = user.email;
       this.userId = user.id;
+      // We have user info - show UI shell immediately
+      this.hasLoaded = true;
+      this.cdr.detectChanges();
     }
 
-    // Load initial data
+    // Load initial data (will update in background)
     this.loadTickets();
 
     // Auto-refresh on navigation
@@ -112,6 +115,15 @@ export class UserMessages implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     });
+
+    // Safety timeout - ensure content shows after 5 seconds
+    setTimeout(() => {
+      if (!this.hasLoaded) {
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+        console.log('UserMessages: Safety timeout triggered');
+      }
+    }, 5000);
   }
 
   selectTicket(ticket: Ticket) {

@@ -88,8 +88,16 @@ export class TaxTracking implements OnInit, OnDestroy {
   loadTrackingData() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
-    this.isLoading = true;
+
+    // Build default steps immediately (all pending) and show UI
     this.buildSteps();
+
+    // Show content immediately with default steps - don't wait for API
+    if (!this.hasLoaded) {
+      this.hasLoaded = true;
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
 
     this.profileService.getProfile().pipe(
       finalize(() => {
@@ -111,6 +119,16 @@ export class TaxTracking implements OnInit, OnDestroy {
       },
       error: () => {}
     });
+
+    // Safety timeout - ensure content shows after 5 seconds
+    setTimeout(() => {
+      if (!this.hasLoaded) {
+        this.hasLoaded = true;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        console.log('TaxTracking: Safety timeout triggered');
+      }
+    }, 5000);
   }
 
   silentRefresh() {
