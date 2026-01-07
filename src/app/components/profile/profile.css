@@ -4,6 +4,7 @@
   margin: 0 auto;
   padding: 24px;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
 /* Loading */
@@ -253,6 +254,7 @@
   padding: 20px;
   margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden; /* Prevent horizontal overflow */
 }
 
 .section-header {
@@ -291,6 +293,7 @@
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
+  overflow: hidden; /* Prevent horizontal overflow */
 }
 
 .info-card:last-child {
@@ -301,6 +304,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0; /* Allow content to shrink */
 }
 
 .info-label {
@@ -314,6 +318,8 @@
   font-size: 16px;
   color: #1D345D;
   font-weight: 500;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .info-value.status {
@@ -329,6 +335,7 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  overflow: hidden; /* Prevent horizontal overflow */
 }
 
 .address-icon {
@@ -340,17 +347,25 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0; /* Allow flex child to shrink below content size */
+  flex: 1;
+  overflow: hidden;
 }
 
 .address-street {
   font-size: 16px;
   font-weight: 600;
   color: #1D345D;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .address-location {
   font-size: 14px;
   color: #64748b;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .address-zip {
