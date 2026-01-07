@@ -47,6 +47,7 @@ export class Profile implements OnInit, OnDestroy {
 
   // UI State
   isLoading: boolean = true;
+  hasLoadedOnce: boolean = false; // Track if we've ever loaded data
   isEditing: boolean = false;
   isSaving: boolean = false;
   errorMessage: string = '';
@@ -116,7 +117,10 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   loadProfile() {
-    this.isLoading = true;
+    // Only show loading spinner on first load when we have no data yet
+    // On subsequent loads (refresh), show existing data while fetching
+    const hasCachedData = this.hasLoadedOnce || localStorage.getItem('jai1_cached_profile');
+    this.isLoading = !hasCachedData;
 
     // First, load user data from auth service (this is instant)
     const user = this.authService.currentUser;
@@ -130,6 +134,10 @@ export class Profile implements OnInit, OnDestroy {
       this.editForm.firstName = user.firstName || '';
       this.editForm.lastName = user.lastName || '';
       this.editForm.phone = user.phone || '';
+
+      // We have user data, mark as loaded so we can show content
+      this.hasLoadedOnce = true;
+      this.isLoading = false;
     } else {
       // No user in auth service - try to load from cached profile
       const cachedProfile = localStorage.getItem('jai1_cached_profile');
@@ -139,6 +147,9 @@ export class Profile implements OnInit, OnDestroy {
           this.userName = cached.userName || 'Usuario';
           this.userEmail = cached.userEmail || '';
           this.userPhone = cached.userPhone || '';
+          // We have cached data, show it while API loads
+          this.hasLoadedOnce = true;
+          this.isLoading = false;
         } catch {
           this.userName = 'Usuario';
         }
@@ -195,34 +206,47 @@ export class Profile implements OnInit, OnDestroy {
         }
 
         // Update from API response user data if available
+        // Handle both camelCase and snake_case from API
         if (response?.user) {
-          this.userName = `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim() || 'Usuario';
+          const firstName = response.user.firstName || (response.user as any).first_name || '';
+          const lastName = response.user.lastName || (response.user as any).last_name || '';
+          this.userName = `${firstName} ${lastName}`.trim() || 'Usuario';
           this.userEmail = response.user.email || this.userEmail;
           this.userPhone = response.user.phone || '';
 
           // Update edit form with fresh data
-          this.editForm.firstName = response.user.firstName || '';
-          this.editForm.lastName = response.user.lastName || '';
+          this.editForm.firstName = firstName;
+          this.editForm.lastName = lastName;
           this.editForm.phone = response.user.phone || '';
 
           // Cache for next refresh
           this.cacheProfileData();
         }
 
+        this.hasLoadedOnce = true;
         this.isLoading = false;
       },
       error: () => {
+        // If we have any data to show, mark as loaded
+        if (this.userName && this.userName !== 'Usuario') {
+          this.hasLoadedOnce = true;
+        }
         this.isLoading = false;
       }
     });
 
-    // Safety timeout - stop loading after 10 seconds no matter what
+    // Safety timeout - stop loading after 5 seconds if we still have a spinner
+    // (reduced from 10s since we now show content early)
     setTimeout(() => {
       if (this.isLoading) {
         this.isLoading = false;
+        // If we have any data, mark as loaded to show content
+        if (this.userName || this.userEmail) {
+          this.hasLoadedOnce = true;
+        }
         console.log('Profile: Safety timeout triggered');
       }
-    }, 10000);
+    }, 5000);
   }
 
   private cacheProfileData(): void {

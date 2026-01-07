@@ -35,6 +35,10 @@ export class Dashboard implements OnInit, OnDestroy {
   errorMessage: string = '';
   private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
 
+  // User info from auth service (available immediately)
+  userName: string = '';
+  userEmail: string = '';
+
   ngOnInit() {
     this.loadData();
     this.subscriptions.add(
@@ -69,6 +73,17 @@ export class Dashboard implements OnInit, OnDestroy {
     // Prevent concurrent API calls
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
+
+    // Immediately load user data from auth service (instant, no API call)
+    // This allows us to show the dashboard shell right away
+    const user = this.authService.currentUser;
+    if (user) {
+      this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario';
+      this.userEmail = user.email || '';
+      // We have basic user info - show content immediately while API loads
+      this.hasLoaded = true;
+      this.cdr.detectChanges();
+    }
 
     // Load profile, documents, and calculator result in parallel with timeout protection
     forkJoin({
@@ -110,6 +125,15 @@ export class Dashboard implements OnInit, OnDestroy {
         }
       }
     });
+
+    // Safety timeout - ensure content shows after 5 seconds even if APIs are slow
+    setTimeout(() => {
+      if (!this.hasLoaded) {
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+        console.log('Dashboard: Safety timeout triggered');
+      }
+    }, 5000);
   }
 
   // ============ CALCULATOR RESULT ============
