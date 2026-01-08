@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, timeout } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -76,16 +76,37 @@ export class ProfileService {
     const url = `${this.apiUrl}/profile/user-info`;
     console.log('updateUserInfo called with:', data);
 
-    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
-      url,
-      data
-    ).pipe(
-      timeout(12000),
-      catchError(error => {
-        console.error('PATCH error:', error);
-        return this.handleError(error);
+    // Use native fetch to bypass any HttpClient issues
+    return new Observable(observer => {
+      const token = localStorage.getItem('jai1_access_token');
+
+      console.log('Making fetch request to:', url);
+
+      fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify(data)
       })
-    );
+      .then(response => {
+        console.log('Fetch response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log('Fetch success:', result);
+        observer.next(result);
+        observer.complete();
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        observer.error(error);
+      });
+    });
   }
 
   private handleError(error: any): Observable<never> {
