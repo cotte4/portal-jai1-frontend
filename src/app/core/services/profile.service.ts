@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, timeout, retry } from 'rxjs';
+import { Observable, catchError, throwError, timeout, retry, tap, finalize, defer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -73,14 +73,25 @@ export class ProfileService {
       zip?: string;
     };
   }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
-    console.log('Updating user info:', data);
-    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
-      `${this.apiUrl}/profile/user-info`,
-      data
-    ).pipe(
-      timeout(10000), // 10 second timeout
-      retry({ count: 1, delay: 1000 }), // Retry once after 1 second
-      catchError(this.handleError)
+    const url = `${this.apiUrl}/profile/user-info`;
+    console.log('updateUserInfo called with:', data);
+    console.log('PATCH URL:', url);
+
+    // Use defer to log when subscription actually starts
+    return defer(() => {
+      console.log('>>> HTTP PATCH request starting NOW');
+      return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
+        url,
+        data
+      );
+    }).pipe(
+      tap(response => console.log('<<< PATCH response received:', response)),
+      timeout(15000), // 15 second timeout (Railway can be slow)
+      catchError(error => {
+        console.error('!!! PATCH error:', error);
+        return this.handleError(error);
+      }),
+      finalize(() => console.log('--- PATCH observable finalized'))
     );
   }
 

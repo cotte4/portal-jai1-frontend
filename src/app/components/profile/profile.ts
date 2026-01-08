@@ -313,11 +313,17 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   saveChanges() {
+    if (this.isSaving) {
+      console.log('Save already in progress, ignoring click');
+      return;
+    }
+
     this.isSaving = true;
     this.errorMessage = '';
+    console.log('saveChanges() called, starting save...');
 
     // Call the API to persist changes
-    this.profileService.updateUserInfo({
+    const saveData = {
       firstName: this.editForm.firstName,
       lastName: this.editForm.lastName,
       phone: this.editForm.phone,
@@ -328,8 +334,13 @@ export class Profile implements OnInit, OnDestroy {
         state: this.editForm.state,
         zip: this.editForm.zip
       }
-    }).subscribe({
+    };
+
+    console.log('Calling profileService.updateUserInfo with:', saveData);
+
+    this.profileService.updateUserInfo(saveData).subscribe({
       next: (response) => {
+        console.log('Save successful, response:', response);
         // Update local state with response data
         this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
         this.userPhone = response.user.phone || '';
@@ -359,9 +370,17 @@ export class Profile implements OnInit, OnDestroy {
         this.toastService.success('¡Cambios guardados correctamente!');
       },
       error: (error) => {
-        this.isSaving = false;
         console.error('Save profile error:', error);
+        this.isSaving = false;
         this.toastService.error(error?.message || error?.error?.message || 'Error al guardar los cambios');
+      },
+      complete: () => {
+        console.log('Save observable completed');
+        // Safety: ensure isSaving is false when complete
+        if (this.isSaving) {
+          console.warn('isSaving was still true after complete, resetting');
+          this.isSaving = false;
+        }
       }
     });
   }
