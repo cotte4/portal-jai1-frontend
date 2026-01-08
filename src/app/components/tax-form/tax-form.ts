@@ -87,12 +87,7 @@ export class TaxForm implements OnInit, OnDestroy {
     if (this.isLoadingInProgress) return;
 
     this.isLoadingInProgress = true;
-
-    // Show form immediately with empty fields while API loads
-    if (!this.hasLoadedProfile) {
-      this.hasLoadedProfile = true;
-      this.cdr.detectChanges();
-    }
+    // Keep hasLoadedProfile = false until API completes to show loading spinner
 
     this.profileService.getDraft().pipe(
       finalize(() => {

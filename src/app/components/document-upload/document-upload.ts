@@ -80,11 +80,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
   loadDocuments() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
-
-    // Show UI shell immediately (empty document list)
-    this.hasLoaded = true;
-    this.isLoading = true;
-    this.cdr.detectChanges();
+    // Keep hasLoaded = false until API completes to show loading spinner
 
     this.documentService.getDocuments().pipe(
       finalize(() => {

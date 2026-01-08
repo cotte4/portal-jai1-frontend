@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
@@ -23,6 +23,7 @@ export class Profile implements OnInit, OnDestroy {
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
   // User data
@@ -394,6 +395,7 @@ export class Profile implements OnInit, OnDestroy {
         console.log('Safety timeout: applying changes optimistically');
         this.applyChangesLocally(saveData);
         this.toastService.success('¡Cambios guardados!');
+        this.cdr.detectChanges(); // Trigger change detection after timeout
       }
     }, 10000);
 
@@ -429,13 +431,16 @@ export class Profile implements OnInit, OnDestroy {
           this.savePendingPicture();
           this.isSaving = false;
           this.isEditing = false;
+          this.cacheProfileData();
           this.toastService.success('¡Cambios guardados correctamente!');
+          this.cdr.detectChanges();
         },
         error: (error) => {
           clearTimeout(safetyTimeout);
           console.error('Save error:', error);
           this.isSaving = false;
           this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
+          this.cdr.detectChanges();
         }
       })
     );

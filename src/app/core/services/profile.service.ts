@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -78,6 +78,7 @@ export class ProfileService {
       `${this.apiUrl}/profile/user-info`,
       data
     ).pipe(
+      timeout(8000), // 8 second timeout to prevent indefinite hanging
       catchError(this.handleError)
     );
   }
