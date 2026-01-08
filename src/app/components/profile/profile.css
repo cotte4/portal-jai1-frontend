@@ -173,6 +173,52 @@
   transform: scale(1.1);
 }
 
+/* Profile Picture Edit Mode */
+.profile-picture {
+  cursor: default;
+}
+
+.profile-picture.clickable {
+  cursor: pointer;
+}
+
+.profile-picture:not(.clickable):hover {
+  transform: none;
+}
+
+.profile-picture:not(.clickable):hover .picture-overlay {
+  opacity: 0;
+}
+
+.profile-picture-container.editing {
+  animation: pulse-edit 2s ease-in-out infinite;
+}
+
+@keyframes pulse-edit {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.05); }
+}
+
+.profile-picture-container.has-changes .profile-picture {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3), 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.picture-changed-indicator {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f59e0b;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
 /* Card Body */
 .card-body {
   padding: 60px 24px 24px;

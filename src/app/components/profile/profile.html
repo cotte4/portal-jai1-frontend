@@ -16,28 +16,33 @@
         </div>
         
         <!-- Profile Picture -->
-        <div class="profile-picture-container">
-          <div class="profile-picture" (click)="triggerFileInput()">
-            @if (profilePicture) {
-              <img [src]="profilePicture" alt="Foto de perfil" />
+        <div class="profile-picture-container" [class.editing]="isEditing" [class.has-changes]="hasPendingPictureChange">
+          <div class="profile-picture" [class.clickable]="isEditing" (click)="isEditing && triggerFileInput()">
+            @if (isEditing ? pendingProfilePicture : profilePicture) {
+              <img [src]="isEditing ? pendingProfilePicture : profilePicture" alt="Foto de perfil" />
             } @else {
               <div class="avatar-placeholder">
                 <span class="avatar-initials">{{ userInitials }}</span>
               </div>
             }
-            <div class="picture-overlay">
-              <span class="camera-icon">📷</span>
-            </div>
+            @if (isEditing) {
+              <div class="picture-overlay">
+                <span class="camera-icon">📷</span>
+              </div>
+            }
           </div>
-          <input 
-            type="file" 
-            id="profilePictureInput" 
-            accept="image/*" 
+          <input
+            type="file"
+            id="profilePictureInput"
+            accept="image/*"
             (change)="onFileSelected($event)"
             hidden
           />
-          @if (profilePicture) {
+          @if (isEditing && pendingProfilePicture) {
             <button class="btn-remove-picture" (click)="removeProfilePicture(); $event.stopPropagation()">✕</button>
+          }
+          @if (hasPendingPictureChange) {
+            <div class="picture-changed-indicator">Cambios pendientes</div>
           }
         </div>
       </div>

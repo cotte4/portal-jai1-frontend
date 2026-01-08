@@ -30,6 +30,8 @@ export class Profile implements OnInit, OnDestroy {
   userEmail: string = '';
   userPhone: string = '';
   profilePicture: string | null = null;
+  pendingProfilePicture: string | null = null; // Staged picture during edit mode
+  hasPendingPictureChange: boolean = false; // Track if user changed picture in edit mode
   
   // Profile data
   dni: string = '';
@@ -274,7 +276,7 @@ export class Profile implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
         this.toastService.error('Por favor selecciona una imagen válida');
@@ -290,29 +292,42 @@ export class Profile implements OnInit, OnDestroy {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        this.profilePicture = result;
-        // Save to localStorage for persistence (user-specific)
-        const userId = this.authService.currentUser?.id;
-        if (userId) {
-          localStorage.setItem(`profilePicture_${userId}`, result);
-        }
-        this.toastService.success('¡Foto de perfil actualizada!');
+        // Stage the picture - will be saved when user clicks "Guardar cambios"
+        this.pendingProfilePicture = result;
+        this.hasPendingPictureChange = true;
+        this.toastService.info('Foto seleccionada. Haz clic en "Guardar cambios" para confirmar.');
       };
       reader.readAsDataURL(file);
     }
   }
 
   removeProfilePicture() {
-    this.profilePicture = null;
-    // Remove from localStorage (user-specific)
-    const userId = this.authService.currentUser?.id;
-    if (userId) {
-      localStorage.removeItem(`profilePicture_${userId}`);
+    if (this.isEditing) {
+      // In edit mode - stage the removal, will be applied on save
+      this.pendingProfilePicture = null;
+      this.hasPendingPictureChange = true;
+      this.toastService.info('Foto marcada para eliminar. Haz clic en "Guardar cambios" para confirmar.');
+    } else {
+      // Not in edit mode - remove immediately (legacy behavior, shouldn't happen with new UI)
+      this.profilePicture = null;
+      const userId = this.authService.currentUser?.id;
+      if (userId) {
+        localStorage.removeItem(`profilePicture_${userId}`);
+      }
+      this.toastService.success('Foto de perfil eliminada');
     }
-    this.toastService.success('Foto de perfil eliminada');
   }
 
   toggleEdit() {
+    if (this.isEditing) {
+      // Canceling edit mode - discard pending picture changes
+      this.pendingProfilePicture = null;
+      this.hasPendingPictureChange = false;
+    } else {
+      // Entering edit mode - initialize pending picture with current
+      this.pendingProfilePicture = this.profilePicture;
+      this.hasPendingPictureChange = false;
+    }
     this.isEditing = !this.isEditing;
     this.errorMessage = '';
     this.successMessage = '';
@@ -370,6 +385,21 @@ export class Profile implements OnInit, OnDestroy {
           lastName: response.user.lastName,
           phone: response.user.phone
         });
+
+        // Save profile picture changes if any
+        if (this.hasPendingPictureChange) {
+          const userId = this.authService.currentUser?.id;
+          if (userId) {
+            if (this.pendingProfilePicture) {
+              localStorage.setItem(`profilePicture_${userId}`, this.pendingProfilePicture);
+            } else {
+              localStorage.removeItem(`profilePicture_${userId}`);
+            }
+          }
+          this.profilePicture = this.pendingProfilePicture;
+          this.hasPendingPictureChange = false;
+        }
+        this.pendingProfilePicture = null;
 
         this.isSaving = false;
         this.isEditing = false;
