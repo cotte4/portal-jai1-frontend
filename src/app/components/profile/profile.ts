@@ -7,7 +7,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProfileResponse, Address } from '../../core/models';
-import { timeout, catchError, filter, retry, delay, take } from 'rxjs/operators';
+import { timeout, catchError, filter, retry, take } from 'rxjs/operators';
 import { of, Subscription, timer } from 'rxjs';
 
 @Component({
@@ -283,9 +283,19 @@ export class Profile implements OnInit, OnDestroy {
         }
         if (cached.address) {
           this.address = cached.address;
+          // Also sync editForm with cached address data
+          this.editForm.street = cached.address.street || '';
+          this.editForm.city = cached.address.city || '';
+          this.editForm.state = cached.address.state || '';
+          this.editForm.zip = cached.address.zip || '';
         }
         if (cached.dateOfBirth) {
           this.dateOfBirth = cached.dateOfBirth;
+          // Format for date input
+          try {
+            const dob = new Date(cached.dateOfBirth);
+            this.editForm.dateOfBirth = dob.toISOString().split('T')[0];
+          } catch { /* ignore date parse errors */ }
         }
       } catch { /* ignore */ }
     }

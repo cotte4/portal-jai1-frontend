@@ -1,4 +1,4 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -13,7 +13,6 @@ import {
 })
 export class ProfileService {
   private http = inject(HttpClient);
-  private ngZone = inject(NgZone);
   private apiUrl = environment.apiUrl;
 
   getProfile(): Observable<ProfileResponse> {
@@ -74,45 +73,13 @@ export class ProfileService {
       zip?: string;
     };
   }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
-    const url = `${this.apiUrl}/profile/user-info`;
     console.log('updateUserInfo called with:', data);
-
-    // Use native fetch to bypass any HttpClient issues
-    return new Observable(observer => {
-      const token = localStorage.getItem('access_token');
-
-      console.log('Making fetch request to:', url);
-
-      fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        console.log('Fetch response status:', response.status);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        console.log('Fetch success:', result);
-        // Run inside Angular zone to trigger change detection
-        this.ngZone.run(() => {
-          observer.next(result);
-          observer.complete();
-        });
-      })
-      .catch(error => {
-        console.error('Fetch error:', error);
-        this.ngZone.run(() => {
-          observer.error(error);
-        });
-      });
-    });
+    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
+      `${this.apiUrl}/profile/user-info`,
+      data
+    ).pipe(
+      catchError(this.handleError)
+    );
   }
 
   private handleError(error: any): Observable<never> {
