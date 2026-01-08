@@ -43,8 +43,15 @@ export class Login implements OnInit {
 
     this.isLoading = true;
 
+    console.log('[Login] Attempting login with rememberMe:', this.rememberMe);
+
     this.authService.login({ email: this.email, password: this.password, rememberMe: this.rememberMe }).subscribe({
       next: (response) => {
+        console.log('[Login] Login successful, tokens received:', {
+          hasAccessToken: !!response.accessToken || !!response.access_token,
+          hasRefreshToken: !!response.refreshToken || !!response.refresh_token,
+          rememberMe: this.rememberMe
+        });
         this.isLoading = false;
         // Redirect based on role
         if (response.user.role === UserRole.ADMIN) {
@@ -54,6 +61,7 @@ export class Login implements OnInit {
         }
       },
       error: (error) => {
+        console.log('[Login] Login failed:', error);
         this.isLoading = false;
         this.errorMessage = error.message || 'Credenciales invalidas';
       }

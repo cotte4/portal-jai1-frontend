@@ -116,23 +116,34 @@ export class AuthService {
       last_name: data.lastName,
       phone: data.phone,
     };
-    console.log('AuthService.register - Making API call to:', `${this.apiUrl}/auth/register`);
-    console.log('AuthService.register - Data:', apiData);
+    console.log('[AuthService] register - Making API call to:', `${this.apiUrl}/auth/register`);
+    console.log('[AuthService] register - Data:', apiData);
+
+    // New registrations default to rememberMe=true for better UX
+    this.storage.setRememberMe(true);
+
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
       tap((response) => {
-        console.log('AuthService.register - Response received:', response);
+        console.log('[AuthService] register - Response received:', response);
         this.handleAuthResponse(response);
       }),
       catchError((error) => {
-        console.log('AuthService.register - Error:', error);
+        console.log('[AuthService] register - Error:', error);
         return this.handleError(error);
       })
     );
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
+    console.log('[AuthService] login - rememberMe:', data.rememberMe);
+    // Set rememberMe BEFORE the response comes back so storage knows where to save
+    this.storage.setRememberMe(data.rememberMe || false);
+
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, data).pipe(
-      tap((response) => this.handleAuthResponse(response)),
+      tap((response) => {
+        console.log('[AuthService] login - response received, calling handleAuthResponse');
+        this.handleAuthResponse(response);
+      }),
       catchError((error) => this.handleError(error))
     );
   }
@@ -150,15 +161,22 @@ export class AuthService {
 
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.storage.getRefreshToken();
+    console.log('[AuthService] refreshToken - hasRefreshToken:', !!refreshToken);
+
     if (!refreshToken) {
+      console.log('[AuthService] refreshToken - No refresh token available');
       return throwError(() => new Error('No refresh token available'));
     }
 
     // Backend expects snake_case: refresh_token
     const request = { refresh_token: refreshToken };
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/refresh`, request).pipe(
-      tap((response) => this.handleAuthResponse(response)),
+      tap((response) => {
+        console.log('[AuthService] refreshToken - Success, updating tokens');
+        this.handleAuthResponse(response);
+      }),
       catchError((err) => {
+        console.log('[AuthService] refreshToken - Failed:', err);
         this.clearSession();
         return throwError(() => err);
       })
@@ -190,7 +208,7 @@ export class AuthService {
   private handleAuthResponse(response: any): void {
     // Guard against invalid response
     if (!response) {
-      console.error('handleAuthResponse called with invalid response:', response);
+      console.error('[AuthService] handleAuthResponse called with invalid response:', response);
       return;
     }
 
@@ -199,9 +217,15 @@ export class AuthService {
     const refreshToken = response.refreshToken || response.refresh_token;
     const user = this.mapUserFromApi(response.user);
 
+    console.log('[AuthService] handleAuthResponse - tokens:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      rememberMeEnabled: this.storage.isRememberMeEnabled()
+    });
+
     // If user mapping failed, clear session and redirect to login
     if (!user) {
-      console.error('Failed to map user from auth response, clearing session');
+      console.error('[AuthService] Failed to map user from auth response, clearing session');
       this.clearSession();
       return;
     }
@@ -210,12 +234,19 @@ export class AuthService {
     this.storage.setRefreshToken(refreshToken);
     this.storage.setUser(user);
     this.currentUserSubject.next(user);
+
+    console.log('[AuthService] handleAuthResponse - auth data stored successfully');
   }
 
   /**
    * Handle Google OAuth callback - stores tokens and updates user state
+   * Google OAuth defaults to rememberMe=true since no checkbox is shown
    */
   handleGoogleAuth(response: { access_token: string; refresh_token: string; user: any }): void {
+    console.log('[AuthService] handleGoogleAuth - setting rememberMe to true by default');
+    // Default to rememberMe=true for Google OAuth (no checkbox shown)
+    this.storage.setRememberMe(true);
+
     const user = this.mapUserFromApi(response.user);
 
     this.storage.setAccessToken(response.access_token);
