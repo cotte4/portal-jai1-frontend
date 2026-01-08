@@ -94,6 +94,19 @@ export class AuthService {
     return this.currentUser?.role === UserRole.CLIENT;
   }
 
+  /**
+   * Update current user data after profile changes
+   * This properly triggers the BehaviorSubject and persists to storage
+   */
+  updateCurrentUser(updates: Partial<User>): void {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...updates };
+      this.storage.setUser(updatedUser);
+      this.currentUserSubject.next(updatedUser);
+    }
+  }
+
   register(data: RegisterRequest): Observable<AuthResponse> {
     // Convert to snake_case for API
     const apiData = {

@@ -347,13 +347,12 @@ export class Profile implements OnInit, OnDestroy {
           this.dateOfBirth = response.dateOfBirth;
         }
 
-        // Update authService currentUser
-        const currentUser = this.authService.currentUser;
-        if (currentUser) {
-          currentUser.firstName = response.user.firstName;
-          currentUser.lastName = response.user.lastName;
-          currentUser.phone = response.user.phone;
-        }
+        // Update authService currentUser (properly triggers observable and persists to storage)
+        this.authService.updateCurrentUser({
+          firstName: response.user.firstName,
+          lastName: response.user.lastName,
+          phone: response.user.phone
+        });
 
         this.isSaving = false;
         this.isEditing = false;

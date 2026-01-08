@@ -13,6 +13,17 @@ import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from
 
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 
+// Step info interface matching tax-tracking component
+interface CurrentStepInfo {
+  stepNumber: number;
+  totalSteps: number;
+  title: string;
+  description: string;
+  icon: string;
+  track: 'shared' | 'federal' | 'estatal' | 'both';
+  status: 'pending' | 'active' | 'completed' | 'rejected';
+}
+
 interface DashboardCacheData {
   profileData: ProfileResponse | null;
   documents: Document[];
@@ -247,6 +258,232 @@ export class Dashboard implements OnInit, OnDestroy {
   get showIRSProgress(): boolean {
     // Only show IRS progress if user has completed their part
     return this.userProgressComplete || this.isSentToIRS;
+  }
+
+  // ============ CURRENT STEP (Matching tax-tracking logic) ============
+  get currentStepInfo(): CurrentStepInfo {
+    const taxCase = this.profileData?.taxCase;
+    const profile = this.profileData?.profile;
+
+    const clientStatus = taxCase?.clientStatus || ClientStatus.ESPERANDO_DATOS;
+    const federalStatus = taxCase?.federalStatus;
+    const stateStatus = taxCase?.stateStatus;
+    const profileComplete = profile?.profileComplete || false;
+
+    // Total of 8 steps: 2 shared + 3 federal + 3 estatal
+    // We show the most relevant current step
+
+    // Step 1: Información Recibida
+    if (!profileComplete) {
+      return {
+        stepNumber: 1,
+        totalSteps: 8,
+        title: 'Información Recibida',
+        description: 'Completa tu perfil para continuar',
+        icon: '📋',
+        track: 'shared',
+        status: 'active'
+      };
+    }
+
+    // Step 2: Presentado al IRS
+    const submittedStatuses = [
+      ClientStatus.TAXES_EN_PROCESO,
+      ClientStatus.TAXES_EN_CAMINO,
+      ClientStatus.EN_VERIFICACION,
+      ClientStatus.TAXES_DEPOSITADOS,
+      ClientStatus.TAXES_FINALIZADOS
+    ];
+    const isSubmitted = submittedStatuses.includes(clientStatus);
+
+    if (!isSubmitted) {
+      if (clientStatus === ClientStatus.CUENTA_EN_REVISION) {
+        return {
+          stepNumber: 2,
+          totalSteps: 8,
+          title: 'Presentando al IRS',
+          description: 'Tu cuenta está siendo revisada',
+          icon: '🏛️',
+          track: 'shared',
+          status: 'active'
+        };
+      }
+      return {
+        stepNumber: 2,
+        totalSteps: 8,
+        title: 'Presentado al IRS',
+        description: 'Pendiente de envío al IRS',
+        icon: '🏛️',
+        track: 'shared',
+        status: 'pending'
+      };
+    }
+
+    // After submission, check Federal and State tracks
+    // Determine most relevant step based on status
+
+    // Check for rejections first
+    if (federalStatus === TaxStatus.REJECTED) {
+      return {
+        stepNumber: 3,
+        totalSteps: 8,
+        title: 'Decisión Federal',
+        description: 'Declaración rechazada - contacta soporte',
+        icon: '❌',
+        track: 'federal',
+        status: 'rejected'
+      };
+    }
+
+    if (stateStatus === TaxStatus.REJECTED) {
+      return {
+        stepNumber: 3,
+        totalSteps: 8,
+        title: 'Decisión Estatal',
+        description: 'Declaración rechazada - contacta soporte',
+        icon: '❌',
+        track: 'estatal',
+        status: 'rejected'
+      };
+    }
+
+    // Check if both are deposited (completed)
+    if (federalStatus === TaxStatus.DEPOSITED && stateStatus === TaxStatus.DEPOSITED) {
+      return {
+        stepNumber: 8,
+        totalSteps: 8,
+        title: 'Reembolsos Depositados',
+        description: '¡Federal y Estatal depositados!',
+        icon: '🎉',
+        track: 'both',
+        status: 'completed'
+      };
+    }
+
+    // Check individual deposit status
+    if (federalStatus === TaxStatus.DEPOSITED) {
+      // Federal done, check state
+      if (stateStatus === TaxStatus.APPROVED) {
+        return {
+          stepNumber: 7,
+          totalSteps: 8,
+          title: 'Reembolso Estatal en Camino',
+          description: 'Federal depositado, esperando estatal',
+          icon: '💵',
+          track: 'estatal',
+          status: 'active'
+        };
+      }
+      if (stateStatus === TaxStatus.PROCESSING || !stateStatus) {
+        return {
+          stepNumber: 6,
+          totalSteps: 8,
+          title: 'Decisión Estatal Pendiente',
+          description: 'Federal depositado, estatal en revisión',
+          icon: '🗽',
+          track: 'estatal',
+          status: 'active'
+        };
+      }
+    }
+
+    if (stateStatus === TaxStatus.DEPOSITED) {
+      // State done, check federal
+      if (federalStatus === TaxStatus.APPROVED) {
+        return {
+          stepNumber: 5,
+          totalSteps: 8,
+          title: 'Reembolso Federal en Camino',
+          description: 'Estatal depositado, esperando federal',
+          icon: '💵',
+          track: 'federal',
+          status: 'active'
+        };
+      }
+      if (federalStatus === TaxStatus.PROCESSING || !federalStatus) {
+        return {
+          stepNumber: 4,
+          totalSteps: 8,
+          title: 'Decisión Federal Pendiente',
+          description: 'Estatal depositado, federal en revisión',
+          icon: '🦅',
+          track: 'federal',
+          status: 'active'
+        };
+      }
+    }
+
+    // Check approved but not deposited
+    if (federalStatus === TaxStatus.APPROVED && stateStatus === TaxStatus.APPROVED) {
+      return {
+        stepNumber: 6,
+        totalSteps: 8,
+        title: 'Reembolsos en Camino',
+        description: 'Ambos aprobados, esperando depósitos',
+        icon: '💵',
+        track: 'both',
+        status: 'active'
+      };
+    }
+
+    if (federalStatus === TaxStatus.APPROVED) {
+      return {
+        stepNumber: 5,
+        totalSteps: 8,
+        title: 'Federal Aprobado',
+        description: 'Reembolso federal en proceso',
+        icon: '✅',
+        track: 'federal',
+        status: 'active'
+      };
+    }
+
+    if (stateStatus === TaxStatus.APPROVED) {
+      return {
+        stepNumber: 5,
+        totalSteps: 8,
+        title: 'Estatal Aprobado',
+        description: 'Reembolso estatal en proceso',
+        icon: '✅',
+        track: 'estatal',
+        status: 'active'
+      };
+    }
+
+    // Default: waiting for IRS decisions
+    if (federalStatus === TaxStatus.PROCESSING || stateStatus === TaxStatus.PROCESSING) {
+      return {
+        stepNumber: 3,
+        totalSteps: 8,
+        title: 'En Revisión del IRS',
+        description: 'Tu declaración está siendo procesada',
+        icon: '🏛️',
+        track: 'both',
+        status: 'active'
+      };
+    }
+
+    // Submitted but no status yet
+    return {
+      stepNumber: 3,
+      totalSteps: 8,
+      title: 'Decisión Pendiente',
+      description: 'Esperando respuesta del IRS',
+      icon: '⏳',
+      track: 'both',
+      status: 'active'
+    };
+  }
+
+  get overallProgressPercent(): number {
+    const step = this.currentStepInfo;
+    // Calculate percentage based on current step
+    return Math.round((step.stepNumber / step.totalSteps) * 100);
+  }
+
+  get isTrackingComplete(): boolean {
+    return this.currentStepInfo.status === 'completed' &&
+           this.currentStepInfo.stepNumber === 8;
   }
 
   // ============ NAVIGATION ============
