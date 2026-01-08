@@ -1807,3 +1807,154 @@
     padding: 16px 24px;
   }
 }
+
+/* ==================== LEADERBOARD ==================== */
+.leaderboard-section {
+  margin-bottom: 32px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.leaderboard-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.leaderboard-item.current-user {
+  background: linear-gradient(135deg, rgba(178, 27, 67, 0.15) 0%, rgba(178, 27, 67, 0.05) 100%);
+  border-color: rgba(178, 27, 67, 0.3);
+}
+
+.leaderboard-rank {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.leaderboard-rank.gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+  color: #1e293b;
+}
+
+.leaderboard-rank.silver {
+  background: linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%);
+  color: #1e293b;
+}
+
+.leaderboard-rank.bronze {
+  background: linear-gradient(135deg, #cd7f32 0%, #a66928 100%);
+  color: white;
+}
+
+.leaderboard-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leaderboard-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.you-badge {
+  color: #B21B43;
+  font-size: 13px;
+  margin-left: 6px;
+}
+
+.leaderboard-tier {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.leaderboard-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.count-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #B21B43;
+}
+
+.count-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Status badge colors */
+.status-badge.pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.status-badge.tax_form_submitted {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.status-badge.awaiting_refund {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.status-badge.successful {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.status-badge.expired {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+@media (max-width: 480px) {
+  .leaderboard-item {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .leaderboard-rank {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .leaderboard-name {
+    font-size: 14px;
+  }
+
+  .count-value {
+    font-size: 18px;
+  }
+}

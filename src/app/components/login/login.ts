@@ -48,8 +48,8 @@ export class Login implements OnInit {
     this.authService.login({ email: this.email, password: this.password, rememberMe: this.rememberMe }).subscribe({
       next: (response) => {
         console.log('[Login] Login successful, tokens received:', {
-          hasAccessToken: !!response.accessToken || !!response.access_token,
-          hasRefreshToken: !!response.refreshToken || !!response.refresh_token,
+          hasAccessToken: !!response.accessToken,
+          hasRefreshToken: !!response.refreshToken,
           rememberMe: this.rememberMe
         });
         this.isLoading = false;

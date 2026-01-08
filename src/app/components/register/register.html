@@ -130,9 +130,9 @@
           <label for="email">Correo electrónico</label>
           <div class="input-wrapper">
             <span class="input-icon">✉️</span>
-            <input 
-              type="email" 
-              id="email" 
+            <input
+              type="email"
+              id="email"
               [(ngModel)]="email"
               name="email"
               placeholder="tu@email.com"
@@ -140,6 +140,44 @@
               autocomplete="email"
             >
           </div>
+        </div>
+
+        <!-- Referral Code (Optional) -->
+        <div class="input-group">
+          <label for="referralCode">Codigo de referido <span class="optional-label">(opcional)</span></label>
+          <div class="input-wrapper" [class.input-valid]="referralCodeValid === true" [class.input-invalid]="referralCodeValid === false">
+            <span class="input-icon">🎁</span>
+            <input
+              type="text"
+              id="referralCode"
+              [(ngModel)]="referralCode"
+              name="referralCode"
+              placeholder="Ej: ABC1234"
+              maxlength="10"
+              (blur)="validateReferralCode()"
+              autocomplete="off"
+            >
+            @if (referralCodeValidating) {
+              <span class="validation-spinner"></span>
+            }
+            @if (referralCodeValid === true && !referralCodeValidating) {
+              <span class="validation-check">✓</span>
+            }
+            @if (referralCodeValid === false && !referralCodeValidating) {
+              <span class="validation-x">✗</span>
+            }
+          </div>
+          @if (referralCodeValid === true && referrerName) {
+            <div class="referral-success">
+              <span>Referido por: <strong>{{ referrerName }}</strong></span>
+              <span class="referral-bonus">Obtendras $11 de descuento</span>
+            </div>
+          }
+          @if (referralCodeValid === false) {
+            <div class="referral-error">
+              Codigo invalido. Verifica e intenta de nuevo.
+            </div>
+          }
         </div>
 
         <!-- Password -->

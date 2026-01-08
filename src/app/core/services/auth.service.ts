@@ -109,13 +109,18 @@ export class AuthService {
 
   register(data: RegisterRequest): Observable<AuthResponse> {
     // Convert to snake_case for API
-    const apiData = {
+    const apiData: any = {
       email: data.email,
       password: data.password,
       first_name: data.firstName,
       last_name: data.lastName,
       phone: data.phone,
     };
+
+    // Only include referral_code if provided
+    if (data.referralCode) {
+      apiData.referral_code = data.referralCode;
+    }
     console.log('[AuthService] register - Making API call to:', `${this.apiUrl}/auth/register`);
     console.log('[AuthService] register - Data:', apiData);
 

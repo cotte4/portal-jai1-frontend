@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { ReferralService } from '../../core/services/referral.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -14,6 +15,7 @@ import { environment } from '../../../environments/environment';
 export class Register {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private referralService = inject(ReferralService);
   private cdr = inject(ChangeDetectorRef);
 
   // Form data
@@ -23,6 +25,7 @@ export class Register {
   phone: string = '';
   password: string = '';
   confirmPassword: string = '';
+  referralCode: string = '';
   agreeToTerms: boolean = false;
 
   errorMessage: string = '';
@@ -30,6 +33,11 @@ export class Register {
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isLoading: boolean = false;
+
+  // Referral code validation state
+  referralCodeValid: boolean | null = null;
+  referralCodeValidating: boolean = false;
+  referrerName: string = '';
 
   // Modal state
   showTermsModal: boolean = false;
@@ -78,7 +86,8 @@ export class Register {
       password: this.password,
       firstName: this.firstName,
       lastName: this.lastName,
-      phone: this.phone || undefined
+      phone: this.phone || undefined,
+      referralCode: this.referralCode || undefined
     }).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
@@ -113,6 +122,36 @@ export class Register {
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  validateReferralCode() {
+    if (!this.referralCode || this.referralCode.length < 4) {
+      this.referralCodeValid = null;
+      this.referrerName = '';
+      return;
+    }
+
+    this.referralCodeValidating = true;
+    this.referralService.validateCode(this.referralCode).subscribe({
+      next: (result) => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = result.valid;
+        this.referrerName = result.referrerName || '';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = false;
+        this.referrerName = '';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  clearReferralCode() {
+    this.referralCode = '';
+    this.referralCodeValid = null;
+    this.referrerName = '';
   }
 
   openTermsModal(event: Event) {
