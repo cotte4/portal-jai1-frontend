@@ -166,8 +166,8 @@ export class Profile implements OnInit, OnDestroy {
       }
     }
 
-    // Load cached verification status (works even if we have user from authService)
-    this.loadCachedVerificationStatus();
+    // Load cached profile data (address, verification status, etc.)
+    this.loadCachedProfileData();
 
     // Load profile picture from localStorage (user-specific)
     const userId = this.authService.currentUser?.id;
@@ -266,18 +266,26 @@ export class Profile implements OnInit, OnDestroy {
       userEmail: this.userEmail,
       userPhone: this.userPhone,
       isVerified: this.isVerified,
+      address: this.address,
+      dateOfBirth: this.dateOfBirth,
       cachedAt: Date.now()
     };
     localStorage.setItem('jai1_cached_profile', JSON.stringify(cacheData));
   }
 
-  private loadCachedVerificationStatus(): void {
+  private loadCachedProfileData(): void {
     const cachedProfile = localStorage.getItem('jai1_cached_profile');
     if (cachedProfile) {
       try {
         const cached = JSON.parse(cachedProfile);
         if (cached.isVerified !== undefined) {
           this.isVerified = cached.isVerified;
+        }
+        if (cached.address) {
+          this.address = cached.address;
+        }
+        if (cached.dateOfBirth) {
+          this.dateOfBirth = cached.dateOfBirth;
         }
       } catch { /* ignore */ }
     }
