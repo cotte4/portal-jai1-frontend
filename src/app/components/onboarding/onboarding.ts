@@ -1,6 +1,7 @@
-import { Component, inject, NgZone, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -21,13 +22,18 @@ interface Benefit {
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.css'
 })
-export class Onboarding implements OnInit {
+export class Onboarding implements OnInit, OnDestroy {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
   private documentService = inject(DocumentService);
   private calculatorResultService = inject(CalculatorResultService);
+
+  // Cleanup tracking
+  private progressIntervalId: ReturnType<typeof setInterval> | null = null;
+  private resultTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private uploadSubscription: Subscription | null = null;
 
   // State
   currentStep: OnboardingStep = 'welcome';
@@ -64,6 +70,18 @@ export class Onboarding implements OnInit {
     const user = this.authService.currentUser;
     if (user) {
       this.userName = user.firstName || user.email.split('@')[0];
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.progressIntervalId) {
+      clearInterval(this.progressIntervalId);
+    }
+    if (this.resultTimeoutId) {
+      clearTimeout(this.resultTimeoutId);
+    }
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
     }
   }
 
@@ -151,14 +169,17 @@ export class Onboarding implements OnInit {
     this.calculationProgress = 0;
 
     this.ngZone.runOutsideAngular(() => {
-      const progressInterval = setInterval(() => {
+      this.progressIntervalId = setInterval(() => {
         this.ngZone.run(() => {
           this.calculationProgress += Math.random() * 15 + 5;
           if (this.calculationProgress >= 100) {
             this.calculationProgress = 100;
-            clearInterval(progressInterval);
+            if (this.progressIntervalId) {
+              clearInterval(this.progressIntervalId);
+              this.progressIntervalId = null;
+            }
 
-            setTimeout(() => {
+            this.resultTimeoutId = setTimeout(() => {
               this.showResult();
             }, 600);
           }
@@ -179,7 +200,7 @@ export class Onboarding implements OnInit {
 
     // Save document to storage
     if (this.uploadedFile) {
-      this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
+      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
         error: (err) => console.error('Error saving W2:', err)
       });
     }
