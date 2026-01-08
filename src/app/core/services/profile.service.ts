@@ -78,7 +78,7 @@ export class ProfileService {
 
     // Use native fetch to bypass any HttpClient issues
     return new Observable(observer => {
-      const token = localStorage.getItem('jai1_access_token');
+      const token = localStorage.getItem('access_token');
 
       console.log('Making fetch request to:', url);
 
