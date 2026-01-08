@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, timeout, retry } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -72,12 +72,14 @@ export class ProfileService {
       state?: string;
       zip?: string;
     };
-  }): Observable<{ user: any; address?: any; dateOfBirth?: string; message: string }> {
+  }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
     console.log('Updating user info:', data);
-    return this.http.patch<{ user: any; address?: any; message: string }>(
+    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
       `${this.apiUrl}/profile/user-info`,
       data
     ).pipe(
+      timeout(10000), // 10 second timeout
+      retry({ count: 1, delay: 1000 }), // Retry once after 1 second
       catchError(this.handleError)
     );
   }

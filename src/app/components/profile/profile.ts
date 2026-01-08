@@ -360,7 +360,8 @@ export class Profile implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSaving = false;
-        this.toastService.error(error?.error?.message || 'Error al guardar los cambios');
+        console.error('Save profile error:', error);
+        this.toastService.error(error?.message || error?.error?.message || 'Error al guardar los cambios');
       }
     });
   }
