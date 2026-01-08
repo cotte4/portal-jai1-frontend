@@ -379,45 +379,48 @@ export class Profile implements OnInit, OnDestroy {
       }
     }, 10000);
 
-    this.profileService.updateUserInfo(saveData).subscribe({
-      next: (response) => {
-        clearTimeout(safetyTimeout);
+    // Add subscription to tracked subscriptions so it survives navigation/refresh
+    this.subscriptions.add(
+      this.profileService.updateUserInfo(saveData).subscribe({
+        next: (response) => {
+          clearTimeout(safetyTimeout);
 
-        // Update from response
-        this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
-        this.userPhone = response.user.phone || '';
+          // Update from response
+          this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
+          this.userPhone = response.user.phone || '';
 
-        if (response.address) {
-          this.address = {
-            street: response.address.street || '',
-            city: response.address.city || '',
-            state: response.address.state || '',
-            zip: response.address.zip || ''
-          };
+          if (response.address) {
+            this.address = {
+              street: response.address.street || '',
+              city: response.address.city || '',
+              state: response.address.state || '',
+              zip: response.address.zip || ''
+            };
+          }
+
+          if (response.dateOfBirth) {
+            this.dateOfBirth = response.dateOfBirth;
+          }
+
+          this.authService.updateCurrentUser({
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            phone: response.user.phone
+          });
+
+          this.savePendingPicture();
+          this.isSaving = false;
+          this.isEditing = false;
+          this.toastService.success('¡Cambios guardados correctamente!');
+        },
+        error: (error) => {
+          clearTimeout(safetyTimeout);
+          console.error('Save error:', error);
+          this.isSaving = false;
+          this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
         }
-
-        if (response.dateOfBirth) {
-          this.dateOfBirth = response.dateOfBirth;
-        }
-
-        this.authService.updateCurrentUser({
-          firstName: response.user.firstName,
-          lastName: response.user.lastName,
-          phone: response.user.phone
-        });
-
-        this.savePendingPicture();
-        this.isSaving = false;
-        this.isEditing = false;
-        this.toastService.success('¡Cambios guardados correctamente!');
-      },
-      error: (error) => {
-        clearTimeout(safetyTimeout);
-        console.error('Save error:', error);
-        this.isSaving = false;
-        this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
-      }
-    });
+      })
+    );
   }
 
   private applyChangesLocally(data: any) {
