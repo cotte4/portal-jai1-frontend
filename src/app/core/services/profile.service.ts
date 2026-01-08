@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, timeout, retry, tap, finalize, defer } from 'rxjs';
+import { Observable, catchError, throwError, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -75,23 +75,16 @@ export class ProfileService {
   }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
     const url = `${this.apiUrl}/profile/user-info`;
     console.log('updateUserInfo called with:', data);
-    console.log('PATCH URL:', url);
 
-    // Use defer to log when subscription actually starts
-    return defer(() => {
-      console.log('>>> HTTP PATCH request starting NOW');
-      return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
-        url,
-        data
-      );
-    }).pipe(
-      tap(response => console.log('<<< PATCH response received:', response)),
-      timeout(15000), // 15 second timeout (Railway can be slow)
+    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
+      url,
+      data
+    ).pipe(
+      timeout(12000),
       catchError(error => {
-        console.error('!!! PATCH error:', error);
+        console.error('PATCH error:', error);
         return this.handleError(error);
-      }),
-      finalize(() => console.log('--- PATCH observable finalized'))
+      })
     );
   }
 

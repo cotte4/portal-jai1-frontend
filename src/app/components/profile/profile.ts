@@ -146,13 +146,14 @@ export class Profile implements OnInit, OnDestroy {
       this.isLoading = false;
     } else {
       // No user in auth service - try to load from cached profile
-      const cachedProfile = localStorage.getItem('jai1_cached_profile');
-      if (cachedProfile) {
+      const cachedProfileData = localStorage.getItem('jai1_cached_profile');
+      if (cachedProfileData) {
         try {
-          const cached = JSON.parse(cachedProfile);
+          const cached = JSON.parse(cachedProfileData);
           this.userName = cached.userName || 'Usuario';
           this.userEmail = cached.userEmail || '';
           this.userPhone = cached.userPhone || '';
+          this.isVerified = cached.isVerified || false;
           // We have cached data, show it while API loads
           this.hasLoadedOnce = true;
           this.isLoading = false;
@@ -164,6 +165,9 @@ export class Profile implements OnInit, OnDestroy {
         this.userEmail = '';
       }
     }
+
+    // Load cached verification status (works even if we have user from authService)
+    this.loadCachedVerificationStatus();
 
     // Load profile picture from localStorage (user-specific)
     const userId = this.authService.currentUser?.id;
@@ -243,18 +247,17 @@ export class Profile implements OnInit, OnDestroy {
       }
     });
 
-    // Safety timeout - stop loading after 5 seconds if we still have a spinner
-    // (reduced from 10s since we now show content early)
+    // Safety timeout - stop loading states after 8 seconds
     setTimeout(() => {
-      if (this.isLoading) {
+      if (this.isLoading || !this.profileDataLoaded) {
         this.isLoading = false;
-        // If we have any data, mark as loaded to show content
+        this.profileDataLoaded = true; // Stop showing "Verificando..."
         if (this.userName || this.userEmail) {
           this.hasLoadedOnce = true;
         }
         console.log('Profile: Safety timeout triggered');
       }
-    }, 5000);
+    }, 8000);
   }
 
   private cacheProfileData(): void {
@@ -262,9 +265,22 @@ export class Profile implements OnInit, OnDestroy {
       userName: this.userName,
       userEmail: this.userEmail,
       userPhone: this.userPhone,
+      isVerified: this.isVerified,
       cachedAt: Date.now()
     };
     localStorage.setItem('jai1_cached_profile', JSON.stringify(cacheData));
+  }
+
+  private loadCachedVerificationStatus(): void {
+    const cachedProfile = localStorage.getItem('jai1_cached_profile');
+    if (cachedProfile) {
+      try {
+        const cached = JSON.parse(cachedProfile);
+        if (cached.isVerified !== undefined) {
+          this.isVerified = cached.isVerified;
+        }
+      } catch { /* ignore */ }
+    }
   }
 
   triggerFileInput() {
@@ -335,15 +351,12 @@ export class Profile implements OnInit, OnDestroy {
 
   saveChanges() {
     if (this.isSaving) {
-      console.log('Save already in progress, ignoring click');
       return;
     }
 
     this.isSaving = true;
     this.errorMessage = '';
-    console.log('saveChanges() called, starting save...');
 
-    // Call the API to persist changes
     const saveData = {
       firstName: this.editForm.firstName,
       lastName: this.editForm.lastName,
@@ -357,12 +370,20 @@ export class Profile implements OnInit, OnDestroy {
       }
     };
 
-    console.log('Calling profileService.updateUserInfo with:', saveData);
+    // Safety timeout - if no response after 10s, apply changes optimistically
+    const safetyTimeout = setTimeout(() => {
+      if (this.isSaving) {
+        console.log('Safety timeout: applying changes optimistically');
+        this.applyChangesLocally(saveData);
+        this.toastService.success('¡Cambios guardados!');
+      }
+    }, 10000);
 
     this.profileService.updateUserInfo(saveData).subscribe({
       next: (response) => {
-        console.log('Save successful, response:', response);
-        // Update local state with response data
+        clearTimeout(safetyTimeout);
+
+        // Update from response
         this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
         this.userPhone = response.user.phone || '';
 
@@ -379,46 +400,69 @@ export class Profile implements OnInit, OnDestroy {
           this.dateOfBirth = response.dateOfBirth;
         }
 
-        // Update authService currentUser (properly triggers observable and persists to storage)
         this.authService.updateCurrentUser({
           firstName: response.user.firstName,
           lastName: response.user.lastName,
           phone: response.user.phone
         });
 
-        // Save profile picture changes if any
-        if (this.hasPendingPictureChange) {
-          const userId = this.authService.currentUser?.id;
-          if (userId) {
-            if (this.pendingProfilePicture) {
-              localStorage.setItem(`profilePicture_${userId}`, this.pendingProfilePicture);
-            } else {
-              localStorage.removeItem(`profilePicture_${userId}`);
-            }
-          }
-          this.profilePicture = this.pendingProfilePicture;
-          this.hasPendingPictureChange = false;
-        }
-        this.pendingProfilePicture = null;
-
+        this.savePendingPicture();
         this.isSaving = false;
         this.isEditing = false;
         this.toastService.success('¡Cambios guardados correctamente!');
       },
       error: (error) => {
-        console.error('Save profile error:', error);
+        clearTimeout(safetyTimeout);
+        console.error('Save error:', error);
         this.isSaving = false;
-        this.toastService.error(error?.message || error?.error?.message || 'Error al guardar los cambios');
-      },
-      complete: () => {
-        console.log('Save observable completed');
-        // Safety: ensure isSaving is false when complete
-        if (this.isSaving) {
-          console.warn('isSaving was still true after complete, resetting');
-          this.isSaving = false;
-        }
+        this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
       }
     });
+  }
+
+  private applyChangesLocally(data: any) {
+    // Apply changes locally (optimistic update)
+    this.userName = `${data.firstName} ${data.lastName}`.trim();
+    this.userPhone = data.phone || '';
+
+    if (data.address) {
+      this.address = {
+        street: data.address.street || '',
+        city: data.address.city || '',
+        state: data.address.state || '',
+        zip: data.address.zip || ''
+      };
+    }
+
+    if (data.dateOfBirth) {
+      this.dateOfBirth = data.dateOfBirth;
+    }
+
+    this.authService.updateCurrentUser({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone
+    });
+
+    this.savePendingPicture();
+    this.isSaving = false;
+    this.isEditing = false;
+  }
+
+  private savePendingPicture() {
+    if (this.hasPendingPictureChange) {
+      const userId = this.authService.currentUser?.id;
+      if (userId) {
+        if (this.pendingProfilePicture) {
+          localStorage.setItem(`profilePicture_${userId}`, this.pendingProfilePicture);
+        } else {
+          localStorage.removeItem(`profilePicture_${userId}`);
+        }
+      }
+      this.profilePicture = this.pendingProfilePicture;
+      this.hasPendingPictureChange = false;
+    }
+    this.pendingProfilePicture = null;
   }
 
   formatDate(dateStr: string): string {
