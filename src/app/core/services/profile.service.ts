@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -13,6 +13,7 @@ import {
 })
 export class ProfileService {
   private http = inject(HttpClient);
+  private ngZone = inject(NgZone);
   private apiUrl = environment.apiUrl;
 
   getProfile(): Observable<ProfileResponse> {
@@ -99,12 +100,17 @@ export class ProfileService {
       })
       .then(result => {
         console.log('Fetch success:', result);
-        observer.next(result);
-        observer.complete();
+        // Run inside Angular zone to trigger change detection
+        this.ngZone.run(() => {
+          observer.next(result);
+          observer.complete();
+        });
       })
       .catch(error => {
         console.error('Fetch error:', error);
-        observer.error(error);
+        this.ngZone.run(() => {
+          observer.error(error);
+        });
       });
     });
   }
