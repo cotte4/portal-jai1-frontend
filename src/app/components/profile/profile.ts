@@ -48,6 +48,7 @@ export class Profile implements OnInit, OnDestroy {
   // UI State
   isLoading: boolean = true;
   hasLoadedOnce: boolean = false; // Track if we've ever loaded data
+  profileDataLoaded: boolean = false; // Track if API profile data has loaded (for verification badge)
   isEditing: boolean = false;
   isSaving: boolean = false;
   errorMessage: string = '';
@@ -121,6 +122,9 @@ export class Profile implements OnInit, OnDestroy {
     // On subsequent loads (refresh), show existing data while fetching
     const hasCachedData = this.hasLoadedOnce || localStorage.getItem('jai1_cached_profile');
     this.isLoading = !hasCachedData;
+
+    // Reset profile data loaded flag - we need fresh API data for verification status
+    this.profileDataLoaded = false;
 
     // First, load user data from auth service (this is instant)
     const user = this.authService.currentUser;
@@ -224,6 +228,7 @@ export class Profile implements OnInit, OnDestroy {
         }
 
         this.hasLoadedOnce = true;
+        this.profileDataLoaded = true; // API data received - can now show verification status
         this.isLoading = false;
       },
       error: () => {
@@ -231,6 +236,7 @@ export class Profile implements OnInit, OnDestroy {
         if (this.userName && this.userName !== 'Usuario') {
           this.hasLoadedOnce = true;
         }
+        this.profileDataLoaded = true; // Even on error, mark as loaded to stop spinner
         this.isLoading = false;
       }
     });

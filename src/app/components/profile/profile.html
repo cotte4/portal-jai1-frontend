@@ -50,8 +50,11 @@
           <p class="user-dni">DNI: {{ maskDNI(dni) }}</p>
         }
         
-        <div class="verification-badge" [class.verified]="isVerified">
-          @if (isVerified) {
+        <div class="verification-badge" [class.verified]="isVerified" [class.loading]="!profileDataLoaded">
+          @if (!profileDataLoaded) {
+            <span class="badge-icon spinner-small"></span>
+            <span>Verificando...</span>
+          } @else if (isVerified) {
             <span class="badge-icon">✓</span>
             <span>Identidad validada</span>
           } @else {
