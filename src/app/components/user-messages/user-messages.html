@@ -68,14 +68,25 @@
           class="ticket-item"
           *ngFor="let ticket of tickets"
           [class.active]="activeTicket?.id === ticket.id"
+          [class.has-unread]="hasUnread(ticket)"
           (click)="selectTicket(ticket)"
         >
-          <div class="ticket-subject">{{ ticket.subject }}</div>
+          <div class="ticket-header">
+            <div class="ticket-subject">{{ ticket.subject }}</div>
+            <span class="unread-badge" *ngIf="hasUnread(ticket)">{{ ticket.unreadCount }}</span>
+          </div>
           <div class="ticket-meta">
             <span class="ticket-status" [ngClass]="getStatusClass(ticket.status)">
               {{ getStatusLabel(ticket.status) }}
             </span>
             <span class="ticket-date">{{ formatDate(ticket.createdAt) }}</span>
+            <button
+              class="btn-delete-ticket"
+              (click)="confirmDeleteTicket(ticket, $event)"
+              title="Eliminar ticket"
+            >
+              <span>🗑️</span>
+            </button>
           </div>
         </div>
       </div>
@@ -173,6 +184,34 @@
     <div class="info-content">
       <h4>Tiempo de respuesta</h4>
       <p>Nuestro equipo generalmente responde en un plazo de 24-48 horas habiles.</p>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Eliminar ticket</h3>
+      </div>
+      <div class="modal-body">
+        <p>Estas seguro que deseas eliminar este ticket?</p>
+        <p class="modal-ticket-subject" *ngIf="ticketToDelete">
+          "{{ ticketToDelete.subject }}"
+        </p>
+        <p class="modal-warning">Esta accion no se puede deshacer.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDelete()" [disabled]="isDeleting">
+          Cancelar
+        </button>
+        <button
+          class="btn-delete"
+          (click)="deleteTicket()"
+          [disabled]="isDeleting"
+        >
+          {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

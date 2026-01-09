@@ -227,6 +227,7 @@ export interface Ticket {
   userId: string;
   subject: string;
   status: TicketStatus;
+  unreadCount?: number;
   createdAt: string;
   updatedAt: string;
   messages?: TicketMessage[];
@@ -237,6 +238,7 @@ export interface TicketMessage {
   ticketId: string;
   senderId: string;
   message: string;
+  isRead?: boolean;
   createdAt: string;
   sender?: User;
 }
