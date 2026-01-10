@@ -172,9 +172,13 @@ export interface TaxCase {
   federalStatus?: TaxStatus;
   stateStatus?: TaxStatus;
   estimatedRefund?: number;
+  // DEPRECATED: Use federalActualRefund + stateActualRefund instead (Phase 7 removal)
+  /** @deprecated Use federalActualRefund + stateActualRefund */
   actualRefund?: number;
+  // DEPRECATED: Use federalDepositDate or stateDepositDate instead (Phase 7 removal)
+  /** @deprecated Use federalDepositDate or stateDepositDate */
   refundDepositDate?: string;
-  // Separate federal/state tracking
+  // Separate federal/state tracking (SOURCE OF TRUTH)
   federalEstimatedDate?: string;
   stateEstimatedDate?: string;
   federalActualRefund?: number;

@@ -529,7 +529,11 @@ export class TaxTracking implements OnInit, OnDestroy {
   }
 
   get actualRefund(): number | null {
-    return this.profileData?.taxCase?.actualRefund || null;
+    // Compute from federal + state (source of truth)
+    const federal = this.profileData?.taxCase?.federalActualRefund || 0;
+    const state = this.profileData?.taxCase?.stateActualRefund || 0;
+    const total = federal + state;
+    return total > 0 ? total : null;
   }
 
   get lastRefreshFormatted(): string {

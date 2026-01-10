@@ -232,8 +232,20 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   get estimatedReturnDate(): string | null {
-    if (!this.taxCase?.refundDepositDate) return null;
-    return new Date(this.taxCase.refundDepositDate).toLocaleDateString('es-ES', {
+    // Use the earliest deposit date (federal or state)
+    const federalDate = this.taxCase?.federalDepositDate;
+    const stateDate = this.taxCase?.stateDepositDate;
+
+    // Get the earliest available date
+    let depositDate: string | undefined;
+    if (federalDate && stateDate) {
+      depositDate = new Date(federalDate) < new Date(stateDate) ? federalDate : stateDate;
+    } else {
+      depositDate = federalDate || stateDate;
+    }
+
+    if (!depositDate) return null;
+    return new Date(depositDate).toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
