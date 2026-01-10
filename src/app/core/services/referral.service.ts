@@ -142,6 +142,40 @@ export class ReferralService {
     );
   }
 
+  /**
+   * Apply a referral code post-registration
+   */
+  applyCode(code: string): Observable<{
+    success: boolean;
+    referrerName: string;
+    discount: number;
+    message: string;
+  }> {
+    return this.http.post<{
+      success: boolean;
+      referrerName: string;
+      discount: number;
+      message: string;
+    }>(`${this.apiUrl}/referrals/apply-code`, { code });
+  }
+
+  /**
+   * Check if current user was referred by someone
+   */
+  getMyReferrer(): Observable<{
+    wasReferred: boolean;
+    referrerName?: string;
+    discount: number;
+  }> {
+    return this.http.get<{
+      wasReferred: boolean;
+      referrerName?: string;
+      discount: number;
+    }>(`${this.apiUrl}/referrals/my-referrer`).pipe(
+      catchError(() => of({ wasReferred: false, discount: 0 }))
+    );
+  }
+
   // === PROTECTED API CALLS ===
 
   /**

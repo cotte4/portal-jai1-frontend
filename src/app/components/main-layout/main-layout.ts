@@ -132,13 +132,18 @@ export class MainLayout implements OnInit, OnDestroy {
       this.userProfilePicture = user.profilePictureUrl || null;
     }
 
-    // Subscribe to auth changes (e.g., when profile picture is updated)
+    // Subscribe to auth changes (e.g., when profile picture is updated or user logs out)
     this.subscriptions.add(
       this.authService.currentUser$.subscribe((user) => {
         if (user) {
           this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
           this.userEmail = user.email;
           this.userProfilePicture = user.profilePictureUrl || null;
+        } else {
+          // Clear user data when logged out to prevent stale data on next login
+          this.userName = '';
+          this.userEmail = '';
+          this.userProfilePicture = null;
         }
       })
     );

@@ -2,9 +2,10 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter, finalize } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ReferralService } from '../../core/services/referral.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CompleteProfileRequest } from '../../core/models';
 
@@ -18,6 +19,7 @@ export class TaxForm implements OnInit, OnDestroy {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private referralService = inject(ReferralService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
@@ -58,6 +60,14 @@ export class TaxForm implements OnInit, OnDestroy {
   private justSubmitted: boolean = false; // Prevent redirect race condition after submit
   private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
 
+  // Referral code state
+  referralCode: string = '';
+  referralCodeValid: boolean | null = null;
+  referralCodeValidating: boolean = false;
+  referralCodeApplying: boolean = false;
+  referrerName: string = '';
+  hasAppliedReferral: boolean = false; // True if user already has a referral applied
+
   ngOnInit() {
     this.loadDraft();
 
@@ -89,7 +99,11 @@ export class TaxForm implements OnInit, OnDestroy {
     this.isLoadingInProgress = true;
     // Keep hasLoadedProfile = false until API completes to show loading spinner
 
-    this.profileService.getDraft().pipe(
+    // Fetch both profile draft and referrer status in parallel
+    forkJoin({
+      profile: this.profileService.getDraft(),
+      referrer: this.referralService.getMyReferrer()
+    }).pipe(
       finalize(() => {
         // Always runs when Observable completes (success, error, or empty)
         this.hasLoadedProfile = true;
@@ -97,7 +111,13 @@ export class TaxForm implements OnInit, OnDestroy {
         this.cdr.detectChanges(); // Force Angular to update the view
       })
     ).subscribe({
-      next: (profile) => {
+      next: ({ profile, referrer }) => {
+        // Set referral status
+        if (referrer.wasReferred) {
+          this.hasAppliedReferral = true;
+          this.referrerName = referrer.referrerName || '';
+        }
+
         // Determine which screen to show based on profile state
         if (profile && profile.profileComplete && !profile.isDraft) {
           // Profile is complete - show info screen
@@ -267,6 +287,50 @@ export class TaxForm implements OnInit, OnDestroy {
 
   goToSupport() {
     this.router.navigate(['/messages']);
+  }
+
+  // Referral code methods
+  validateReferralCode() {
+    if (!this.referralCode || this.referralCode.length < 4) {
+      this.referralCodeValid = null;
+      this.referrerName = '';
+      return;
+    }
+
+    this.referralCodeValidating = true;
+    this.referralService.validateCode(this.referralCode).subscribe({
+      next: (result) => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = result.valid;
+        this.referrerName = result.referrerName || '';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = false;
+        this.referrerName = '';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  applyReferralCode() {
+    if (!this.referralCodeValid || this.referralCodeApplying) return;
+
+    this.referralCodeApplying = true;
+    this.referralService.applyCode(this.referralCode).subscribe({
+      next: (result) => {
+        this.referralCodeApplying = false;
+        this.hasAppliedReferral = true;
+        this.toastService.success(result.message);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.referralCodeApplying = false;
+        this.toastService.error(error.message || 'Error al aplicar el código');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   isFormComplete(): boolean {
