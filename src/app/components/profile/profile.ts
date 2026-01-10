@@ -381,6 +381,7 @@ export class Profile implements OnInit, OnDestroy {
         // Stage the picture preview - actual upload happens on save
         this.pendingProfilePicture = result;
         this.hasPendingPictureChange = true;
+        this.cdr.detectChanges(); // Force Angular to update the view
         this.toastService.info('Foto seleccionada. Haz clic en "Guardar cambios" para confirmar.');
       };
       reader.readAsDataURL(file);
