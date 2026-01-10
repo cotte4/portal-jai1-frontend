@@ -83,6 +83,27 @@ export class ProfileService {
     );
   }
 
+  uploadProfilePicture(file: File): Observable<{ profilePictureUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<{ profilePictureUrl: string }>(
+      `${this.apiUrl}/profile/picture`,
+      formData
+    ).pipe(
+      timeout(30000), // 30 second timeout for uploads
+      catchError(this.handleError)
+    );
+  }
+
+  deleteProfilePicture(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/profile/picture`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Profile error:', error);
     return throwError(() => error);

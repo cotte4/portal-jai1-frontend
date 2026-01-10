@@ -31,8 +31,10 @@ export class Profile implements OnInit, OnDestroy {
   userEmail: string = '';
   userPhone: string = '';
   profilePicture: string | null = null;
-  pendingProfilePicture: string | null = null; // Staged picture during edit mode
+  pendingProfilePicture: string | null = null; // Staged picture preview during edit mode
+  pendingProfilePictureFile: File | null = null; // File to upload to Supabase
   hasPendingPictureChange: boolean = false; // Track if user changed picture in edit mode
+  pendingPictureRemoval: boolean = false; // Track if user wants to remove picture
   
   // Profile data
   dni: string = '';
@@ -120,6 +122,23 @@ export class Profile implements OnInit, OnDestroy {
     return this.userEmail ? this.userEmail.substring(0, 2).toUpperCase() : 'U';
   }
 
+  get userAge(): number | null {
+    if (!this.dateOfBirth) return null;
+    try {
+      const dob = new Date(this.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      // Adjust if birthday hasn't occurred yet this year
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      return age > 0 && age < 150 ? age : null; // Sanity check
+    } catch {
+      return null;
+    }
+  }
+
   loadProfile() {
     // Only show loading spinner on first load when we have no data yet
     // On subsequent loads (refresh), show existing data while fetching
@@ -170,13 +189,15 @@ export class Profile implements OnInit, OnDestroy {
     // Load cached profile data (address, verification status, etc.)
     this.loadCachedProfileData();
 
-    // Load profile picture from localStorage (user-specific)
-    const userId = this.authService.currentUser?.id;
-    if (userId) {
-      const savedPicture = localStorage.getItem(`profilePicture_${userId}`);
-      if (savedPicture) {
-        this.profilePicture = savedPicture;
-      }
+    // Load profile picture from cache if available
+    const cachedProfile = localStorage.getItem('jai1_cached_profile');
+    if (cachedProfile) {
+      try {
+        const cached = JSON.parse(cachedProfile);
+        if (cached.profilePictureUrl) {
+          this.profilePicture = cached.profilePictureUrl;
+        }
+      } catch { /* ignore */ }
     }
 
     // Try to fetch profile data with retry logic
@@ -225,6 +246,11 @@ export class Profile implements OnInit, OnDestroy {
           this.userEmail = response.user.email || this.userEmail;
           this.userPhone = response.user.phone || '';
 
+          // Load profile picture from API response (Supabase signed URL)
+          if ((response.user as any).profilePictureUrl) {
+            this.profilePicture = (response.user as any).profilePictureUrl;
+          }
+
           // Update edit form with fresh data
           this.editForm.firstName = firstName;
           this.editForm.lastName = lastName;
@@ -269,6 +295,7 @@ export class Profile implements OnInit, OnDestroy {
       isVerified: this.isVerified,
       address: this.address,
       dateOfBirth: this.dateOfBirth,
+      profilePictureUrl: this.profilePicture,
       cachedAt: Date.now()
     };
     localStorage.setItem('jai1_cached_profile', JSON.stringify(cacheData));
@@ -279,6 +306,15 @@ export class Profile implements OnInit, OnDestroy {
     if (cachedProfile) {
       try {
         const cached = JSON.parse(cachedProfile);
+
+        // Check cache age - expire after 1 hour (3600000ms)
+        const cacheAge = Date.now() - (cached.cachedAt || 0);
+        const CACHE_EXPIRY = 60 * 60 * 1000; // 1 hour
+        if (cacheAge > CACHE_EXPIRY) {
+          localStorage.removeItem('jai1_cached_profile');
+          return;
+        }
+
         if (cached.isVerified !== undefined) {
           this.isVerified = cached.isVerified;
         }
@@ -324,10 +360,14 @@ export class Profile implements OnInit, OnDestroy {
         return;
       }
 
+      // Store file for upload to Supabase
+      this.pendingProfilePictureFile = file;
+      this.pendingPictureRemoval = false;
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        // Stage the picture - will be saved when user clicks "Guardar cambios"
+        // Stage the picture preview - actual upload happens on save
         this.pendingProfilePicture = result;
         this.hasPendingPictureChange = true;
         this.toastService.info('Foto seleccionada. Haz clic en "Guardar cambios" para confirmar.');
@@ -340,16 +380,25 @@ export class Profile implements OnInit, OnDestroy {
     if (this.isEditing) {
       // In edit mode - stage the removal, will be applied on save
       this.pendingProfilePicture = null;
+      this.pendingProfilePictureFile = null;
+      this.pendingPictureRemoval = true;
       this.hasPendingPictureChange = true;
       this.toastService.info('Foto marcada para eliminar. Haz clic en "Guardar cambios" para confirmar.');
     } else {
-      // Not in edit mode - remove immediately (legacy behavior, shouldn't happen with new UI)
-      this.profilePicture = null;
-      const userId = this.authService.currentUser?.id;
-      if (userId) {
-        localStorage.removeItem(`profilePicture_${userId}`);
-      }
-      this.toastService.success('Foto de perfil eliminada');
+      // Not in edit mode - delete immediately via API
+      this.subscriptions.add(
+        this.profileService.deleteProfilePicture().subscribe({
+          next: () => {
+            this.profilePicture = null;
+            this.cacheProfileData();
+            this.toastService.success('Foto de perfil eliminada');
+          },
+          error: (err) => {
+            console.error('Failed to delete profile picture:', err);
+            this.toastService.error('Error al eliminar la foto');
+          }
+        })
+      );
     }
   }
 
@@ -357,10 +406,14 @@ export class Profile implements OnInit, OnDestroy {
     if (this.isEditing) {
       // Canceling edit mode - discard pending picture changes
       this.pendingProfilePicture = null;
+      this.pendingProfilePictureFile = null;
+      this.pendingPictureRemoval = false;
       this.hasPendingPictureChange = false;
     } else {
       // Entering edit mode - initialize pending picture with current
       this.pendingProfilePicture = this.profilePicture;
+      this.pendingProfilePictureFile = null;
+      this.pendingPictureRemoval = false;
       this.hasPendingPictureChange = false;
     }
     this.isEditing = !this.isEditing;
@@ -476,19 +529,55 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   private savePendingPicture() {
-    if (this.hasPendingPictureChange) {
-      const userId = this.authService.currentUser?.id;
-      if (userId) {
-        if (this.pendingProfilePicture) {
-          localStorage.setItem(`profilePicture_${userId}`, this.pendingProfilePicture);
-        } else {
-          localStorage.removeItem(`profilePicture_${userId}`);
-        }
-      }
-      this.profilePicture = this.pendingProfilePicture;
-      this.hasPendingPictureChange = false;
+    if (!this.hasPendingPictureChange) {
+      this.resetPendingPictureState();
+      return;
     }
+
+    // Handle picture removal
+    if (this.pendingPictureRemoval) {
+      this.subscriptions.add(
+        this.profileService.deleteProfilePicture().subscribe({
+          next: () => {
+            this.profilePicture = null;
+            this.cacheProfileData();
+            this.resetPendingPictureState();
+          },
+          error: (err) => {
+            console.error('Failed to delete profile picture:', err);
+            this.toastService.error('Error al eliminar la foto');
+            this.resetPendingPictureState();
+          }
+        })
+      );
+    }
+    // Handle picture upload
+    else if (this.pendingProfilePictureFile) {
+      const fileToUpload = this.pendingProfilePictureFile; // Capture before reset
+      this.subscriptions.add(
+        this.profileService.uploadProfilePicture(fileToUpload).subscribe({
+          next: (response) => {
+            this.profilePicture = response.profilePictureUrl;
+            this.cacheProfileData();
+            this.resetPendingPictureState();
+          },
+          error: (err) => {
+            console.error('Failed to upload profile picture:', err);
+            this.toastService.error('Error al subir la foto');
+            this.resetPendingPictureState();
+          }
+        })
+      );
+    } else {
+      this.resetPendingPictureState();
+    }
+  }
+
+  private resetPendingPictureState() {
     this.pendingProfilePicture = null;
+    this.pendingProfilePictureFile = null;
+    this.pendingPictureRemoval = false;
+    this.hasPendingPictureChange = false;
   }
 
   formatDate(dateStr: string): string {

@@ -142,6 +142,15 @@
             <span class="info-value">{{ userPhone || 'No especificado' }}</span>
           </div>
         </div>
+
+        @if (userAge) {
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Edad</span>
+              <span class="info-value">{{ userAge }} años</span>
+            </div>
+          </div>
+        }
       }
     </div>
 
