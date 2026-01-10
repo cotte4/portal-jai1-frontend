@@ -51,7 +51,7 @@
 
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-      <a class="user-card" routerLink="/profile" (click)="closeSidebar()">
+      <a class="user-card" routerLink="/profile" (click)="onNavClick('/profile')">
         <div class="user-avatar-sm">
           @if (userProfilePicture) {
             <img [src]="userProfilePicture" alt="Foto de perfil" class="avatar-img" />

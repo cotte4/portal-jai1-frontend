@@ -192,14 +192,17 @@ export class Profile implements OnInit, OnDestroy {
     }
 
     // Load cached profile data (address, verification status, etc.)
+    // This also validates the cache belongs to the current user
     this.loadCachedProfileData();
 
-    // Load profile picture from cache if available
+    // Load profile picture from cache if available (with user ID validation)
     const cachedProfile = localStorage.getItem('jai1_cached_profile');
     if (cachedProfile) {
       try {
         const cached = JSON.parse(cachedProfile);
-        if (cached.profilePictureUrl) {
+        const currentUser = this.authService.currentUser;
+        // Only use cached picture if it belongs to the current user
+        if (cached.profilePictureUrl && (!cached.userId || !currentUser?.id || cached.userId === currentUser.id)) {
           this.profilePicture = cached.profilePictureUrl;
         }
       } catch { /* ignore */ }
@@ -299,7 +302,9 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   private cacheProfileData(): void {
+    const currentUser = this.authService.currentUser;
     const cacheData = {
+      userId: currentUser?.id, // Include userId to prevent cross-user cache issues
       userName: this.userName,
       userEmail: this.userEmail,
       userPhone: this.userPhone,
@@ -317,6 +322,13 @@ export class Profile implements OnInit, OnDestroy {
     if (cachedProfile) {
       try {
         const cached = JSON.parse(cachedProfile);
+
+        // Validate cache belongs to current user - prevent cross-user cache issues
+        const currentUser = this.authService.currentUser;
+        if (cached.userId && currentUser?.id && cached.userId !== currentUser.id) {
+          localStorage.removeItem('jai1_cached_profile');
+          return;
+        }
 
         // Check cache age - expire after 1 hour (3600000ms)
         const cacheAge = Date.now() - (cached.cachedAt || 0);

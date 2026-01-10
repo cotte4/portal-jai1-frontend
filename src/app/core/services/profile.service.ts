@@ -51,6 +51,7 @@ export class ProfileService {
       `${this.apiUrl}/profile/complete`,
       apiData
     ).pipe(
+      timeout(30000), // 30 second timeout to prevent indefinite hanging
       catchError(this.handleError)
     );
   }
@@ -106,6 +107,23 @@ export class ProfileService {
 
   private handleError(error: any): Observable<never> {
     console.error('Profile error:', error);
-    return throwError(() => error);
+
+    // Extract error message from HTTP response
+    let errorMessage = 'Error al procesar la solicitud';
+
+    if (error.name === 'TimeoutError') {
+      errorMessage = 'La solicitud tardó demasiado. Por favor intenta de nuevo.';
+    } else if (error.error?.message) {
+      // NestJS error response format
+      errorMessage = Array.isArray(error.error.message)
+        ? error.error.message[0]
+        : error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else if (error.statusText) {
+      errorMessage = error.statusText;
+    }
+
+    return throwError(() => ({ message: errorMessage, originalError: error }));
   }
 }
