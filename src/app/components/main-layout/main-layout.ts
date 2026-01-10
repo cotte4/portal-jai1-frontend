@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { NotificationSoundService } from '../../core/services/notification-sound.service';
 import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
@@ -20,6 +21,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private notificationSoundService = inject(NotificationSoundService);
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
   private chatbotScriptId = 'relevance-ai-chatbot';
@@ -59,15 +61,21 @@ export class MainLayout implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to new notifications for toast alerts
+    // Subscribe to new notifications for toast alerts and sound
     this.subscriptions.add(
       this.notificationService.newNotification$.subscribe((newNotifications) => {
-        newNotifications.forEach((notification) => {
-          this.toastService.notification(
-            notification.message,
-            notification.title
-          );
-        });
+        if (newNotifications.length > 0) {
+          // Play notification sound once for all new notifications
+          this.notificationSoundService.playNotificationSound();
+
+          // Show toast for each notification
+          newNotifications.forEach((notification) => {
+            this.toastService.notification(
+              notification.message,
+              notification.title
+            );
+          });
+        }
       })
     );
 
