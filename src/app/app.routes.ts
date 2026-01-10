@@ -19,6 +19,7 @@ import { MainLayout } from './components/main-layout/main-layout';
 import { Profile } from './components/profile/profile';
 import { Onboarding } from './components/onboarding/onboarding';
 import { ReferralProgram } from './components/referral-program/referral-program';
+import { Leaderboard } from './components/leaderboard/leaderboard';
 import { GoogleCallback } from './components/google-callback/google-callback';
 
 
@@ -58,6 +59,13 @@ export const routes: Routes = [
   {
     path: 'referral-program',
     component: ReferralProgram,
+    canActivate: [authGuard]
+  },
+
+  // Leaderboard (full-screen, protected)
+  {
+    path: 'leaderboard',
+    component: Leaderboard,
     canActivate: [authGuard]
   },
 

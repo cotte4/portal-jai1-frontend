@@ -33,6 +33,7 @@ export interface LeaderboardEntry {
   rank: number;
   userId: string;
   displayName: string;
+  profilePicturePath: string | null;
   successfulReferrals: number;
   currentTier: number;
 }

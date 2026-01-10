@@ -200,6 +200,10 @@ export class ReferralProgram implements OnInit, OnDestroy {
     this.router.navigate(['/tax-form']);
   }
 
+  goToLeaderboard() {
+    this.router.navigate(['/leaderboard']);
+  }
+
   // Referral code actions
   copyCode() {
     this.referralService.copyCodeToClipboard().then(success => {
