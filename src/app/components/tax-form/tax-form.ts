@@ -166,6 +166,36 @@ export class TaxForm implements OnInit, OnDestroy {
         window.scrollTo(0, 0);
         return;
       }
+
+      if (!this.formData.workState || !this.formData.employerName) {
+        this.toastService.warning('Por favor completa tu información de empleo (estado de trabajo y empleador)');
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      // Validate SSN format (9 digits with or without dashes)
+      const ssnPattern = /^(\d{9}|\d{3}-\d{2}-\d{4})$/;
+      if (!ssnPattern.test(this.formData.ssn)) {
+        this.toastService.warning('El SSN debe tener 9 dígitos (ej: 123456789 o 123-45-6789)');
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      // Validate routing number (exactly 9 digits)
+      const routingPattern = /^\d{9}$/;
+      if (!routingPattern.test(this.formData.bankRoutingNumber)) {
+        this.toastService.warning('El número de ruta bancaria debe tener exactamente 9 dígitos');
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      // Validate ZIP code format
+      const zipPattern = /^\d{5}(-\d{4})?$/;
+      if (!zipPattern.test(this.formData.addressZip)) {
+        this.toastService.warning('El código postal debe tener 5 dígitos (ej: 12345 o 12345-6789)');
+        window.scrollTo(0, 0);
+        return;
+      }
     }
 
     if (isDraft) {
@@ -213,7 +243,12 @@ export class TaxForm implements OnInit, OnDestroy {
       error: (error) => {
         this.isLoading = false;
         this.isSavingDraft = false;
-        this.toastService.error(error.message || 'Error al guardar. Intenta nuevamente.');
+
+        // Extract and display the specific error message
+        const errorMsg = error.message || 'Error al guardar. Intenta nuevamente.';
+        this.errorMessage = errorMsg;
+        this.toastService.error(errorMsg);
+        window.scrollTo(0, 0);
       }
     });
   }
