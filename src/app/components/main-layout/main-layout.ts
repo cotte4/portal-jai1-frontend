@@ -29,6 +29,7 @@ export class MainLayout implements OnInit, OnDestroy {
 
   userName: string = '';
   userEmail: string = '';
+  userProfilePicture: string | null = null;
   sidebarOpen: boolean = false;
   showNotificationsPanel: boolean = false;
   unreadNotifications: number = 0;
@@ -123,11 +124,24 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   loadUserData() {
+    // Initial load
     const user = this.authService.currentUser;
     if (user) {
       this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       this.userEmail = user.email;
+      this.userProfilePicture = user.profilePictureUrl || null;
     }
+
+    // Subscribe to auth changes (e.g., when profile picture is updated)
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe((user) => {
+        if (user) {
+          this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          this.userEmail = user.email;
+          this.userProfilePicture = user.profilePictureUrl || null;
+        }
+      })
+    );
   }
 
   toggleNotificationsPanel() {
@@ -159,7 +173,34 @@ export class MainLayout implements OnInit, OnDestroy {
     });
   }
 
-  getNotificationIcon(type: string): string {
+  archiveNotification(event: Event, notification: Notification) {
+    event.stopPropagation(); // Prevent triggering markAsRead
+    this.notificationService.archiveNotification(notification.id).subscribe({
+      next: () => {
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al archivar notificación');
+        console.error('Archive notification error:', error);
+      }
+    });
+  }
+
+  archiveAllRead() {
+    this.notificationService.archiveAllRead().subscribe({
+      next: () => {
+        this.toastService.success('Notificaciones leídas archivadas');
+      },
+      error: (error) => {
+        this.toastService.error('Error al archivar notificaciones');
+        console.error('Archive all read error:', error);
+      }
+    });
+  }
+
+  getNotificationIcon(type: string | null | undefined): string {
+    if (!type) return '🔔';
+
     switch (type) {
       case 'status_change': return '📊';
       case 'docs_missing': return '📁';
@@ -171,7 +212,15 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   formatNotificationDate(dateStr: string): string {
+    if (!dateStr) return '';
+
     const date = new Date(dateStr);
+
+    // Check for invalid date
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -237,6 +286,9 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   logout() {
+    // Reset notification state before logout
+    this.notificationService.reset();
+
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),
       error: () => this.router.navigate(['/login'])

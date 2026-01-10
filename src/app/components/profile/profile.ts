@@ -156,6 +156,11 @@ export class Profile implements OnInit, OnDestroy {
       this.userPhone = user.phone || '';
       this.memberSince = user.createdAt || '';
 
+      // Load profile picture from auth state if available
+      if (user.profilePictureUrl) {
+        this.profilePicture = user.profilePictureUrl;
+      }
+
       // Initialize edit form
       this.editForm.firstName = user.firstName || '';
       this.editForm.lastName = user.lastName || '';
@@ -240,21 +245,27 @@ export class Profile implements OnInit, OnDestroy {
         // Update from API response user data if available
         // Handle both camelCase and snake_case from API
         if (response?.user) {
-          const firstName = response.user.firstName || (response.user as any).first_name || '';
-          const lastName = response.user.lastName || (response.user as any).last_name || '';
+          const apiUser = response.user as any; // Backend may send extra fields
+          const firstName = apiUser.firstName || apiUser.first_name || '';
+          const lastName = apiUser.lastName || apiUser.last_name || '';
           this.userName = `${firstName} ${lastName}`.trim() || 'Usuario';
-          this.userEmail = response.user.email || this.userEmail;
-          this.userPhone = response.user.phone || '';
+          this.userEmail = apiUser.email || this.userEmail;
+          this.userPhone = apiUser.phone || '';
 
           // Load profile picture from API response (Supabase signed URL)
-          if ((response.user as any).profilePictureUrl) {
-            this.profilePicture = (response.user as any).profilePictureUrl;
+          const pictureUrl = apiUser.profilePictureUrl || apiUser.profile_picture_url;
+          if (pictureUrl) {
+            this.profilePicture = pictureUrl;
+            // Update auth state so other components can access the picture
+            this.authService.updateCurrentUser({
+              profilePictureUrl: pictureUrl
+            });
           }
 
           // Update edit form with fresh data
           this.editForm.firstName = firstName;
           this.editForm.lastName = lastName;
-          this.editForm.phone = response.user.phone || '';
+          this.editForm.phone = apiUser.phone || '';
 
           // Cache for next refresh
           this.cacheProfileData();
@@ -390,6 +401,10 @@ export class Profile implements OnInit, OnDestroy {
         this.profileService.deleteProfilePicture().subscribe({
           next: () => {
             this.profilePicture = null;
+            // Update auth state to clear the picture
+            this.authService.updateCurrentUser({
+              profilePictureUrl: undefined
+            });
             this.cacheProfileData();
             this.toastService.success('Foto de perfil eliminada');
           },
@@ -540,8 +555,13 @@ export class Profile implements OnInit, OnDestroy {
         this.profileService.deleteProfilePicture().subscribe({
           next: () => {
             this.profilePicture = null;
+            // Update auth state to clear the picture
+            this.authService.updateCurrentUser({
+              profilePictureUrl: undefined
+            });
             this.cacheProfileData();
             this.resetPendingPictureState();
+            this.toastService.success('Foto de perfil eliminada');
           },
           error: (err) => {
             console.error('Failed to delete profile picture:', err);
@@ -558,8 +578,13 @@ export class Profile implements OnInit, OnDestroy {
         this.profileService.uploadProfilePicture(fileToUpload).subscribe({
           next: (response) => {
             this.profilePicture = response.profilePictureUrl;
+            // Update auth state so other components can access the picture
+            this.authService.updateCurrentUser({
+              profilePictureUrl: response.profilePictureUrl
+            });
             this.cacheProfileData();
             this.resetPendingPictureState();
+            this.toastService.success('Foto de perfil actualizada');
           },
           error: (err) => {
             console.error('Failed to upload profile picture:', err);

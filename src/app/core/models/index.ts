@@ -104,6 +104,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  profilePictureUrl?: string;
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
@@ -261,6 +262,7 @@ export interface Notification {
   title: string;
   message: string;
   isRead: boolean;
+  isArchived: boolean;
   createdAt: string;
 }
 

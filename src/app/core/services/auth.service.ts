@@ -274,6 +274,7 @@ export class AuthService {
       firstName: apiUser.firstName || apiUser.first_name,
       lastName: apiUser.lastName || apiUser.last_name,
       phone: apiUser.phone,
+      profilePictureUrl: apiUser.profilePictureUrl || apiUser.profile_picture_url,
       isActive: apiUser.isActive ?? apiUser.is_active ?? true,
       lastLoginAt: apiUser.lastLoginAt || apiUser.last_login_at,
       createdAt: apiUser.createdAt || apiUser.created_at,
