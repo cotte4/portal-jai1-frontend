@@ -72,28 +72,34 @@ export class Profile implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    // Wait for auth to be ready before loading profile
-    // On page refresh, currentUser might be null initially
-    this.subscriptions.add(
-      this.authService.currentUser$.pipe(
-        filter(user => user !== null),
-        take(1)
-      ).subscribe(() => {
-        this.loadProfile();
-      })
-    );
-
-    // Fallback: if no user after 500ms, try loading anyway (might redirect to login)
-    this.subscriptions.add(
-      timer(500).subscribe(() => {
-        if (this.isLoading && !this.authService.currentUser) {
-          console.log('Profile: Auth timeout, attempting load anyway');
+    // Load profile immediately if user is already authenticated
+    // This handles normal navigation when auth is already established
+    if (this.authService.currentUser) {
+      this.loadProfile();
+    } else {
+      // Wait for auth to be ready before loading profile
+      // On page refresh, currentUser might be null initially
+      this.subscriptions.add(
+        this.authService.currentUser$.pipe(
+          filter(user => user !== null),
+          take(1)
+        ).subscribe(() => {
           this.loadProfile();
-        }
-      })
-    );
+        })
+      );
 
-    // Auto-refresh on navigation
+      // Fallback: if no user after 500ms, try loading anyway (might redirect to login)
+      this.subscriptions.add(
+        timer(500).subscribe(() => {
+          if (this.isLoading && !this.authService.currentUser) {
+            console.log('Profile: Auth timeout, attempting load anyway');
+            this.loadProfile();
+          }
+        })
+      );
+    }
+
+    // Auto-refresh on navigation (for subsequent navigations to this route)
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),

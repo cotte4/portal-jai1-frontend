@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter, finalize, forkJoin } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin, of, catchError } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ReferralService } from '../../core/services/referral.service';
@@ -100,8 +100,9 @@ export class TaxForm implements OnInit, OnDestroy {
     // Keep hasLoadedProfile = false until API completes to show loading spinner
 
     // Fetch both profile draft and referrer status in parallel
+    // Use catchError to prevent forkJoin from failing completely if one request fails
     forkJoin({
-      profile: this.profileService.getDraft(),
+      profile: this.profileService.getDraft().pipe(catchError(() => of(null))),
       referrer: this.referralService.getMyReferrer()
     }).pipe(
       finalize(() => {
