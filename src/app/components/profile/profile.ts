@@ -562,6 +562,7 @@ export class Profile implements OnInit, OnDestroy {
             });
             this.cacheProfileData();
             this.resetPendingPictureState();
+            this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil eliminada');
           },
           error: (err) => {
@@ -585,6 +586,7 @@ export class Profile implements OnInit, OnDestroy {
             });
             this.cacheProfileData();
             this.resetPendingPictureState();
+            this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil actualizada');
           },
           error: (err) => {
