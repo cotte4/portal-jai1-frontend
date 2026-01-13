@@ -71,19 +71,6 @@ export class Profile implements OnInit, OnDestroy {
     zip: ''
   };
 
-  // Change password form
-  isChangingPassword: boolean = false;
-  isPasswordSaving: boolean = false;
-  passwordForm = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  };
-  passwordError: string = '';
-  showCurrentPassword: boolean = false;
-  showNewPassword: boolean = false;
-  showConfirmPassword: boolean = false;
-
   ngOnInit() {
     // Load profile immediately if user is already authenticated
     // This handles normal navigation when auth is already established
@@ -97,15 +84,18 @@ export class Profile implements OnInit, OnDestroy {
           filter(user => user !== null),
           take(1)
         ).subscribe(() => {
-          this.loadProfile();
+          if (!this.hasLoadedOnce) {
+            this.loadProfile();
+          }
         })
       );
 
-      // Fallback: if no user after 500ms, try loading anyway (might redirect to login)
+      // Fallback: if still loading after 500ms, try loading anyway
+      // This handles race conditions where currentUser$ already emitted before we subscribed
       this.subscriptions.add(
         timer(500).subscribe(() => {
-          if (this.isLoading && !this.authService.currentUser) {
-            console.log('Profile: Auth timeout, attempting load anyway');
+          if (this.isLoading && !this.hasLoadedOnce) {
+            console.log('Profile: Fallback timer triggered, loading profile');
             this.loadProfile();
           }
         })
@@ -300,6 +290,7 @@ export class Profile implements OnInit, OnDestroy {
         this.hasLoadedOnce = true;
         this.profileDataLoaded = true; // API data received - can now show verification status
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         // If we have any data to show, mark as loaded
@@ -308,6 +299,7 @@ export class Profile implements OnInit, OnDestroy {
         }
         this.profileDataLoaded = true; // Even on error, mark as loaded to stop spinner
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
 
@@ -320,6 +312,7 @@ export class Profile implements OnInit, OnDestroy {
           this.hasLoadedOnce = true;
         }
         console.log('Profile: Safety timeout triggered');
+        this.cdr.detectChanges();
       }
     }, 8000);
   }
@@ -685,75 +678,6 @@ export class Profile implements OnInit, OnDestroy {
   maskDNI(dni: string): string {
     if (!dni || dni.length < 4) return 'No especificado';
     return '••••••' + dni.slice(-4);
-  }
-
-  // Change Password Methods
-  toggleChangePassword() {
-    this.isChangingPassword = !this.isChangingPassword;
-    this.passwordError = '';
-    this.passwordForm = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    };
-    this.showCurrentPassword = false;
-    this.showNewPassword = false;
-    this.showConfirmPassword = false;
-  }
-
-  toggleCurrentPasswordVisibility() {
-    this.showCurrentPassword = !this.showCurrentPassword;
-  }
-
-  toggleNewPasswordVisibility() {
-    this.showNewPassword = !this.showNewPassword;
-  }
-
-  toggleConfirmPasswordVisibility() {
-    this.showConfirmPassword = !this.showConfirmPassword;
-  }
-
-  changePassword() {
-    this.passwordError = '';
-
-    // Validate
-    if (!this.passwordForm.currentPassword) {
-      this.passwordError = 'Ingresa tu contraseña actual';
-      return;
-    }
-
-    if (!this.passwordForm.newPassword) {
-      this.passwordError = 'Ingresa tu nueva contraseña';
-      return;
-    }
-
-    if (this.passwordForm.newPassword.length < 8) {
-      this.passwordError = 'La nueva contraseña debe tener al menos 8 caracteres';
-      return;
-    }
-
-    if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
-      this.passwordError = 'Las contraseñas no coinciden';
-      return;
-    }
-
-    this.isPasswordSaving = true;
-
-    this.authService.changePassword(
-      this.passwordForm.currentPassword,
-      this.passwordForm.newPassword
-    ).subscribe({
-      next: () => {
-        this.isPasswordSaving = false;
-        this.toastService.success('Contraseña cambiada exitosamente. Por favor inicia sesión nuevamente.');
-        // AuthService will redirect to login automatically
-      },
-      error: (error) => {
-        this.isPasswordSaving = false;
-        this.passwordError = error?.error?.message || 'Error al cambiar la contraseña';
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   goBack() {
