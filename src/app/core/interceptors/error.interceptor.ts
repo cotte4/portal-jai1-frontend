@@ -21,7 +21,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             errorMessage = extractedMessage || 'Invalid request';
             break;
           case 401:
-            errorMessage = 'Session expired. Please login again.';
+            // Use backend message if available (e.g., "Invalid credentials" for login)
+            // Fall back to session expired for token-related 401s
+            errorMessage = extractedMessage || 'Session expired. Please login again.';
             break;
           case 403:
             errorMessage = 'You do not have permission to perform this action';

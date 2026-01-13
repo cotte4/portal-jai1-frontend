@@ -166,18 +166,24 @@
   font-family: var(--font-body);
 }
 
-/* ==================== HEADER ==================== */
-.leaderboard-header {
+/* ==================== STICKY HEADER GROUP ==================== */
+.sticky-header-group {
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba(10, 14, 23, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ==================== HEADER ==================== */
+.leaderboard-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background: rgba(10, 14, 23, 0.9);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
 }
 
 .btn-back,
@@ -247,10 +253,10 @@
 /* ==================== COUNTDOWN BANNER ==================== */
 .countdown-banner {
   position: relative;
-  margin: 20px 24px 0;
+  margin: 0 24px;
+  padding: 12px 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  animation: bannerSlideIn 0.6s ease-out;
 }
 
 @keyframes bannerSlideIn {
@@ -333,10 +339,10 @@
 /* ==================== PRIZES SECTION ==================== */
 .prizes-section {
   position: relative;
-  margin: 16px 24px;
+  margin: 0 24px;
+  padding-bottom: 16px;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  animation: prizesAppear 0.8s ease-out 0.2s both;
 }
 
 @keyframes prizesAppear {

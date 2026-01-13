@@ -21,66 +21,69 @@
 <!-- Main Container -->
 <div class="leaderboard-container">
 
-  <!-- Header -->
-  <header class="leaderboard-header">
-    <button class="btn-back" (click)="goBack()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-      <span>Volver</span>
-    </button>
+  <!-- Sticky Header Group - stays fixed at top while scrolling -->
+  <div class="sticky-header-group">
+    <!-- Header -->
+    <header class="leaderboard-header">
+      <button class="btn-back" (click)="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Volver</span>
+      </button>
 
-    <div class="header-title">
-      <span class="title-icon">🏆</span>
-      <h1>Arena JAIgents</h1>
+      <div class="header-title">
+        <span class="title-icon">🏆</span>
+        <h1>Arena JAIgents</h1>
+      </div>
+
+      <button class="btn-mode" (click)="goToTaxMode()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Countdown Banner -->
+    <div class="countdown-banner">
+      <div class="countdown-pulse"></div>
+      <div class="countdown-content">
+        <svg class="countdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="countdown-text">
+          <strong>El leaderboard termina el {{ contestEndDate }}</strong>
+        </span>
+        <div class="countdown-shimmer"></div>
+      </div>
     </div>
 
-    <button class="btn-mode" (click)="goToTaxMode()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="7" height="7"/>
-        <rect x="14" y="3" width="7" height="7"/>
-        <rect x="14" y="14" width="7" height="7"/>
-        <rect x="3" y="14" width="7" height="7"/>
-      </svg>
-    </button>
-  </header>
-
-  <!-- Countdown Banner -->
-  <div class="countdown-banner">
-    <div class="countdown-pulse"></div>
-    <div class="countdown-content">
-      <svg class="countdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      <span class="countdown-text">
-        <strong>El leaderboard termina el {{ contestEndDate }}</strong>
-      </span>
-      <div class="countdown-shimmer"></div>
-    </div>
-  </div>
-
-  <!-- Secret Prizes Section -->
-  <div class="prizes-section">
-    <div class="prizes-glow"></div>
-    <div class="prizes-content">
-      <div class="prizes-icon-wrapper">
-        <span class="prizes-icon">🎁</span>
-        <div class="prizes-sparkles">
-          <span class="sparkle">✦</span>
-          <span class="sparkle">✦</span>
-          <span class="sparkle">✦</span>
+    <!-- Secret Prizes Section -->
+    <div class="prizes-section">
+      <div class="prizes-glow"></div>
+      <div class="prizes-content">
+        <div class="prizes-icon-wrapper">
+          <span class="prizes-icon">🎁</span>
+          <div class="prizes-sparkles">
+            <span class="sparkle">✦</span>
+            <span class="sparkle">✦</span>
+            <span class="sparkle">✦</span>
+          </div>
         </div>
-      </div>
-      <div class="prizes-text">
-        <span class="prizes-label">EXCLUSIVO</span>
-        <span class="prizes-title">Premios Secretos</span>
-        <span class="prizes-subtitle">para los mejores JAIgents</span>
-      </div>
-      <div class="prizes-mystery">
-        <span class="mystery-box">?</span>
-        <span class="mystery-box">?</span>
-        <span class="mystery-box">?</span>
+        <div class="prizes-text">
+          <span class="prizes-label">EXCLUSIVO</span>
+          <span class="prizes-title">Premios Secretos</span>
+          <span class="prizes-subtitle">para los mejores JAIgents</span>
+        </div>
+        <div class="prizes-mystery">
+          <span class="mystery-box">?</span>
+          <span class="mystery-box">?</span>
+          <span class="mystery-box">?</span>
+        </div>
       </div>
     </div>
   </div>

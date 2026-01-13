@@ -24,7 +24,16 @@ export class Login implements OnInit {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
+  private readonly REMEMBER_EMAIL_KEY = 'jai1_remembered_email';
+
   ngOnInit() {
+    // Load remembered email if exists
+    const rememberedEmail = localStorage.getItem(this.REMEMBER_EMAIL_KEY);
+    if (rememberedEmail) {
+      this.email = rememberedEmail;
+      this.rememberMe = true;
+    }
+
     // Check for Google auth error
     this.route.queryParams.subscribe(params => {
       if (params['error'] === 'google_auth_failed') {
@@ -54,6 +63,13 @@ export class Login implements OnInit {
         });
         this.isLoading = false;
 
+        // Save or remove remembered email based on checkbox
+        if (this.rememberMe) {
+          localStorage.setItem(this.REMEMBER_EMAIL_KEY, this.email);
+        } else {
+          localStorage.removeItem(this.REMEMBER_EMAIL_KEY);
+        }
+
         // Clear caches to ensure fresh data on login
         localStorage.removeItem('jai1_dashboard_cache');
         localStorage.removeItem('jai1_cached_profile');
@@ -68,7 +84,17 @@ export class Login implements OnInit {
       error: (error) => {
         console.log('[Login] Login failed:', error);
         this.isLoading = false;
-        this.errorMessage = error.message || 'Credenciales invalidas';
+        // Map common error messages to Spanish
+        const message = error.message || '';
+        if (message.includes('Invalid credentials') || message.includes('credentials')) {
+          this.errorMessage = 'Email o contraseña incorrectos';
+        } else if (message.includes('deactivated')) {
+          this.errorMessage = 'Tu cuenta ha sido desactivada';
+        } else if (message.includes('Session expired')) {
+          this.errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+        } else {
+          this.errorMessage = message || 'Credenciales inválidas';
+        }
       }
     });
   }

@@ -97,17 +97,19 @@ export class Dashboard implements OnInit, OnDestroy {
 
     // Load cached dashboard data FIRST (instant, from localStorage)
     // This shows last-known state instead of empty defaults
-    this.loadCachedData();
+    const hasCachedData = this.loadCachedData();
 
     // Immediately load user data from auth service (instant, no API call)
-    // This allows us to show the dashboard shell right away
     const user = this.authService.currentUser;
     if (user) {
       this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario';
       this.userEmail = user.email || '';
-      // We have basic user info - show content immediately while API loads
-      this.hasLoaded = true;
-      this.cdr.detectChanges();
+      // Only show content immediately if we have cached data
+      // Otherwise, show loading spinner until API completes
+      if (hasCachedData) {
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+      }
     }
 
     // Load profile, documents, and calculator result in parallel with timeout protection
@@ -504,26 +506,26 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   // ============ CACHING ============
-  private loadCachedData(): void {
+  private loadCachedData(): boolean {
     const userId = this.authService.currentUser?.id;
-    if (!userId) return;
+    if (!userId) return false;
 
     try {
       const cached = localStorage.getItem(DASHBOARD_CACHE_KEY);
-      if (!cached) return;
+      if (!cached) return false;
 
       const cacheData: DashboardCacheData = JSON.parse(cached);
 
       // Verify cache belongs to current user
       if (cacheData.userId !== userId) {
         localStorage.removeItem(DASHBOARD_CACHE_KEY);
-        return;
+        return false;
       }
 
       // Check staleness (24 hours max)
       const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
       if (Date.now() - cacheData.cachedAt > CACHE_MAX_AGE_MS) {
-        return;
+        return false;
       }
 
       // Apply cached data
@@ -536,8 +538,10 @@ export class Dashboard implements OnInit, OnDestroy {
       if (cacheData.calculatorResult) {
         this.calculatorResult = cacheData.calculatorResult;
       }
+      return true; // Cache was successfully loaded
     } catch (e) {
       console.warn('Failed to load dashboard cache:', e);
+      return false;
     }
   }
 

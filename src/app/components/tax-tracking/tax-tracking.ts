@@ -89,15 +89,11 @@ export class TaxTracking implements OnInit, OnDestroy {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
 
-    // Build default steps immediately (all pending) and show UI
+    // Build default steps (all pending) for initial state
     this.buildSteps();
 
-    // Show content immediately with default steps - don't wait for API
-    if (!this.hasLoaded) {
-      this.hasLoaded = true;
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }
+    // Keep isLoading = true until API completes to show spinner
+    // This ensures user sees complete, up-to-date data
 
     this.profileService.getProfile().pipe(
       finalize(() => {

@@ -185,9 +185,13 @@ export class Profile implements OnInit, OnDestroy {
       this.editForm.lastName = user.lastName || '';
       this.editForm.phone = user.phone || '';
 
-      // We have user data, mark as loaded so we can show content
-      this.hasLoadedOnce = true;
-      this.isLoading = false;
+      // Only show content immediately if we have complete cached data
+      // Otherwise wait for API to load complete profile data
+      if (hasCachedData) {
+        this.hasLoadedOnce = true;
+        this.isLoading = false;
+      }
+      // If no cache, keep isLoading = true until API completes
     } else {
       // No user in auth service - try to load from cached profile
       const cachedProfileData = localStorage.getItem('jai1_cached_profile');
