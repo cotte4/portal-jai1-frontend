@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, map } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AdminClientListResponse,
@@ -27,23 +27,7 @@ export class AdminService {
     if (search) params.search = search;
     if (cursor) params.cursor = cursor;
 
-    return this.http.get<any>(`${this.apiUrl}/admin/clients`, { params }).pipe(
-      map((response) => ({
-        clients: response.clients.map((client: any) => ({
-          id: client.id,
-          user: {
-            email: client.user.email,
-            firstName: client.user.first_name,
-            lastName: client.user.last_name,
-          },
-          internalStatus: client.internal_status,
-          clientStatus: client.client_status,
-          paymentReceived: client.payment_received,
-          createdAt: client.created_at,
-        })),
-        nextCursor: response.next_cursor,
-        hasMore: response.has_more,
-      })),
+    return this.http.get<AdminClientListResponse>(`${this.apiUrl}/admin/clients`, { params }).pipe(
       catchError((error) => this.handleError(error))
     );
   }
