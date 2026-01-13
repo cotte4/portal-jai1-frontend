@@ -210,6 +210,21 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/auth/change-password`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      })
+      .pipe(
+        tap(() => {
+          // Password changed - clear session since all tokens are invalidated
+          this.clearSession();
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleAuthResponse(response: any): void {
     // Guard against invalid response
     if (!response) {

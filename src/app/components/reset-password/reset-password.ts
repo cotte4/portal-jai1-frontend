@@ -63,18 +63,16 @@ export class ResetPassword implements OnInit {
     this.isLoading = true;
 
     this.authService.resetPassword(this.token, this.newPassword).subscribe({
-      next: (response) => {
-        console.log('ResetPassword - Success:', response);
+      next: () => {
         this.isLoading = false;
         this.isSubmitted = true;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.log('ResetPassword - Error:', error);
         this.isLoading = false;
         this.errorMessage = error?.error?.message || error?.message || 'Ocurrio un error. El enlace puede haber expirado.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 

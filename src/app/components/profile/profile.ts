@@ -71,6 +71,19 @@ export class Profile implements OnInit, OnDestroy {
     zip: ''
   };
 
+  // Change password form
+  isChangingPassword: boolean = false;
+  isPasswordSaving: boolean = false;
+  passwordForm = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
+  passwordError: string = '';
+  showCurrentPassword: boolean = false;
+  showNewPassword: boolean = false;
+  showConfirmPassword: boolean = false;
+
   ngOnInit() {
     // Load profile immediately if user is already authenticated
     // This handles normal navigation when auth is already established
@@ -653,6 +666,75 @@ export class Profile implements OnInit, OnDestroy {
   maskDNI(dni: string): string {
     if (!dni || dni.length < 4) return 'No especificado';
     return '••••••' + dni.slice(-4);
+  }
+
+  // Change Password Methods
+  toggleChangePassword() {
+    this.isChangingPassword = !this.isChangingPassword;
+    this.passwordError = '';
+    this.passwordForm = {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+    this.showCurrentPassword = false;
+    this.showNewPassword = false;
+    this.showConfirmPassword = false;
+  }
+
+  toggleCurrentPasswordVisibility() {
+    this.showCurrentPassword = !this.showCurrentPassword;
+  }
+
+  toggleNewPasswordVisibility() {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  changePassword() {
+    this.passwordError = '';
+
+    // Validate
+    if (!this.passwordForm.currentPassword) {
+      this.passwordError = 'Ingresa tu contraseña actual';
+      return;
+    }
+
+    if (!this.passwordForm.newPassword) {
+      this.passwordError = 'Ingresa tu nueva contraseña';
+      return;
+    }
+
+    if (this.passwordForm.newPassword.length < 8) {
+      this.passwordError = 'La nueva contraseña debe tener al menos 8 caracteres';
+      return;
+    }
+
+    if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+      this.passwordError = 'Las contraseñas no coinciden';
+      return;
+    }
+
+    this.isPasswordSaving = true;
+
+    this.authService.changePassword(
+      this.passwordForm.currentPassword,
+      this.passwordForm.newPassword
+    ).subscribe({
+      next: () => {
+        this.isPasswordSaving = false;
+        this.toastService.success('Contraseña cambiada exitosamente. Por favor inicia sesión nuevamente.');
+        // AuthService will redirect to login automatically
+      },
+      error: (error) => {
+        this.isPasswordSaving = false;
+        this.passwordError = error?.error?.message || 'Error al cambiar la contraseña';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   goBack() {

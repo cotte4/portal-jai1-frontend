@@ -691,3 +691,54 @@
   }
 }
 
+/* ==================== PASSWORD FORM ==================== */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 48px;
+}
+
+.btn-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-toggle-password:hover {
+  opacity: 1;
+}
+
+.form-error {
+  background: #fef2f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-note {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  margin: 8px 0 0;
+  padding: 12px;
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
