@@ -41,6 +41,9 @@ export class AdminLogin {
       next: (response) => {
         this.isLoading = false;
 
+        // Clear dashboard cache to ensure fresh data on login
+        localStorage.removeItem('jai1_dashboard_cache');
+
         // Check if user is admin
         if (response.user.role === UserRole.ADMIN) {
           this.router.navigate(['/admin/dashboard']);

@@ -53,6 +53,10 @@ export class Login implements OnInit {
           rememberMe: this.rememberMe
         });
         this.isLoading = false;
+
+        // Clear dashboard cache to ensure fresh data on login
+        localStorage.removeItem('jai1_dashboard_cache');
+
         // Redirect based on role
         if (response.user.role === UserRole.ADMIN) {
           this.router.navigate(['/admin/dashboard']);

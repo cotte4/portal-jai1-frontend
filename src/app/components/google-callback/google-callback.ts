@@ -79,6 +79,9 @@ export class GoogleCallback implements OnInit {
             user: user
           });
 
+          // Clear dashboard cache to ensure fresh data on login
+          localStorage.removeItem('jai1_dashboard_cache');
+
           console.log('[GoogleCallback] Auth handled, redirecting...');
 
           // Redirect based on role
