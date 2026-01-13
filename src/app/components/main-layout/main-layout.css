@@ -17,11 +17,13 @@
 /* ==================== SIDEBAR ==================== */
 .sidebar {
   width: 260px;
+  height: 100%;
   background: linear-gradient(180deg, #1D345D 0%, #152844 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   z-index: 200;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -30,6 +32,7 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -63,6 +66,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
+  min-height: 0; /* Allow flex item to shrink below content size */
 }
 
 .nav-link {
@@ -143,6 +148,7 @@
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0; /* Never compress footer - always visible */
 }
 
 .user-card {
