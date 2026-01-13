@@ -53,11 +53,26 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.checkExistingW2();
 
     // Check if coming from documents with a W2 already uploaded
+    // Skip the initial BehaviorSubject replay by only reacting to fresh events
     this.subscriptions.add(
-      this.w2SharedService.w2Uploaded$.subscribe(event => {
-        if (event && event.source === 'documents') {
+      this.w2SharedService.w2Uploaded$.pipe(
+        filter(event => {
+          if (!event || event.source !== 'documents') return false;
+          // Only process if user doesn't already have a calculated result
+          // This prevents recalculation when navigating back
+          const existingResult = this.calculatorResultService.getResult();
+          if (existingResult) {
+            console.log('=== CALCULATOR: Ignoring W2 upload event - already have result ===');
+            return false;
+          }
+          return true;
+        })
+      ).subscribe(event => {
+        if (event) {
           this.isFromDocuments = true;
           this.documentSaved = true;
+          // Clear the event to prevent replay on subsequent navigations
+          this.w2SharedService.clear();
           // Start calculation automatically since doc is already saved
           this.startCalculation();
         }
@@ -240,10 +255,12 @@ export class TaxCalculator implements OnInit, OnDestroy {
     // Try to get file from service if not in component state
     const fileToProcess = this.uploadedFile || this.calculatorApiService.getCurrentFile();
 
-    // If no file available, use mock calculation (demo mode)
+    // If no file available, return to upload state (don't run demo mode automatically)
     if (!fileToProcess) {
-      console.warn('=== CALCULATOR: No file found, running DEMO MODE (random numbers) ===');
-      this.runMockCalculation();
+      console.warn('=== CALCULATOR: No file found, returning to upload state ===');
+      this.state = 'upload';
+      this.errorMessage = 'Por favor sube un documento W2 para calcular tu reembolso.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -422,7 +439,10 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   runDemo() {
     this.isFromDocuments = true; // Demo mode - no auto-save needed
-    this.startCalculation();
+    this.state = 'calculating';
+    this.calculationProgress = 0;
+    this.errorMessage = '';
+    this.runMockCalculation();
   }
 
   startProcess() {

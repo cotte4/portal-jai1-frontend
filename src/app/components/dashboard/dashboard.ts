@@ -522,9 +522,10 @@ export class Dashboard implements OnInit, OnDestroy {
         return false;
       }
 
-      // Check staleness (24 hours max)
-      const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+      // Check staleness (5 minutes max - short to ensure fresh data)
+      const CACHE_MAX_AGE_MS = 5 * 60 * 1000;
       if (Date.now() - cacheData.cachedAt > CACHE_MAX_AGE_MS) {
+        localStorage.removeItem(DASHBOARD_CACHE_KEY);
         return false;
       }
 

@@ -2,12 +2,16 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subscription, filter, finalize, forkJoin, of, catchError } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin, of, catchError, Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ReferralService } from '../../core/services/referral.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CompleteProfileRequest } from '../../core/models';
+
+const TAX_FORM_CACHE_KEY = 'jai1_tax_form_draft';
 
 @Component({
   selector: 'app-tax-form',
@@ -21,8 +25,10 @@ export class TaxForm implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private referralService = inject(ReferralService);
   private toastService = inject(ToastService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private autoSaveSubject = new Subject<void>();
 
   // Form data mapped to API
   formData = {
@@ -69,14 +75,26 @@ export class TaxForm implements OnInit, OnDestroy {
   hasAppliedReferral: boolean = false; // True if user already has a referral applied
 
   ngOnInit() {
+    // Load local cache first (instant) then fetch from API
+    this.loadLocalDraft();
     this.loadDraft();
+
+    // Auto-save form data with debounce (500ms after last change)
+    this.subscriptions.add(
+      this.autoSaveSubject.pipe(
+        debounceTime(500)
+      ).subscribe(() => this.cacheFormData())
+    );
 
     // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         filter(event => event.urlAfterRedirects === '/tax-form')
-      ).subscribe(() => this.loadDraft())
+      ).subscribe(() => {
+        this.loadLocalDraft();
+        this.loadDraft();
+      })
     );
 
     // Allow other components to trigger refresh
@@ -86,6 +104,8 @@ export class TaxForm implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Save form data before component is destroyed (tab switch, navigation away)
+    this.cacheFormData();
     this.subscriptions.unsubscribe();
   }
 
@@ -256,6 +276,12 @@ export class TaxForm implements OnInit, OnDestroy {
         } else {
           // Set flag to prevent redirect race condition in loadDraft()
           this.justSubmitted = true;
+          // Clear local cache since form is now submitted to backend
+          this.clearLocalDraft();
+          // Invalidate dashboard cache so it fetches fresh profile data
+          localStorage.removeItem('jai1_dashboard_cache');
+          // Trigger dashboard refresh for when user navigates there
+          this.dataRefreshService.refreshDashboard();
           // Show success screen with animation
           this.showSuccessScreen = true;
           window.scrollTo(0, 0);
@@ -348,5 +374,74 @@ export class TaxForm implements OnInit, OnDestroy {
       this.formData.bankRoutingNumber &&
       this.formData.bankAccountNumber
     );
+  }
+
+  // Called from template on any input change
+  onFormChange() {
+    this.autoSaveSubject.next();
+  }
+
+  // ============ LOCAL CACHE METHODS ============
+
+  private loadLocalDraft(): void {
+    const userId = this.authService.currentUser?.id;
+    if (!userId) return;
+
+    try {
+      const cached = localStorage.getItem(TAX_FORM_CACHE_KEY);
+      if (!cached) return;
+
+      const cacheData = JSON.parse(cached);
+
+      // Verify cache belongs to current user
+      if (cacheData.userId !== userId) {
+        localStorage.removeItem(TAX_FORM_CACHE_KEY);
+        return;
+      }
+
+      // Check cache age (1 hour max)
+      const CACHE_MAX_AGE_MS = 60 * 60 * 1000;
+      if (Date.now() - cacheData.cachedAt > CACHE_MAX_AGE_MS) {
+        localStorage.removeItem(TAX_FORM_CACHE_KEY);
+        return;
+      }
+
+      // Apply cached form data
+      if (cacheData.formData) {
+        this.formData = { ...this.formData, ...cacheData.formData };
+      }
+      console.log('Tax form: Loaded cached draft');
+    } catch (e) {
+      console.warn('Tax form: Failed to load cached draft', e);
+    }
+  }
+
+  private cacheFormData(): void {
+    // Don't cache if user just submitted or if showing completed screen
+    if (this.justSubmitted || this.showAlreadyCompletedScreen || this.showSuccessScreen) {
+      return;
+    }
+
+    const userId = this.authService.currentUser?.id;
+    if (!userId) return;
+
+    // Only cache if form has some data
+    const hasData = Object.values(this.formData).some(v => v && v.trim() !== '');
+    if (!hasData) return;
+
+    try {
+      const cacheData = {
+        userId,
+        formData: this.formData,
+        cachedAt: Date.now()
+      };
+      localStorage.setItem(TAX_FORM_CACHE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn('Tax form: Failed to cache draft', e);
+    }
+  }
+
+  private clearLocalDraft(): void {
+    localStorage.removeItem(TAX_FORM_CACHE_KEY);
   }
 }

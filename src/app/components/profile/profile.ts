@@ -340,6 +340,11 @@ export class Profile implements OnInit, OnDestroy {
     localStorage.setItem('jai1_cached_profile', JSON.stringify(cacheData));
   }
 
+  private invalidateDashboardCache(): void {
+    // Remove dashboard cache so it fetches fresh data on next visit
+    localStorage.removeItem('jai1_dashboard_cache');
+  }
+
   private loadCachedProfileData(): void {
     const cachedProfile = localStorage.getItem('jai1_cached_profile');
     if (cachedProfile) {
@@ -536,6 +541,12 @@ export class Profile implements OnInit, OnDestroy {
           this.isSaving = false;
           this.isEditing = false;
           this.cacheProfileData();
+
+          // Invalidate dashboard cache to ensure fresh data is loaded
+          this.invalidateDashboardCache();
+          // Trigger dashboard refresh so progress and user info updates
+          this.dataRefreshService.refreshDashboard();
+
           this.toastService.success('¡Cambios guardados correctamente!');
           this.cdr.detectChanges();
         },
@@ -577,6 +588,10 @@ export class Profile implements OnInit, OnDestroy {
     this.savePendingPicture();
     this.isSaving = false;
     this.isEditing = false;
+
+    // Also invalidate dashboard cache for optimistic updates
+    this.invalidateDashboardCache();
+    this.dataRefreshService.refreshDashboard();
   }
 
   private savePendingPicture() {
