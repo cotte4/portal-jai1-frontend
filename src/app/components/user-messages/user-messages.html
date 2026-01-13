@@ -80,13 +80,6 @@
               {{ getStatusLabel(ticket.status) }}
             </span>
             <span class="ticket-date">{{ formatDate(ticket.createdAt) }}</span>
-            <button
-              class="btn-delete-ticket"
-              (click)="confirmDeleteTicket(ticket, $event)"
-              title="Eliminar ticket"
-            >
-              <span>🗑️</span>
-            </button>
           </div>
         </div>
       </div>
@@ -187,31 +180,4 @@
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Eliminar ticket</h3>
-      </div>
-      <div class="modal-body">
-        <p>Estas seguro que deseas eliminar este ticket?</p>
-        <p class="modal-ticket-subject" *ngIf="ticketToDelete">
-          "{{ ticketToDelete.subject }}"
-        </p>
-        <p class="modal-warning">Esta accion no se puede deshacer.</p>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="cancelDelete()" [disabled]="isDeleting">
-          Cancelar
-        </button>
-        <button
-          class="btn-delete"
-          (click)="deleteTicket()"
-          [disabled]="isDeleting"
-        >
-          {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
