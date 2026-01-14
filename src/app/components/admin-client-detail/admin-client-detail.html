@@ -331,8 +331,28 @@
             </div>
           </div>
 
-          <div class="documents-list" *ngIf="client.documents && client.documents.length > 0">
-            <div class="document-card" *ngFor="let doc of client.documents">
+          <!-- Document Type Tabs -->
+          <div class="document-tabs" *ngIf="client.documents && client.documents.length > 0">
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'all'"
+                    (click)="selectDocumentTab('all')">
+              Todos <span class="tab-count">{{ getDocumentCountByType('all') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'w2'"
+                    (click)="selectDocumentTab('w2')">
+              W2 <span class="tab-count">{{ getDocumentCountByType('w2') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'payment_proof'"
+                    (click)="selectDocumentTab('payment_proof')">
+              Comprobantes <span class="tab-count">{{ getDocumentCountByType('payment_proof') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'other'"
+                    (click)="selectDocumentTab('other')">
+              Otros <span class="tab-count">{{ getDocumentCountByType('other') }}</span>
+            </button>
+          </div>
+
+          <div class="documents-list" *ngIf="filteredDocuments.length > 0">
+            <div class="document-card" *ngFor="let doc of filteredDocuments">
               <div class="doc-icon">{{ getFileIcon(doc.mimeType) }}</div>
               <div class="doc-info">
                 <div class="doc-name">{{ doc.fileName }}</div>
@@ -350,6 +370,11 @@
           <div class="empty-docs" *ngIf="!client.documents || client.documents.length === 0">
             <span class="empty-icon">📁</span>
             <p>No hay documentos subidos todavia</p>
+          </div>
+
+          <div class="empty-docs" *ngIf="client.documents && client.documents.length > 0 && filteredDocuments.length === 0">
+            <span class="empty-icon">📁</span>
+            <p>No hay documentos de este tipo</p>
           </div>
         </section>
 
@@ -376,9 +401,9 @@
                   </span>
                 </div>
                 <div class="history-change">
-                  <span class="status-badge old">{{ history.previousStatus || 'Nuevo' }}</span>
+                  <span class="status-badge old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
                   <span class="arrow">→</span>
-                  <span class="status-badge new">{{ history.newStatus }}</span>
+                  <span class="status-badge new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
                 </div>
                 <div class="history-comment" *ngIf="history.comment">
                   "{{ history.comment }}"

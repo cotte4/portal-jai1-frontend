@@ -81,6 +81,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   selectedProblemType: ProblemType | null = null;
   problemDescription: string = '';
 
+  // Document tabs
+  selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
+
   // Notification
   showNotifyModal: boolean = false;
   notifyTitle: string = '';
@@ -482,6 +485,62 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toISOString().split('T')[0];
+  }
+
+  // Document filtering by type
+  get filteredDocuments(): Document[] {
+    if (!this.client?.documents) return [];
+    if (this.selectedDocumentTab === 'all') return this.client.documents;
+    return this.client.documents.filter(doc => doc.type === this.selectedDocumentTab);
+  }
+
+  getDocumentCountByType(type: 'all' | 'w2' | 'payment_proof' | 'other'): number {
+    if (!this.client?.documents) return 0;
+    if (type === 'all') return this.client.documents.length;
+    return this.client.documents.filter(doc => doc.type === type).length;
+  }
+
+  selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'other') {
+    this.selectedDocumentTab = tab;
+  }
+
+  // Status history label transformation
+  getHistoryStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'Nuevo';
+
+    // Check if it's a step change
+    if (status.startsWith('step:')) {
+      const step = status.replace('step:', '');
+      return `Paso ${step}`;
+    }
+
+    // Internal status labels
+    const internalLabels: Record<string, string> = {
+      revision_de_registro: 'Revisión de Registro',
+      esperando_datos: 'Esperando Datos',
+      falta_documentacion: 'Falta Documentación',
+      en_proceso: 'En Proceso',
+      en_verificacion: 'En Verificación',
+      resolviendo_verificacion: 'Resolviendo Verificación',
+      inconvenientes: 'Inconvenientes',
+      cheque_en_camino: 'Cheque en Camino',
+      esperando_pago_comision: 'Esperando Pago Comisión',
+      proceso_finalizado: 'Proceso Finalizado'
+    };
+
+    // Client status labels
+    const clientLabels: Record<string, string> = {
+      esperando_datos: 'Esperando Datos',
+      cuenta_en_revision: 'Cuenta en Revisión',
+      taxes_en_proceso: 'Taxes en Proceso',
+      taxes_en_camino: 'Taxes en Camino',
+      taxes_depositados: 'Taxes Depositados',
+      pago_realizado: 'Pago Realizado',
+      en_verificacion: 'En Verificación',
+      taxes_finalizados: 'Taxes Finalizados'
+    };
+
+    return internalLabels[status] || clientLabels[status] || status;
   }
 
   updateFederalStatus() {

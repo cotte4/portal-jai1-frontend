@@ -9,6 +9,18 @@
 <!-- Dashboard Content -->
 @if (hasLoaded) {
 <div class="dashboard-content">
+  <!-- Problem Alert Banner -->
+  @if (hasProblem) {
+    <div class="problem-alert-banner" (click)="navigateTo('/messages')">
+      <div class="problem-alert-icon">⚠️</div>
+      <div class="problem-alert-content">
+        <span class="problem-alert-title">Necesitamos tu ayuda</span>
+        <span class="problem-alert-text">Hay un inconveniente con tu trámite. Por favor contacta a soporte para resolverlo.</span>
+      </div>
+      <button class="problem-alert-btn">Contactar Soporte →</button>
+    </div>
+  }
+
   <!-- Top Section: Two Cards Side by Side -->
   <div class="top-section">
     <!-- Left Card: Reembolso Estimado -->

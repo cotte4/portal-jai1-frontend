@@ -524,6 +524,10 @@ export class TaxTracking implements OnInit, OnDestroy {
     return this.profileData?.taxCase?.estimatedRefund || null;
   }
 
+  get hasProblem(): boolean {
+    return this.profileData?.taxCase?.hasProblem || false;
+  }
+
   get actualRefund(): number | null {
     // Compute from federal + state (source of truth)
     const federal = this.profileData?.taxCase?.federalActualRefund || 0;

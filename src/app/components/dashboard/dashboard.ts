@@ -215,6 +215,11 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.profileData?.taxCase;
   }
 
+  // ============ PROBLEM ALERT ============
+  get hasProblem(): boolean {
+    return this.taxCase?.hasProblem || false;
+  }
+
   get isSentToIRS(): boolean {
     if (!this.taxCase) return false;
     const sentStatuses = [
