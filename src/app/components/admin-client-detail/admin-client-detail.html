@@ -70,36 +70,17 @@
       </div>
     </div>
 
-    <!-- Step Control Section -->
-    <section class="step-control-section" *ngIf="client.taxCases && client.taxCases.length > 0">
-      <div class="step-control-header">
-        <h3>Control de Pasos</h3>
-        <div class="step-control-actions">
+    <!-- Actions Section (Problem + Notify) -->
+    <section class="actions-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="actions-header">
+        <h3>Acciones</h3>
+        <div class="actions-buttons">
           <button class="btn-problem" [class.has-problem]="hasProblem" (click)="openProblemModal()">
             <span *ngIf="hasProblem" class="problem-indicator"></span>
             {{ hasProblem ? 'Ver Problema' : 'Marcar Problema' }}
           </button>
           <button class="btn-notify" (click)="openNotifyModal()">
             Enviar Notificacion
-          </button>
-        </div>
-      </div>
-      <div class="step-progress">
-        <div class="step-track">
-          <div class="step-track-fill" [style.width.%]="((currentStep - 1) / 4) * 100"></div>
-        </div>
-        <div class="step-buttons">
-          <button
-            *ngFor="let label of stepLabels; let i = index"
-            class="step-button"
-            [class.active]="currentStep === i + 1"
-            [class.completed]="currentStep > i + 1"
-            [class.has-problem]="hasProblem && client.taxCases[0].problemStep === i + 1"
-            (click)="setStep(i + 1)"
-            [disabled]="isSaving"
-          >
-            <span class="step-number">{{ i + 1 }}</span>
-            <span class="step-label">{{ label }}</span>
           </button>
         </div>
       </div>
@@ -505,10 +486,6 @@
           <div class="info-row">
             <span class="info-label">Tipo:</span>
             <span class="info-value">{{ getProblemTypeLabel(selectedProblemType) }}</span>
-          </div>
-          <div class="info-row" *ngIf="client?.taxCases?.[0]?.problemStep">
-            <span class="info-label">Paso afectado:</span>
-            <span class="info-value">{{ stepLabels[(client?.taxCases?.[0]?.problemStep || 1) - 1] }}</span>
           </div>
         </div>
       </div>

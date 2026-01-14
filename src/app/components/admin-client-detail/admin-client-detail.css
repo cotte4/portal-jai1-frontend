@@ -519,8 +519,8 @@ transition: transform 0.3s ease;
 .btn-send:hover:not(:disabled) .send-icon {
 transform: translateX(4px);
 }
-/* Step Control Section */
-.step-control-section {
+/* Actions Section */
+.actions-section {
   background: white;
   border-radius: 20px;
   padding: 24px 32px;
@@ -528,21 +528,21 @@ transform: translateX(4px);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
-.step-control-header {
+.actions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
-.step-control-header h3 {
+.actions-header h3 {
   color: #1D345D;
   font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
 
-.step-control-actions {
+.actions-buttons {
   display: flex;
   gap: 12px;
 }
@@ -604,111 +604,8 @@ transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
 
-.step-progress {
-  position: relative;
-}
-
-.step-track {
-  position: absolute;
-  top: 24px;
-  left: 40px;
-  right: 40px;
-  height: 4px;
-  background: #e0e0e0;
-  border-radius: 2px;
-  z-index: 0;
-}
-
-.step-track-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
-  border-radius: 2px;
-  transition: width 0.5s ease;
-}
-
-.step-buttons {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-  z-index: 1;
-}
-
-.step-button {
-  background: white;
-  border: 3px solid #e0e0e0;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.step-button:hover:not(:disabled) {
-  border-color: #1D345D;
-  transform: scale(1.1);
-}
-
-.step-button.active {
-  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
-  border-color: #1D345D;
-  color: white;
-}
-
-.step-button.completed {
-  background: #1D345D;
-  border-color: #1D345D;
-  color: white;
-}
-
-.step-button.has-problem {
-  border-color: #B21B43 !important;
-  box-shadow: 0 0 0 4px rgba(178, 27, 67, 0.2);
-}
-
-.step-button.has-problem::after {
-  content: '!';
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 20px;
-  height: 20px;
-  background: #B21B43;
-  color: white;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step-number {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.step-label {
-  position: absolute;
-  top: 100%;
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
-  white-space: nowrap;
-}
-
-.step-button.active .step-label,
-.step-button.completed .step-label {
-  color: #1D345D;
-}
-
 .problem-banner {
-  margin-top: 24px;
+  margin-top: 16px;
   padding: 16px 20px;
   background: linear-gradient(135deg, rgba(178, 27, 67, 0.1) 0%, rgba(178, 27, 67, 0.05) 100%);
   border: 2px solid #B21B43;

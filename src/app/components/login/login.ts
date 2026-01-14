@@ -61,6 +61,15 @@ export class Login implements OnInit {
           hasRefreshToken: !!response.refreshToken,
           rememberMe: this.rememberMe
         });
+
+        // Block admin users from client login - they must use admin login page
+        if (response.user.role === UserRole.ADMIN) {
+          this.authService.logout().subscribe();
+          this.isLoading = false;
+          this.errorMessage = 'Los administradores deben usar el panel de admin. Ir a /admin-login';
+          return;
+        }
+
         this.isLoading = false;
 
         // Save or remove remembered email based on checkbox
@@ -74,12 +83,8 @@ export class Login implements OnInit {
         localStorage.removeItem('jai1_dashboard_cache');
         localStorage.removeItem('jai1_cached_profile');
 
-        // Redirect based on role
-        if (response.user.role === UserRole.ADMIN) {
-          this.router.navigate(['/admin/dashboard']);
-        } else {
-          this.router.navigate(['/dashboard']);
-        }
+        // Redirect to client dashboard
+        this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         console.log('[Login] Login failed:', error);

@@ -81,14 +81,7 @@ export class AdminService {
     );
   }
 
-  updateAdminStep(clientId: string, step: number): Observable<{ message: string; step: number }> {
-    return this.http.patch<{ message: string; step: number }>(
-      `${this.apiUrl}/admin/clients/${clientId}/step`,
-      { step }
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+  // DEPRECATED: updateAdminStep removed - use updateStatus with internalStatus instead
 
   setProblem(
     clientId: string,

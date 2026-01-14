@@ -75,10 +75,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   stateDepositDate: string = '';
   isSavingFederalState: boolean = false;
 
-  // Step control
-  currentStep: number = 1;
-  stepLabels = ['Recepcion', 'Revision', 'Proceso', 'Verificacion', 'Finalizado'];
-
   // Problem tracking
   showProblemModal: boolean = false;
   hasProblem: boolean = false;
@@ -129,7 +125,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           const taxCase = data.taxCases[0];
           this.selectedInternalStatus = taxCase.internalStatus;
           this.selectedClientStatus = taxCase.clientStatus;
-          this.currentStep = taxCase.adminStep || 1;
           this.hasProblem = taxCase.hasProblem || false;
           this.selectedProblemType = taxCase.problemType || null;
           this.problemDescription = taxCase.problemDescription || '';
@@ -330,23 +325,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/admin/dashboard']);
-  }
-
-  // Step Control Methods
-  setStep(step: number) {
-    if (step < 1 || step > 5) return;
-    this.isSaving = true;
-    this.adminService.updateAdminStep(this.clientId, step).subscribe({
-      next: () => {
-        this.currentStep = step;
-        this.isSaving = false;
-        this.toastService.success(`Paso actualizado a: ${this.stepLabels[step - 1]}`);
-      },
-      error: (error) => {
-        this.isSaving = false;
-        this.toastService.error(error.message || 'Error al actualizar paso');
-      }
-    });
   }
 
   // Problem Modal Methods

@@ -11,11 +11,13 @@
           <span class="admin-icon">👤</span>
           <span class="admin-email">Administrador</span>
         </div>
-        <button class="btn-refresh" (click)="refreshData()">
-          🔄 Actualizar
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isRefreshing">
+          <span *ngIf="!isRefreshing">🔄 Actualizar</span>
+          <span *ngIf="isRefreshing">⏳ Actualizando...</span>
         </button>
-        <button class="btn-export" (click)="exportToExcel()">
-          📊 Exportar Excel
+        <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting">
+          <span *ngIf="!isExporting">📊 Exportar Excel</span>
+          <span *ngIf="isExporting">⏳ Exportando...</span>
         </button>
         <button class="btn-logout" (click)="logout()">
           <span>Cerrar sesion</span>
@@ -35,8 +37,18 @@
     </div>
 
     <!-- Error Message -->
-    <div class="error-message" *ngIf="errorMessage">
-      {{ errorMessage }}
+    <div class="error-banner" *ngIf="errorMessage">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <div class="error-text">
+          <span class="error-message">{{ errorMessage }}</span>
+          <span class="error-code" *ngIf="errorCode">({{ errorCode }})</span>
+        </div>
+      </div>
+      <div class="error-actions">
+        <button class="btn-retry" (click)="refreshData()">Reintentar</button>
+        <button class="btn-dismiss" (click)="clearError()">Cerrar</button>
+      </div>
     </div>
 
     <!-- Stats Cards -->
@@ -49,7 +61,7 @@
         </div>
       </div>
 
-      <div class="stat-card pending" [class.active]="selectedFilter === 'sin_asignar'" (click)="filterClients('sin_asignar')">
+      <div class="stat-card pending" [class.active]="selectedFilter === 'group_pending'" (click)="filterClients('group_pending')">
         <div class="stat-icon">⏳</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.pending }}</div>
@@ -57,7 +69,7 @@
         </div>
       </div>
 
-      <div class="stat-card review" [class.active]="selectedFilter === 'en_proceso'" (click)="filterClients('en_proceso')">
+      <div class="stat-card review" [class.active]="selectedFilter === 'group_in_review'" (click)="filterClients('group_in_review')">
         <div class="stat-icon">🔍</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.inReview }}</div>
@@ -65,7 +77,7 @@
         </div>
       </div>
 
-      <div class="stat-card completed" [class.active]="selectedFilter === 'proceso_finalizado'" (click)="filterClients('proceso_finalizado')">
+      <div class="stat-card completed" [class.active]="selectedFilter === 'group_completed'" (click)="filterClients('group_completed')">
         <div class="stat-icon">✓</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.completed }}</div>
@@ -73,7 +85,7 @@
         </div>
       </div>
 
-      <div class="stat-card attention" [class.active]="selectedFilter === 'falta_documentacion'" (click)="filterClients('falta_documentacion')">
+      <div class="stat-card attention" [class.active]="selectedFilter === 'group_needs_attention'" (click)="filterClients('group_needs_attention')">
         <div class="stat-icon">⚠️</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.needsAttention }}</div>
@@ -88,6 +100,7 @@
         type="text"
         [(ngModel)]="searchQuery"
         placeholder="Buscar por nombre o email..."
+        (input)="onSearchInput()"
         (keyup.enter)="onSearch()"
       />
       <select [(ngModel)]="selectedFilter" (change)="filterClients(selectedFilter)">
@@ -96,6 +109,15 @@
         </option>
       </select>
       <button class="btn-search" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <!-- Active Group Filter Indicator -->
+    <div class="active-filter-indicator" *ngIf="getActiveGroupFilterInfo() as groupInfo">
+      <div class="filter-indicator-content">
+        <span class="filter-label">Filtrando: <strong>{{ groupInfo.label }}</strong></span>
+        <span class="filter-includes">Incluye: {{ groupInfo.statuses.join(', ') }}</span>
+      </div>
+      <button class="btn-clear-indicator" (click)="filterClients('all')">Limpiar filtro</button>
     </div>
 
     <!-- Loading State -->
@@ -178,6 +200,23 @@
         <div class="empty-icon">📋</div>
         <h3>No hay clientes en esta categoria</h3>
         <p>Selecciona "Mostrar todos" para ver todos los clientes</p>
+      </div>
+
+      <!-- Load More / Pagination Info -->
+      <div class="pagination-section" *ngIf="filteredClients.length > 0">
+        <div class="pagination-info" *ngIf="hasMore">
+          <span class="loaded-count">Mostrando {{ totalLoaded }} clientes</span>
+          <span class="more-available">Hay mas clientes disponibles</span>
+        </div>
+        <button
+          class="btn-load-more"
+          *ngIf="hasMore"
+          (click)="loadMoreClients()"
+          [disabled]="isLoadingMore"
+        >
+          <span *ngIf="!isLoadingMore">Cargar mas clientes</span>
+          <span *ngIf="isLoadingMore">Cargando...</span>
+        </button>
       </div>
     </div>
   </main>
