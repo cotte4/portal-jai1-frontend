@@ -99,6 +99,24 @@
   box-shadow: 0 4px 12px rgba(178, 27, 67, 0.3);
 }
 
+.btn-nav {
+  background: #1D345D;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-nav:hover {
+  background: #152844;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
+}
+
 /* Main Content */
 .admin-main {
   max-width: 1400px;

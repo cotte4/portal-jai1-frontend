@@ -1,0 +1,136 @@
+<div class="delays-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">← Volver</button>
+      <h1>Vista de Demoras</h1>
+    </div>
+    <div class="header-right">
+      <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+        {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <div class="stats-row" *ngIf="hasLoaded && !errorMessage">
+    <div class="stat-card">
+      <div class="stat-value">{{ clientCount }}</div>
+      <div class="stat-label">Clientes con Taxes Presentados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ avgFederalDelay }} dias</div>
+      <div class="stat-label">Promedio Demora Federal</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ avgStateDelay }} dias</div>
+      <div class="stat-label">Promedio Demora Estatal</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-value">{{ verificationCount }}</div>
+      <div class="stat-label">Atravesaron Verificacion</div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <span>{{ errorMessage }}</span>
+    <button class="btn-retry" (click)="refreshData()">Reintentar</button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && !hasLoaded">
+    <div class="spinner"></div>
+    <p>Cargando datos de demoras...</p>
+  </div>
+
+  <!-- Content -->
+  <div class="content-section" *ngIf="hasLoaded && !errorMessage">
+    <!-- Sort Buttons -->
+    <div class="sort-buttons">
+      <span class="sort-label">Ordenar por:</span>
+      <button
+        class="btn-sort"
+        [class.active]="sortField === 'name'"
+        (click)="sortBy('name')">
+        Nombre {{ sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
+      </button>
+      <button
+        class="btn-sort"
+        [class.active]="sortField === 'federalDelay'"
+        (click)="sortBy('federalDelay')">
+        Demora Federal {{ sortField === 'federalDelay' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+      </button>
+      <button
+        class="btn-sort"
+        [class.active]="sortField === 'stateDelay'"
+        (click)="sortBy('stateDelay')">
+        Demora Estatal {{ sortField === 'stateDelay' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+      </button>
+      <button
+        class="btn-sort-clear"
+        *ngIf="sortField"
+        (click)="clearSort()">
+        Limpiar
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table class="delays-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Docs Completos</th>
+            <th>Presentacion</th>
+            <th>Recibo Federal</th>
+            <th>Recibo Estatal</th>
+            <th>Verificacion</th>
+            <th>Demora Federal</th>
+            <th>Demora Estatal</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of clients">
+            <td class="col-name">
+              <div class="client-cell">
+                <span class="client-avatar">{{ getInitials(client.name) }}</span>
+                <span class="client-name">{{ client.name }}</span>
+              </div>
+            </td>
+            <td>{{ formatDate(client.documentationCompleteDate) }}</td>
+            <td>{{ formatDate(client.taxesFiledAt) }}</td>
+            <td>{{ formatDate(client.federalDepositDate) }}</td>
+            <td>{{ formatDate(client.stateDepositDate) }}</td>
+            <td class="col-verification">
+              <span class="badge" [class.badge-yes]="client.wentThroughVerification" [class.badge-no]="!client.wentThroughVerification">
+                {{ client.wentThroughVerification ? 'Si' : 'No' }}
+              </span>
+            </td>
+            <td class="col-delay">
+              <span [class]="getDelayClass(client.federalDelayDays)">
+                {{ formatDays(client.federalDelayDays) }}
+              </span>
+            </td>
+            <td class="col-delay">
+              <span [class]="getDelayClass(client.stateDelayDays)">
+                {{ formatDays(client.stateDelayDays) }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-view" (click)="viewClient(client.id)">Ver</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="clients.length === 0">
+      <div class="empty-icon">📊</div>
+      <h3>No hay datos de demoras</h3>
+      <p>Aun no hay clientes con taxes presentados</p>
+    </div>
+  </div>
+</div>

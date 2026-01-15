@@ -73,6 +73,12 @@ export const routes: Routes = [
   canActivate: [adminGuard]
   },
 
+  {
+  path: 'admin/delays',
+  loadComponent: () => import('./components/admin-delays/admin-delays').then(m => m.AdminDelays),
+  canActivate: [adminGuard]
+  },
+
   // Onboarding (full-screen, protected)
   {
     path: 'onboarding',

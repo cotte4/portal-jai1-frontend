@@ -322,6 +322,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/client', clientId]);
   }
 
+  goToDelays() {
+    this.router.navigate(['/admin/delays']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 
