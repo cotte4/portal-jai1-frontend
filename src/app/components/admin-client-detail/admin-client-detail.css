@@ -784,6 +784,8 @@ transform: translateX(4px);
   max-width: 500px;
   max-height: 90vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideUp 0.3s ease;
 }
 
@@ -830,6 +832,7 @@ transform: translateX(4px);
 
 .modal-body {
   padding: 24px;
+  flex: 1;
   overflow-y: auto;
 }
 
