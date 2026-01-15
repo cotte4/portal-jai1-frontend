@@ -200,6 +200,23 @@
           <h3>No hay clientes aun</h3>
           <p>Cuando los clientes completen su registro, apareceran aqui</p>
         </div>
+
+        <!-- Load More / Pagination -->
+        <div class="pagination-section" *ngIf="filteredAccounts.length > 0">
+          <div class="pagination-info" *ngIf="hasMore">
+            <span class="loaded-count">Mostrando {{ totalLoaded }} cuentas</span>
+            <span class="more-available">Hay mas cuentas disponibles</span>
+          </div>
+          <button
+            class="btn-load-more"
+            *ngIf="hasMore"
+            (click)="loadMoreAccounts()"
+            [disabled]="isLoadingMore"
+          >
+            <span *ngIf="!isLoadingMore">Cargar mas cuentas</span>
+            <span *ngIf="isLoadingMore">Cargando...</span>
+          </button>
+        </div>
       </div>
     </div>
   </main>

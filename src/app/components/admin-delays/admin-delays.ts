@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TaxStatus } from '../../core/models';
+import { getErrorMessage } from '../../core/utils/error-handler';
 import * as XLSX from 'xlsx';
 
 interface DelayClient {
@@ -78,7 +79,7 @@ export class AdminDelays implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading delays data:', error);
-          this.errorMessage = error?.error?.message || 'Error al cargar datos de demoras';
+          this.errorMessage = getErrorMessage(error, 'Error al cargar datos de demoras');
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();

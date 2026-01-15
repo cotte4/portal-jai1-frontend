@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getErrorMessage } from '../../core/utils/error-handler';
 import * as XLSX from 'xlsx';
 
 interface PaymentClient {
@@ -91,7 +92,7 @@ export class AdminPayments implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading payments summary:', error);
-          this.errorMessage = error?.error?.message || 'Error al cargar resumen de pagos';
+          this.errorMessage = getErrorMessage(error, 'Error al cargar resumen de pagos');
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();

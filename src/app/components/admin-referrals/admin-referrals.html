@@ -113,6 +113,14 @@
             </div>
           </div>
         </div>
+
+        <!-- Load More Button -->
+        <div class="load-more-container" *ngIf="hasMore && !searchQuery">
+          <button class="btn-load-more" (click)="loadMoreReferrers()" [disabled]="isLoadingMore">
+            <span *ngIf="!isLoadingMore">Cargar mas ({{ referrers.length }} de {{ total }})</span>
+            <span *ngIf="isLoadingMore">Cargando...</span>
+          </button>
+        </div>
       </div>
 
       <!-- Empty State -->

@@ -17,6 +17,7 @@ import {
   UpdateStatusRequest,
   ProblemType
 } from '../../core/models';
+import { getErrorMessage } from '../../core/utils/error-handler';
 
 @Component({
   selector: 'app-admin-client-detail',
@@ -183,7 +184,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al cargar cliente';
+        this.errorMessage = getErrorMessage(error, 'Error al cargar cliente');
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -203,7 +204,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        this.ticketErrorMessage = 'Error al cargar los tickets';
+        this.ticketErrorMessage = getErrorMessage(error, 'Error al cargar los tickets');
         this.isLoadingTickets = false;
         console.error('Error loading tickets:', error);
         this.cdr.markForCheck();
@@ -252,7 +253,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isMarkingPaid = false;
-        this.toastService.error(error.message || 'Error al marcar pago');
+        this.toastService.error(getErrorMessage(error, 'Error al marcar pago'));
       }
     });
   }
@@ -276,7 +277,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isDeleting = false;
-        this.toastService.error(error.message || 'Error al eliminar cliente');
+        this.toastService.error(getErrorMessage(error, 'Error al eliminar cliente'));
       }
     });
   }
@@ -287,7 +288,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         window.open(response.url, '_blank');
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Error al descargar documento';
+        this.errorMessage = getErrorMessage(error, 'Error al descargar documento');
       }
     });
   }
@@ -307,7 +308,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        this.ticketErrorMessage = 'Error al enviar el mensaje';
+        this.ticketErrorMessage = getErrorMessage(error, 'Error al enviar el mensaje');
         this.isSendingMessage = false;
         console.error('Error sending message:', error);
         this.cdr.markForCheck();
@@ -386,7 +387,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSaving = false;
-        this.toastService.error(error.message || 'Error al actualizar problema');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar problema'));
       }
     });
   }
@@ -414,7 +415,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSaving = false;
-        this.toastService.error(error.message || 'Error al guardar problema');
+        this.toastService.error(getErrorMessage(error, 'Error al guardar problema'));
       }
     });
   }
@@ -433,7 +434,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSaving = false;
-        this.toastService.error(error.message || 'Error al resolver problema');
+        this.toastService.error(getErrorMessage(error, 'Error al resolver problema'));
       }
     });
   }
@@ -488,7 +489,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSaving = false;
-        this.toastService.error(error.message || 'Error al enviar notificación');
+        this.toastService.error(getErrorMessage(error, 'Error al enviar notificacion'));
       }
     });
   }
@@ -594,7 +595,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingFederalState = false;
-        this.toastService.error(error.message || 'Error al actualizar estado federal');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
       }
     });
   }
@@ -624,7 +625,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingFederalState = false;
-        this.toastService.error(error.message || 'Error al actualizar estado estatal');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
       }
     });
   }
@@ -703,7 +704,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingCredentials = false;
-        this.toastService.error(error.message || 'Error al guardar credenciales');
+        this.toastService.error(getErrorMessage(error, 'Error al guardar credenciales'));
       }
     });
   }
@@ -739,7 +740,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingPreFiling = false;
-        this.toastService.error(error.message || 'Error al actualizar estado');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado'));
       }
     });
   }
@@ -779,7 +780,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isMarkingFiled = false;
-        this.toastService.error(error.message || 'Error al marcar como presentados');
+        this.toastService.error(getErrorMessage(error, 'Error al marcar como presentados'));
       }
     });
   }
@@ -819,7 +820,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingFederalState = false;
-        this.toastService.error(error.message || 'Error al actualizar estado federal');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
       }
     });
   }
@@ -854,7 +855,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isSavingFederalState = false;
-        this.toastService.error(error.message || 'Error al actualizar estado estatal');
+        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
       }
     });
   }

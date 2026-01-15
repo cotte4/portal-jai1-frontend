@@ -492,6 +492,40 @@
   box-shadow: 0 2px 8px rgba(178, 27, 67, 0.4);
 }
 
+/* Load More Button */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 16px;
+}
+
+.btn-load-more {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(29, 52, 93, 0.2);
+}
+
+.btn-load-more:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(29, 52, 93, 0.3);
+}
+
+.btn-load-more:disabled {
+  background: #a0b0c0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;

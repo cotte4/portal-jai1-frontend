@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getErrorMessage } from '../../core/utils/error-handler';
 import * as XLSX from 'xlsx';
 
 interface ReferrerSummary {
@@ -20,6 +21,8 @@ interface ReferrerSummary {
 interface ReferralSummaryResponse {
   referrers: ReferrerSummary[];
   total: number;
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 @Component({
@@ -43,6 +46,11 @@ export class AdminReferrals implements OnInit, OnDestroy {
   errorMessage: string = '';
   isExporting: boolean = false;
 
+  // Pagination state
+  nextCursor: string | null = null;
+  hasMore: boolean = false;
+  isLoadingMore: boolean = false;
+
   ngOnInit() {
     this.loadReferralSummary();
   }
@@ -50,6 +58,9 @@ export class AdminReferrals implements OnInit, OnDestroy {
   loadReferralSummary() {
     this.isLoading = true;
     this.errorMessage = '';
+    // Reset pagination state on fresh load
+    this.nextCursor = null;
+    this.hasMore = false;
 
     this.subscriptions.add(
       this.http.get<ReferralSummaryResponse>(`${environment.apiUrl}/referrals/admin/summary`).subscribe({
@@ -57,15 +68,50 @@ export class AdminReferrals implements OnInit, OnDestroy {
           this.referrers = response.referrers;
           this.filteredReferrers = this.referrers;
           this.total = response.total;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error loading referral summary:', error);
-          this.errorMessage = error?.error?.message || 'Error al cargar resumen de referidos';
+          this.errorMessage = getErrorMessage(error, 'Error al cargar resumen de referidos');
           this.isLoading = false;
           this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  loadMoreReferrers() {
+    if (this.isLoadingMore || !this.hasMore || !this.nextCursor) return;
+
+    this.isLoadingMore = true;
+
+    const params = new URLSearchParams();
+    params.set('cursor', this.nextCursor);
+
+    this.subscriptions.add(
+      this.http.get<ReferralSummaryResponse>(`${environment.apiUrl}/referrals/admin/summary?${params.toString()}`).subscribe({
+        next: (response) => {
+          // Append new referrers to existing list
+          this.referrers = [...this.referrers, ...response.referrers];
+          // Re-apply filter if search is active
+          if (this.searchQuery.trim()) {
+            this.filterByName();
+          } else {
+            this.filteredReferrers = this.referrers;
+          }
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading more referrers:', error);
+          this.isLoadingMore = false;
           this.cdr.detectChanges();
         }
       })

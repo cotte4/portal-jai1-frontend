@@ -44,6 +44,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   // Debounced search
   private searchSubject = new Subject<string>();
 
+  // Race condition prevention for stats loading
+  private statsRequestId = 0;
+
   stats = {
     total: 0,
     pending: 0,
@@ -166,8 +169,11 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // Load stats separately (all clients without filters)
   private loadStats() {
+    const currentRequestId = ++this.statsRequestId;
     this.adminService.getClients(undefined, undefined, undefined, 100).subscribe({
       next: (response) => {
+        // Only update if this is still the latest request (prevents race condition)
+        if (currentRequestId !== this.statsRequestId) return;
         this.allClients = response.clients;
         this.calculateStats();
         this.cdr.detectChanges();

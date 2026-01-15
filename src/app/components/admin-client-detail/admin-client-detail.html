@@ -80,7 +80,7 @@
           <p *ngIf="problemDescription">{{ problemDescription }}</p>
         </div>
         <button class="btn-resolve" (click)="resolveProblem()" [disabled]="isSaving">
-          Resolver
+          {{ isSaving ? 'Resolviendo...' : 'Resolver' }}
         </button>
       </div>
     </section>

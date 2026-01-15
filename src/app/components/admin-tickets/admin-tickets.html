@@ -170,7 +170,7 @@
               (click)="markInProgress()"
               [disabled]="isUpdatingStatus"
             >
-              Marcar En Progreso
+              {{ isUpdatingStatus ? 'Actualizando...' : 'Marcar En Progreso' }}
             </button>
             <button
               class="btn-status btn-close"
@@ -178,7 +178,7 @@
               (click)="closeTicket()"
               [disabled]="isUpdatingStatus"
             >
-              Cerrar Ticket
+              {{ isUpdatingStatus ? 'Cerrando...' : 'Cerrar Ticket' }}
             </button>
             <button
               class="btn-status btn-reopen"
@@ -186,7 +186,7 @@
               (click)="reopenTicket()"
               [disabled]="isUpdatingStatus"
             >
-              Reabrir Ticket
+              {{ isUpdatingStatus ? 'Reabriendo...' : 'Reabrir Ticket' }}
             </button>
           </div>
 

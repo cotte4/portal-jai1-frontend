@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getErrorMessage } from '../../core/utils/error-handler';
 
 interface ClientAccount {
   id: string;
@@ -16,6 +17,12 @@ interface ClientAccount {
   irsPassword: string | null;
   stateUsername: string | null;
   statePassword: string | null;
+}
+
+interface AccountsResponse {
+  accounts: ClientAccount[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 @Component({
@@ -36,6 +43,12 @@ export class AdminAccounts implements OnInit, OnDestroy {
   isLoading: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
+
+  // Pagination state
+  nextCursor: string | null = null;
+  hasMore: boolean = false;
+  isLoadingMore: boolean = false;
+  totalLoaded: number = 0;
 
   // Individual field reveal tracking (security: no global toggle)
   revealedFields: Set<string> = new Set();
@@ -59,19 +72,26 @@ export class AdminAccounts implements OnInit, OnDestroy {
   loadAccounts() {
     this.isLoading = true;
     this.errorMessage = '';
+    // Reset pagination state on fresh load
+    this.nextCursor = null;
+    this.hasMore = false;
+    this.accounts = [];
 
     this.subscriptions.add(
-      this.http.get<ClientAccount[]>(`${environment.apiUrl}/admin/accounts`).subscribe({
+      this.http.get<AccountsResponse>(`${environment.apiUrl}/admin/accounts`).subscribe({
         next: (response) => {
-          this.accounts = response;
-          this.filteredAccounts = response;
+          this.accounts = response.accounts;
+          this.filteredAccounts = response.accounts;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
+          this.totalLoaded = response.accounts.length;
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error loading accounts:', error);
-          this.errorMessage = error?.error?.message || 'Error al cargar cuentas de clientes';
+          this.errorMessage = getErrorMessage(error, 'Error al cargar cuentas de clientes');
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();
@@ -159,6 +179,40 @@ export class AdminAccounts implements OnInit, OnDestroy {
 
   refreshData() {
     this.loadAccounts();
+  }
+
+  // Load more accounts (pagination)
+  loadMoreAccounts() {
+    if (!this.hasMore || this.isLoadingMore || !this.nextCursor) return;
+
+    this.isLoadingMore = true;
+
+    this.subscriptions.add(
+      this.http.get<AccountsResponse>(`${environment.apiUrl}/admin/accounts`, {
+        params: { cursor: this.nextCursor, limit: '50' }
+      }).subscribe({
+        next: (response) => {
+          this.accounts = [...this.accounts, ...response.accounts];
+          // Re-apply filter if search is active
+          if (this.searchQuery.trim()) {
+            this.filterAccounts();
+          } else {
+            this.filteredAccounts = this.accounts;
+          }
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
+          this.totalLoaded = this.accounts.length;
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading more accounts:', error);
+          this.errorMessage = getErrorMessage(error, 'Error al cargar mas cuentas');
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   // ===== TRACKBY FUNCTIONS =====
