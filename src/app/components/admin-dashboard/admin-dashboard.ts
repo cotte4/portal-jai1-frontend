@@ -338,6 +338,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/referrals']);
   }
 
+  goToTickets() {
+    this.router.navigate(['/admin/tickets']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 
