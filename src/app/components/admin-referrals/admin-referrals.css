@@ -272,6 +272,32 @@
   margin: 0;
 }
 
+/* Search Box */
+.search-box {
+  flex: 0 0 280px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1D345D;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
 /* Table */
 .referrals-table {
   width: 100%;

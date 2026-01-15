@@ -6,6 +6,9 @@
       <h1>Vista de Demoras</h1>
     </div>
     <div class="header-right">
+      <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting || clients.length === 0">
+        {{ isExporting ? 'Exportando...' : 'Exportar Excel' }}
+      </button>
       <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
         {{ isLoading ? 'Cargando...' : 'Actualizar' }}
       </button>
@@ -46,8 +49,18 @@
 
   <!-- Content -->
   <div class="content-section" *ngIf="hasLoaded && !errorMessage">
-    <!-- Sort Buttons -->
-    <div class="sort-buttons">
+    <!-- Search and Sort -->
+    <div class="search-sort-row">
+      <div class="search-box">
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="filterByName()"
+          placeholder="Buscar por nombre..."
+          class="search-input"
+        />
+      </div>
+      <div class="sort-buttons">
       <span class="sort-label">Ordenar por:</span>
       <button
         class="btn-sort"
@@ -73,6 +86,7 @@
         (click)="clearSort()">
         Limpiar
       </button>
+      </div>
     </div>
 
     <!-- Table -->
@@ -92,7 +106,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of clients">
+          <tr *ngFor="let client of filteredClients">
             <td class="col-name">
               <div class="client-cell">
                 <span class="client-avatar">{{ getInitials(client.name) }}</span>
@@ -127,10 +141,10 @@
     </div>
 
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="clients.length === 0">
+    <div class="empty-state" *ngIf="filteredClients.length === 0">
       <div class="empty-icon">📊</div>
-      <h3>No hay datos de demoras</h3>
-      <p>Aun no hay clientes con taxes presentados</p>
+      <h3>{{ searchQuery ? 'No se encontraron resultados' : 'No hay datos de demoras' }}</h3>
+      <p>{{ searchQuery ? 'Intenta con otro nombre' : 'Aun no hay clientes con taxes presentados' }}</p>
     </div>
   </div>
 </div>

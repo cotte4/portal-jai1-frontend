@@ -1134,6 +1134,19 @@
 /* Column widths */
 .col-name { min-width: 140px; }
 .col-ssn { min-width: 100px; font-family: monospace; }
+
+/* SSN clickable value */
+.ssn-value {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.ssn-value:hover {
+  background: #e8f0ff;
+  color: #1D345D;
+}
 .col-date { min-width: 85px; }
 .col-notes { min-width: 120px; max-width: 150px; }
 .col-refund { min-width: 90px; text-align: right; }

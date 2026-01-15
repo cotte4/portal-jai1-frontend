@@ -165,12 +165,46 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* Search and Sort Row */
+.search-sort-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 0 0 280px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1D345D;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
 /* Sort Buttons */
 .sort-buttons {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 

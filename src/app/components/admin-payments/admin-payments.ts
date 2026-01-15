@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import * as XLSX from 'xlsx';
 
 interface PaymentClient {
   id: string;
@@ -39,7 +41,7 @@ interface PaymentsSummaryResponse {
 
 @Component({
   selector: 'app-admin-payments',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-payments.html',
   styleUrl: './admin-payments.css'
 })
@@ -49,6 +51,8 @@ export class AdminPayments implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   clients: PaymentClient[] = [];
+  filteredClients: PaymentClient[] = [];
+  searchQuery: string = '';
   totals: PaymentsTotals = {
     federalTaxes: 0,
     stateTaxes: 0,
@@ -62,6 +66,7 @@ export class AdminPayments implements OnInit {
   isLoading: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
+  isExporting: boolean = false;
 
   ngOnInit() {
     this.loadPaymentsSummary();
@@ -74,6 +79,7 @@ export class AdminPayments implements OnInit {
     this.http.get<PaymentsSummaryResponse>(`${environment.apiUrl}/admin/payments`).subscribe({
       next: (response) => {
         this.clients = response.clients;
+        this.filteredClients = this.clients;
         this.totals = response.totals;
         this.clientCount = response.clientCount;
         this.isLoading = false;
@@ -127,6 +133,46 @@ export class AdminPayments implements OnInit {
   }
 
   refreshData() {
+    this.searchQuery = '';
     this.loadPaymentsSummary();
+  }
+
+  filterByName() {
+    const query = this.searchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredClients = this.clients;
+    } else {
+      this.filteredClients = this.clients.filter(client =>
+        client.name.toLowerCase().includes(query)
+      );
+    }
+    this.cdr.detectChanges();
+  }
+
+  exportToExcel() {
+    if (this.isExporting || this.clients.length === 0) return;
+
+    this.isExporting = true;
+
+    const data = this.clients.map(client => ({
+      'Nombre': client.name,
+      'Email': client.email,
+      'Federal Taxes': client.federalTaxes,
+      'State Taxes': client.stateTaxes,
+      'Total Taxes': client.totalTaxes,
+      'Comision Federal': client.federalCommission,
+      'Comision Estatal': client.stateCommission,
+      'Total Comision': client.totalCommission,
+      'Cliente Recibe': client.clientReceives,
+      'Estado': this.getPaymentStatusLabel(client)
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos');
+    XLSX.writeFile(wb, `pagos-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    this.isExporting = false;
+    this.cdr.detectChanges();
   }
 }

@@ -11,6 +11,9 @@
         <span class="admin-badge">Pagos</span>
       </div>
       <div class="header-right">
+        <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting || clients.length === 0">
+          {{ isExporting ? 'Exportando...' : 'Exportar Excel' }}
+        </button>
         <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
           <span *ngIf="!isLoading">Actualizar</span>
           <span *ngIf="isLoading">Cargando...</span>
@@ -94,9 +97,18 @@
     <div class="payments-section" *ngIf="hasLoaded && !errorMessage">
       <div class="section-header">
         <h2>Detalle de Pagos por Cliente</h2>
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="filterByName()"
+            placeholder="Buscar por nombre..."
+            class="search-input"
+          />
+        </div>
       </div>
 
-      <div class="payments-table" *ngIf="clients.length > 0">
+      <div class="payments-table" *ngIf="filteredClients.length > 0">
         <div class="table-header">
           <div class="col-name">Cliente</div>
           <div class="col-federal">Federal Taxes</div>
@@ -110,7 +122,7 @@
         </div>
 
         <div class="table-body">
-          <div class="table-row" *ngFor="let client of clients" (click)="viewClient(client.id)">
+          <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
             <div class="col-name">
               <div class="user-avatar">
                 {{ getInitials(client.name) }}
@@ -188,10 +200,10 @@
       </div>
 
       <!-- Empty State -->
-      <div class="empty-state" *ngIf="clients.length === 0">
+      <div class="empty-state" *ngIf="filteredClients.length === 0">
         <div class="empty-icon">&#128176;</div>
-        <h3>No hay pagos registrados</h3>
-        <p>Cuando se registren refunds para los clientes, apareceran aqui</p>
+        <h3>{{ searchQuery ? 'No se encontraron resultados' : 'No hay pagos registrados' }}</h3>
+        <p>{{ searchQuery ? 'Intenta con otro nombre' : 'Cuando se registren refunds para los clientes, apareceran aqui' }}</p>
       </div>
     </div>
   </main>

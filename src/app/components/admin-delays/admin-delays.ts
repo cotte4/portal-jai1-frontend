@@ -1,9 +1,11 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { TaxStatus } from '../../core/models';
+import * as XLSX from 'xlsx';
 
 interface DelayClient {
   id: string;
@@ -26,7 +28,7 @@ interface DelaysResponse {
 
 @Component({
   selector: 'app-admin-delays',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-delays.html',
   styleUrl: './admin-delays.css'
 })
@@ -36,10 +38,13 @@ export class AdminDelays implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   clients: DelayClient[] = [];
+  filteredClients: DelayClient[] = [];
   clientCount: number = 0;
   isLoading: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
+  isExporting: boolean = false;
+  searchQuery: string = '';
 
   // Sorting
   sortField: 'name' | 'federalDelay' | 'stateDelay' | null = null;
@@ -61,6 +66,7 @@ export class AdminDelays implements OnInit {
     this.http.get<DelaysResponse>(`${environment.apiUrl}/admin/delays`).subscribe({
       next: (response) => {
         this.clients = response.clients;
+        this.filteredClients = this.clients;
         this.clientCount = response.clientCount;
         this.calculateStats();
         this.isLoading = false;
@@ -134,7 +140,45 @@ export class AdminDelays implements OnInit {
   }
 
   refreshData() {
+    this.searchQuery = '';
     this.loadDelaysData();
+  }
+
+  filterByName() {
+    const query = this.searchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredClients = this.clients;
+    } else {
+      this.filteredClients = this.clients.filter(client =>
+        client.name.toLowerCase().includes(query)
+      );
+    }
+    this.cdr.detectChanges();
+  }
+
+  exportToExcel() {
+    if (this.isExporting || this.clients.length === 0) return;
+
+    this.isExporting = true;
+
+    const data = this.clients.map(client => ({
+      'Nombre': client.name,
+      'Docs Completos': client.documentationCompleteDate ? this.formatDate(client.documentationCompleteDate) : '---',
+      'Presentacion': client.taxesFiledAt ? this.formatDate(client.taxesFiledAt) : '---',
+      'Recibo Federal': client.federalDepositDate ? this.formatDate(client.federalDepositDate) : '---',
+      'Recibo Estatal': client.stateDepositDate ? this.formatDate(client.stateDepositDate) : '---',
+      'Verificacion': client.wentThroughVerification ? 'Si' : 'No',
+      'Demora Federal': client.federalDelayDays ?? '---',
+      'Demora Estatal': client.stateDelayDays ?? '---'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Demoras');
+    XLSX.writeFile(wb, `demoras-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    this.isExporting = false;
+    this.cdr.detectChanges();
   }
 
   // Sorting
@@ -150,13 +194,13 @@ export class AdminDelays implements OnInit {
 
   clearSort() {
     this.sortField = null;
-    this.loadDelaysData();
+    this.filterByName();
   }
 
   private applySorting() {
     if (!this.sortField) return;
 
-    this.clients = [...this.clients].sort((a, b) => {
+    this.filteredClients = [...this.filteredClients].sort((a, b) => {
       let comparison = 0;
 
       switch (this.sortField) {

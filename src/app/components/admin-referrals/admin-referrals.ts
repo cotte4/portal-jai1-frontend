@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import * as XLSX from 'xlsx';
 
 interface ReferrerSummary {
   userId: string;
@@ -21,7 +23,7 @@ interface ReferralSummaryResponse {
 
 @Component({
   selector: 'app-admin-referrals',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-referrals.html',
   styleUrl: './admin-referrals.css'
 })
@@ -31,10 +33,13 @@ export class AdminReferrals implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   referrers: ReferrerSummary[] = [];
+  filteredReferrers: ReferrerSummary[] = [];
+  searchQuery: string = '';
   total: number = 0;
   isLoading: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
+  isExporting: boolean = false;
 
   ngOnInit() {
     this.loadReferralSummary();
@@ -47,6 +52,7 @@ export class AdminReferrals implements OnInit {
     this.http.get<ReferralSummaryResponse>(`${environment.apiUrl}/referrals/admin/summary`).subscribe({
       next: (response) => {
         this.referrers = response.referrers;
+        this.filteredReferrers = this.referrers;
         this.total = response.total;
         this.isLoading = false;
         this.hasLoaded = true;
@@ -100,6 +106,43 @@ export class AdminReferrals implements OnInit {
   }
 
   refreshData() {
+    this.searchQuery = '';
     this.loadReferralSummary();
+  }
+
+  filterByName() {
+    const query = this.searchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredReferrers = this.referrers;
+    } else {
+      this.filteredReferrers = this.referrers.filter(referrer =>
+        referrer.name.toLowerCase().includes(query)
+      );
+    }
+    this.cdr.detectChanges();
+  }
+
+  exportToExcel() {
+    if (this.isExporting || this.referrers.length === 0) return;
+
+    this.isExporting = true;
+
+    const data = this.referrers.map((referrer, index) => ({
+      'Ranking': index + 1,
+      'Nombre': referrer.name,
+      'Email': referrer.email,
+      'Codigo': referrer.referralCode,
+      'Referidos Exitosos': referrer.successfulReferrals,
+      'Descuento': `${referrer.discountPercent}%`,
+      'Tier': this.getTierLabel(referrer.tier)
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Referidos');
+    XLSX.writeFile(wb, `referidos-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    this.isExporting = false;
+    this.cdr.detectChanges();
   }
 }

@@ -11,6 +11,9 @@
         <span class="admin-badge">Referidos</span>
       </div>
       <div class="header-right">
+        <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting || referrers.length === 0">
+          {{ isExporting ? 'Exportando...' : 'Exportar Excel' }}
+        </button>
         <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
           <span *ngIf="!isLoading">Actualizar</span>
           <span *ngIf="isLoading">Cargando...</span>
@@ -52,9 +55,18 @@
     <div class="referrals-section" *ngIf="hasLoaded && !errorMessage">
       <div class="section-header">
         <h2>Lista de Referidores</h2>
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="filterByName()"
+            placeholder="Buscar por nombre..."
+            class="search-input"
+          />
+        </div>
       </div>
 
-      <div class="referrals-table" *ngIf="referrers.length > 0">
+      <div class="referrals-table" *ngIf="filteredReferrers.length > 0">
         <div class="table-header">
           <div class="col-rank">#</div>
           <div class="col-name">Nombre</div>
@@ -66,7 +78,7 @@
         </div>
 
         <div class="table-body">
-          <div class="table-row" *ngFor="let referrer of referrers; let i = index">
+          <div class="table-row" *ngFor="let referrer of filteredReferrers; let i = index">
             <div class="col-rank">
               <span class="rank-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
             </div>
@@ -104,10 +116,10 @@
       </div>
 
       <!-- Empty State -->
-      <div class="empty-state" *ngIf="referrers.length === 0">
+      <div class="empty-state" *ngIf="filteredReferrers.length === 0">
         <div class="empty-icon">&#128101;</div>
-        <h3>No hay referidores aun</h3>
-        <p>Cuando los usuarios completen referidos exitosos, apareceran aqui</p>
+        <h3>{{ searchQuery ? 'No se encontraron resultados' : 'No hay referidores aun' }}</h3>
+        <p>{{ searchQuery ? 'Intenta con otro nombre' : 'Cuando los usuarios completen referidos exitosos, apareceran aqui' }}</p>
       </div>
     </div>
   </main>

@@ -128,14 +128,6 @@
 
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <div class="stat-card total" [class.active]="selectedFilter === 'all'" (click)="filterClients('all')">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats.total }}</div>
-          <div class="stat-label">Total Clientes</div>
-        </div>
-      </div>
-
       <div class="stat-card pending" [class.active]="selectedFilter === 'group_pending'" (click)="filterClients('group_pending')">
         <div class="stat-icon">⏳</div>
         <div class="stat-content">
@@ -270,7 +262,12 @@
               </td>
 
               <!-- 2. SSN -->
-              <td class="col-ssn">{{ client.ssn || '---' }}</td>
+              <!-- SSN (click to copy without dashes) -->
+              <td class="col-ssn">
+                <span class="ssn-value" (click)="copyToClipboard(client.ssn?.replace(/-/g, '')); $event.stopPropagation()" [title]="'Click para copiar'">
+                  {{ client.ssn ? client.ssn.replace(/-/g, '') : '---' }}
+                </span>
+              </td>
 
               <!-- 3. Tax Filing Date -->
               <td class="col-date">
