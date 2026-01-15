@@ -66,60 +66,62 @@
         </div>
       </div>
 
-      <div class="referrals-table" *ngIf="filteredReferrers.length > 0">
-        <div class="table-header">
-          <div class="col-rank">#</div>
-          <div class="col-name">Nombre</div>
-          <div class="col-email">Email</div>
-          <div class="col-code">Codigo</div>
-          <div class="col-referrals">Referidos</div>
-          <div class="col-discount">Descuento</div>
-          <div class="col-tier">Tier</div>
-        </div>
+      <div class="table-wrapper">
+        <div class="referrals-table" *ngIf="filteredReferrers.length > 0">
+          <div class="table-header">
+            <div class="col-rank">#</div>
+            <div class="col-name">Nombre</div>
+            <div class="col-email">Email</div>
+            <div class="col-code">Codigo</div>
+            <div class="col-referrals">Referidos</div>
+            <div class="col-discount">Descuento</div>
+            <div class="col-tier">Tier</div>
+          </div>
 
-        <div class="table-body">
-          <div class="table-row" *ngFor="let referrer of filteredReferrers; let i = index; trackBy: trackByUserId">
-            <div class="col-rank">
-              <span class="rank-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
-            </div>
-
-            <div class="col-name">
-              <div class="user-avatar">
-                {{ getInitials(referrer.name) }}
+          <div class="table-body">
+            <div class="table-row" *ngFor="let referrer of filteredReferrers; let i = index; trackBy: trackByUserId">
+              <div class="col-rank">
+                <span class="rank-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
               </div>
-              <span class="user-name">{{ referrer.name }}</span>
-            </div>
 
-            <div class="col-email">
-              {{ referrer.email }}
-            </div>
+              <div class="col-name">
+                <div class="user-avatar">
+                  {{ getInitials(referrer.name) }}
+                </div>
+                <span class="user-name">{{ referrer.name }}</span>
+              </div>
 
-            <div class="col-code">
-              <span class="code-badge">{{ referrer.referralCode }}</span>
-            </div>
+              <div class="col-email">
+                {{ referrer.email }}
+              </div>
 
-            <div class="col-referrals">
-              <span class="referral-count">{{ referrer.successfulReferrals }}</span>
-            </div>
+              <div class="col-code">
+                <span class="code-badge">{{ referrer.referralCode }}</span>
+              </div>
 
-            <div class="col-discount">
-              <span class="discount-badge">{{ referrer.discountPercent }}%</span>
-            </div>
+              <div class="col-referrals">
+                <span class="referral-count">{{ referrer.successfulReferrals }}</span>
+              </div>
 
-            <div class="col-tier">
-              <span class="tier-badge" [ngClass]="getTierClass(referrer.tier)">
-                {{ getTierLabel(referrer.tier) }}
-              </span>
+              <div class="col-discount">
+                <span class="discount-badge">{{ referrer.discountPercent }}%</span>
+              </div>
+
+              <div class="col-tier">
+                <span class="tier-badge" [ngClass]="getTierClass(referrer.tier)">
+                  {{ getTierLabel(referrer.tier) }}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Load More Button -->
-        <div class="load-more-container" *ngIf="hasMore && !searchQuery">
-          <button class="btn-load-more" (click)="loadMoreReferrers()" [disabled]="isLoadingMore">
-            <span *ngIf="!isLoadingMore">Cargar mas ({{ referrers.length }} de {{ total }})</span>
-            <span *ngIf="isLoadingMore">Cargando...</span>
-          </button>
+          <!-- Load More Button -->
+          <div class="load-more-container" *ngIf="hasMore && !searchQuery">
+            <button class="btn-load-more" (click)="loadMoreReferrers()" [disabled]="isLoadingMore">
+              <span *ngIf="!isLoadingMore">Cargar mas ({{ referrers.length }} de {{ total }})</span>
+              <span *ngIf="isLoadingMore">Cargando...</span>
+            </button>
+          </div>
         </div>
       </div>
 

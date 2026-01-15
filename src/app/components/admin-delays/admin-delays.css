@@ -30,8 +30,8 @@
   background: transparent;
   border: 1px solid #e0e0e0;
   color: #666;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -399,7 +399,7 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }

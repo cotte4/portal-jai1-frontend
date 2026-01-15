@@ -383,9 +383,13 @@
 }
 
 /* Table */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .payments-table {
   width: 100%;
-  overflow-x: auto;
 }
 
 .table-header {

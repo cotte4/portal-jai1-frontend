@@ -28,6 +28,51 @@
   /* Card padding */
   --card-padding: 24px;
   --page-padding: 24px;
+
+  /* ==================== ADMIN PANEL DESIGN TOKENS ==================== */
+  /* Brand Colors */
+  --color-primary: #1D345D;
+  --color-accent: #B21B43;
+  --color-primary-gradient: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  --color-primary-hover: #152844;
+  --color-accent-hover: #951637;
+
+  /* Text Colors */
+  --color-text-primary: #333;
+  --color-text-secondary: #666;
+  --color-text-muted: #999;
+
+  /* Background Colors */
+  --color-bg-page: #f5f7fa;
+  --color-bg-card: white;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-input: #fafafa;
+
+  /* Border Colors */
+  --color-border: #e0e0e0;
+  --color-border-light: #e8e8e8;
+  --color-border-lighter: #f0f0f0;
+
+  /* Status Colors */
+  --color-success: #4caf50;
+  --color-success-light: #e8f5e9;
+  --color-error: #c62828;
+  --color-error-light: #ffebee;
+  --color-warning: #ff9800;
+  --color-warning-light: #fff4e5;
+  --color-info: #2196f3;
+  --color-info-light: #e3f2fd;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+  /* Button Padding (standardized) */
+  --btn-padding-sm: 8px 16px;
+  --btn-padding-md: 10px 20px;
+  --btn-padding-lg: 12px 24px;
 }
 
 /* ==================== MOBILE VARIABLES (max-width: 768px) ==================== */
