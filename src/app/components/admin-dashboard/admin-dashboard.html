@@ -14,6 +14,15 @@
         <button class="btn-nav" (click)="goToDelays()">
           📊 Demoras
         </button>
+        <button class="btn-nav" (click)="goToPayments()">
+          💰 Pagos
+        </button>
+        <button class="btn-nav" (click)="goToAccounts()">
+          🔑 Cuentas
+        </button>
+        <button class="btn-nav" (click)="goToReferrals()">
+          👥 Referidos
+        </button>
         <button class="btn-refresh" (click)="refreshData()" [disabled]="isRefreshing">
           <span *ngIf="!isRefreshing">🔄 Actualizar</span>
           <span *ngIf="isRefreshing">⏳ Actualizando...</span>
