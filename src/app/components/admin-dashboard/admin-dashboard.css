@@ -1006,3 +1006,289 @@
     font-size: 24px;
   }
 }
+
+/* ============================================
+   NEW 12-COLUMN TABLE STYLES
+   ============================================ */
+
+.clients-table-wrapper {
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.clients-table-new {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.clients-table-new thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.clients-table-new th {
+  background: #f8f9fa;
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.clients-table-new td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  user-select: text;
+  cursor: default;
+}
+
+.clients-table-new tbody tr:hover {
+  background: #f8f9fa;
+}
+
+/* Column widths */
+.col-name { min-width: 140px; }
+.col-ssn { min-width: 100px; font-family: monospace; }
+.col-date { min-width: 85px; }
+.col-notes { min-width: 120px; max-width: 150px; }
+.col-refund { min-width: 90px; text-align: right; }
+.col-status { min-width: 90px; }
+.col-accounts { min-width: 60px; text-align: center; }
+.col-actions { min-width: 70px; text-align: center; }
+
+/* Client name cell */
+.client-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.client-name-cell .client-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.ready-indicator {
+  background: #4caf50;
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* Notes preview */
+.notes-preview {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  cursor: help;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+/* Refund amount */
+.refund-amount {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+/* No data indicator */
+.no-data {
+  color: #bbb;
+  font-size: 12px;
+}
+
+/* Mini status badges for compact table view */
+.status-badge-mini {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Accounts button */
+.btn-accounts {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-accounts:hover {
+  background: #e8e8e8;
+  border-color: #ccc;
+  transform: scale(1.1);
+}
+
+/* View button compact */
+.table-row-new .btn-view {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+/* ============================================
+   CREDENTIALS MODAL
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1D345D;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.client-name-modal {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1D345D;
+  margin: 0 0 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.credentials-section {
+  margin-bottom: 20px;
+}
+
+.credentials-section h4 {
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.credential-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.credential-label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.credential-value {
+  font-family: monospace;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credential-value:hover {
+  background: #e8e8e8;
+}
+
+.copy-hint {
+  text-align: center;
+  color: #999;
+  font-size: 11px;
+  margin: 16px 0 0 0;
+  font-style: italic;
+}
+
+/* Modal responsive */
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .credential-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .credential-value {
+    width: 100%;
+    max-width: 100%;
+  }
+}

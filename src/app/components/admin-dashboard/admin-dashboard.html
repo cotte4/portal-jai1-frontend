@@ -197,77 +197,115 @@
         </div>
       </div>
 
-      <div class="clients-table">
-        <div class="table-header">
-          <div class="col-client">Cliente</div>
-          <div class="col-email">Email</div>
-          <div class="col-status-phase">Estado</div>
-          <div class="col-payment">Pago</div>
-          <div class="col-activity">Fecha Registro</div>
-          <div class="col-actions">Acciones</div>
-        </div>
-
-        <div class="table-body">
-          <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
-            <div class="col-client">
-              <div class="client-avatar" [class.ready]="client.isReadyToPresent">
-                {{ getInitials(client.user?.firstName, client.user?.lastName) }}
-              </div>
-              <div class="client-info">
-                <div class="client-name">
-                  {{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}
-                  <span class="ready-badge" *ngIf="client.isReadyToPresent">✓</span>
+      <div class="clients-table-wrapper">
+        <table class="clients-table-new">
+          <thead>
+            <tr>
+              <th class="col-name">Nombre</th>
+              <th class="col-ssn">SSN</th>
+              <th class="col-date">Fecha Presentacion</th>
+              <th class="col-date">Ultima Revision</th>
+              <th class="col-notes">Obs. Federal</th>
+              <th class="col-refund">Dev. Federal</th>
+              <th class="col-status">Estado Fed.</th>
+              <th class="col-notes">Obs. Estatal</th>
+              <th class="col-refund">Dev. Estatal</th>
+              <th class="col-status">Estado Est.</th>
+              <th class="col-accounts">Cuentas</th>
+              <th class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let client of filteredClients" class="table-row-new">
+              <!-- 1. Name -->
+              <td class="col-name">
+                <div class="client-name-cell">
+                  <span class="client-name">{{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}</span>
+                  <span class="ready-indicator" *ngIf="client.isReadyToPresent" title="Listo para presentar">✓</span>
                 </div>
-                <div class="missing-tags" *ngIf="client.missingItems && client.missingItems.length > 0">
-                  <span class="missing-tag" *ngFor="let item of client.missingItems">
-                    {{ item }}
-                  </span>
-                </div>
-              </div>
-            </div>
+              </td>
 
-            <div class="col-email">
-              {{ client.user?.email || 'Sin email' }}
-            </div>
+              <!-- 2. SSN -->
+              <td class="col-ssn">{{ client.ssn || '---' }}</td>
 
-            <div class="col-status-phase">
-              <!-- Pre-filing phase: show single pre-filing status -->
-              <ng-container *ngIf="!client.taxesFiled">
-                <span class="status-badge" [ngClass]="getPreFilingStatusClass(client.preFilingStatus)">
+              <!-- 3. Tax Filing Date -->
+              <td class="col-date">
+                <span *ngIf="client.taxesFiledAt">{{ client.taxesFiledAt | date:'dd/MM/yy' }}</span>
+                <span *ngIf="!client.taxesFiledAt" class="no-data">---</span>
+              </td>
+
+              <!-- 4. Last Review Date -->
+              <td class="col-date">
+                <span *ngIf="client.lastReviewDate">{{ client.lastReviewDate | date:'dd/MM/yy' }}</span>
+                <span *ngIf="!client.lastReviewDate" class="no-data">---</span>
+              </td>
+
+              <!-- 5. Federal Notes -->
+              <td class="col-notes">
+                <span class="notes-preview" *ngIf="client.federalLastComment" [title]="client.federalLastComment">
+                  {{ client.federalLastComment | slice:0:30 }}{{ client.federalLastComment.length > 30 ? '...' : '' }}
+                </span>
+                <span *ngIf="!client.federalLastComment" class="no-data">---</span>
+              </td>
+
+              <!-- 6. Federal Refund -->
+              <td class="col-refund">
+                <span *ngIf="client.federalActualRefund != null" class="refund-amount">
+                  ${{ client.federalActualRefund | number:'1.0-0' }}
+                </span>
+                <span *ngIf="client.federalActualRefund == null" class="no-data">---</span>
+              </td>
+
+              <!-- 7. Federal Status -->
+              <td class="col-status">
+                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.federalStatus)">
+                  {{ getTaxStatusLabel(client.federalStatus) }}
+                </span>
+                <span *ngIf="!client.taxesFiled" class="status-badge-mini" [ngClass]="getPreFilingStatusClass(client.preFilingStatus)">
                   {{ getPreFilingStatusLabel(client.preFilingStatus) }}
                 </span>
-              </ng-container>
+              </td>
 
-              <!-- Post-filing phase: show Federal and State status -->
-              <ng-container *ngIf="client.taxesFiled">
-                <div class="status-dual">
-                  <span class="status-badge status-federal" [ngClass]="getTaxStatusClass(client.federalStatus)">
-                    F: {{ getTaxStatusLabel(client.federalStatus) }}
-                  </span>
-                  <span class="status-badge status-state" [ngClass]="getTaxStatusClass(client.stateStatus)">
-                    S: {{ getTaxStatusLabel(client.stateStatus) }}
-                  </span>
-                </div>
-              </ng-container>
-            </div>
+              <!-- 8. State Notes -->
+              <td class="col-notes">
+                <span class="notes-preview" *ngIf="client.stateLastComment" [title]="client.stateLastComment">
+                  {{ client.stateLastComment | slice:0:30 }}{{ client.stateLastComment.length > 30 ? '...' : '' }}
+                </span>
+                <span *ngIf="!client.stateLastComment" class="no-data">---</span>
+              </td>
 
-            <div class="col-payment">
-              <span class="badge" [class.success]="client.paymentReceived" [class.pending]="!client.paymentReceived">
-                {{ client.paymentReceived ? '✓ Recibido' : '⏳ Pendiente' }}
-              </span>
-            </div>
+              <!-- 9. State Refund -->
+              <td class="col-refund">
+                <span *ngIf="client.stateActualRefund != null" class="refund-amount">
+                  ${{ client.stateActualRefund | number:'1.0-0' }}
+                </span>
+                <span *ngIf="client.stateActualRefund == null" class="no-data">---</span>
+              </td>
 
-            <div class="col-activity">
-              {{ client.createdAt | date:'dd/MM/yyyy' }}
-            </div>
+              <!-- 10. State Status -->
+              <td class="col-status">
+                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.stateStatus)">
+                  {{ getTaxStatusLabel(client.stateStatus) }}
+                </span>
+                <span *ngIf="!client.taxesFiled" class="no-data">---</span>
+              </td>
 
-            <div class="col-actions">
-              <button class="btn-view" (click)="viewClient(client.id); $event.stopPropagation()">
-                Ver detalles →
-              </button>
-            </div>
-          </div>
-        </div>
+              <!-- 11. Client Accounts Link -->
+              <td class="col-accounts">
+                <button class="btn-accounts" (click)="openCredentialsModal(client)" title="Ver credenciales">
+                  🔑
+                </button>
+              </td>
+
+              <!-- 12. Actions -->
+              <td class="col-actions">
+                <button class="btn-view" (click)="viewClient(client.id)">
+                  Ver →
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Empty State -->
@@ -295,4 +333,67 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- Credentials Modal -->
+<div class="modal-overlay" *ngIf="showCredentialsModal" (click)="closeCredentialsModal()">
+  <div class="modal-content credentials-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Credenciales de Cliente</h3>
+      <button class="modal-close" (click)="closeCredentialsModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedClientCredentials">
+      <p class="client-name-modal">{{ selectedClientCredentials.clientName }}</p>
+
+      <div class="credentials-section">
+        <h4>TurboTax</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.turbotaxEmail)">
+            {{ selectedClientCredentials.credentials?.turbotaxEmail || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.turbotaxPassword)">
+            {{ selectedClientCredentials.credentials?.turbotaxPassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="credentials-section">
+        <h4>IRS</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.irsUsername)">
+            {{ selectedClientCredentials.credentials?.irsUsername || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.irsPassword)">
+            {{ selectedClientCredentials.credentials?.irsPassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="credentials-section">
+        <h4>Estado</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.stateUsername)">
+            {{ selectedClientCredentials.credentials?.stateUsername || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.statePassword)">
+            {{ selectedClientCredentials.credentials?.statePassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <p class="copy-hint">Click en cualquier valor para copiar al portapapeles</p>
+    </div>
+  </div>
 </div>

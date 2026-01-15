@@ -7,7 +7,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { AdminClientListItem, TaxStatus, PreFilingStatus } from '../../core/models';
+import { AdminClientListItem, TaxStatus, PreFilingStatus, ClientCredentials } from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -51,6 +51,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     completed: 0,
     needsAttention: 0
   };
+
+  // Credentials modal
+  showCredentialsModal: boolean = false;
+  selectedClientCredentials: { clientName: string; credentials?: ClientCredentials } | null = null;
 
   // Status filter options - using new phase-based status system
   statusFilters = [
@@ -400,5 +404,31 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [TaxStatus.DEPOSITED]: 'status-completed'
     };
     return classes[status] || 'status-pending';
+  }
+
+  // ===== CREDENTIALS MODAL =====
+
+  openCredentialsModal(client: AdminClientListItem) {
+    this.selectedClientCredentials = {
+      clientName: `${client.user?.firstName || ''} ${client.user?.lastName || ''}`.trim() || 'Cliente',
+      credentials: client.credentials
+    };
+    this.showCredentialsModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeCredentialsModal() {
+    this.showCredentialsModal = false;
+    this.selectedClientCredentials = null;
+    this.cdr.detectChanges();
+  }
+
+  copyToClipboard(value: string | null | undefined) {
+    if (!value) return;
+    navigator.clipboard.writeText(value).then(() => {
+      // Optional: show a brief notification
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
   }
 }

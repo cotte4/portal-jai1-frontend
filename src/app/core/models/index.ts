@@ -271,6 +271,15 @@ export interface Notification {
 
 // ============= ADMIN =============
 
+export interface ClientCredentials {
+  turbotaxEmail: string | null;
+  turbotaxPassword: string | null;
+  irsUsername: string | null;
+  irsPassword: string | null;
+  stateUsername: string | null;
+  statePassword: string | null;
+}
+
 export interface AdminClientListItem {
   id: string;
   user: {
@@ -279,16 +288,22 @@ export interface AdminClientListItem {
     firstName: string;
     lastName: string;
   };
+  // SSN (masked)
+  ssn?: string | null;
   // Phase-based status fields
   taxesFiled?: boolean;
+  taxesFiledAt?: string | null;
   preFilingStatus?: PreFilingStatus;
   federalStatus?: TaxStatus;
   stateStatus?: TaxStatus;
-  // NEW: Status tracking
-  federalLastComment?: string;
-  stateLastComment?: string;
-  federalActualRefund?: number;
-  stateActualRefund?: number;
+  // Status tracking
+  federalLastComment?: string | null;
+  stateLastComment?: string | null;
+  federalActualRefund?: number | null;
+  stateActualRefund?: number | null;
+  lastReviewDate?: string | null;
+  // Account credentials (admin use only)
+  credentials?: ClientCredentials;
   paymentReceived: boolean;
   profileComplete: boolean;
   isDraft: boolean;
