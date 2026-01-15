@@ -9,7 +9,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { ProfileResponse, ClientStatus, Document, DocumentType, TaxStatus } from '../../core/models';
+import { ProfileResponse, Document, DocumentType, TaxStatus, PreFilingStatus } from '../../core/models';
 
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 
@@ -222,14 +222,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isSentToIRS(): boolean {
     if (!this.taxCase) return false;
-    const sentStatuses = [
-      ClientStatus.TAXES_EN_PROCESO,
-      ClientStatus.TAXES_EN_CAMINO,
-      ClientStatus.EN_VERIFICACION,
-      ClientStatus.TAXES_DEPOSITADOS,
-      ClientStatus.TAXES_FINALIZADOS
-    ];
-    return sentStatuses.includes(this.taxCase.clientStatus);
+    // Taxes are sent to IRS when taxesFiled = true
+    return this.taxCase.taxesFiled === true;
   }
 
   get isAcceptedByIRS(): boolean {
@@ -261,8 +255,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isRefundDeposited(): boolean {
     if (!this.taxCase) return false;
-    return this.taxCase.clientStatus === ClientStatus.TAXES_DEPOSITADOS ||
-           this.taxCase.clientStatus === ClientStatus.TAXES_FINALIZADOS;
+    return this.taxCase.federalStatus === TaxStatus.DEPOSITED ||
+           this.taxCase.stateStatus === TaxStatus.DEPOSITED;
   }
 
   get irsProgressPercent(): number {
@@ -284,7 +278,8 @@ export class Dashboard implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
 
-    const clientStatus = taxCase?.clientStatus || ClientStatus.ESPERANDO_DATOS;
+    const taxesFiled = taxCase?.taxesFiled || false;
+    const preFilingStatus = taxCase?.preFilingStatus;
     const federalStatus = taxCase?.federalStatus;
     const stateStatus = taxCase?.stateStatus;
     const profileComplete = profile?.profileComplete || false;
@@ -306,17 +301,10 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Step 2: Presentado al IRS
-    const submittedStatuses = [
-      ClientStatus.TAXES_EN_PROCESO,
-      ClientStatus.TAXES_EN_CAMINO,
-      ClientStatus.EN_VERIFICACION,
-      ClientStatus.TAXES_DEPOSITADOS,
-      ClientStatus.TAXES_FINALIZADOS
-    ];
-    const isSubmitted = submittedStatuses.includes(clientStatus);
+    const isSubmitted = taxesFiled === true;
 
     if (!isSubmitted) {
-      if (clientStatus === ClientStatus.CUENTA_EN_REVISION) {
+      if (preFilingStatus === PreFilingStatus.DOCUMENTATION_COMPLETE) {
         return {
           stepNumber: 2,
           totalSteps: 8,

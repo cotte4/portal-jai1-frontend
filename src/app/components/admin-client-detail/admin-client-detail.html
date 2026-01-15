@@ -50,23 +50,12 @@
           </span>
         </div>
       </div>
+      <!-- Status display - use Phase-Based Status Section below for changes -->
       <div class="status-control">
-        <label for="internalStatus">Estado Interno</label>
-        <select id="internalStatus" [(ngModel)]="selectedInternalStatus">
-          <option *ngFor="let status of internalStatusOptions" [value]="status">
-            {{ getInternalStatusLabel(status) }}
-          </option>
-        </select>
-        <label for="clientStatus">Estado Cliente</label>
-        <select id="clientStatus" [(ngModel)]="selectedClientStatus">
-          <option *ngFor="let status of clientStatusOptions" [value]="status">
-            {{ getClientStatusLabel(status) }}
-          </option>
-        </select>
-        <input type="text" [(ngModel)]="statusComment" placeholder="Comentario (opcional)">
-        <button class="btn-update-status" (click)="updateStatus()" [disabled]="isSaving">
-          {{ isSaving ? 'Guardando...' : 'Actualizar Estado' }}
-        </button>
+        <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
+        <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
+        <span class="status-info" *ngIf="selectedFederalStatus">Fed: {{ getTaxStatusLabel(selectedFederalStatus) }}</span>
+        <span class="status-info" *ngIf="selectedStateStatus">Est: {{ getTaxStatusLabel(selectedStateStatus) }}</span>
       </div>
     </div>
 
@@ -761,33 +750,10 @@
         <button class="modal-close" (click)="closeStatusConfirmModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="confirm-question">Esta seguro que desea actualizar el estado?</p>
+        <p class="confirm-question">Use los controles de estado Federal/Estatal en la seccion "Estado del Caso" para actualizar el estado.</p>
 
         <div class="status-change-preview">
-          <!-- Internal Status Change -->
-          <div class="status-change-row" *ngIf="client?.taxCases?.[0]">
-            <span class="change-label">Estado Interno:</span>
-            <div class="change-values">
-              <span class="status-badge old">{{ getInternalStatusLabel(client!.taxCases![0].internalStatus) }}</span>
-              <span class="change-arrow">→</span>
-              <span class="status-badge new">{{ getInternalStatusLabel(pendingInternalStatus!) }}</span>
-            </div>
-          </div>
-
-          <!-- Client Status Change -->
-          <div class="status-change-row" *ngIf="client?.taxCases?.[0]">
-            <span class="change-label">Estado Cliente:</span>
-            <div class="change-values">
-              <span class="status-badge old">{{ getClientStatusLabel(client!.taxCases![0].clientStatus) }}</span>
-              <span class="change-arrow">→</span>
-              <span class="status-badge new">{{ getClientStatusLabel(pendingClientStatus!) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="comment-preview" *ngIf="statusComment">
-          <span class="comment-label">Comentario:</span>
-          <span class="comment-text">"{{ statusComment }}"</span>
+          <p>Este modal ya no se utiliza. Los estados se actualizan directamente desde los controles Federal y Estatal.</p>
         </div>
       </div>
       <div class="modal-footer">

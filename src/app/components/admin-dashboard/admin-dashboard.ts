@@ -7,7 +7,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { AdminClientListItem, InternalStatus, TaxStatus, PreFilingStatus } from '../../core/models';
+import { AdminClientListItem, TaxStatus, PreFilingStatus } from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -52,7 +52,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     needsAttention: 0
   };
 
-  // Status filter options - organized by groups then individual statuses
+  // Status filter options - using new phase-based status system
   statusFilters = [
     // All
     { value: 'all', label: 'Todos', group: 'main' },
@@ -63,19 +63,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: 'group_needs_attention', label: '⚠️ Requieren Atencion (grupo)', group: 'group' },
     // Special filters
     { value: 'ready_to_present', label: '✓ Listos para Presentar', group: 'special' },
-    { value: 'incomplete', label: '⚠ Incompletos', group: 'special' },
-    { value: 'sin_asignar', label: 'Sin Asignar', group: 'special' },
-    // Individual statuses (all 10)
-    { value: InternalStatus.REVISION_DE_REGISTRO, label: 'Revision de Registro', group: 'status' },
-    { value: InternalStatus.ESPERANDO_DATOS, label: 'Esperando Datos', group: 'status' },
-    { value: InternalStatus.FALTA_DOCUMENTACION, label: 'Falta Documentacion', group: 'status' },
-    { value: InternalStatus.EN_PROCESO, label: 'En Proceso', group: 'status' },
-    { value: InternalStatus.EN_VERIFICACION, label: 'En Verificacion', group: 'status' },
-    { value: InternalStatus.RESOLVIENDO_VERIFICACION, label: 'Resolviendo Verificacion', group: 'status' },
-    { value: InternalStatus.INCONVENIENTES, label: 'Inconvenientes', group: 'status' },
-    { value: InternalStatus.CHEQUE_EN_CAMINO, label: 'Cheque en Camino', group: 'status' },
-    { value: InternalStatus.ESPERANDO_PAGO_COMISION, label: 'Esperando Pago Comision', group: 'status' },
-    { value: InternalStatus.PROCESO_FINALIZADO, label: 'Finalizado', group: 'status' }
+    { value: 'incomplete', label: '⚠ Incompletos', group: 'special' }
   ];
 
   ngOnInit() {
@@ -235,29 +223,24 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.stats.completed = 0;
     this.stats.needsAttention = 0;
 
-    // Single pass through clients for better performance
+    // Single pass through clients using new phase-based status system
     for (const client of this.allClients) {
-      const status = client.internalStatus;
+      const taxesFiled = client.taxesFiled || false;
+      const federalStatus = client.federalStatus;
+      const stateStatus = client.stateStatus;
 
-      if (!status ||
-          status === InternalStatus.ESPERANDO_DATOS ||
-          status === InternalStatus.REVISION_DE_REGISTRO) {
-        // Pending: null status (new clients), ESPERANDO_DATOS, REVISION_DE_REGISTRO
+      if (!taxesFiled) {
+        // Pending: not yet filed
         this.stats.pending++;
-      } else if (status === InternalStatus.EN_PROCESO ||
-                 status === InternalStatus.EN_VERIFICACION ||
-                 status === InternalStatus.RESOLVIENDO_VERIFICACION) {
-        // In Review: EN_PROCESO, EN_VERIFICACION, RESOLVIENDO_VERIFICACION
-        this.stats.inReview++;
-      } else if (status === InternalStatus.PROCESO_FINALIZADO ||
-                 status === InternalStatus.CHEQUE_EN_CAMINO ||
-                 status === InternalStatus.ESPERANDO_PAGO_COMISION) {
-        // Completed: PROCESO_FINALIZADO, CHEQUE_EN_CAMINO, ESPERANDO_PAGO_COMISION
+      } else if (federalStatus === TaxStatus.DEPOSITED || stateStatus === TaxStatus.DEPOSITED) {
+        // Completed: at least one deposited
         this.stats.completed++;
-      } else if (status === InternalStatus.FALTA_DOCUMENTACION ||
-                 status === InternalStatus.INCONVENIENTES) {
-        // Needs Attention: FALTA_DOCUMENTACION, INCONVENIENTES
+      } else if (federalStatus === TaxStatus.REJECTED || stateStatus === TaxStatus.REJECTED) {
+        // Needs Attention: rejected
         this.stats.needsAttention++;
+      } else {
+        // In Review: filed but not yet deposited or rejected
+        this.stats.inReview++;
       }
     }
   }
@@ -310,40 +293,15 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadSeasonStats();
   }
 
-  getStatusLabel(status: InternalStatus | null | undefined): string {
-    if (!status) return 'Sin Asignar';
-    
-    const labels: Record<InternalStatus, string> = {
-      [InternalStatus.REVISION_DE_REGISTRO]: 'Revision Registro',
-      [InternalStatus.ESPERANDO_DATOS]: 'Esperando Datos',
-      [InternalStatus.FALTA_DOCUMENTACION]: 'Falta Docs',
-      [InternalStatus.EN_PROCESO]: 'En Proceso',
-      [InternalStatus.EN_VERIFICACION]: 'Verificacion',
-      [InternalStatus.RESOLVIENDO_VERIFICACION]: 'Resolviendo',
-      [InternalStatus.INCONVENIENTES]: 'Inconvenientes',
-      [InternalStatus.CHEQUE_EN_CAMINO]: 'Cheque Camino',
-      [InternalStatus.ESPERANDO_PAGO_COMISION]: 'Esperando Pago',
-      [InternalStatus.PROCESO_FINALIZADO]: 'Finalizado'
-    };
-    return labels[status] || status;
+  // DEPRECATED: Legacy method kept for backward compatibility in templates
+  // New status system uses taxesFiled, federalStatus, stateStatus
+  getStatusLabel(status: any): string {
+    return status || 'Sin Asignar';
   }
 
-  getStatusClass(status: InternalStatus | null | undefined): string {
-    if (!status) return 'status-new';
-    
-    const classes: Record<InternalStatus, string> = {
-      [InternalStatus.REVISION_DE_REGISTRO]: 'status-pending',
-      [InternalStatus.ESPERANDO_DATOS]: 'status-pending',
-      [InternalStatus.FALTA_DOCUMENTACION]: 'status-needs-attention',
-      [InternalStatus.EN_PROCESO]: 'status-in-review',
-      [InternalStatus.EN_VERIFICACION]: 'status-in-review',
-      [InternalStatus.RESOLVIENDO_VERIFICACION]: 'status-needs-attention',
-      [InternalStatus.INCONVENIENTES]: 'status-needs-attention',
-      [InternalStatus.CHEQUE_EN_CAMINO]: 'status-approved',
-      [InternalStatus.ESPERANDO_PAGO_COMISION]: 'status-approved',
-      [InternalStatus.PROCESO_FINALIZADO]: 'status-completed'
-    };
-    return classes[status] || 'status-pending';
+  // DEPRECATED: Legacy method kept for backward compatibility in templates
+  getStatusClass(status: any): string {
+    return 'status-pending';
   }
 
   getInitials(firstName: string | undefined, lastName: string | undefined): string {

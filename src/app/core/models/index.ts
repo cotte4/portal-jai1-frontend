@@ -5,30 +5,6 @@ export enum UserRole {
   ADMIN = 'admin'
 }
 
-export enum InternalStatus {
-  REVISION_DE_REGISTRO = 'revision_de_registro',
-  ESPERANDO_DATOS = 'esperando_datos',
-  FALTA_DOCUMENTACION = 'falta_documentacion',
-  EN_PROCESO = 'en_proceso',
-  EN_VERIFICACION = 'en_verificacion',
-  RESOLVIENDO_VERIFICACION = 'resolviendo_verificacion',
-  INCONVENIENTES = 'inconvenientes',
-  CHEQUE_EN_CAMINO = 'cheque_en_camino',
-  ESPERANDO_PAGO_COMISION = 'esperando_pago_comision',
-  PROCESO_FINALIZADO = 'proceso_finalizado'
-}
-
-export enum ClientStatus {
-  ESPERANDO_DATOS = 'esperando_datos',
-  CUENTA_EN_REVISION = 'cuenta_en_revision',
-  TAXES_EN_PROCESO = 'taxes_en_proceso',
-  TAXES_EN_CAMINO = 'taxes_en_camino',
-  TAXES_DEPOSITADOS = 'taxes_depositados',
-  PAGO_REALIZADO = 'pago_realizado',
-  EN_VERIFICACION = 'en_verificacion',
-  TAXES_FINALIZADOS = 'taxes_finalizados'
-}
-
 export enum TaxStatus {
   FILED = 'filed',
   PENDING = 'pending',
@@ -181,10 +157,7 @@ export interface TaxCase {
   id: string;
   clientProfileId: string;
   taxYear: number;
-  // DEPRECATED: Use preFilingStatus + federalStatus/stateStatus instead
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
-  // NEW: Phase indicator - separates pre-filing and post-filing
+  // Phase indicator - separates pre-filing and post-filing
   taxesFiled?: boolean;
   taxesFiledAt?: string;
   // NEW: Pre-filing status (used when taxesFiled = false)
@@ -306,10 +279,7 @@ export interface AdminClientListItem {
     firstName: string;
     lastName: string;
   };
-  // DEPRECATED: Keep for backward compatibility
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
-  // NEW: Phase-based status fields
+  // Phase-based status fields
   taxesFiled?: boolean;
   preFilingStatus?: PreFilingStatus;
   federalStatus?: TaxStatus;
@@ -354,9 +324,20 @@ export interface StatusHistory {
 }
 
 export interface UpdateStatusRequest {
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
+  taxesFiled?: boolean;
+  taxesFiledAt?: string;
+  preFilingStatus?: PreFilingStatus;
+  federalStatus?: TaxStatus;
+  stateStatus?: TaxStatus;
   comment?: string;
+  federalComment?: string;
+  stateComment?: string;
+  federalEstimatedDate?: string;
+  federalActualRefund?: number;
+  federalDepositDate?: string;
+  stateEstimatedDate?: string;
+  stateActualRefund?: number;
+  stateDepositDate?: string;
 }
 
 // ============= CALCULATOR =============

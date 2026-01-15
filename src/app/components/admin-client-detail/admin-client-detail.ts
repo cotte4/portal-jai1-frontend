@@ -10,8 +10,6 @@ import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
   AdminClientDetail as ClientDetail,
-  InternalStatus,
-  ClientStatus,
   TaxStatus,
   PreFilingStatus,
   Document,
@@ -40,8 +38,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   clientId: string = '';
   client: ClientDetail | null = null;
   tickets: Ticket[] = [];
-  selectedInternalStatus: InternalStatus = InternalStatus.REVISION_DE_REGISTRO;
-  selectedClientStatus: ClientStatus = ClientStatus.ESPERANDO_DATOS;
   statusComment: string = '';
   newMessage: string = '';
   selectedTicketId: string | null = null;
@@ -60,8 +56,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   ticketSuccessMessage: string = '';
 
   // Status options
-  internalStatusOptions = Object.values(InternalStatus);
-  clientStatusOptions = Object.values(ClientStatus);
   taxStatusOptions = Object.values(TaxStatus);
   preFilingStatusOptions = Object.values(PreFilingStatus);
   problemTypeOptions = Object.values(ProblemType);
@@ -102,10 +96,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   notifyMessage: string = '';
   notifySendEmail: boolean = false;
 
-  // Status Update Confirmation
+  // Status Update Confirmation (deprecated - kept for backward compatibility)
   showStatusConfirmModal: boolean = false;
-  pendingInternalStatus: InternalStatus | null = null;
-  pendingClientStatus: ClientStatus | null = null;
 
   // Credentials visibility toggles
   showTurbotaxCredentials: boolean = false;
@@ -158,8 +150,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.client = data;
         if (data.taxCases && data.taxCases.length > 0) {
           const taxCase = data.taxCases[0];
-          this.selectedInternalStatus = taxCase.internalStatus;
-          this.selectedClientStatus = taxCase.clientStatus;
           this.hasProblem = taxCase.hasProblem || false;
           this.selectedProblemType = taxCase.problemType || null;
           this.problemDescription = taxCase.problemDescription || '';
@@ -217,59 +207,19 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     });
   }
 
-  // Status Update Confirmation Modal Methods
+  // Status Update - now uses phase-based status (preFilingStatus, federalStatus, stateStatus)
+  // Legacy methods kept for backward compatibility but no longer functional
   openStatusConfirmModal() {
-    if (!this.client?.taxCases?.[0]) return;
-
-    const currentInternalStatus = this.client.taxCases[0].internalStatus;
-    const currentClientStatus = this.client.taxCases[0].clientStatus;
-
-    // Check if status has actually changed
-    if (this.selectedInternalStatus === currentInternalStatus &&
-        this.selectedClientStatus === currentClientStatus) {
-      this.toastService.warning('No hay cambios en el estado');
-      return;
-    }
-
-    this.pendingInternalStatus = this.selectedInternalStatus;
-    this.pendingClientStatus = this.selectedClientStatus;
-    this.showStatusConfirmModal = true;
+    this.toastService.info('Use los controles de estado Federal/Estatal para actualizar el estado');
   }
 
   closeStatusConfirmModal() {
     this.showStatusConfirmModal = false;
-    this.pendingInternalStatus = null;
-    this.pendingClientStatus = null;
   }
 
   confirmStatusUpdate() {
-    if (!this.client) return;
-
-    this.isSaving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const request: UpdateStatusRequest = {
-      internalStatus: this.selectedInternalStatus,
-      clientStatus: this.selectedClientStatus,
-      comment: this.statusComment || undefined
-    };
-
-    this.adminService.updateStatus(this.clientId, request).subscribe({
-      next: () => {
-        this.statusComment = '';
-        this.isSaving = false;
-        this.showStatusConfirmModal = false;
-        this.pendingInternalStatus = null;
-        this.pendingClientStatus = null;
-        this.toastService.success('Estado actualizado correctamente');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSaving = false;
-        this.toastService.error(error.message || 'Error al actualizar estado');
-      }
-    });
+    // No longer used - status updates are done via phase-based methods
+    this.toastService.info('Use los controles de estado Federal/Estatal para actualizar el estado');
   }
 
   updateStatus() {
@@ -354,34 +304,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return this.tickets.find(t => t.id === this.selectedTicketId);
   }
 
-  getInternalStatusLabel(status: InternalStatus): string {
-    const labels: Record<InternalStatus, string> = {
-      [InternalStatus.REVISION_DE_REGISTRO]: 'Revision de Registro',
-      [InternalStatus.ESPERANDO_DATOS]: 'Esperando Datos',
-      [InternalStatus.FALTA_DOCUMENTACION]: 'Falta Documentacion',
-      [InternalStatus.EN_PROCESO]: 'En Proceso',
-      [InternalStatus.EN_VERIFICACION]: 'En Verificacion',
-      [InternalStatus.RESOLVIENDO_VERIFICACION]: 'Resolviendo Verificacion',
-      [InternalStatus.INCONVENIENTES]: 'Inconvenientes',
-      [InternalStatus.CHEQUE_EN_CAMINO]: 'Cheque en Camino',
-      [InternalStatus.ESPERANDO_PAGO_COMISION]: 'Esperando Pago Comision',
-      [InternalStatus.PROCESO_FINALIZADO]: 'Proceso Finalizado'
-    };
-    return labels[status] || status;
+  // DEPRECATED: These methods are kept for backward compatibility in templates
+  // New status system uses preFilingStatus, federalStatus, stateStatus
+  getInternalStatusLabel(status: any): string {
+    // Legacy support - return generic label
+    return status || 'Sin Estado';
   }
 
-  getClientStatusLabel(status: ClientStatus): string {
-    const labels: Record<ClientStatus, string> = {
-      [ClientStatus.ESPERANDO_DATOS]: 'Esperando Datos',
-      [ClientStatus.CUENTA_EN_REVISION]: 'Cuenta en Revision',
-      [ClientStatus.TAXES_EN_PROCESO]: 'Taxes en Proceso',
-      [ClientStatus.TAXES_EN_CAMINO]: 'Taxes en Camino',
-      [ClientStatus.TAXES_DEPOSITADOS]: 'Taxes Depositados',
-      [ClientStatus.PAGO_REALIZADO]: 'Pago Realizado',
-      [ClientStatus.EN_VERIFICACION]: 'En Verificacion',
-      [ClientStatus.TAXES_FINALIZADOS]: 'Taxes Finalizados'
-    };
-    return labels[status] || status;
+  getClientStatusLabel(status: any): string {
+    // Legacy support - return generic label
+    return status || 'Sin Estado';
   }
 
   formatFileSize(bytes: number): string {

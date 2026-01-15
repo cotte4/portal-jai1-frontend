@@ -5,8 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   AdminClientListResponse,
   AdminClientDetail,
-  UpdateStatusRequest,
-  InternalStatus
+  UpdateStatusRequest
 } from '../models';
 
 export interface SeasonStats {
@@ -58,13 +57,12 @@ export class AdminService {
 
   /**
    * Get clients with server-side filtering
-   * @param status - Can be an InternalStatus enum value, or special filter strings:
+   * @param status - Can be a special filter string:
    *   - 'group_pending', 'group_in_review', 'group_completed', 'group_needs_attention'
-   *   - 'ready_to_present', 'incomplete', 'sin_asignar'
-   *   - Individual InternalStatus values
+   *   - 'ready_to_present', 'incomplete'
    */
   getClients(
-    status?: InternalStatus | string,
+    status?: string,
     search?: string,
     cursor?: string,
     limit = 20
