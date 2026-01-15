@@ -96,8 +96,77 @@
       </div>
     </section>
 
-    <!-- Federal/State Tracking Section -->
-    <section class="federal-state-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+    <!-- Phase-Based Status Section -->
+    <section class="phase-status-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">📊</span>
+          <h2>Estado del Caso</h2>
+        </div>
+        <div class="phase-indicator" [class.filed]="taxesFiled">
+          <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
+          <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
+        </div>
+      </div>
+
+      <!-- Pre-Filing Phase UI -->
+      <div class="pre-filing-section" *ngIf="!taxesFiled">
+        <div class="pre-filing-card">
+          <div class="pre-filing-header">
+            <span class="pre-filing-icon">📝</span>
+            <h3>Estado Pre-Presentacion</h3>
+            <span class="status-badge-large" [class]="'status-' + selectedPreFilingStatus">
+              {{ getPreFilingStatusLabel(selectedPreFilingStatus) }}
+            </span>
+          </div>
+          <div class="pre-filing-body">
+            <div class="pre-filing-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedPreFilingStatus">
+                <option *ngFor="let status of preFilingStatusOptions" [ngValue]="status">
+                  {{ getPreFilingStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="pre-filing-field">
+              <label>Comentario (opcional)</label>
+              <input type="text" [(ngModel)]="preFilingComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-update-prefiling" (click)="updatePreFilingStatus()" [disabled]="isSavingPreFiling">
+              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mark-filed-card">
+          <div class="mark-filed-header">
+            <span class="mark-filed-icon">✅</span>
+            <h3>Marcar como Presentado</h3>
+          </div>
+          <div class="mark-filed-body">
+            <p class="mark-filed-description">
+              Cuando los taxes hayan sido presentados al IRS, marque esta casilla e ingrese la fecha.
+            </p>
+            <div class="mark-filed-field">
+              <label>Fecha de Presentacion</label>
+              <input type="date" [(ngModel)]="taxesFiledAt">
+            </div>
+            <button class="btn-mark-filed" (click)="markTaxesAsFiled()" [disabled]="isMarkingFiled || !taxesFiledAt">
+              {{ isMarkingFiled ? 'Procesando...' : 'Marcar Taxes como Presentados' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filed Date Display (when already filed) -->
+      <div class="filed-info" *ngIf="taxesFiled && taxesFiledAt">
+        <span class="filed-icon">📅</span>
+        <span class="filed-text">Presentado el {{ taxesFiledAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </section>
+
+    <!-- Federal/State Tracking Section (only show when taxesFiled) -->
+    <section class="federal-state-section" *ngIf="client.taxCases && client.taxCases.length > 0 && taxesFiled">
       <div class="section-header">
         <div class="section-title">
           <span class="section-icon">🏛️</span>
@@ -137,7 +206,11 @@
               <label>Fecha Deposito</label>
               <input type="date" [(ngModel)]="federalDepositDate">
             </div>
-            <button class="btn-track-update" (click)="updateFederalStatus()" [disabled]="isSavingFederalState">
+            <div class="track-field full-width">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederalState">
               {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
           </div>
@@ -174,7 +247,11 @@
               <label>Fecha Deposito</label>
               <input type="date" [(ngModel)]="stateDepositDate">
             </div>
-            <button class="btn-track-update" (click)="updateStateStatus()" [disabled]="isSavingFederalState">
+            <div class="track-field full-width">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingFederalState">
               {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal' }}
             </button>
           </div>
@@ -294,6 +371,102 @@
                   <span class="info-value">{{ client.profile.bank.accountNumber || 'No proporcionado' }}</span>
                 </div>
               </div>
+            </div>
+
+            <!-- Client Accounts (Credentials) -->
+            <div class="form-group-preview accounts-section">
+              <h3>
+                <span class="section-icon-small">🔐</span>
+                Cuentas del Cliente
+              </h3>
+              <div class="accounts-grid">
+                <!-- TurboTax -->
+                <div class="account-card turbotax-card">
+                  <div class="account-header">
+                    <span class="account-icon">📊</span>
+                    <span class="account-name">TurboTax</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.turbotaxEmail || client.profile.turbotaxPassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Email</span>
+                      <span class="credential-value" [class.masked]="!showTurbotaxCredentials">
+                        {{ showTurbotaxCredentials ? (client.profile.turbotaxEmail || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showTurbotaxCredentials">
+                        {{ showTurbotaxCredentials ? (client.profile.turbotaxPassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleTurbotaxCredentials()">
+                      {{ showTurbotaxCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.turbotaxEmail && !client.profile.turbotaxPassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+
+                <!-- IRS -->
+                <div class="account-card irs-card">
+                  <div class="account-header">
+                    <span class="account-icon">🏛️</span>
+                    <span class="account-name">IRS</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.irsUsername || client.profile.irsPassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Usuario</span>
+                      <span class="credential-value" [class.masked]="!showIrsCredentials">
+                        {{ showIrsCredentials ? (client.profile.irsUsername || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showIrsCredentials">
+                        {{ showIrsCredentials ? (client.profile.irsPassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleIrsCredentials()">
+                      {{ showIrsCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.irsUsername && !client.profile.irsPassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+
+                <!-- State -->
+                <div class="account-card state-card">
+                  <div class="account-header">
+                    <span class="account-icon">🗽</span>
+                    <span class="account-name">Estado</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.stateUsername || client.profile.statePassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Usuario</span>
+                      <span class="credential-value" [class.masked]="!showStateCredentials">
+                        {{ showStateCredentials ? (client.profile.stateUsername || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showStateCredentials">
+                        {{ showStateCredentials ? (client.profile.statePassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleStateCredentials()">
+                      {{ showStateCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.stateUsername && !client.profile.statePassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-edit-credentials" (click)="openCredentialsModal()">
+                Editar Credenciales
+              </button>
             </div>
 
             <!-- Tax Case Info -->
@@ -575,6 +748,116 @@
           [disabled]="isSaving || !notifyTitle.trim() || !notifyMessage.trim()"
         >
           {{ isSaving ? 'Enviando...' : 'Enviar Notificacion' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Update Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showStatusConfirmModal" (click)="closeStatusConfirmModal()">
+    <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Cambio de Estado</h3>
+        <button class="modal-close" (click)="closeStatusConfirmModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">Esta seguro que desea actualizar el estado?</p>
+
+        <div class="status-change-preview">
+          <!-- Internal Status Change -->
+          <div class="status-change-row" *ngIf="client?.taxCases?.[0]">
+            <span class="change-label">Estado Interno:</span>
+            <div class="change-values">
+              <span class="status-badge old">{{ getInternalStatusLabel(client!.taxCases![0].internalStatus) }}</span>
+              <span class="change-arrow">→</span>
+              <span class="status-badge new">{{ getInternalStatusLabel(pendingInternalStatus!) }}</span>
+            </div>
+          </div>
+
+          <!-- Client Status Change -->
+          <div class="status-change-row" *ngIf="client?.taxCases?.[0]">
+            <span class="change-label">Estado Cliente:</span>
+            <div class="change-values">
+              <span class="status-badge old">{{ getClientStatusLabel(client!.taxCases![0].clientStatus) }}</span>
+              <span class="change-arrow">→</span>
+              <span class="status-badge new">{{ getClientStatusLabel(pendingClientStatus!) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comment-preview" *ngIf="statusComment">
+          <span class="comment-label">Comentario:</span>
+          <span class="comment-text">"{{ statusComment }}"</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeStatusConfirmModal()">Cancelar</button>
+        <button
+          class="btn-save"
+          (click)="confirmStatusUpdate()"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? 'Actualizando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credentials Edit Modal -->
+  <div class="modal-overlay" *ngIf="showCredentialsModal" (click)="closeCredentialsModal()">
+    <div class="modal-content modal-credentials" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Credenciales del Cliente</h3>
+        <button class="modal-close" (click)="closeCredentialsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- TurboTax -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">📊</span> TurboTax</h4>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="text" [(ngModel)]="editTurbotaxEmail" placeholder="Email de TurboTax">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editTurbotaxPassword" placeholder="Password de TurboTax">
+          </div>
+        </div>
+
+        <!-- IRS -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">🏛️</span> IRS</h4>
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" [(ngModel)]="editIrsUsername" placeholder="Usuario del IRS">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editIrsPassword" placeholder="Password del IRS">
+          </div>
+        </div>
+
+        <!-- State -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">🗽</span> Estado</h4>
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" [(ngModel)]="editStateUsername" placeholder="Usuario del Estado">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editStatePassword" placeholder="Password del Estado">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeCredentialsModal()">Cancelar</button>
+        <button
+          class="btn-save"
+          (click)="saveCredentials()"
+          [disabled]="isSavingCredentials"
+        >
+          {{ isSavingCredentials ? 'Guardando...' : 'Guardar Credenciales' }}
         </button>
       </div>
     </div>

@@ -1,0 +1,183 @@
+<div class="admin-container">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn-back" (click)="goBack()">
+          <span class="back-arrow">&#8592;</span>
+          Volver
+        </button>
+        <div class="logo">JAI1</div>
+        <span class="admin-badge">Cuentas</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-toggle-passwords" (click)="togglePasswords()">
+          <span *ngIf="!showPasswords">Mostrar Passwords</span>
+          <span *ngIf="showPasswords">Ocultar Passwords</span>
+        </button>
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Actualizar</span>
+          <span *ngIf="isLoading">Cargando...</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div>
+        <h1>Cuentas de Clientes</h1>
+        <p>Credenciales de TurboTax, IRS y Estado</p>
+      </div>
+      <div class="total-badge" *ngIf="hasLoaded && !errorMessage">
+        <span class="total-count">{{ filteredAccounts.length }}</span>
+        <span class="total-label">Clientes</span>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar" *ngIf="hasLoaded && !errorMessage">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nombre o email..."
+        [(ngModel)]="searchQuery"
+        (input)="filterAccounts()"
+      />
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-banner" *ngIf="errorMessage">
+      <div class="error-content">
+        <span class="error-icon">!</span>
+        <span class="error-message">{{ errorMessage }}</span>
+      </div>
+      <button class="btn-retry" (click)="refreshData()">Reintentar</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading && !hasLoaded">
+      <div class="spinner"></div>
+      <p>Cargando cuentas...</p>
+    </div>
+
+    <!-- Accounts Table -->
+    <div class="accounts-section" *ngIf="hasLoaded && !errorMessage">
+      <div class="table-container">
+        <table class="accounts-table" *ngIf="filteredAccounts.length > 0">
+          <thead>
+            <tr>
+              <th class="col-name">Nombre</th>
+              <th class="col-turbotax">TurboTax Email</th>
+              <th class="col-turbotax">TurboTax Password</th>
+              <th class="col-irs">IRS Username</th>
+              <th class="col-irs">IRS Password</th>
+              <th class="col-state">State Username</th>
+              <th class="col-state">State Password</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let account of filteredAccounts">
+              <td class="col-name">
+                <div class="user-info">
+                  <div class="user-avatar">{{ getInitials(account.name) }}</div>
+                  <div class="user-details">
+                    <span class="user-name">{{ account.name || '-' }}</span>
+                    <span class="user-email">{{ account.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="col-turbotax">
+                <div
+                  class="credential-cell"
+                  [class.clickable]="account.turbotaxEmail"
+                  [class.copied]="copiedField === account.id + '-ttEmail'"
+                  (click)="copyToClipboard(account.turbotaxEmail, account.id + '-ttEmail')"
+                  [title]="account.turbotaxEmail ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ getDisplayValue(account.turbotaxEmail) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-ttEmail'">Copiado</span>
+                </div>
+              </td>
+              <td class="col-turbotax">
+                <div
+                  class="credential-cell password-cell"
+                  [class.clickable]="account.turbotaxPassword"
+                  [class.copied]="copiedField === account.id + '-ttPass'"
+                  (click)="copyToClipboard(account.turbotaxPassword, account.id + '-ttPass')"
+                  [title]="account.turbotaxPassword ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ maskPassword(account.turbotaxPassword) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-ttPass'">Copiado</span>
+                </div>
+              </td>
+              <td class="col-irs">
+                <div
+                  class="credential-cell"
+                  [class.clickable]="account.irsUsername"
+                  [class.copied]="copiedField === account.id + '-irsUser'"
+                  (click)="copyToClipboard(account.irsUsername, account.id + '-irsUser')"
+                  [title]="account.irsUsername ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ getDisplayValue(account.irsUsername) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-irsUser'">Copiado</span>
+                </div>
+              </td>
+              <td class="col-irs">
+                <div
+                  class="credential-cell password-cell"
+                  [class.clickable]="account.irsPassword"
+                  [class.copied]="copiedField === account.id + '-irsPass'"
+                  (click)="copyToClipboard(account.irsPassword, account.id + '-irsPass')"
+                  [title]="account.irsPassword ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ maskPassword(account.irsPassword) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-irsPass'">Copiado</span>
+                </div>
+              </td>
+              <td class="col-state">
+                <div
+                  class="credential-cell"
+                  [class.clickable]="account.stateUsername"
+                  [class.copied]="copiedField === account.id + '-stateUser'"
+                  (click)="copyToClipboard(account.stateUsername, account.id + '-stateUser')"
+                  [title]="account.stateUsername ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ getDisplayValue(account.stateUsername) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-stateUser'">Copiado</span>
+                </div>
+              </td>
+              <td class="col-state">
+                <div
+                  class="credential-cell password-cell"
+                  [class.clickable]="account.statePassword"
+                  [class.copied]="copiedField === account.id + '-statePass'"
+                  (click)="copyToClipboard(account.statePassword, account.id + '-statePass')"
+                  [title]="account.statePassword ? 'Click para copiar' : ''"
+                >
+                  <span class="credential-value">{{ maskPassword(account.statePassword) }}</span>
+                  <span class="copy-indicator" *ngIf="copiedField === account.id + '-statePass'">Copiado</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="filteredAccounts.length === 0 && accounts.length > 0">
+          <div class="empty-icon">&#128269;</div>
+          <h3>Sin resultados</h3>
+          <p>No se encontraron clientes con "{{ searchQuery }}"</p>
+        </div>
+
+        <div class="empty-state" *ngIf="accounts.length === 0">
+          <div class="empty-icon">&#128101;</div>
+          <h3>No hay clientes aun</h3>
+          <p>Cuando los clientes completen su registro, apareceran aqui</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

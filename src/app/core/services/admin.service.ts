@@ -9,6 +9,46 @@ import {
   InternalStatus
 } from '../models';
 
+export interface SeasonStats {
+  totalClients: number;
+  taxesCompletedPercent: number;
+  projectedEarnings: number;
+  earningsToDate: number;
+}
+
+export interface PaymentClient {
+  id: string;
+  name: string;
+  email: string;
+  federalTaxes: number;
+  stateTaxes: number;
+  totalTaxes: number;
+  federalCommission: number;
+  stateCommission: number;
+  totalCommission: number;
+  clientReceives: number;
+  federalDepositDate: string | null;
+  stateDepositDate: string | null;
+  paymentReceived: boolean;
+  commissionPaid: boolean;
+}
+
+export interface PaymentsTotals {
+  federalTaxes: number;
+  stateTaxes: number;
+  totalTaxes: number;
+  federalCommission: number;
+  stateCommission: number;
+  totalCommission: number;
+  clientReceives: number;
+}
+
+export interface PaymentsSummaryResponse {
+  clients: PaymentClient[];
+  totals: PaymentsTotals;
+  clientCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,8 +56,15 @@ export class AdminService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
+  /**
+   * Get clients with server-side filtering
+   * @param status - Can be an InternalStatus enum value, or special filter strings:
+   *   - 'group_pending', 'group_in_review', 'group_completed', 'group_needs_attention'
+   *   - 'ready_to_present', 'incomplete', 'sin_asignar'
+   *   - Individual InternalStatus values
+   */
   getClients(
-    status?: InternalStatus,
+    status?: InternalStatus | string,
     search?: string,
     cursor?: string,
     limit = 20
@@ -77,6 +124,18 @@ export class AdminService {
     return this.http.get(`${this.apiUrl}/admin/clients/export`, {
       responseType: 'blob'
     }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getSeasonStats(): Observable<SeasonStats> {
+    return this.http.get<SeasonStats>(`${this.apiUrl}/admin/stats/season`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getPaymentsSummary(): Observable<PaymentsSummaryResponse> {
+    return this.http.get<PaymentsSummaryResponse>(`${this.apiUrl}/admin/payments`).pipe(
       catchError(this.handleError)
     );
   }

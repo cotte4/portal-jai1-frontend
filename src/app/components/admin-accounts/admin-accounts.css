@@ -1,0 +1,509 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.admin-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+/* Header */
+.admin-header {
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 2px solid #e0e0e0;
+  color: #666;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  border-color: #1D345D;
+  color: #1D345D;
+}
+
+.back-arrow {
+  font-size: 18px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+.admin-badge {
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-toggle-passwords {
+  background: #f0f0f0;
+  color: #666;
+  padding: 10px 20px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-toggle-passwords:hover {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.btn-refresh {
+  background: #2196f3;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.btn-refresh:disabled {
+  background: #90caf9;
+  cursor: not-allowed;
+}
+
+/* Main Content */
+.admin-main {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  color: #1D345D;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.total-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
+}
+
+.total-count {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.total-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  opacity: 0.9;
+}
+
+/* Search Bar */
+.search-bar {
+  margin-bottom: 24px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 20px;
+  font-size: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.search-input:focus {
+  border-color: #1D345D;
+  box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+/* Error Banner */
+.error-banner {
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-icon {
+  width: 28px;
+  height: 28px;
+  background: #c62828;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.error-message {
+  color: #c62828;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-retry {
+  background: #c62828;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-retry:hover {
+  background: #b71c1c;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f0f0f0;
+  border-top-color: #1D345D;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #666;
+  font-size: 16px;
+}
+
+/* Accounts Section */
+.accounts-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+/* Table */
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.accounts-table thead {
+  background: #f8f9fa;
+}
+
+.accounts-table th {
+  padding: 16px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.accounts-table tbody tr {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.accounts-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.accounts-table td {
+  padding: 16px 12px;
+  vertical-align: middle;
+}
+
+/* Column widths */
+.col-name {
+  min-width: 220px;
+}
+
+.col-turbotax,
+.col-irs,
+.col-state {
+  min-width: 140px;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Credential Cell */
+.credential-cell {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 160px;
+}
+
+.credential-cell.clickable {
+  cursor: pointer;
+}
+
+.credential-cell.clickable:hover {
+  background: #e8f0ff;
+  transform: translateY(-1px);
+}
+
+.credential-cell.copied {
+  background: #e8f5e9;
+}
+
+.credential-value {
+  font-size: 13px;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.password-cell .credential-value {
+  letter-spacing: 1px;
+}
+
+.copy-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #4caf50;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+}
+
+.empty-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.empty-state h3 {
+  color: #1D345D;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.empty-state p {
+  color: #999;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-left {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 16px;
+  }
+
+  .accounts-section {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+}

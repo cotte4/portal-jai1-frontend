@@ -30,11 +30,19 @@ export enum ClientStatus {
 }
 
 export enum TaxStatus {
+  FILED = 'filed',
   PENDING = 'pending',
   PROCESSING = 'processing',
   APPROVED = 'approved',
   REJECTED = 'rejected',
   DEPOSITED = 'deposited'
+}
+
+// NEW: Pre-filing workflow status (before taxes are filed)
+export enum PreFilingStatus {
+  AWAITING_REGISTRATION = 'awaiting_registration',
+  AWAITING_DOCUMENTS = 'awaiting_documents',
+  DOCUMENTATION_COMPLETE = 'documentation_complete'
 }
 
 export enum DocumentType {
@@ -137,6 +145,12 @@ export interface ClientProfile {
   employerName?: string;
   turbotaxEmail?: string;
   turbotaxPassword?: string;
+  // IRS account credentials (admin-only view)
+  irsUsername?: string;
+  irsPassword?: string;
+  // State account credentials (admin-only view)
+  stateUsername?: string;
+  statePassword?: string;
   profileComplete: boolean;
   isDraft: boolean;
   createdAt: string;
@@ -167,17 +181,21 @@ export interface TaxCase {
   id: string;
   clientProfileId: string;
   taxYear: number;
+  // DEPRECATED: Use preFilingStatus + federalStatus/stateStatus instead
   internalStatus: InternalStatus;
   clientStatus: ClientStatus;
+  // NEW: Phase indicator - separates pre-filing and post-filing
+  taxesFiled?: boolean;
+  taxesFiledAt?: string;
+  // NEW: Pre-filing status (used when taxesFiled = false)
+  preFilingStatus?: PreFilingStatus;
+  // Federal/State status (used when taxesFiled = true)
   federalStatus?: TaxStatus;
   stateStatus?: TaxStatus;
   estimatedRefund?: number;
-  // DEPRECATED: Use federalActualRefund + stateActualRefund instead (Phase 7 removal)
-  /** @deprecated Use federalActualRefund + stateActualRefund */
-  actualRefund?: number;
-  // DEPRECATED: Use federalDepositDate or stateDepositDate instead (Phase 7 removal)
-  /** @deprecated Use federalDepositDate or stateDepositDate */
-  refundDepositDate?: string;
+  // Computed fields (for backward compatibility - derived from federal/state)
+  actualRefund?: number; // federalActualRefund + stateActualRefund
+  refundDepositDate?: string; // federalDepositDate || stateDepositDate
   // Separate federal/state tracking (SOURCE OF TRUTH)
   federalEstimatedDate?: string;
   stateEstimatedDate?: string;
@@ -185,6 +203,14 @@ export interface TaxCase {
   stateActualRefund?: number;
   federalDepositDate?: string;
   stateDepositDate?: string;
+  // NEW: Federal status tracking
+  federalLastComment?: string;
+  federalStatusChangedAt?: string;
+  federalLastReviewedAt?: string;
+  // NEW: State status tracking
+  stateLastComment?: string;
+  stateStatusChangedAt?: string;
+  stateLastReviewedAt?: string;
   // Year-specific employment and banking
   workState?: string;
   employerName?: string;
@@ -280,8 +306,19 @@ export interface AdminClientListItem {
     firstName: string;
     lastName: string;
   };
+  // DEPRECATED: Keep for backward compatibility
   internalStatus: InternalStatus;
   clientStatus: ClientStatus;
+  // NEW: Phase-based status fields
+  taxesFiled?: boolean;
+  preFilingStatus?: PreFilingStatus;
+  federalStatus?: TaxStatus;
+  stateStatus?: TaxStatus;
+  // NEW: Status tracking
+  federalLastComment?: string;
+  stateLastComment?: string;
+  federalActualRefund?: number;
+  stateActualRefund?: number;
   paymentReceived: boolean;
   profileComplete: boolean;
   isDraft: boolean;

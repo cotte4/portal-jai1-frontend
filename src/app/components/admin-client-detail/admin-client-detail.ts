@@ -13,6 +13,7 @@ import {
   InternalStatus,
   ClientStatus,
   TaxStatus,
+  PreFilingStatus,
   Document,
   Ticket,
   UpdateStatusRequest,
@@ -62,7 +63,18 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   internalStatusOptions = Object.values(InternalStatus);
   clientStatusOptions = Object.values(ClientStatus);
   taxStatusOptions = Object.values(TaxStatus);
+  preFilingStatusOptions = Object.values(PreFilingStatus);
   problemTypeOptions = Object.values(ProblemType);
+
+  // NEW: Phase-based status tracking
+  taxesFiled: boolean = false;
+  taxesFiledAt: string = '';
+  selectedPreFilingStatus: PreFilingStatus = PreFilingStatus.AWAITING_REGISTRATION;
+  preFilingComment: string = '';
+  isSavingPreFiling: boolean = false;
+  isMarkingFiled: boolean = false;
+  federalComment: string = '';
+  stateComment: string = '';
 
   // Federal/State tracking
   selectedFederalStatus: TaxStatus | null = null;
@@ -89,6 +101,26 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   notifyTitle: string = '';
   notifyMessage: string = '';
   notifySendEmail: boolean = false;
+
+  // Status Update Confirmation
+  showStatusConfirmModal: boolean = false;
+  pendingInternalStatus: InternalStatus | null = null;
+  pendingClientStatus: ClientStatus | null = null;
+
+  // Credentials visibility toggles
+  showTurbotaxCredentials: boolean = false;
+  showIrsCredentials: boolean = false;
+  showStateCredentials: boolean = false;
+
+  // Credentials edit modal
+  showCredentialsModal: boolean = false;
+  isSavingCredentials: boolean = false;
+  editTurbotaxEmail: string = '';
+  editTurbotaxPassword: string = '';
+  editIrsUsername: string = '';
+  editIrsPassword: string = '';
+  editStateUsername: string = '';
+  editStatePassword: string = '';
 
   ngOnInit() {
     this.clientId = this.route.snapshot.params['id'];
@@ -131,6 +163,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.hasProblem = taxCase.hasProblem || false;
           this.selectedProblemType = taxCase.problemType || null;
           this.problemDescription = taxCase.problemDescription || '';
+          // Load phase-based status data
+          this.taxesFiled = taxCase.taxesFiled || false;
+          this.taxesFiledAt = taxCase.taxesFiledAt ? this.formatDateForInput(taxCase.taxesFiledAt) : '';
+          this.selectedPreFilingStatus = taxCase.preFilingStatus || PreFilingStatus.AWAITING_REGISTRATION;
           // Load federal/state tracking data
           this.selectedFederalStatus = taxCase.federalStatus || null;
           this.selectedStateStatus = taxCase.stateStatus || null;
@@ -140,6 +176,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.stateActualRefund = taxCase.stateActualRefund || null;
           this.federalDepositDate = taxCase.federalDepositDate ? this.formatDateForInput(taxCase.federalDepositDate) : '';
           this.stateDepositDate = taxCase.stateDepositDate ? this.formatDateForInput(taxCase.stateDepositDate) : '';
+          // Load comment fields
+          this.federalComment = '';
+          this.stateComment = '';
+          this.preFilingComment = '';
         }
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -177,7 +217,32 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     });
   }
 
-  updateStatus() {
+  // Status Update Confirmation Modal Methods
+  openStatusConfirmModal() {
+    if (!this.client?.taxCases?.[0]) return;
+
+    const currentInternalStatus = this.client.taxCases[0].internalStatus;
+    const currentClientStatus = this.client.taxCases[0].clientStatus;
+
+    // Check if status has actually changed
+    if (this.selectedInternalStatus === currentInternalStatus &&
+        this.selectedClientStatus === currentClientStatus) {
+      this.toastService.warning('No hay cambios en el estado');
+      return;
+    }
+
+    this.pendingInternalStatus = this.selectedInternalStatus;
+    this.pendingClientStatus = this.selectedClientStatus;
+    this.showStatusConfirmModal = true;
+  }
+
+  closeStatusConfirmModal() {
+    this.showStatusConfirmModal = false;
+    this.pendingInternalStatus = null;
+    this.pendingClientStatus = null;
+  }
+
+  confirmStatusUpdate() {
     if (!this.client) return;
 
     this.isSaving = true;
@@ -194,6 +259,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       next: () => {
         this.statusComment = '';
         this.isSaving = false;
+        this.showStatusConfirmModal = false;
+        this.pendingInternalStatus = null;
+        this.pendingClientStatus = null;
         this.toastService.success('Estado actualizado correctamente');
         this.loadClientData();
       },
@@ -202,6 +270,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.toastService.error(error.message || 'Error al actualizar estado');
       }
     });
+  }
+
+  updateStatus() {
+    this.openStatusConfirmModal();
   }
 
   markPaid() {
@@ -472,6 +544,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   getTaxStatusLabel(status: TaxStatus | null): string {
     if (!status) return 'Sin estado';
     const labels: Record<TaxStatus, string> = {
+      [TaxStatus.FILED]: 'Presentado',
       [TaxStatus.PENDING]: 'Pendiente',
       [TaxStatus.PROCESSING]: 'En Proceso',
       [TaxStatus.APPROVED]: 'Aprobado',
@@ -593,6 +666,220 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
         this.isSavingFederalState = false;
+        this.toastService.success('Estado Estatal actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        this.toastService.error(error.message || 'Error al actualizar estado estatal');
+      }
+    });
+  }
+
+  // Credentials toggle methods
+  toggleTurbotaxCredentials() {
+    this.showTurbotaxCredentials = !this.showTurbotaxCredentials;
+  }
+
+  toggleIrsCredentials() {
+    this.showIrsCredentials = !this.showIrsCredentials;
+  }
+
+  toggleStateCredentials() {
+    this.showStateCredentials = !this.showStateCredentials;
+  }
+
+  // Credentials modal methods
+  openCredentialsModal() {
+    if (this.client?.profile) {
+      this.editTurbotaxEmail = this.client.profile.turbotaxEmail || '';
+      this.editTurbotaxPassword = this.client.profile.turbotaxPassword || '';
+      this.editIrsUsername = this.client.profile.irsUsername || '';
+      this.editIrsPassword = this.client.profile.irsPassword || '';
+      this.editStateUsername = this.client.profile.stateUsername || '';
+      this.editStatePassword = this.client.profile.statePassword || '';
+    }
+    this.showCredentialsModal = true;
+  }
+
+  closeCredentialsModal() {
+    this.showCredentialsModal = false;
+  }
+
+  saveCredentials() {
+    if (!this.client) return;
+
+    this.isSavingCredentials = true;
+
+    const updateData: any = {};
+
+    // Only include fields that have values (send empty string to clear)
+    if (this.editTurbotaxEmail !== (this.client.profile?.turbotaxEmail || '')) {
+      updateData.turbotaxEmail = this.editTurbotaxEmail || null;
+    }
+    if (this.editTurbotaxPassword !== (this.client.profile?.turbotaxPassword || '')) {
+      updateData.turbotaxPassword = this.editTurbotaxPassword || null;
+    }
+    if (this.editIrsUsername !== (this.client.profile?.irsUsername || '')) {
+      updateData.irsUsername = this.editIrsUsername || null;
+    }
+    if (this.editIrsPassword !== (this.client.profile?.irsPassword || '')) {
+      updateData.irsPassword = this.editIrsPassword || null;
+    }
+    if (this.editStateUsername !== (this.client.profile?.stateUsername || '')) {
+      updateData.stateUsername = this.editStateUsername || null;
+    }
+    if (this.editStatePassword !== (this.client.profile?.statePassword || '')) {
+      updateData.statePassword = this.editStatePassword || null;
+    }
+
+    // If no changes, close modal
+    if (Object.keys(updateData).length === 0) {
+      this.isSavingCredentials = false;
+      this.showCredentialsModal = false;
+      this.toastService.info('No hay cambios que guardar');
+      return;
+    }
+
+    this.adminService.updateClient(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingCredentials = false;
+        this.showCredentialsModal = false;
+        this.toastService.success('Credenciales actualizadas correctamente');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingCredentials = false;
+        this.toastService.error(error.message || 'Error al guardar credenciales');
+      }
+    });
+  }
+
+  // ===== PHASE-BASED STATUS METHODS =====
+
+  getPreFilingStatusLabel(status: PreFilingStatus | null): string {
+    if (!status) return 'Sin estado';
+    const labels: Record<PreFilingStatus, string> = {
+      [PreFilingStatus.AWAITING_REGISTRATION]: 'Esperando Registro',
+      [PreFilingStatus.AWAITING_DOCUMENTS]: 'Esperando Documentos',
+      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'Documentacion Completa'
+    };
+    return labels[status] || status;
+  }
+
+  updatePreFilingStatus() {
+    this.isSavingPreFiling = true;
+    const updateData: any = {
+      preFilingStatus: this.selectedPreFilingStatus
+    };
+
+    if (this.preFilingComment) {
+      updateData.comment = this.preFilingComment;
+    }
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingPreFiling = false;
+        this.preFilingComment = '';
+        this.toastService.success('Estado pre-presentacion actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingPreFiling = false;
+        this.toastService.error(error.message || 'Error al actualizar estado');
+      }
+    });
+  }
+
+  markTaxesAsFiled() {
+    if (!this.taxesFiledAt) {
+      this.toastService.warning('Por favor seleccione la fecha de presentacion');
+      return;
+    }
+
+    this.isMarkingFiled = true;
+    const updateData: any = {
+      taxesFiled: true,
+      taxesFiledAt: this.taxesFiledAt,
+      // Set initial federal/state status to 'filed'
+      federalStatus: TaxStatus.FILED,
+      stateStatus: TaxStatus.FILED
+    };
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isMarkingFiled = false;
+        this.taxesFiled = true;
+        this.toastService.success('Taxes marcados como presentados');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isMarkingFiled = false;
+        this.toastService.error(error.message || 'Error al marcar como presentados');
+      }
+    });
+  }
+
+  // Updated federal status with comment
+  updateFederalStatusWithComment() {
+    this.isSavingFederalState = true;
+    const updateData: any = {};
+
+    if (this.selectedFederalStatus) {
+      updateData.federalStatus = this.selectedFederalStatus;
+    }
+    if (this.federalEstimatedDate) {
+      updateData.federalEstimatedDate = this.federalEstimatedDate;
+    }
+    if (this.federalActualRefund !== null) {
+      updateData.federalActualRefund = this.federalActualRefund;
+    }
+    if (this.federalDepositDate) {
+      updateData.federalDepositDate = this.federalDepositDate;
+    }
+    if (this.federalComment) {
+      updateData.federalComment = this.federalComment;
+    }
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.federalComment = '';
+        this.toastService.success('Estado Federal actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        this.toastService.error(error.message || 'Error al actualizar estado federal');
+      }
+    });
+  }
+
+  // Updated state status with comment
+  updateStateStatusWithComment() {
+    this.isSavingFederalState = true;
+    const updateData: any = {};
+
+    if (this.selectedStateStatus) {
+      updateData.stateStatus = this.selectedStateStatus;
+    }
+    if (this.stateEstimatedDate) {
+      updateData.stateEstimatedDate = this.stateEstimatedDate;
+    }
+    if (this.stateActualRefund !== null) {
+      updateData.stateActualRefund = this.stateActualRefund;
+    }
+    if (this.stateDepositDate) {
+      updateData.stateDepositDate = this.stateDepositDate;
+    }
+    if (this.stateComment) {
+      updateData.stateComment = this.stateComment;
+    }
+
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.stateComment = '';
         this.toastService.success('Estado Estatal actualizado');
         this.loadClientData();
       },

@@ -11,6 +11,7 @@ import { authGuard } from './guards/auth-guard';
 import { adminGuard } from './guards/admin-guard';
 import { AdminDashboard } from './components/admin-dashboard/admin-dashboard';
 import { AdminClientDetail } from './components/admin-client-detail/admin-client-detail';
+import { AdminTickets } from './components/admin-tickets/admin-tickets';
 import { UserMessages } from './components/user-messages/user-messages';
 import { ForgotPassword } from './components/forgot-password/forgot-password';
 import { ResetPassword } from './components/reset-password/reset-password';
@@ -45,6 +46,30 @@ export const routes: Routes = [
   {
   path: 'admin/client/:id',
   component: AdminClientDetail,
+  canActivate: [adminGuard]
+  },
+
+  {
+  path: 'admin/referrals',
+  loadComponent: () => import('./components/admin-referrals/admin-referrals').then(m => m.AdminReferrals),
+  canActivate: [adminGuard]
+  },
+
+  {
+  path: 'admin/accounts',
+  loadComponent: () => import('./components/admin-accounts/admin-accounts').then(m => m.AdminAccounts),
+  canActivate: [adminGuard]
+  },
+
+  {
+  path: 'admin/tickets',
+  component: AdminTickets,
+  canActivate: [adminGuard]
+  },
+
+  {
+  path: 'admin/payments',
+  loadComponent: () => import('./components/admin-payments/admin-payments').then(m => m.AdminPayments),
   canActivate: [adminGuard]
   },
 

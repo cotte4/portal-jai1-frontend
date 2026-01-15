@@ -1,0 +1,114 @@
+<div class="admin-container">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn-back" (click)="goBack()">
+          <span class="back-arrow">&#8592;</span>
+          Volver
+        </button>
+        <div class="logo">JAI1</div>
+        <span class="admin-badge">Referidos</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Actualizar</span>
+          <span *ngIf="isLoading">Cargando...</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div>
+        <h1>Programa de Referidos</h1>
+        <p>Resumen de referidores y descuentos ganados</p>
+      </div>
+      <div class="total-badge" *ngIf="hasLoaded && !errorMessage">
+        <span class="total-count">{{ total }}</span>
+        <span class="total-label">Referidores</span>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-banner" *ngIf="errorMessage">
+      <div class="error-content">
+        <span class="error-icon">!</span>
+        <span class="error-message">{{ errorMessage }}</span>
+      </div>
+      <button class="btn-retry" (click)="refreshData()">Reintentar</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading && !hasLoaded">
+      <div class="spinner"></div>
+      <p>Cargando referidos...</p>
+    </div>
+
+    <!-- Referrals Table -->
+    <div class="referrals-section" *ngIf="hasLoaded && !errorMessage">
+      <div class="section-header">
+        <h2>Lista de Referidores</h2>
+      </div>
+
+      <div class="referrals-table" *ngIf="referrers.length > 0">
+        <div class="table-header">
+          <div class="col-rank">#</div>
+          <div class="col-name">Nombre</div>
+          <div class="col-email">Email</div>
+          <div class="col-code">Codigo</div>
+          <div class="col-referrals">Referidos</div>
+          <div class="col-discount">Descuento</div>
+          <div class="col-tier">Tier</div>
+        </div>
+
+        <div class="table-body">
+          <div class="table-row" *ngFor="let referrer of referrers; let i = index">
+            <div class="col-rank">
+              <span class="rank-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
+            </div>
+
+            <div class="col-name">
+              <div class="user-avatar">
+                {{ getInitials(referrer.name) }}
+              </div>
+              <span class="user-name">{{ referrer.name }}</span>
+            </div>
+
+            <div class="col-email">
+              {{ referrer.email }}
+            </div>
+
+            <div class="col-code">
+              <span class="code-badge">{{ referrer.referralCode }}</span>
+            </div>
+
+            <div class="col-referrals">
+              <span class="referral-count">{{ referrer.successfulReferrals }}</span>
+            </div>
+
+            <div class="col-discount">
+              <span class="discount-badge">{{ referrer.discountPercent }}%</span>
+            </div>
+
+            <div class="col-tier">
+              <span class="tier-badge" [ngClass]="getTierClass(referrer.tier)">
+                {{ getTierLabel(referrer.tier) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="referrers.length === 0">
+        <div class="empty-icon">&#128101;</div>
+        <h3>No hay referidores aun</h3>
+        <p>Cuando los usuarios completen referidos exitosos, apareceran aqui</p>
+      </div>
+    </div>
+  </main>
+</div>

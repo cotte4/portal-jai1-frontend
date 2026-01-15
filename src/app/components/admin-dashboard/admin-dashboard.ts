@@ -4,10 +4,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { AdminService } from '../../core/services/admin.service';
+import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { AdminClientListItem, InternalStatus } from '../../core/models';
+import { AdminClientListItem, InternalStatus, TaxStatus, PreFilingStatus } from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -31,8 +31,12 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isLoadingMore: boolean = false;
   isRefreshing: boolean = false;
   isExporting: boolean = false;
+  isLoadingStats: boolean = false;
   errorMessage: string = '';
   errorCode: string = '';
+
+  // Season summary stats
+  seasonStats: SeasonStats | null = null;
   nextCursor: string | undefined;
   hasMore: boolean = false;
   totalLoaded: number = 0;
@@ -75,29 +79,29 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    this.loadAllClients();
+    this.loadClients();
+    this.loadSeasonStats();
 
     // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         filter(event => event.urlAfterRedirects === '/admin/dashboard')
-      ).subscribe(() => this.loadAllClients())
+      ).subscribe(() => this.loadClients())
     );
 
     // Allow other components to trigger refresh
     this.subscriptions.add(
-      this.dataRefreshService.onRefresh('/admin/dashboard').subscribe(() => this.loadAllClients())
+      this.dataRefreshService.onRefresh('/admin/dashboard').subscribe(() => this.loadClients())
     );
 
-    // Debounced search - auto-search after 300ms of no typing
+    // Debounced search - auto-search after 300ms of no typing (server-side)
     this.subscriptions.add(
       this.searchSubject.pipe(
         debounceTime(300),
         distinctUntilChanged()
       ).subscribe(() => {
-        this.applyLocalFilter();
-        this.cdr.detectChanges();
+        this.loadClients();
       })
     );
   }
@@ -106,8 +110,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  // Load all clients for both display and stats
-  loadAllClients(isRefresh: boolean = false) {
+  // Load clients with server-side filtering
+  loadClients(isRefresh: boolean = false) {
     if (isRefresh) {
       this.isRefreshing = true;
     } else {
@@ -116,14 +120,23 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.errorCode = '';
 
-    this.adminService.getClients(undefined, undefined, undefined, 100).subscribe({
+    // Determine the status filter to pass to API (undefined for 'all')
+    const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
+    const searchFilter = this.searchQuery || undefined;
+
+    this.adminService.getClients(statusFilter as any, searchFilter, undefined, 100).subscribe({
       next: (response) => {
-        this.allClients = response.clients;
+        this.filteredClients = response.clients;
         this.nextCursor = response.nextCursor;
         this.hasMore = response.hasMore;
         this.totalLoaded = response.clients.length;
-        this.applyLocalFilter();
-        this.calculateStats();
+
+        // For stats, we need to load all clients without filter (only on initial load or refresh)
+        if (!statusFilter && !searchFilter) {
+          this.allClients = response.clients;
+          this.calculateStats();
+        }
+
         this.isLoading = false;
         this.isRefreshing = false;
         this.cdr.detectChanges();
@@ -148,6 +161,42 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+
+    // Also load stats separately (all clients without filters) if we have an active filter
+    if (statusFilter || searchFilter) {
+      this.loadStats();
+    }
+  }
+
+  // Load stats separately (all clients without filters)
+  private loadStats() {
+    this.adminService.getClients(undefined, undefined, undefined, 100).subscribe({
+      next: (response) => {
+        this.allClients = response.clients;
+        this.calculateStats();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Stats loading failure is non-critical, ignore
+      }
+    });
+  }
+
+  // Load season summary stats from backend
+  loadSeasonStats() {
+    this.isLoadingStats = true;
+    this.adminService.getSeasonStats().subscribe({
+      next: (stats) => {
+        this.seasonStats = stats;
+        this.isLoadingStats = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading season stats:', error);
+        this.isLoadingStats = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   // Load more clients (pagination)
@@ -156,14 +205,16 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
     this.isLoadingMore = true;
 
-    this.adminService.getClients(undefined, undefined, this.nextCursor, 100).subscribe({
+    // Pass the same filter when loading more
+    const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
+    const searchFilter = this.searchQuery || undefined;
+
+    this.adminService.getClients(statusFilter as any, searchFilter, this.nextCursor, 100).subscribe({
       next: (response) => {
-        this.allClients = [...this.allClients, ...response.clients];
+        this.filteredClients = [...this.filteredClients, ...response.clients];
         this.nextCursor = response.nextCursor;
         this.hasMore = response.hasMore;
-        this.totalLoaded = this.allClients.length;
-        this.applyLocalFilter();
-        this.calculateStats();
+        this.totalLoaded = this.filteredClients.length;
         this.isLoadingMore = false;
         this.cdr.detectChanges();
       },
@@ -174,72 +225,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  // Apply filter locally instead of making API calls
-  applyLocalFilter() {
-    if (this.selectedFilter === 'all') {
-      this.filteredClients = this.searchQuery
-        ? this.allClients.filter(c => this.matchesSearch(c))
-        : this.allClients;
-    } else if (this.selectedFilter === 'ready_to_present') {
-      this.filteredClients = this.allClients.filter(c =>
-        c.isReadyToPresent && this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'incomplete') {
-      this.filteredClients = this.allClients.filter(c =>
-        !c.isReadyToPresent && this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'sin_asignar') {
-      this.filteredClients = this.allClients.filter(c =>
-        !c.internalStatus && this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'group_pending') {
-      // Matches stats.pending calculation
-      this.filteredClients = this.allClients.filter(c =>
-        (!c.internalStatus ||
-          c.internalStatus === InternalStatus.ESPERANDO_DATOS ||
-          c.internalStatus === InternalStatus.REVISION_DE_REGISTRO) &&
-        this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'group_in_review') {
-      // Matches stats.inReview calculation
-      this.filteredClients = this.allClients.filter(c =>
-        (c.internalStatus === InternalStatus.EN_PROCESO ||
-          c.internalStatus === InternalStatus.EN_VERIFICACION ||
-          c.internalStatus === InternalStatus.RESOLVIENDO_VERIFICACION) &&
-        this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'group_completed') {
-      // Matches stats.completed calculation
-      this.filteredClients = this.allClients.filter(c =>
-        (c.internalStatus === InternalStatus.PROCESO_FINALIZADO ||
-          c.internalStatus === InternalStatus.CHEQUE_EN_CAMINO ||
-          c.internalStatus === InternalStatus.ESPERANDO_PAGO_COMISION) &&
-        this.matchesSearch(c)
-      );
-    } else if (this.selectedFilter === 'group_needs_attention') {
-      // Matches stats.needsAttention calculation
-      this.filteredClients = this.allClients.filter(c =>
-        (c.internalStatus === InternalStatus.FALTA_DOCUMENTACION ||
-          c.internalStatus === InternalStatus.INCONVENIENTES) &&
-        this.matchesSearch(c)
-      );
-    } else {
-      this.filteredClients = this.allClients.filter(c =>
-        c.internalStatus === this.selectedFilter && this.matchesSearch(c)
-      );
-    }
-  }
-
-  matchesSearch(client: AdminClientListItem): boolean {
-    if (!this.searchQuery) return true;
-    const query = this.searchQuery.toLowerCase();
-    return (
-      client.user?.email?.toLowerCase().includes(query) ||
-      client.user?.firstName?.toLowerCase().includes(query) ||
-      client.user?.lastName?.toLowerCase().includes(query)
-    );
   }
 
   calculateStats() {
@@ -279,7 +264,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   filterClients(filter: string) {
     this.selectedFilter = filter;
-    this.applyLocalFilter();
+    this.loadClients(); // Server-side filtering
   }
 
   // Get info about current group filter (for active filter indicator)
@@ -312,7 +297,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // Called on Enter key - immediate search
   onSearch() {
-    this.applyLocalFilter();
+    this.loadClients(); // Server-side search
   }
 
   clearError() {
@@ -321,7 +306,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
   }
 
   refreshData() {
-    this.loadAllClients(true);
+    this.loadClients(true);
+    this.loadSeasonStats();
   }
 
   getStatusLabel(status: InternalStatus | null | undefined): string {
@@ -404,5 +390,57 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.router.navigate(['/admin-login']);
       }
     });
+  }
+
+  // ===== NEW STATUS SYSTEM METHODS =====
+
+  getPreFilingStatusLabel(status: PreFilingStatus | null | undefined): string {
+    if (!status) return 'Sin Estado';
+
+    const labels: Record<PreFilingStatus, string> = {
+      [PreFilingStatus.AWAITING_REGISTRATION]: 'Esperando Registro',
+      [PreFilingStatus.AWAITING_DOCUMENTS]: 'Esperando Docs',
+      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'Docs Completos'
+    };
+    return labels[status] || status;
+  }
+
+  getPreFilingStatusClass(status: PreFilingStatus | null | undefined): string {
+    if (!status) return 'status-new';
+
+    const classes: Record<PreFilingStatus, string> = {
+      [PreFilingStatus.AWAITING_REGISTRATION]: 'status-pending',
+      [PreFilingStatus.AWAITING_DOCUMENTS]: 'status-pending',
+      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'status-approved'
+    };
+    return classes[status] || 'status-pending';
+  }
+
+  getTaxStatusLabel(status: TaxStatus | null | undefined): string {
+    if (!status) return 'Sin Estado';
+
+    const labels: Record<TaxStatus, string> = {
+      [TaxStatus.FILED]: 'Presentado',
+      [TaxStatus.PENDING]: 'Pendiente',
+      [TaxStatus.PROCESSING]: 'Procesando',
+      [TaxStatus.APPROVED]: 'Aprobado',
+      [TaxStatus.REJECTED]: 'Rechazado',
+      [TaxStatus.DEPOSITED]: 'Depositado'
+    };
+    return labels[status] || status;
+  }
+
+  getTaxStatusClass(status: TaxStatus | null | undefined): string {
+    if (!status) return 'status-new';
+
+    const classes: Record<TaxStatus, string> = {
+      [TaxStatus.FILED]: 'status-in-review',
+      [TaxStatus.PENDING]: 'status-pending',
+      [TaxStatus.PROCESSING]: 'status-in-review',
+      [TaxStatus.APPROVED]: 'status-approved',
+      [TaxStatus.REJECTED]: 'status-needs-attention',
+      [TaxStatus.DEPOSITED]: 'status-completed'
+    };
+    return classes[status] || 'status-pending';
   }
 }

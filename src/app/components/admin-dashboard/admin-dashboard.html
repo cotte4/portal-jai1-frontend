@@ -36,6 +36,66 @@
       </div>
     </div>
 
+    <!-- Season Summary Stats -->
+    <div class="season-stats" *ngIf="seasonStats || isLoadingStats">
+      <div class="season-stat-card">
+        <div class="season-stat-icon clients-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.totalClients || 0 }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-label">Total Clientes</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card">
+        <div class="season-stat-icon completed-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.taxesCompletedPercent || 0 }}%</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-label">Taxes Completados</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card">
+        <div class="season-stat-icon projected-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.projectedEarnings || 0) | number:'1.0-0' }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-label">Ganancias Proyectadas</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card highlight">
+        <div class="season-stat-icon earnings-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-label">Ganancias Realizadas</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Error Message -->
     <div class="error-banner" *ngIf="errorMessage">
       <div class="error-content">
@@ -141,7 +201,7 @@
         <div class="table-header">
           <div class="col-client">Cliente</div>
           <div class="col-email">Email</div>
-          <div class="col-status">Estado</div>
+          <div class="col-status-phase">Estado</div>
           <div class="col-payment">Pago</div>
           <div class="col-activity">Fecha Registro</div>
           <div class="col-actions">Acciones</div>
@@ -170,10 +230,25 @@
               {{ client.user?.email || 'Sin email' }}
             </div>
 
-            <div class="col-status">
-              <span class="status-badge" [ngClass]="getStatusClass(client.internalStatus)">
-                {{ getStatusLabel(client.internalStatus) }}
-              </span>
+            <div class="col-status-phase">
+              <!-- Pre-filing phase: show single pre-filing status -->
+              <ng-container *ngIf="!client.taxesFiled">
+                <span class="status-badge" [ngClass]="getPreFilingStatusClass(client.preFilingStatus)">
+                  {{ getPreFilingStatusLabel(client.preFilingStatus) }}
+                </span>
+              </ng-container>
+
+              <!-- Post-filing phase: show Federal and State status -->
+              <ng-container *ngIf="client.taxesFiled">
+                <div class="status-dual">
+                  <span class="status-badge status-federal" [ngClass]="getTaxStatusClass(client.federalStatus)">
+                    F: {{ getTaxStatusLabel(client.federalStatus) }}
+                  </span>
+                  <span class="status-badge status-state" [ngClass]="getTaxStatusClass(client.stateStatus)">
+                    S: {{ getTaxStatusLabel(client.stateStatus) }}
+                  </span>
+                </div>
+              </ng-container>
             </div>
 
             <div class="col-payment">
