@@ -197,6 +197,35 @@
         </div>
       </div>
 
+      <!-- Sort Buttons -->
+      <div class="sort-buttons">
+        <span class="sort-label">Ordenar por:</span>
+        <button
+          class="btn-sort"
+          [class.active]="sortField === 'name'"
+          (click)="sortBy('name')">
+          Nombre {{ sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
+        </button>
+        <button
+          class="btn-sort"
+          [class.active]="sortField === 'federalRefund'"
+          (click)="sortBy('federalRefund')">
+          Dev. Federal {{ sortField === 'federalRefund' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+        </button>
+        <button
+          class="btn-sort"
+          [class.active]="sortField === 'stateRefund'"
+          (click)="sortBy('stateRefund')">
+          Dev. Estatal {{ sortField === 'stateRefund' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+        </button>
+        <button
+          class="btn-sort-clear"
+          *ngIf="sortField"
+          (click)="clearSort()">
+          Limpiar
+        </button>
+      </div>
+
       <div class="clients-table-wrapper">
         <table class="clients-table-new">
           <thead>

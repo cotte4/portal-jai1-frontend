@@ -1008,6 +1008,64 @@
 }
 
 /* ============================================
+   SORT BUTTONS
+   ============================================ */
+
+.sort-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sort-label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-sort {
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sort:hover {
+  border-color: #1D345D;
+  color: #1D345D;
+  background: #f8f9fa;
+}
+
+.btn-sort.active {
+  background: #1D345D;
+  border-color: #1D345D;
+  color: white;
+}
+
+.btn-sort-clear {
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  color: #999;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sort-clear:hover {
+  border-color: #B21B43;
+  color: #B21B43;
+}
+
+/* ============================================
    NEW 12-COLUMN TABLE STYLES
    ============================================ */
 

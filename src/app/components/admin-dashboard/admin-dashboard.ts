@@ -56,6 +56,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
   showCredentialsModal: boolean = false;
   selectedClientCredentials: { clientName: string; credentials?: ClientCredentials } | null = null;
 
+  // Sorting
+  sortField: 'name' | 'federalRefund' | 'stateRefund' | null = null;
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   // Status filter options - using new phase-based status system
   statusFilters = [
     // All
@@ -430,5 +434,58 @@ export class AdminDashboard implements OnInit, OnDestroy {
     }).catch(err => {
       console.error('Failed to copy:', err);
     });
+  }
+
+  // ===== SORTING =====
+
+  sortBy(field: 'name' | 'federalRefund' | 'stateRefund') {
+    // If clicking the same field, toggle direction; otherwise set new field with default direction
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      // Name defaults to A-Z (asc), refunds default to highest first (desc)
+      this.sortDirection = field === 'name' ? 'asc' : 'desc';
+    }
+    this.applySorting();
+  }
+
+  clearSort() {
+    this.sortField = null;
+    this.sortDirection = 'asc';
+    // Reload to get original order
+    this.loadClients();
+  }
+
+  private applySorting() {
+    if (!this.sortField) return;
+
+    this.filteredClients = [...this.filteredClients].sort((a, b) => {
+      let comparison = 0;
+
+      switch (this.sortField) {
+        case 'name':
+          const nameA = `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.toLowerCase();
+          const nameB = `${b.user?.firstName || ''} ${b.user?.lastName || ''}`.toLowerCase();
+          comparison = nameA.localeCompare(nameB);
+          break;
+
+        case 'federalRefund':
+          const fedA = a.federalActualRefund ?? -Infinity;
+          const fedB = b.federalActualRefund ?? -Infinity;
+          comparison = fedA - fedB;
+          break;
+
+        case 'stateRefund':
+          const stateA = a.stateActualRefund ?? -Infinity;
+          const stateB = b.stateActualRefund ?? -Infinity;
+          comparison = stateA - stateB;
+          break;
+      }
+
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    this.cdr.detectChanges();
   }
 }
