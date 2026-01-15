@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TaxStatus } from '../../core/models';
 import * as XLSX from 'xlsx';
@@ -32,10 +33,11 @@ interface DelaysResponse {
   templateUrl: './admin-delays.html',
   styleUrl: './admin-delays.css'
 })
-export class AdminDelays implements OnInit {
+export class AdminDelays implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   clients: DelayClient[] = [];
   filteredClients: DelayClient[] = [];
@@ -63,24 +65,26 @@ export class AdminDelays implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<DelaysResponse>(`${environment.apiUrl}/admin/delays`).subscribe({
-      next: (response) => {
-        this.clients = response.clients;
-        this.filteredClients = this.clients;
-        this.clientCount = response.clientCount;
-        this.calculateStats();
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading delays data:', error);
-        this.errorMessage = error?.error?.message || 'Error al cargar datos de demoras';
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.http.get<DelaysResponse>(`${environment.apiUrl}/admin/delays`).subscribe({
+        next: (response) => {
+          this.clients = response.clients;
+          this.filteredClients = this.clients;
+          this.clientCount = response.clientCount;
+          this.calculateStats();
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading delays data:', error);
+          this.errorMessage = error?.error?.message || 'Error al cargar datos de demoras';
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   calculateStats() {
@@ -223,5 +227,15 @@ export class AdminDelays implements OnInit {
     });
 
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
   }
 }

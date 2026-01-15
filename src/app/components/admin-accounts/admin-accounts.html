@@ -11,10 +11,6 @@
         <span class="admin-badge">Cuentas</span>
       </div>
       <div class="header-right">
-        <button class="btn-toggle-passwords" (click)="togglePasswords()">
-          <span *ngIf="!showPasswords">Mostrar Passwords</span>
-          <span *ngIf="showPasswords">Ocultar Passwords</span>
-        </button>
         <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
           <span *ngIf="!isLoading">Actualizar</span>
           <span *ngIf="isLoading">Cargando...</span>
@@ -79,12 +75,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let account of filteredAccounts">
+            <tr *ngFor="let account of filteredAccounts; trackBy: trackById">
               <td class="col-name">
                 <div class="user-info">
                   <div class="user-avatar">{{ getInitials(account.name) }}</div>
                   <div class="user-details">
-                    <span class="user-name">{{ account.name || '-' }}</span>
+                    <span class="user-name">{{ account.name || '---' }}</span>
                     <span class="user-email">{{ account.email }}</span>
                   </div>
                 </div>
@@ -106,10 +102,19 @@
                   class="credential-cell password-cell"
                   [class.clickable]="account.turbotaxPassword"
                   [class.copied]="copiedField === account.id + '-ttPass'"
+                  [class.revealed]="isFieldRevealed(account.id + '-ttPass')"
                   (click)="copyToClipboard(account.turbotaxPassword, account.id + '-ttPass')"
                   [title]="account.turbotaxPassword ? 'Click para copiar' : ''"
                 >
-                  <span class="credential-value">{{ maskPassword(account.turbotaxPassword) }}</span>
+                  <span class="credential-value">{{ maskPassword(account.turbotaxPassword, account.id + '-ttPass') }}</span>
+                  <button
+                    class="btn-reveal"
+                    (click)="revealField(account.id + '-ttPass', $event)"
+                    *ngIf="account.turbotaxPassword && !isFieldRevealed(account.id + '-ttPass')"
+                    title="Revelar password (5s)">
+                    <span class="reveal-icon">&#128065;</span>
+                  </button>
+                  <span class="reveal-timer" *ngIf="isFieldRevealed(account.id + '-ttPass')">5s</span>
                   <span class="copy-indicator" *ngIf="copiedField === account.id + '-ttPass'">Copiado</span>
                 </div>
               </td>
@@ -130,10 +135,19 @@
                   class="credential-cell password-cell"
                   [class.clickable]="account.irsPassword"
                   [class.copied]="copiedField === account.id + '-irsPass'"
+                  [class.revealed]="isFieldRevealed(account.id + '-irsPass')"
                   (click)="copyToClipboard(account.irsPassword, account.id + '-irsPass')"
                   [title]="account.irsPassword ? 'Click para copiar' : ''"
                 >
-                  <span class="credential-value">{{ maskPassword(account.irsPassword) }}</span>
+                  <span class="credential-value">{{ maskPassword(account.irsPassword, account.id + '-irsPass') }}</span>
+                  <button
+                    class="btn-reveal"
+                    (click)="revealField(account.id + '-irsPass', $event)"
+                    *ngIf="account.irsPassword && !isFieldRevealed(account.id + '-irsPass')"
+                    title="Revelar password (5s)">
+                    <span class="reveal-icon">&#128065;</span>
+                  </button>
+                  <span class="reveal-timer" *ngIf="isFieldRevealed(account.id + '-irsPass')">5s</span>
                   <span class="copy-indicator" *ngIf="copiedField === account.id + '-irsPass'">Copiado</span>
                 </div>
               </td>
@@ -154,10 +168,19 @@
                   class="credential-cell password-cell"
                   [class.clickable]="account.statePassword"
                   [class.copied]="copiedField === account.id + '-statePass'"
+                  [class.revealed]="isFieldRevealed(account.id + '-statePass')"
                   (click)="copyToClipboard(account.statePassword, account.id + '-statePass')"
                   [title]="account.statePassword ? 'Click para copiar' : ''"
                 >
-                  <span class="credential-value">{{ maskPassword(account.statePassword) }}</span>
+                  <span class="credential-value">{{ maskPassword(account.statePassword, account.id + '-statePass') }}</span>
+                  <button
+                    class="btn-reveal"
+                    (click)="revealField(account.id + '-statePass', $event)"
+                    *ngIf="account.statePassword && !isFieldRevealed(account.id + '-statePass')"
+                    title="Revelar password (5s)">
+                    <span class="reveal-icon">&#128065;</span>
+                  </button>
+                  <span class="reveal-timer" *ngIf="isFieldRevealed(account.id + '-statePass')">5s</span>
                   <span class="copy-indicator" *ngIf="copiedField === account.id + '-statePass'">Copiado</span>
                 </div>
               </td>

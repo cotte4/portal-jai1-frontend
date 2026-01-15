@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 interface ClientAccount {
@@ -23,10 +24,11 @@ interface ClientAccount {
   templateUrl: './admin-accounts.html',
   styleUrl: './admin-accounts.css'
 })
-export class AdminAccounts implements OnInit {
+export class AdminAccounts implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   accounts: ClientAccount[] = [];
   filteredAccounts: ClientAccount[] = [];
@@ -35,8 +37,9 @@ export class AdminAccounts implements OnInit {
   hasLoaded: boolean = false;
   errorMessage: string = '';
 
-  // Password visibility toggles
-  showPasswords: boolean = false;
+  // Individual field reveal tracking (security: no global toggle)
+  revealedFields: Set<string> = new Set();
+  private revealTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
   // Copy feedback
   copiedField: string | null = null;
@@ -45,26 +48,36 @@ export class AdminAccounts implements OnInit {
     this.loadAccounts();
   }
 
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    // Clear all reveal timers and revealed fields on component destroy (security)
+    this.revealTimers.forEach(timer => clearTimeout(timer));
+    this.revealTimers.clear();
+    this.revealedFields.clear();
+  }
+
   loadAccounts() {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<ClientAccount[]>(`${environment.apiUrl}/admin/accounts`).subscribe({
-      next: (response) => {
-        this.accounts = response;
-        this.filteredAccounts = response;
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading accounts:', error);
-        this.errorMessage = error?.error?.message || 'Error al cargar cuentas de clientes';
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.http.get<ClientAccount[]>(`${environment.apiUrl}/admin/accounts`).subscribe({
+        next: (response) => {
+          this.accounts = response;
+          this.filteredAccounts = response;
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading accounts:', error);
+          this.errorMessage = error?.error?.message || 'Error al cargar cuentas de clientes';
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   filterAccounts() {
@@ -79,13 +92,38 @@ export class AdminAccounts implements OnInit {
     }
   }
 
-  togglePasswords() {
-    this.showPasswords = !this.showPasswords;
+  // Reveal a specific field temporarily (auto-hides after 5 seconds)
+  revealField(fieldId: string, event: Event) {
+    event.stopPropagation(); // Prevent triggering copy
+
+    // Clear existing timer if re-clicking
+    const existingTimer = this.revealTimers.get(fieldId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    this.revealedFields.add(fieldId);
+    this.cdr.detectChanges();
+
+    // Auto-hide after 5 seconds
+    const timer = setTimeout(() => {
+      this.revealedFields.delete(fieldId);
+      this.revealTimers.delete(fieldId);
+      this.cdr.detectChanges();
+    }, 5000);
+
+    this.revealTimers.set(fieldId, timer);
   }
 
-  maskPassword(value: string | null): string {
-    if (!value) return '-';
-    return this.showPasswords ? value : '********';
+  // Check if a specific field is currently revealed
+  isFieldRevealed(fieldId: string): boolean {
+    return this.revealedFields.has(fieldId);
+  }
+
+  // Mask password with individual field reveal support
+  maskPassword(value: string | null, fieldId: string): string {
+    if (!value) return '---';
+    return this.isFieldRevealed(fieldId) ? value : '••••••••';
   }
 
   async copyToClipboard(value: string | null, fieldId: string) {
@@ -105,7 +143,7 @@ export class AdminAccounts implements OnInit {
   }
 
   getDisplayValue(value: string | null): string {
-    return value || '-';
+    return value || '---';
   }
 
   getInitials(name: string): string {
@@ -121,5 +159,11 @@ export class AdminAccounts implements OnInit {
 
   refreshData() {
     this.loadAccounts();
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
   }
 }

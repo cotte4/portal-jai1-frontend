@@ -271,6 +271,16 @@ export interface Notification {
 
 // ============= ADMIN =============
 
+// Type-safe client status filter values for admin dashboard
+export type ClientStatusFilter =
+  | 'all'
+  | 'group_pending'
+  | 'group_in_review'
+  | 'group_completed'
+  | 'group_needs_attention'
+  | 'ready_to_present'
+  | 'incomplete';
+
 export interface ClientCredentials {
   turbotaxEmail: string | null;
   turbotaxPassword: string | null;

@@ -7,7 +7,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { AdminClientListItem, TaxStatus, PreFilingStatus, ClientCredentials } from '../../core/models';
+import { AdminClientListItem, TaxStatus, PreFilingStatus, ClientCredentials, ClientStatusFilter } from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -25,7 +25,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   allClients: AdminClientListItem[] = [];
   filteredClients: AdminClientListItem[] = [];
-  selectedFilter: string = 'all';
+  selectedFilter: ClientStatusFilter = 'all';
   searchQuery: string = '';
   isLoading: boolean = false;
   isLoadingMore: boolean = false;
@@ -61,7 +61,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
 
   // Status filter options - using new phase-based status system
-  statusFilters = [
+  statusFilters: { value: ClientStatusFilter; label: string; group: string }[] = [
     // All
     { value: 'all', label: 'Todos', group: 'main' },
     // Group filters (match stats cards)
@@ -120,7 +120,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
     const searchFilter = this.searchQuery || undefined;
 
-    this.adminService.getClients(statusFilter as any, searchFilter, undefined, 100).subscribe({
+    this.adminService.getClients(statusFilter, searchFilter, undefined, 100).subscribe({
       next: (response) => {
         this.filteredClients = response.clients;
         this.nextCursor = response.nextCursor;
@@ -205,7 +205,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
     const searchFilter = this.searchQuery || undefined;
 
-    this.adminService.getClients(statusFilter as any, searchFilter, this.nextCursor, 100).subscribe({
+    this.adminService.getClients(statusFilter, searchFilter, this.nextCursor, 100).subscribe({
       next: (response) => {
         this.filteredClients = [...this.filteredClients, ...response.clients];
         this.nextCursor = response.nextCursor;
@@ -253,7 +253,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     }
   }
 
-  filterClients(filter: string) {
+  filterClients(filter: ClientStatusFilter) {
     this.selectedFilter = filter;
     this.loadClients(); // Server-side filtering
   }
@@ -507,5 +507,19 @@ export class AdminDashboard implements OnInit, OnDestroy {
     });
 
     this.cdr.detectChanges();
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  trackByFilterValue(index: number, filter: { value: string }): string {
+    return filter.value;
   }
 }

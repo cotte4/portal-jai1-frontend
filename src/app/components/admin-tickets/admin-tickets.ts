@@ -390,4 +390,14 @@ export class AdminTickets implements OnInit, OnDestroy {
       next: () => this.router.navigate(['/admin-login'])
     });
   }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

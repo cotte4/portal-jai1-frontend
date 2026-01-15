@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 
@@ -27,10 +28,11 @@ interface ReferralSummaryResponse {
   templateUrl: './admin-referrals.html',
   styleUrl: './admin-referrals.css'
 })
-export class AdminReferrals implements OnInit {
+export class AdminReferrals implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   referrers: ReferrerSummary[] = [];
   filteredReferrers: ReferrerSummary[] = [];
@@ -49,23 +51,25 @@ export class AdminReferrals implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<ReferralSummaryResponse>(`${environment.apiUrl}/referrals/admin/summary`).subscribe({
-      next: (response) => {
-        this.referrers = response.referrers;
-        this.filteredReferrers = this.referrers;
-        this.total = response.total;
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading referral summary:', error);
-        this.errorMessage = error?.error?.message || 'Error al cargar resumen de referidos';
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.http.get<ReferralSummaryResponse>(`${environment.apiUrl}/referrals/admin/summary`).subscribe({
+        next: (response) => {
+          this.referrers = response.referrers;
+          this.filteredReferrers = this.referrers;
+          this.total = response.total;
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading referral summary:', error);
+          this.errorMessage = error?.error?.message || 'Error al cargar resumen de referidos';
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   getTierLabel(tier: number): string {
@@ -144,5 +148,15 @@ export class AdminReferrals implements OnInit {
 
     this.isExporting = false;
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackByUserId(index: number, item: { userId: string }): string {
+    return item.userId;
   }
 }

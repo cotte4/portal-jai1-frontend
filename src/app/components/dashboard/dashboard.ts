@@ -175,7 +175,7 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.calculatorResult) {
       return `$${this.calculatorResult.estimatedRefund.toLocaleString()}`;
     }
-    return '--';
+    return '---';
   }
 
   // ============ USER PROGRESS ============

@@ -102,7 +102,7 @@
         <div class="ticket-list" *ngIf="filteredTickets.length > 0">
           <div
             class="ticket-item"
-            *ngFor="let ticket of filteredTickets"
+            *ngFor="let ticket of filteredTickets; trackBy: trackById"
             [class.active]="selectedTicket?.id === ticket.id"
             [class.has-unread]="hasUnread(ticket)"
             (click)="selectTicket(ticket)"
@@ -192,7 +192,7 @@
 
           <!-- Messages -->
           <div class="conversation-messages">
-            <ng-container *ngFor="let message of messages; let i = index">
+            <ng-container *ngFor="let message of messages; let i = index; trackBy: trackById">
               <!-- Date Separator -->
               <div class="date-separator" *ngIf="shouldShowDateSeparator(i)">
                 <span>{{ formatDate(message.createdAt) }}</span>

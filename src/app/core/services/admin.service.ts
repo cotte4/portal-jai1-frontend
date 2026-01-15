@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 import {
   AdminClientListResponse,
   AdminClientDetail,
-  UpdateStatusRequest
+  UpdateStatusRequest,
+  ClientStatusFilter
 } from '../models';
 
 export interface SeasonStats {
@@ -60,17 +61,18 @@ export class AdminService {
    * @param status - Can be a special filter string:
    *   - 'group_pending', 'group_in_review', 'group_completed', 'group_needs_attention'
    *   - 'ready_to_present', 'incomplete'
+   *   - Or undefined/'all' for no filter
    */
   getClients(
-    status?: string,
+    status?: Exclude<ClientStatusFilter, 'all'>,
     search?: string,
     cursor?: string,
     limit = 20
   ): Observable<AdminClientListResponse> {
-    const params: any = { limit: limit.toString() };
-    if (status) params.status = status;
-    if (search) params.search = search;
-    if (cursor) params.cursor = cursor;
+    const params: Record<string, string> = { limit: limit.toString() };
+    if (status) params['status'] = status;
+    if (search) params['search'] = search;
+    if (cursor) params['cursor'] = cursor;
 
     return this.http.get<AdminClientListResponse>(`${this.apiUrl}/admin/clients`, { params }).pipe(
       catchError((error) => this.handleError(error))

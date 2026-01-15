@@ -106,7 +106,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of filteredClients">
+          <tr *ngFor="let client of filteredClients; trackBy: trackById">
             <td class="col-name">
               <div class="client-cell">
                 <span class="client-avatar">{{ getInitials(client.name) }}</span>

@@ -122,7 +122,7 @@
         </div>
 
         <div class="table-body">
-          <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
+          <div class="table-row" *ngFor="let client of filteredClients; trackBy: trackById" (click)="viewClient(client.id)">
             <div class="col-name">
               <div class="user-avatar">
                 {{ getInitials(client.name) }}

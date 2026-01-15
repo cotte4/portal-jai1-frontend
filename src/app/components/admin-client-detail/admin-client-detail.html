@@ -31,22 +31,22 @@
     <!-- Client Info Header -->
     <div class="client-header">
       <div class="client-avatar-large">
-        {{ client.user.firstName.charAt(0) }}{{ client.user.lastName.charAt(0) }}
+        {{ client.user?.firstName?.charAt(0) || '?' }}{{ client.user?.lastName?.charAt(0) || '?' }}
       </div>
       <div class="client-info">
-        <h1>{{ client.user.firstName }} {{ client.user.lastName }}</h1>
+        <h1>{{ client.user?.firstName || 'Sin nombre' }} {{ client.user?.lastName || '' }}</h1>
         <div class="client-meta">
           <span class="meta-item">
             <span class="meta-icon">📧</span>
-            {{ client.user.email }}
+            {{ client.user?.email || 'Sin email' }}
           </span>
-          <span class="meta-item" *ngIf="client.user.phone">
+          <span class="meta-item" *ngIf="client.user?.phone">
             <span class="meta-icon">📱</span>
-            {{ client.user.phone }}
+            {{ client.user?.phone }}
           </span>
           <span class="meta-item">
             <span class="meta-icon">📅</span>
-            Registrado: {{ client.user.createdAt | date:'dd/MM/yyyy' }}
+            Registrado: {{ client.user?.createdAt | date:'dd/MM/yyyy' }}
           </span>
         </div>
       </div>
@@ -112,7 +112,7 @@
             <div class="pre-filing-field">
               <label>Estado</label>
               <select [(ngModel)]="selectedPreFilingStatus">
-                <option *ngFor="let status of preFilingStatusOptions" [ngValue]="status">
+                <option *ngFor="let status of preFilingStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getPreFilingStatusLabel(status) }}
                 </option>
               </select>
@@ -178,7 +178,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedFederalStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getTaxStatusLabel(status) }}
                 </option>
               </select>
@@ -219,7 +219,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedStateStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getTaxStatusLabel(status) }}
                 </option>
               </select>
@@ -250,7 +250,7 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
+      <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases?.[0]?.paymentReceived">
         @if (isMarkingPaid) {
           <span class="spinner"></span>
           <span>Procesando...</span>
@@ -288,7 +288,7 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Nombre Completo</span>
-                  <span class="info-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+                  <span class="info-value">{{ client.user?.firstName || '' }} {{ client.user?.lastName || '' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">SSN</span>
@@ -300,7 +300,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Telefono</span>
-                  <span class="info-value">{{ client.user.phone || 'No proporcionado' }}</span>
+                  <span class="info-value">{{ client.user?.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
             </div>
@@ -464,15 +464,15 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Ano Fiscal</span>
-                  <span class="info-value">{{ client.taxCases[0].taxYear }}</span>
+                  <span class="info-value">{{ client.taxCases?.[0]?.taxYear || 'No disponible' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Reembolso Estimado</span>
-                  <span class="info-value">{{ client.taxCases[0].estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
+                  <span class="info-value">{{ client.taxCases?.[0]?.estimatedRefund ? ('$' + client.taxCases?.[0]?.estimatedRefund) : 'Pendiente' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Pago Recibido</span>
-                  <span class="info-value">{{ client.taxCases[0].paymentReceived ? 'Si' : 'No' }}</span>
+                  <span class="info-value">{{ client.taxCases?.[0]?.paymentReceived ? 'Si' : 'No' }}</span>
                 </div>
               </div>
             </div>
@@ -514,7 +514,7 @@
           </div>
 
           <div class="documents-list" *ngIf="filteredDocuments.length > 0">
-            <div class="document-card" *ngFor="let doc of filteredDocuments">
+            <div class="document-card" *ngFor="let doc of filteredDocuments; trackBy: trackById">
               <div class="doc-icon">{{ getFileIcon(doc.mimeType) }}</div>
               <div class="doc-info">
                 <div class="doc-name">{{ doc.fileName }}</div>
@@ -550,7 +550,7 @@
           </div>
 
           <div class="status-history-timeline">
-            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index">
+            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index; trackBy: trackById">
               <div class="history-marker">
                 <div class="marker-dot" [class.first]="i === 0"></div>
                 <div class="marker-line" *ngIf="i < client.statusHistory.length - 1"></div>
@@ -559,7 +559,7 @@
                 <div class="history-header">
                   <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                   <span class="history-admin" *ngIf="history.changedBy">
-                    por {{ history.changedBy.firstName }} {{ history.changedBy.lastName }}
+                    por {{ history.changedBy?.firstName || '' }} {{ history.changedBy?.lastName || '' }}
                   </span>
                 </div>
                 <div class="history-change">
@@ -588,7 +588,7 @@
 
           <div class="tickets-list" *ngIf="tickets.length > 0">
             <div class="ticket-card"
-                 *ngFor="let ticket of tickets"
+                 *ngFor="let ticket of tickets; trackBy: trackById"
                  [class.selected]="selectedTicketId === ticket.id"
                  (click)="selectTicket(ticket.id)">
               <div class="ticket-subject">{{ ticket.subject }}</div>
@@ -600,7 +600,7 @@
           <div class="messages-container" *ngIf="selectedTicket">
             <div class="messages-list">
               <div class="message-item"
-                   *ngFor="let msg of selectedTicket.messages"
+                   *ngFor="let msg of selectedTicket.messages; trackBy: trackById"
                    [class.admin-message]="msg.sender?.role === 'admin'"
                    [class.client-message]="msg.sender?.role !== 'admin'">
                 <div class="message-header">
@@ -655,7 +655,7 @@
           <label>Tipo de Problema</label>
           <select [(ngModel)]="selectedProblemType">
             <option [ngValue]="null" disabled>Seleccione un tipo...</option>
-            <option *ngFor="let type of problemTypeOptions" [ngValue]="type">
+            <option *ngFor="let type of problemTypeOptions; trackBy: trackByIndex" [ngValue]="type">
               {{ getProblemTypeLabel(type) }}
             </option>
           </select>
@@ -824,6 +824,47 @@
           [disabled]="isSavingCredentials"
         >
           {{ isSavingCredentials ? 'Guardando...' : 'Guardar Credenciales' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mark Paid Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showMarkPaidConfirm" (click)="cancelMarkPaid()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Pago Recibido</h3>
+        <button class="modal-close" (click)="cancelMarkPaid()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Estas seguro de marcar el pago como recibido?</p>
+        <p class="confirm-warning">Esta accion registrara que el cliente ha pagado la comision.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelMarkPaid()">Cancelar</button>
+        <button class="btn-confirm-action" (click)="confirmMarkPaid()" [disabled]="isMarkingPaid">
+          {{ isMarkingPaid ? 'Procesando...' : 'Confirmar Pago' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mark Filed Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showMarkFiledConfirm" (click)="cancelMarkFiled()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Presentacion de Taxes</h3>
+        <button class="modal-close" (click)="cancelMarkFiled()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Estas seguro de marcar los taxes como presentados?</p>
+        <p class="confirm-warning">Esta accion cambiara el estado del caso a "Taxes Presentados" con fecha {{ taxesFiledAt | date:'dd/MM/yyyy' }}.</p>
+        <p class="confirm-info">Los estados Federal y Estatal se estableceran como "Presentado".</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelMarkFiled()">Cancelar</button>
+        <button class="btn-confirm-action filed" (click)="confirmMarkFiled()" [disabled]="isMarkingFiled">
+          {{ isMarkingFiled ? 'Procesando...' : 'Confirmar Presentacion' }}
         </button>
       </div>
     </div>

@@ -114,6 +114,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   editStateUsername: string = '';
   editStatePassword: string = '';
 
+  // Confirmation modals
+  showMarkPaidConfirm: boolean = false;
+  showMarkFiledConfirm: boolean = false;
+
   ngOnInit() {
     this.clientId = this.route.snapshot.params['id'];
     this.loadClientData();
@@ -226,7 +230,19 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.openStatusConfirmModal();
   }
 
-  markPaid() {
+  // Open confirmation modal for markPaid
+  openMarkPaidConfirm() {
+    this.showMarkPaidConfirm = true;
+  }
+
+  // Cancel markPaid confirmation
+  cancelMarkPaid() {
+    this.showMarkPaidConfirm = false;
+  }
+
+  // Actual markPaid action after confirmation
+  confirmMarkPaid() {
+    this.showMarkPaidConfirm = false;
     this.isMarkingPaid = true;
     this.adminService.markPaid(this.clientId).subscribe({
       next: () => {
@@ -239,6 +255,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.toastService.error(error.message || 'Error al marcar pago');
       }
     });
+  }
+
+  // Legacy method - now opens confirmation modal
+  markPaid() {
+    this.openMarkPaidConfirm();
   }
 
   deleteClient() {
@@ -723,12 +744,23 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     });
   }
 
-  markTaxesAsFiled() {
+  // Open confirmation modal for markTaxesAsFiled
+  openMarkFiledConfirm() {
     if (!this.taxesFiledAt) {
       this.toastService.warning('Por favor seleccione la fecha de presentacion');
       return;
     }
+    this.showMarkFiledConfirm = true;
+  }
 
+  // Cancel markTaxesAsFiled confirmation
+  cancelMarkFiled() {
+    this.showMarkFiledConfirm = false;
+  }
+
+  // Actual markTaxesAsFiled action after confirmation
+  confirmMarkFiled() {
+    this.showMarkFiledConfirm = false;
     this.isMarkingFiled = true;
     const updateData: any = {
       taxesFiled: true,
@@ -750,6 +782,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.toastService.error(error.message || 'Error al marcar como presentados');
       }
     });
+  }
+
+  // Legacy method - now opens confirmation modal
+  markTaxesAsFiled() {
+    this.openMarkFiledConfirm();
   }
 
   // Updated federal status with comment
@@ -820,5 +857,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.toastService.error(error.message || 'Error al actualizar estado estatal');
       }
     });
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 }

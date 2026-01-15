@@ -78,7 +78,7 @@
         </div>
 
         <div class="table-body">
-          <div class="table-row" *ngFor="let referrer of filteredReferrers; let i = index">
+          <div class="table-row" *ngFor="let referrer of filteredReferrers; let i = index; trackBy: trackByUserId">
             <div class="col-rank">
               <span class="rank-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
             </div>

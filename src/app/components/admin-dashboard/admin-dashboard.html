@@ -64,7 +64,7 @@
         </div>
         <div class="season-stat-content">
           <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.totalClients || 0 }}</div>
-          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
           <div class="season-stat-label">Total Clientes</div>
         </div>
       </div>
@@ -77,7 +77,7 @@
         </div>
         <div class="season-stat-content">
           <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.taxesCompletedPercent || 0 }}%</div>
-          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
           <div class="season-stat-label">Taxes Completados</div>
         </div>
       </div>
@@ -91,7 +91,7 @@
         </div>
         <div class="season-stat-content">
           <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.projectedEarnings || 0) | number:'1.0-0' }}</div>
-          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
           <div class="season-stat-label">Ganancias Proyectadas</div>
         </div>
       </div>
@@ -105,7 +105,7 @@
         </div>
         <div class="season-stat-content">
           <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</div>
-          <div class="season-stat-value loading" *ngIf="isLoadingStats">--</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
           <div class="season-stat-label">Ganancias Realizadas</div>
         </div>
       </div>
@@ -171,7 +171,7 @@
         (keyup.enter)="onSearch()"
       />
       <select [(ngModel)]="selectedFilter" (change)="filterClients(selectedFilter)">
-        <option *ngFor="let filter of statusFilters" [value]="filter.value">
+        <option *ngFor="let filter of statusFilters; trackBy: trackByFilterValue" [value]="filter.value">
           {{ filter.label }}
         </option>
       </select>
@@ -252,7 +252,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let client of filteredClients" class="table-row-new">
+            <tr *ngFor="let client of filteredClients; trackBy: trackById" class="table-row-new">
               <!-- 1. Name -->
               <td class="col-name">
                 <div class="client-name-cell">

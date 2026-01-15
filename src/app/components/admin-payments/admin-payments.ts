@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 
@@ -45,10 +46,11 @@ interface PaymentsSummaryResponse {
   templateUrl: './admin-payments.html',
   styleUrl: './admin-payments.css'
 })
-export class AdminPayments implements OnInit {
+export class AdminPayments implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   clients: PaymentClient[] = [];
   filteredClients: PaymentClient[] = [];
@@ -76,24 +78,26 @@ export class AdminPayments implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<PaymentsSummaryResponse>(`${environment.apiUrl}/admin/payments`).subscribe({
-      next: (response) => {
-        this.clients = response.clients;
-        this.filteredClients = this.clients;
-        this.totals = response.totals;
-        this.clientCount = response.clientCount;
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading payments summary:', error);
-        this.errorMessage = error?.error?.message || 'Error al cargar resumen de pagos';
-        this.isLoading = false;
-        this.hasLoaded = true;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.http.get<PaymentsSummaryResponse>(`${environment.apiUrl}/admin/payments`).subscribe({
+        next: (response) => {
+          this.clients = response.clients;
+          this.filteredClients = this.clients;
+          this.totals = response.totals;
+          this.clientCount = response.clientCount;
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading payments summary:', error);
+          this.errorMessage = error?.error?.message || 'Error al cargar resumen de pagos';
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   formatCurrency(amount: number): string {
@@ -174,5 +178,15 @@ export class AdminPayments implements OnInit {
 
     this.isExporting = false;
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  // ===== TRACKBY FUNCTIONS =====
+
+  trackById(index: number, item: { id: string }): string {
+    return item.id;
   }
 }
