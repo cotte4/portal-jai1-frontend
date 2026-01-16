@@ -6,7 +6,7 @@
 
 .admin-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--color-bg-page);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .admin-email {
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 500;
 }
@@ -137,7 +137,7 @@
 }
 
 .page-header p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 16px;
   margin: 0;
 }
@@ -200,7 +200,7 @@
   flex: 1;
   min-width: 200px;
   padding: 12px 16px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--color-border);
   border-radius: 12px;
   font-size: 14px;
   transition: all 0.3s ease;
@@ -214,7 +214,7 @@
 
 .search-filter-bar select {
   padding: 12px 16px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--color-border);
   border-radius: 12px;
   font-size: 14px;
   background: white;
@@ -275,7 +275,7 @@
 }
 
 .filter-includes {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -323,7 +323,7 @@
 }
 
 .loading-state p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 16px;
 }
 
@@ -364,7 +364,7 @@
 }
 
 .error-code {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-family: monospace;
 }
@@ -392,7 +392,7 @@
 
 .btn-dismiss {
   background: transparent;
-  color: #666;
+  color: var(--color-text-secondary);
   padding: 8px 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -510,7 +510,7 @@
 }
 
 .stat-label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
 }
@@ -556,8 +556,8 @@
 
 .btn-clear-filter {
   background: transparent;
-  border: 2px solid #e0e0e0;
-  color: #666;
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
   padding: 6px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -586,7 +586,7 @@
   margin-bottom: 12px;
   font-weight: 600;
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -639,12 +639,12 @@
 
 .client-name {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 14px;
 }
 
 .col-email {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -728,7 +728,7 @@
 }
 
 .docs-count {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -747,7 +747,7 @@
 }
 
 .col-activity {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -789,7 +789,7 @@
 }
 
 .empty-state p {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 0;
 }
@@ -859,13 +859,13 @@
 }
 
 .loaded-count {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .more-available {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -979,7 +979,7 @@
 }
 
 .season-stat-label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -1003,7 +1003,7 @@
   .table-row > div::before {
     content: attr(class);
     font-weight: 600;
-    color: #666;
+    color: var(--color-text-secondary);
     display: block;
     margin-bottom: 4px;
     font-size: 12px;
@@ -1038,15 +1038,15 @@
 }
 
 .sort-label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
 }
 
 .btn-sort {
   background: white;
-  border: 1px solid #e0e0e0;
-  color: #666;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -1069,8 +1069,8 @@
 
 .btn-sort-clear {
   background: transparent;
-  border: 1px solid #e0e0e0;
-  color: #999;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -1081,6 +1081,30 @@
 .btn-sort-clear:hover {
   border-color: #B21B43;
   color: #B21B43;
+}
+
+.btn-sort:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-sort-clear:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-clear-filter:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-accounts:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ============================================
@@ -1112,7 +1136,7 @@
   text-align: left;
   font-weight: 600;
   font-size: 11px;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid #e0e0e0;
@@ -1163,7 +1187,7 @@
 
 .client-name-cell .client-name {
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .ready-indicator {
@@ -1182,7 +1206,7 @@
 /* Notes preview */
 .notes-preview {
   display: block;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 12px;
   cursor: help;
   overflow: hidden;
@@ -1216,7 +1240,7 @@
 /* Accounts button */
 .btn-accounts {
   background: #f5f5f5;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
@@ -1284,7 +1308,7 @@
   background: none;
   border: none;
   font-size: 28px;
-  color: #999;
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 0;
   line-height: 1;
@@ -1292,7 +1316,7 @@
 }
 
 .modal-close:hover {
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .modal-body {
@@ -1313,7 +1337,7 @@
 }
 
 .credentials-section h4 {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1332,7 +1356,7 @@
 }
 
 .credential-label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -1340,7 +1364,7 @@
 .credential-value {
   font-family: monospace;
   font-size: 13px;
-  color: #333;
+  color: var(--color-text-primary);
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -1357,7 +1381,7 @@
 
 .copy-hint {
   text-align: center;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 11px;
   margin: 16px 0 0 0;
   font-style: italic;

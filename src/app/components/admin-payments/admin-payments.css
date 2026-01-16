@@ -21,7 +21,7 @@
 }
 
 .header-content {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px 32px;
   display: flex;
@@ -111,7 +111,7 @@
 
 /* Main Content */
 .admin-main {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px;
 }

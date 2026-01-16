@@ -79,6 +79,12 @@ export const routes: Routes = [
   canActivate: [adminGuard]
   },
 
+  {
+  path: 'admin/alarms',
+  loadComponent: () => import('./components/admin-alarms/admin-alarms').then(m => m.AdminAlarms),
+  canActivate: [adminGuard]
+  },
+
   // Onboarding (full-screen, protected)
   {
     path: 'onboarding',

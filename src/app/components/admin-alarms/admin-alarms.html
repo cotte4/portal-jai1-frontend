@@ -1,0 +1,469 @@
+<div class="alarms-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div class="header-title">
+        <h1>Sistema de Alarmas</h1>
+        <p class="subtitle">Monitoreo de casos con posibles problemas</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <div class="stats-row" *ngIf="hasLoaded">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ totalWithAlarms }}</span>
+        <span class="stat-label">Total Alarmas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon critical">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value critical-text">{{ totalCritical }}</span>
+        <span class="stat-label">Criticas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value warning-text">{{ totalWarning }}</span>
+        <span class="stat-label">Advertencias</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button
+        class="tab"
+        [class.active]="activeTab === 'active'"
+        (click)="switchTab('active')"
+      >
+        Alarmas Activas
+        <span class="tab-badge" *ngIf="totalWithAlarms > 0">{{ totalWithAlarms }}</span>
+      </button>
+      <button
+        class="tab"
+        [class.active]="activeTab === 'history'"
+        (click)="switchTab('history')"
+      >
+        Historial
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar cliente..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()"
+      />
+    </div>
+
+    <ng-container *ngIf="activeTab === 'active'">
+      <select [(ngModel)]="levelFilter" (ngModelChange)="onLevelFilterChange()" class="filter-select">
+        <option value="all">Todas las alarmas</option>
+        <option value="critical">Solo criticas</option>
+        <option value="warning">Solo advertencias</option>
+      </select>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'history'">
+      <select [(ngModel)]="historyResolutionFilter" (ngModelChange)="onHistoryFiltersChange()" class="filter-select">
+        <option value="all">Todas</option>
+        <option value="active">Activas</option>
+        <option value="acknowledged">Vistas</option>
+        <option value="resolved">Resueltas</option>
+        <option value="auto_resolved">Auto-resueltas</option>
+      </select>
+      <select [(ngModel)]="historyTrackFilter" (ngModelChange)="onHistoryFiltersChange()" class="filter-select">
+        <option value="all">Federal y Estatal</option>
+        <option value="federal">Solo Federal</option>
+        <option value="state">Solo Estatal</option>
+      </select>
+    </ng-container>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading || (activeTab === 'history' && isLoadingHistory)">
+    <div class="spinner"></div>
+    <p>Cargando alarmas...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage && hasLoaded">
+    <p>{{ errorMessage }}</p>
+    <button (click)="refreshData()">Reintentar</button>
+  </div>
+
+  <!-- Active Alarms Tab -->
+  <div class="content" *ngIf="activeTab === 'active' && hasLoaded && !isLoading && !errorMessage">
+    <div class="empty-state" *ngIf="filteredItems.length === 0">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <h3>Sin alarmas activas</h3>
+      <p>Todos los casos estan dentro de los tiempos esperados</p>
+    </div>
+
+    <div class="alarms-list" *ngIf="filteredItems.length > 0">
+      <div
+        class="alarm-card"
+        *ngFor="let item of filteredItems; trackBy: trackByTaxCaseId"
+        [class.critical]="item.highestLevel === 'critical'"
+        [class.warning]="item.highestLevel === 'warning'"
+        (click)="viewClient(item.taxCaseId)"
+      >
+        <div class="alarm-header">
+          <div class="client-info">
+            <div class="avatar" [class.critical]="item.highestLevel === 'critical'" [class.warning]="item.highestLevel === 'warning'">
+              {{ getInitials(item.clientName) }}
+            </div>
+            <div class="client-details">
+              <span class="client-name">{{ item.clientName }}</span>
+              <span class="client-email">{{ item.clientEmail }}</span>
+            </div>
+          </div>
+          <div class="alarm-badge" [class]="getAlarmLevelClass(item.highestLevel)">
+            {{ item.highestLevel === 'critical' ? 'CRITICA' : 'ADVERTENCIA' }}
+          </div>
+        </div>
+
+        <div class="alarms-detail">
+          <div class="alarm-item" *ngFor="let alarm of item.alarms">
+            <div class="alarm-icon" [class]="getAlarmLevelClass(alarm.level)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              </svg>
+            </div>
+            <div class="alarm-text">
+              <span class="alarm-message">{{ alarm.message }}</span>
+              <span class="alarm-meta">
+                {{ alarm.track === 'federal' ? 'Federal' : 'Estatal' }} -
+                {{ alarm.daysSinceStatusChange }} dias (umbral: {{ alarm.threshold }})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alarm-footer">
+          <div class="status-info">
+            <span class="status-label">Federal:</span>
+            <span class="status-value">{{ getStatusLabel(item.federalStatusNew) }}</span>
+            <span class="status-date" *ngIf="item.federalStatusNewChangedAt">
+              desde {{ formatDate(item.federalStatusNewChangedAt) }}
+            </span>
+          </div>
+          <div class="status-info">
+            <span class="status-label">Estatal:</span>
+            <span class="status-value">{{ getStatusLabel(item.stateStatusNew) }}</span>
+            <span class="status-date" *ngIf="item.stateStatusNewChangedAt">
+              desde {{ formatDate(item.stateStatusNewChangedAt) }}
+            </span>
+          </div>
+          <button
+            class="config-btn"
+            (click)="openThresholdsModal(item); $event.stopPropagation()"
+            [class.has-custom]="item.hasCustomThresholds"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+            </svg>
+            {{ item.hasCustomThresholds ? 'Umbral personalizado' : 'Configurar umbrales' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Tab -->
+  <div class="content" *ngIf="activeTab === 'history' && hasLoadedHistory && !isLoadingHistory">
+    <div class="empty-state" *ngIf="filteredHistory.length === 0">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <h3>Sin historial</h3>
+      <p>No hay registros de alarmas con los filtros seleccionados</p>
+    </div>
+
+    <div class="history-table" *ngIf="filteredHistory.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Track</th>
+            <th>Dias</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredHistory; trackBy: trackById">
+            <td class="client-cell">
+              <span class="client-name">{{ item.clientName }}</span>
+            </td>
+            <td>
+              <span class="alarm-type-badge" [class]="getAlarmLevelClass(item.alarmLevel)">
+                {{ getAlarmTypeLabel(item.alarmType) }}
+              </span>
+            </td>
+            <td>
+              <span class="track-badge" [class.federal]="item.track === 'federal'" [class.state]="item.track === 'state'">
+                {{ item.track === 'federal' ? 'Federal' : 'Estatal' }}
+              </span>
+            </td>
+            <td>
+              <span class="days-value">{{ item.actualDays }}</span>
+              <span class="threshold-value">(umbral: {{ item.thresholdDays }})</span>
+            </td>
+            <td>
+              <span class="resolution-badge" [class]="getResolutionClass(item.resolution)">
+                {{ getResolutionLabel(item.resolution) }}
+              </span>
+            </td>
+            <td>
+              <span class="date-value">{{ formatDateTime(item.triggeredAt) }}</span>
+              <span class="resolved-info" *ngIf="item.resolvedAt">
+                Resuelta: {{ formatDateTime(item.resolvedAt) }}
+                <span *ngIf="item.resolvedByName"> por {{ item.resolvedByName }}</span>
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button
+                *ngIf="item.resolution === 'active'"
+                class="action-btn acknowledge"
+                (click)="acknowledgeAlarm(item.id, $event)"
+                title="Marcar como vista"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+              <button
+                *ngIf="item.resolution === 'active' || item.resolution === 'acknowledged'"
+                class="action-btn resolve"
+                (click)="openResolveModal(item.id, $event)"
+                title="Resolver alarma"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Thresholds Modal -->
+  <div class="modal-overlay" *ngIf="showThresholdsModal" (click)="closeThresholdsModal()">
+    <div class="modal-content thresholds-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Configurar Umbrales de Alarma</h2>
+        <p class="modal-subtitle">{{ selectedClientName }}</p>
+        <button class="close-btn" (click)="closeThresholdsModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="!isLoadingThresholds && thresholdsData">
+        <div class="thresholds-info" *ngIf="thresholdsData.isCustom">
+          <div class="info-badge custom">Umbrales personalizados activos</div>
+          <p class="reason" *ngIf="thresholdsData.reason">Razon: {{ thresholdsData.reason }}</p>
+        </div>
+
+        <div class="form-group">
+          <label>Federal "En Proceso" (dias)</label>
+          <div class="input-with-default">
+            <input
+              type="number"
+              [(ngModel)]="thresholdsForm.federalInProcessDays"
+              min="1"
+              max="365"
+            />
+            <span class="default-hint">Por defecto: {{ defaults.POSSIBLE_VERIFICATION_FEDERAL }}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Estatal "En Proceso" (dias)</label>
+          <div class="input-with-default">
+            <input
+              type="number"
+              [(ngModel)]="thresholdsForm.stateInProcessDays"
+              min="1"
+              max="365"
+            />
+            <span class="default-hint">Por defecto: {{ defaults.POSSIBLE_VERIFICATION_STATE }}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Timeout de Verificacion (dias)</label>
+          <div class="input-with-default">
+            <input
+              type="number"
+              [(ngModel)]="thresholdsForm.verificationTimeoutDays"
+              min="1"
+              max="365"
+            />
+            <span class="default-hint">Por defecto: {{ defaults.VERIFICATION_TIMEOUT }}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Timeout Carta Enviada (dias)</label>
+          <div class="input-with-default">
+            <input
+              type="number"
+              [(ngModel)]="thresholdsForm.letterSentTimeoutDays"
+              min="1"
+              max="365"
+            />
+            <span class="default-hint">Por defecto: {{ defaults.LETTER_SENT_TIMEOUT }}</span>
+          </div>
+        </div>
+
+        <div class="form-group checkboxes">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="thresholdsForm.disableFederalAlarms"
+            />
+            Desactivar alarmas federales
+          </label>
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="thresholdsForm.disableStateAlarms"
+            />
+            Desactivar alarmas estatales
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Razon del cambio</label>
+          <textarea
+            [(ngModel)]="thresholdsForm.reason"
+            placeholder="Explicar por que se modifican los umbrales..."
+            rows="2"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-body loading" *ngIf="isLoadingThresholds">
+        <div class="spinner"></div>
+        <p>Cargando configuracion...</p>
+      </div>
+
+      <div class="modal-footer" *ngIf="!isLoadingThresholds">
+        <button
+          class="btn-secondary"
+          (click)="resetToDefaults()"
+          [disabled]="isSavingThresholds || !thresholdsData?.isCustom"
+        >
+          Restaurar valores por defecto
+        </button>
+        <div class="footer-right">
+          <button class="btn-cancel" (click)="closeThresholdsModal()">Cancelar</button>
+          <button
+            class="btn-primary"
+            (click)="saveThresholds()"
+            [disabled]="isSavingThresholds"
+          >
+            {{ isSavingThresholds ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resolve Modal -->
+  <div class="modal-overlay" *ngIf="showResolveModal" (click)="closeResolveModal()">
+    <div class="modal-content resolve-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Resolver Alarma</h2>
+        <button class="close-btn" (click)="closeResolveModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nota de resolucion (opcional)</label>
+          <textarea
+            [(ngModel)]="resolveNote"
+            placeholder="Agregar nota sobre como se resolvio la alarma..."
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeResolveModal()">Cancelar</button>
+        <button
+          class="btn-primary"
+          (click)="confirmResolve()"
+          [disabled]="isResolving"
+        >
+          {{ isResolving ? 'Resolviendo...' : 'Resolver Alarma' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

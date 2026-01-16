@@ -21,6 +21,133 @@ export enum PreFilingStatus {
   DOCUMENTATION_COMPLETE = 'documentation_complete'
 }
 
+// NEW STATUS SYSTEM (v2): Unified case status
+export enum CaseStatus {
+  AWAITING_FORM = 'awaiting_form',
+  AWAITING_DOCS = 'awaiting_docs',
+  PREPARING = 'preparing',
+  TAXES_FILED = 'taxes_filed',
+  CASE_ISSUES = 'case_issues'
+}
+
+// NEW STATUS SYSTEM (v2): Enhanced federal status
+export enum FederalStatusNew {
+  IN_PROCESS = 'in_process',
+  IN_VERIFICATION = 'in_verification',
+  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
+  VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  CHECK_IN_TRANSIT = 'check_in_transit',
+  ISSUES = 'issues',
+  TAXES_SENT = 'taxes_sent',
+  TAXES_COMPLETED = 'taxes_completed'
+}
+
+// NEW STATUS SYSTEM (v2): Enhanced state status
+export enum StateStatusNew {
+  IN_PROCESS = 'in_process',
+  IN_VERIFICATION = 'in_verification',
+  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
+  VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  CHECK_IN_TRANSIT = 'check_in_transit',
+  ISSUES = 'issues',
+  TAXES_SENT = 'taxes_sent',
+  TAXES_COMPLETED = 'taxes_completed'
+}
+
+// NEW STATUS SYSTEM (v2): Alarm types
+export type AlarmLevel = 'warning' | 'critical';
+export type AlarmType = 'possible_verification_federal' | 'possible_verification_state' | 'verification_timeout' | 'letter_sent_timeout';
+export type AlarmResolution = 'active' | 'acknowledged' | 'resolved' | 'auto_resolved';
+
+export interface StatusAlarm {
+  type: AlarmType;
+  level: AlarmLevel;
+  track: 'federal' | 'state';
+  message: string;
+  daysSinceStatusChange: number;
+  threshold: number;
+}
+
+// Alarm Dashboard (for admin alarms page)
+export interface AlarmDashboardItem {
+  taxCaseId: string;
+  clientName: string;
+  clientEmail: string;
+  alarms: StatusAlarm[];
+  highestLevel: AlarmLevel | null;
+  federalStatusNew: string | null;
+  stateStatusNew: string | null;
+  federalStatusNewChangedAt: string | null;
+  stateStatusNewChangedAt: string | null;
+  hasCustomThresholds: boolean;
+}
+
+export interface AlarmDashboardResponse {
+  items: AlarmDashboardItem[];
+  totalWithAlarms: number;
+  totalCritical: number;
+  totalWarning: number;
+}
+
+// Alarm History
+export interface AlarmHistoryItem {
+  id: string;
+  taxCaseId: string;
+  clientName: string;
+  alarmType: AlarmType;
+  alarmLevel: AlarmLevel;
+  track: string;
+  message: string;
+  thresholdDays: number;
+  actualDays: number;
+  statusAtTrigger: string;
+  statusChangedAt: string;
+  resolution: AlarmResolution;
+  resolvedAt: string | null;
+  resolvedByName: string | null;
+  resolvedNote: string | null;
+  autoResolveReason: string | null;
+  triggeredAt: string;
+}
+
+// Alarm Thresholds
+export interface AlarmThresholds {
+  federalInProcessDays: number;
+  stateInProcessDays: number;
+  verificationTimeoutDays: number;
+  letterSentTimeoutDays: number;
+  disableFederalAlarms: boolean;
+  disableStateAlarms: boolean;
+}
+
+export interface ThresholdsResponse {
+  taxCaseId: string;
+  clientName: string;
+  thresholds: AlarmThresholds;
+  isCustom: boolean;
+  reason: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface SetThresholdsRequest {
+  federalInProcessDays?: number | null;
+  stateInProcessDays?: number | null;
+  verificationTimeoutDays?: number | null;
+  letterSentTimeoutDays?: number | null;
+  disableFederalAlarms?: boolean;
+  disableStateAlarms?: boolean;
+  reason?: string;
+}
+
+// Default alarm thresholds (match backend)
+export const DEFAULT_ALARM_THRESHOLDS = {
+  POSSIBLE_VERIFICATION_FEDERAL: 25,
+  POSSIBLE_VERIFICATION_STATE: 50,
+  VERIFICATION_TIMEOUT: 63,
+  LETTER_SENT_TIMEOUT: 63,
+};
+
 export enum DocumentType {
   W2 = 'w2',
   PAYMENT_PROOF = 'payment_proof',
@@ -184,6 +311,17 @@ export interface TaxCase {
   stateLastComment?: string;
   stateStatusChangedAt?: string;
   stateLastReviewedAt?: string;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus;
+  caseStatusChangedAt?: string;
+  federalStatusNew?: FederalStatusNew;
+  federalStatusNewChangedAt?: string;
+  stateStatusNew?: StateStatusNew;
+  stateStatusNewChangedAt?: string;
+  // Alarms
+  alarms?: StatusAlarm[];
+  hasAlarm?: boolean;
+  hasCriticalAlarm?: boolean;
   // Year-specific employment and banking
   workState?: string;
   employerName?: string;
@@ -300,12 +438,23 @@ export interface AdminClientListItem {
   };
   // SSN (masked)
   ssn?: string | null;
-  // Phase-based status fields
+  // Phase-based status fields (OLD SYSTEM - kept for backward compatibility)
   taxesFiled?: boolean;
   taxesFiledAt?: string | null;
   preFilingStatus?: PreFilingStatus;
   federalStatus?: TaxStatus;
   stateStatus?: TaxStatus;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus | null;
+  caseStatusChangedAt?: string | null;
+  federalStatusNew?: FederalStatusNew | null;
+  federalStatusNewChangedAt?: string | null;
+  stateStatusNew?: StateStatusNew | null;
+  stateStatusNewChangedAt?: string | null;
+  // Alarms
+  alarms?: StatusAlarm[];
+  hasAlarm?: boolean;
+  hasCriticalAlarm?: boolean;
   // Status tracking
   federalLastComment?: string | null;
   stateLastComment?: string | null;
@@ -363,6 +512,10 @@ export interface UpdateStatusRequest {
   stateEstimatedDate?: string;
   stateActualRefund?: number;
   stateDepositDate?: string;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus;
+  federalStatusNew?: FederalStatusNew;
+  stateStatusNew?: StateStatusNew;
 }
 
 // ============= CALCULATOR =============

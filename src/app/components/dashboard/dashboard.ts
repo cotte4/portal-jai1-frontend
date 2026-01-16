@@ -9,7 +9,16 @@ import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { ProfileResponse, Document, DocumentType, TaxStatus, PreFilingStatus } from '../../core/models';
+import {
+  ProfileResponse,
+  Document,
+  DocumentType,
+  TaxStatus,
+  PreFilingStatus,
+  CaseStatus,
+  FederalStatusNew,
+  StateStatusNew
+} from '../../core/models';
 
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 
@@ -556,5 +565,121 @@ export class Dashboard implements OnInit, OnDestroy {
     } catch (e) {
       console.warn('Failed to cache dashboard data:', e);
     }
+  }
+
+  // ============= NEW STATUS SYSTEM (v2) CLIENT DISPLAY HELPERS =============
+
+  /**
+   * Maps CaseStatus to client-friendly display (Spanish)
+   */
+  mapCaseStatusToClientDisplay(status: CaseStatus | null | undefined): string {
+    if (!status) return 'Sin estado';
+
+    const mapping: Record<CaseStatus, string> = {
+      [CaseStatus.AWAITING_FORM]: 'Esperando formulario y documentos',
+      [CaseStatus.AWAITING_DOCS]: 'Esperando formulario y documentos',
+      [CaseStatus.PREPARING]: 'Información recibida',
+      [CaseStatus.TAXES_FILED]: 'Taxes presentados',
+      [CaseStatus.CASE_ISSUES]: 'Problemas - contactar soporte',
+    };
+
+    return mapping[status] || status;
+  }
+
+  /**
+   * Maps FederalStatusNew to client-friendly display (Spanish)
+   */
+  mapFederalStatusToClientDisplay(status: FederalStatusNew | null | undefined): string {
+    if (!status) return 'Sin estado';
+
+    const mapping: Record<FederalStatusNew, string> = {
+      [FederalStatusNew.IN_PROCESS]: 'Taxes en proceso',
+      [FederalStatusNew.IN_VERIFICATION]: 'En verificación',
+      [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
+      [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
+      [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [FederalStatusNew.ISSUES]: 'Problemas - contactar soporte',
+      [FederalStatusNew.TAXES_SENT]: 'Reembolso enviado',
+      [FederalStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
+    };
+
+    return mapping[status] || status;
+  }
+
+  /**
+   * Maps StateStatusNew to client-friendly display (Spanish)
+   */
+  mapStateStatusToClientDisplay(status: StateStatusNew | null | undefined): string {
+    if (!status) return 'Sin estado';
+
+    const mapping: Record<StateStatusNew, string> = {
+      [StateStatusNew.IN_PROCESS]: 'Taxes en proceso',
+      [StateStatusNew.IN_VERIFICATION]: 'En verificación',
+      [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
+      [StateStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
+      [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [StateStatusNew.ISSUES]: 'Problemas - contactar soporte',
+      [StateStatusNew.TAXES_SENT]: 'Reembolso enviado',
+      [StateStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
+    };
+
+    return mapping[status] || status;
+  }
+
+  /**
+   * Get overall client-facing status display using new status system (v2)
+   * Falls back to old system if new fields not populated
+   */
+  get clientStatusDisplay(): string {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return 'Sin información';
+
+    // Try new status system first (v2)
+    const caseStatus = taxCase.caseStatus as CaseStatus | undefined;
+    const federalStatusNew = taxCase.federalStatusNew as FederalStatusNew | undefined;
+    const stateStatusNew = taxCase.stateStatusNew as StateStatusNew | undefined;
+
+    // If case has issues, show that
+    if (caseStatus === CaseStatus.CASE_ISSUES) {
+      return 'Problemas - contactar soporte';
+    }
+
+    // If taxes are filed, show federal/state status
+    if (caseStatus === CaseStatus.TAXES_FILED || taxCase.taxesFiled) {
+      // Prioritize showing the most advanced status
+      if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED ||
+          stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
+        return 'Taxes finalizados';
+      }
+      if (federalStatusNew === FederalStatusNew.TAXES_SENT ||
+          stateStatusNew === StateStatusNew.TAXES_SENT) {
+        return 'Reembolso enviado';
+      }
+      if (federalStatusNew === FederalStatusNew.CHECK_IN_TRANSIT ||
+          stateStatusNew === StateStatusNew.CHECK_IN_TRANSIT) {
+        return 'Cheque en camino';
+      }
+      if (federalStatusNew === FederalStatusNew.IN_VERIFICATION ||
+          federalStatusNew === FederalStatusNew.VERIFICATION_IN_PROGRESS ||
+          federalStatusNew === FederalStatusNew.VERIFICATION_LETTER_SENT ||
+          stateStatusNew === StateStatusNew.IN_VERIFICATION ||
+          stateStatusNew === StateStatusNew.VERIFICATION_IN_PROGRESS ||
+          stateStatusNew === StateStatusNew.VERIFICATION_LETTER_SENT) {
+        return 'En verificación';
+      }
+      if (federalStatusNew || stateStatusNew) {
+        return 'Taxes en proceso';
+      }
+
+      // Fall back to display based on old system
+      return 'Taxes presentados';
+    }
+
+    // Pre-filing states
+    if (caseStatus === CaseStatus.PREPARING) {
+      return 'Información recibida';
+    }
+
+    return 'Esperando formulario y documentos';
   }
 }

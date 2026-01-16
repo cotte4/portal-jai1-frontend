@@ -6,7 +6,15 @@ import {
   AdminClientListResponse,
   AdminClientDetail,
   UpdateStatusRequest,
-  ClientStatusFilter
+  ClientStatusFilter,
+  StatusAlarm,
+  AlarmDashboardResponse,
+  AlarmHistoryItem,
+  AlarmType,
+  AlarmLevel,
+  AlarmResolution,
+  ThresholdsResponse,
+  SetThresholdsRequest
 } from '../models';
 
 export interface SeasonStats {
@@ -47,6 +55,22 @@ export interface PaymentsSummaryResponse {
   clients: PaymentClient[];
   totals: PaymentsTotals;
   clientCount: number;
+}
+
+// NEW STATUS SYSTEM (v2): Alarms response
+export interface AlarmsResponse {
+  clients: {
+    id: string;
+    name: string;
+    alarms: StatusAlarm[];
+    federalStatusNew: string | null;
+    stateStatusNew: string | null;
+    federalStatusNewChangedAt: string | null;
+    stateStatusNewChangedAt: string | null;
+  }[];
+  totalWithAlarms: number;
+  totalCritical: number;
+  totalWarning: number;
 }
 
 @Injectable({
@@ -136,6 +160,104 @@ export class AdminService {
 
   getPaymentsSummary(): Observable<PaymentsSummaryResponse> {
     return this.http.get<PaymentsSummaryResponse>(`${this.apiUrl}/admin/payments`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // NEW STATUS SYSTEM (v2): Get clients with alarms (deprecated - use getAlarmDashboard)
+  getClientsWithAlarms(): Observable<AlarmsResponse> {
+    return this.http.get<AlarmsResponse>(`${this.apiUrl}/admin/alarms`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // ============= ALARM DASHBOARD =============
+
+  /**
+   * Get alarm dashboard with all cases that have active alarms
+   */
+  getAlarmDashboard(): Observable<AlarmDashboardResponse> {
+    return this.http.get<AlarmDashboardResponse>(`${this.apiUrl}/admin/alarms/dashboard`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get alarm history with optional filters
+   */
+  getAlarmHistory(filters?: {
+    taxCaseId?: string;
+    alarmType?: AlarmType;
+    alarmLevel?: AlarmLevel;
+    resolution?: AlarmResolution;
+    track?: 'federal' | 'state';
+    fromDate?: string;
+    toDate?: string;
+  }): Observable<AlarmHistoryItem[]> {
+    const params: Record<string, string> = {};
+    if (filters?.taxCaseId) params['taxCaseId'] = filters.taxCaseId;
+    if (filters?.alarmType) params['alarmType'] = filters.alarmType;
+    if (filters?.alarmLevel) params['alarmLevel'] = filters.alarmLevel;
+    if (filters?.resolution) params['resolution'] = filters.resolution;
+    if (filters?.track) params['track'] = filters.track;
+    if (filters?.fromDate) params['fromDate'] = filters.fromDate;
+    if (filters?.toDate) params['toDate'] = filters.toDate;
+
+    return this.http.get<AlarmHistoryItem[]>(`${this.apiUrl}/admin/alarms/history`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Acknowledge an alarm (mark as seen)
+   */
+  acknowledgeAlarm(alarmId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/${alarmId}/acknowledge`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Resolve an alarm with optional note
+   */
+  resolveAlarm(alarmId: string, note?: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/${alarmId}/resolve`, { note }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get thresholds for a tax case (custom or defaults)
+   */
+  getAlarmThresholds(taxCaseId: string): Observable<ThresholdsResponse> {
+    return this.http.get<ThresholdsResponse>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Set custom thresholds for a tax case
+   */
+  setAlarmThresholds(taxCaseId: string, thresholds: SetThresholdsRequest): Observable<ThresholdsResponse> {
+    return this.http.patch<ThresholdsResponse>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`, thresholds).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Delete custom thresholds (revert to defaults)
+   */
+  deleteAlarmThresholds(taxCaseId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Manually sync alarms for a tax case
+   */
+  syncAlarms(taxCaseId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/sync/${taxCaseId}`, {}).pipe(
       catchError(this.handleError)
     );
   }

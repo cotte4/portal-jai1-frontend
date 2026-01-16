@@ -7,7 +7,17 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { AdminClientListItem, TaxStatus, PreFilingStatus, ClientCredentials, ClientStatusFilter } from '../../core/models';
+import {
+  AdminClientListItem,
+  TaxStatus,
+  PreFilingStatus,
+  CaseStatus,
+  FederalStatusNew,
+  StateStatusNew,
+  StatusAlarm,
+  ClientCredentials,
+  ClientStatusFilter
+} from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -348,6 +358,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/tickets']);
   }
 
+  goToAlarms() {
+    this.router.navigate(['/admin/alarms']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 
@@ -513,6 +527,60 @@ export class AdminDashboard implements OnInit, OnDestroy {
     });
 
     this.cdr.detectChanges();
+  }
+
+  // ===== NEW STATUS SYSTEM (v2) METHODS =====
+
+  getCaseStatusLabel(status: CaseStatus | null | undefined): string {
+    if (!status) return 'Sin estado';
+    const labels: Record<CaseStatus, string> = {
+      [CaseStatus.AWAITING_FORM]: 'Esperando Form',
+      [CaseStatus.AWAITING_DOCS]: 'Esperando Docs',
+      [CaseStatus.PREPARING]: 'Preparando',
+      [CaseStatus.TAXES_FILED]: 'Presentados',
+      [CaseStatus.CASE_ISSUES]: 'Problemas'
+    };
+    return labels[status] || status;
+  }
+
+  getFederalStatusNewLabel(status: FederalStatusNew | null | undefined): string {
+    if (!status) return 'Sin estado';
+    const labels: Record<FederalStatusNew, string> = {
+      [FederalStatusNew.IN_PROCESS]: 'En Proceso',
+      [FederalStatusNew.IN_VERIFICATION]: 'Verificación',
+      [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
+      [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
+      [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [FederalStatusNew.ISSUES]: 'Problemas',
+      [FederalStatusNew.TAXES_SENT]: 'Enviado',
+      [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
+    };
+    return labels[status] || status;
+  }
+
+  getStateStatusNewLabel(status: StateStatusNew | null | undefined): string {
+    if (!status) return 'Sin estado';
+    const labels: Record<StateStatusNew, string> = {
+      [StateStatusNew.IN_PROCESS]: 'En Proceso',
+      [StateStatusNew.IN_VERIFICATION]: 'Verificación',
+      [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
+      [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
+      [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [StateStatusNew.ISSUES]: 'Problemas',
+      [StateStatusNew.TAXES_SENT]: 'Enviado',
+      [StateStatusNew.TAXES_COMPLETED]: 'Completado'
+    };
+    return labels[status] || status;
+  }
+
+  getAlarmIndicator(client: AdminClientListItem): string {
+    if (client.hasCriticalAlarm) return '🔴';
+    if (client.hasAlarm) return '🟡';
+    return '';
+  }
+
+  hasAnyAlarm(client: AdminClientListItem): boolean {
+    return client.hasAlarm || false;
   }
 
   // ===== TRACKBY FUNCTIONS =====
