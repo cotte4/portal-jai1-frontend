@@ -50,14 +50,10 @@ export class GoogleCallback implements OnInit {
     this.route.queryParams.subscribe(params => {
       console.log('[GoogleCallback] Query params received:', Object.keys(params));
 
-      const accessToken = params['access_token'];
-      const refreshToken = params['refresh_token'];
-      const userJson = params['user'];
+      const code = params['code'];
       const error = params['error'];
 
-      console.log('[GoogleCallback] Has access_token:', !!accessToken);
-      console.log('[GoogleCallback] Has refresh_token:', !!refreshToken);
-      console.log('[GoogleCallback] Has user:', !!userJson);
+      console.log('[GoogleCallback] Has code:', !!code);
       console.log('[GoogleCallback] Has error:', !!error);
 
       if (error) {
@@ -66,39 +62,39 @@ export class GoogleCallback implements OnInit {
         return;
       }
 
-      if (accessToken && refreshToken && userJson) {
-        try {
-          const user = JSON.parse(userJson);
-          console.log('[GoogleCallback] User parsed successfully:', user.email, user.role);
+      if (code) {
+        console.log('[GoogleCallback] Exchanging code for tokens...');
 
-          // Use AuthService to properly handle the auth response
-          // This updates both storage AND the BehaviorSubject
-          this.authService.handleGoogleAuth({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            user: user
-          });
+        // Exchange the authorization code for tokens via secure POST request
+        // This prevents tokens from ever appearing in URLs (security best practice)
+        this.authService.exchangeGoogleCode(code).subscribe({
+          next: (response) => {
+            console.log('[GoogleCallback] Code exchange successful');
 
-          // Clear caches to ensure fresh data on login
-          localStorage.removeItem('jai1_dashboard_cache');
-          localStorage.removeItem('jai1_cached_profile');
+            // Clear caches to ensure fresh data on login
+            localStorage.removeItem('jai1_dashboard_cache');
+            localStorage.removeItem('jai1_cached_profile');
 
-          console.log('[GoogleCallback] Auth handled, redirecting...');
+            // Get user from auth service (already set by exchangeGoogleCode)
+            const user = this.authService.currentUser;
+            console.log('[GoogleCallback] Auth handled, redirecting...');
 
-          // Redirect based on role
-          if (user.role === UserRole.ADMIN) {
-            console.log('[GoogleCallback] Redirecting to admin dashboard');
-            this.router.navigate(['/admin/dashboard']);
-          } else {
-            console.log('[GoogleCallback] Redirecting to client dashboard');
-            this.router.navigate(['/dashboard']);
+            // Redirect based on role
+            if (user?.role === UserRole.ADMIN) {
+              console.log('[GoogleCallback] Redirecting to admin dashboard');
+              this.router.navigate(['/admin/dashboard']);
+            } else {
+              console.log('[GoogleCallback] Redirecting to client dashboard');
+              this.router.navigate(['/dashboard']);
+            }
+          },
+          error: (err) => {
+            console.error('[GoogleCallback] Code exchange failed:', err);
+            this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
           }
-        } catch (e) {
-          console.error('[GoogleCallback] Error parsing Google auth response:', e);
-          this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
-        }
+        });
       } else {
-        console.warn('[GoogleCallback] Missing required params, redirecting to login');
+        console.warn('[GoogleCallback] Missing code param, redirecting to login');
         this.router.navigate(['/login']);
       }
     });

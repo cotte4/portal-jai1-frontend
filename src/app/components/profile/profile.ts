@@ -50,6 +50,15 @@ export class Profile implements OnInit, OnDestroy {
     zip: ''
   };
 
+  // Language preference
+  preferredLanguage: string = 'es';
+  availableLanguages = [
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷' }
+  ];
+  isChangingLanguage: boolean = false;
+
   // UI State
   isLoading: boolean = true;
   hasLoadedOnce: boolean = false; // Track if we've ever loaded data
@@ -282,6 +291,12 @@ export class Profile implements OnInit, OnDestroy {
           this.editForm.firstName = firstName;
           this.editForm.lastName = lastName;
           this.editForm.phone = apiUser.phone || '';
+
+          // Load language preference
+          const language = apiUser.preferredLanguage || apiUser.preferred_language;
+          if (language && ['es', 'en', 'pt'].includes(language)) {
+            this.preferredLanguage = language;
+          }
 
           // Cache for next refresh
           this.cacheProfileData();
@@ -682,5 +697,40 @@ export class Profile implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  onLanguageChange(languageCode: string) {
+    if (this.isChangingLanguage || languageCode === this.preferredLanguage) {
+      return;
+    }
+
+    this.isChangingLanguage = true;
+    const previousLanguage = this.preferredLanguage;
+
+    // Optimistic update
+    this.preferredLanguage = languageCode;
+
+    this.subscriptions.add(
+      this.profileService.updateLanguage(languageCode).subscribe({
+        next: () => {
+          this.isChangingLanguage = false;
+          this.toastService.success('Idioma actualizado');
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Failed to update language:', error);
+          // Revert on error
+          this.preferredLanguage = previousLanguage;
+          this.isChangingLanguage = false;
+          this.toastService.error('Error al cambiar idioma');
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  getLanguageName(code: string): string {
+    const lang = this.availableLanguages.find(l => l.code === code);
+    return lang ? `${lang.flag} ${lang.name}` : code;
   }
 }

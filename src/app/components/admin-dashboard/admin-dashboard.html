@@ -29,6 +29,26 @@
         <button class="btn-nav btn-alarms" (click)="goToAlarms()">
           🔔 Alarmas
         </button>
+        <div class="cron-control-group">
+          <button class="btn-nav btn-missing-docs" (click)="checkMissingDocuments()" [disabled]="isCheckingMissingDocs">
+            <span *ngIf="!isCheckingMissingDocs">📄 Recordar Docs</span>
+            <span *ngIf="isCheckingMissingDocs">⏳ Verificando...</span>
+          </button>
+          <button
+            class="btn-cron-toggle"
+            [class.enabled]="missingDocsCronEnabled"
+            [class.disabled]="!missingDocsCronEnabled"
+            (click)="toggleMissingDocsCron()"
+            [disabled]="isTogglingCron || isLoadingCronStatus"
+            [title]="missingDocsCronEnabled ? 'Recordatorio automatico ACTIVO - Click para pausar' : 'Recordatorio automatico PAUSADO - Click para activar'">
+            <span *ngIf="isLoadingCronStatus || isTogglingCron">⏳</span>
+            <span *ngIf="!isLoadingCronStatus && !isTogglingCron && missingDocsCronEnabled">⏰</span>
+            <span *ngIf="!isLoadingCronStatus && !isTogglingCron && !missingDocsCronEnabled">⏸️</span>
+          </button>
+          <button class="btn-info" (click)="showMissingDocsInfoModal = true" title="Ver informacion sobre esta funcion">
+            ℹ️
+          </button>
+        </div>
         <button class="btn-refresh" (click)="refreshData()" [disabled]="isRefreshing">
           <span *ngIf="!isRefreshing">🔄 Actualizar</span>
           <span *ngIf="isRefreshing">⏳ Actualizando...</span>
@@ -438,6 +458,128 @@
       </div>
 
       <p class="copy-hint">Click en cualquier valor para copiar al portapapeles</p>
+    </div>
+  </div>
+</div>
+
+<!-- Missing Documents Result Modal -->
+<div class="modal-overlay" *ngIf="showMissingDocsModal" (click)="closeMissingDocsModal()">
+  <div class="modal-content missing-docs-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Recordatorio de Documentos Enviado</h3>
+      <button class="modal-close" (click)="closeMissingDocsModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="missingDocsResult">
+      <div class="missing-docs-results">
+        <div class="result-item success">
+          <span class="result-icon">✅</span>
+          <span class="result-label">Clientes notificados:</span>
+          <span class="result-value">{{ missingDocsResult.notified }}</span>
+        </div>
+        <div class="result-item skipped">
+          <span class="result-icon">⏭️</span>
+          <span class="result-label">Omitidos (ya notificados):</span>
+          <span class="result-value">{{ missingDocsResult.skipped }}</span>
+        </div>
+      </div>
+      <p class="missing-docs-info">
+        Se enviaron notificaciones a clientes que llevan mas de 3 dias sin completar su perfil o subir documentos W2.
+        Cada cliente recibe maximo 3 recordatorios por mes.
+      </p>
+      <div class="cron-status-info">
+        <span class="cron-status-label">Recordatorio automatico diario (9:00 AM):</span>
+        <span class="cron-status-value" [class.enabled]="missingDocsCronEnabled" [class.disabled]="!missingDocsCronEnabled">
+          {{ missingDocsCronEnabled ? 'ACTIVO' : 'PAUSADO' }}
+        </span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeMissingDocsModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Missing Documents Info Modal -->
+<div class="modal-overlay" *ngIf="showMissingDocsInfoModal" (click)="showMissingDocsInfoModal = false">
+  <div class="modal-content info-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📄 Recordatorio de Documentos - Informacion</h3>
+      <button class="modal-close" (click)="showMissingDocsInfoModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-section">
+        <h4>¿Que hace esta funcion?</h4>
+        <p>
+          Envia notificaciones automaticas a clientes que se registraron pero <strong>no han completado su documentacion</strong>.
+          Les recuerda que deben completar su perfil y/o subir su documento W2.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h4>¿A quienes se les envia?</h4>
+        <ul class="info-list">
+          <li>Clientes registrados hace <strong>mas de 3 dias</strong></li>
+          <li>Que <strong>NO</strong> han completado su perfil, <strong>O</strong></li>
+          <li>Que <strong>NO</strong> han subido su documento W2</li>
+        </ul>
+      </div>
+
+      <div class="info-section">
+        <h4>Proteccion contra spam</h4>
+        <p>
+          Cada cliente recibe <strong>maximo 3 recordatorios por mes</strong>.
+          Si ya recibio 3, se omite automaticamente para no molestarlo.
+        </p>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="info-section">
+        <h4>Controles disponibles</h4>
+        <div class="control-explanation">
+          <div class="control-item">
+            <span class="control-icon btn-demo">📄 Recordar Docs</span>
+            <span class="control-desc">
+              <strong>Envio manual:</strong> Click para enviar recordatorios ahora mismo a todos los clientes pendientes.
+            </span>
+          </div>
+          <div class="control-item">
+            <span class="control-icon toggle-demo enabled">⏰</span>
+            <span class="control-desc">
+              <strong>Automatico ACTIVO:</strong> El sistema envia recordatorios automaticamente todos los dias a las 9:00 AM (hora Argentina).
+            </span>
+          </div>
+          <div class="control-item">
+            <span class="control-icon toggle-demo disabled">⏸️</span>
+            <span class="control-desc">
+              <strong>Automatico PAUSADO:</strong> No se envian recordatorios automaticos. Solo se envian cuando haces click en "Recordar Docs".
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section current-status">
+        <h4>Estado actual</h4>
+        <div class="status-display">
+          <span>Recordatorio automatico diario:</span>
+          <span class="status-badge" [class.enabled]="missingDocsCronEnabled" [class.disabled]="!missingDocsCronEnabled">
+            {{ missingDocsCronEnabled ? '⏰ ACTIVO' : '⏸️ PAUSADO' }}
+          </span>
+        </div>
+        <button
+          class="btn-toggle-cron"
+          [class.to-enable]="!missingDocsCronEnabled"
+          [class.to-disable]="missingDocsCronEnabled"
+          (click)="toggleMissingDocsCron()"
+          [disabled]="isTogglingCron">
+          <span *ngIf="isTogglingCron">Cambiando...</span>
+          <span *ngIf="!isTogglingCron && !missingDocsCronEnabled">Activar recordatorio automatico</span>
+          <span *ngIf="!isTogglingCron && missingDocsCronEnabled">Pausar recordatorio automatico</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="showMissingDocsInfoModal = false">Entendido</button>
     </div>
   </div>
 </div>

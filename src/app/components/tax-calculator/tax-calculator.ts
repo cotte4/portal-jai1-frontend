@@ -29,6 +29,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private isLoadingInProgress = false;
+  private activeIntervals: ReturnType<typeof setInterval>[] = [];
 
   state: CalculatorState = 'loading';
   existingW2: Document | null = null;
@@ -95,6 +96,13 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear any active intervals to prevent memory leaks
+    this.clearAllIntervals();
+  }
+
+  private clearAllIntervals() {
+    this.activeIntervals.forEach(interval => clearInterval(interval));
+    this.activeIntervals = [];
   }
 
   /**
@@ -274,18 +282,20 @@ export class TaxCalculator implements OnInit, OnDestroy {
       return;
     }
 
-    // Start progress animation
+    // Start progress animation (track interval for cleanup)
     const progressInterval = setInterval(() => {
       if (this.calculationProgress < 90) {
         this.calculationProgress += Math.random() * 10 + 3;
         this.cdr.detectChanges();
       }
     }, 500);
+    this.activeIntervals.push(progressInterval);
 
     // Call real API with OCR
     this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
       next: (response) => {
         clearInterval(progressInterval);
+        this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         this.calculationProgress = 100;
         console.log('=== CALCULATOR: API response received ===', response);
 
@@ -301,6 +311,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
       },
       error: (error) => {
         clearInterval(progressInterval);
+        this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         console.error('=== CALCULATOR: API ERROR ===', error);
         console.error('Error status:', error.status);
         console.error('Error details:', error.error);
@@ -330,7 +341,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   runMockCalculation() {
     console.log('=== CALCULATOR: DEMO MODE - Generating random values (NOT using API) ===');
 
-    // Demo mode with simulated progress
+    // Demo mode with simulated progress (track interval for cleanup)
     this.ngZone.runOutsideAngular(() => {
       const progressInterval = setInterval(() => {
         this.ngZone.run(() => {
@@ -338,6 +349,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
           if (this.calculationProgress >= 100) {
             this.calculationProgress = 100;
             clearInterval(progressInterval);
+            this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
 
             // Generate mock random values
             this.box2Federal = Math.floor(Math.random() * 1500) + 500;
@@ -357,6 +369,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
           }
         });
       }, 400);
+      this.activeIntervals.push(progressInterval);
     });
   }
 

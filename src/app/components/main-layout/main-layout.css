@@ -435,18 +435,18 @@
   border-color: #ccc;
 }
 
-.btn-action.btn-archive-all {
+.btn-action.btn-delete-all {
   color: #666;
 }
 
-.btn-action.btn-archive-all:hover {
+.btn-action.btn-delete-all:hover {
   background: #fff3f3;
   border-color: #B21B43;
   color: #B21B43;
 }
 
-/* Individual Archive Button */
-.btn-archive {
+/* Individual Delete Button */
+.btn-delete {
   background: none;
   border: none;
   color: #999;
@@ -460,11 +460,11 @@
   align-self: flex-start;
 }
 
-.notification-item:hover .btn-archive {
+.notification-item:hover .btn-delete {
   opacity: 1;
 }
 
-.btn-archive:hover {
+.btn-delete:hover {
   background: #fee2e2;
   color: #B21B43;
 }

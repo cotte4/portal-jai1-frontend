@@ -73,6 +73,17 @@ export class AdminDashboard implements OnInit, OnDestroy {
   sortField: 'name' | 'federalRefund' | 'stateRefund' | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  // Missing docs check
+  isCheckingMissingDocs: boolean = false;
+  showMissingDocsModal: boolean = false;
+  missingDocsResult: { notified: number; skipped: number } | null = null;
+
+  // Missing docs cron status
+  missingDocsCronEnabled: boolean = false;
+  isLoadingCronStatus: boolean = false;
+  isTogglingCron: boolean = false;
+  showMissingDocsInfoModal: boolean = false;
+
   // Status filter options - using new phase-based status system
   statusFilters: { value: ClientStatusFilter; label: string; group: string }[] = [
     // All
@@ -90,6 +101,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadClients();
     this.loadSeasonStats();
+    this.loadMissingDocsCronStatus();
 
     // Auto-refresh on navigation
     this.subscriptions.add(
@@ -595,5 +607,74 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   trackByFilterValue(index: number, filter: { value: string }): string {
     return filter.value;
+  }
+
+  // ===== MISSING DOCUMENTS CHECK =====
+
+  checkMissingDocuments() {
+    if (this.isCheckingMissingDocs) return;
+
+    this.isCheckingMissingDocs = true;
+    this.missingDocsResult = null;
+
+    this.adminService.checkMissingDocuments(3, 3).subscribe({
+      next: (result) => {
+        this.missingDocsResult = { notified: result.notified, skipped: result.skipped };
+        this.showMissingDocsModal = true;
+        this.isCheckingMissingDocs = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error checking missing documents:', error);
+        this.errorMessage = error?.error?.message || 'Error al verificar documentos faltantes';
+        this.isCheckingMissingDocs = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeMissingDocsModal() {
+    this.showMissingDocsModal = false;
+    this.missingDocsResult = null;
+    this.cdr.detectChanges();
+  }
+
+  // ===== MISSING DOCS CRON CONTROL =====
+
+  loadMissingDocsCronStatus() {
+    this.isLoadingCronStatus = true;
+    this.adminService.getMissingDocsCronStatus().subscribe({
+      next: (status) => {
+        this.missingDocsCronEnabled = status.enabled;
+        this.isLoadingCronStatus = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading cron status:', error);
+        this.isLoadingCronStatus = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleMissingDocsCron() {
+    if (this.isTogglingCron) return;
+
+    this.isTogglingCron = true;
+    const newStatus = !this.missingDocsCronEnabled;
+
+    this.adminService.setMissingDocsCronStatus(newStatus).subscribe({
+      next: (result) => {
+        this.missingDocsCronEnabled = result.enabled;
+        this.isTogglingCron = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error toggling cron:', error);
+        this.errorMessage = error?.error?.message || 'Error al cambiar estado del cron';
+        this.isTogglingCron = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

@@ -1,10 +1,11 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
-import { environment } from '../../environments/environment';
+import { isDevModeEnabled } from '../core/utils/dev-mode';
 
 export const adminGuard: CanActivateFn = (route, state) => {
-  if (environment.DESIGN_GOD_MODE) {
+  // Dev mode with runtime safety checks (blocked in production)
+  if (isDevModeEnabled()) {
     return true;
   }
 

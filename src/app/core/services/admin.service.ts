@@ -296,6 +296,62 @@ export class AdminService {
     );
   }
 
+  // ============= MISSING DOCUMENTS CHECK =============
+
+  /**
+   * Trigger check for missing documents and send notifications to clients
+   * @param daysThreshold - Days since registration before sending reminder (default: 3)
+   * @param maxNotifications - Max notifications per client (default: 3)
+   */
+  checkMissingDocuments(daysThreshold = 3, maxNotifications = 3): Observable<{ message: string; notified: number; skipped: number }> {
+    const params: Record<string, string> = {
+      daysThreshold: daysThreshold.toString(),
+      maxNotifications: maxNotifications.toString()
+    };
+    return this.http.post<{ message: string; notified: number; skipped: number }>(
+      `${this.apiUrl}/admin/progress/check-missing-documents`,
+      {},
+      { params }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Send missing documents notification to a specific client
+   */
+  sendMissingDocsNotification(userId: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/admin/progress/send-missing-docs-notification`,
+      { userId }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get the status of the missing docs cron job
+   */
+  getMissingDocsCronStatus(): Observable<{ enabled: boolean; lastUpdated: string | null }> {
+    return this.http.get<{ enabled: boolean; lastUpdated: string | null }>(
+      `${this.apiUrl}/admin/progress/cron/missing-docs/status`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Enable or disable the missing docs cron job
+   */
+  setMissingDocsCronStatus(enabled: boolean): Observable<{ enabled: boolean }> {
+    return this.http.patch<{ enabled: boolean }>(
+      `${this.apiUrl}/admin/progress/cron/missing-docs/status`,
+      { enabled }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

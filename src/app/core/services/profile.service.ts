@@ -67,6 +67,7 @@ export class ProfileService {
     lastName?: string;
     phone?: string;
     dateOfBirth?: string;
+    preferredLanguage?: string;
     address?: {
       street?: string;
       city?: string;
@@ -101,6 +102,16 @@ export class ProfileService {
     return this.http.delete<{ message: string }>(
       `${this.apiUrl}/profile/picture`
     ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  updateLanguage(language: string): Observable<{ user: any; message: string }> {
+    return this.http.patch<{ user: any; message: string }>(
+      `${this.apiUrl}/profile/user-info`,
+      { preferredLanguage: language }
+    ).pipe(
+      timeout(8000),
       catchError(this.handleError)
     );
   }

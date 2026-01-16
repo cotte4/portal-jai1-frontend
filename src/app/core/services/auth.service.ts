@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, of, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
 import {
@@ -54,7 +54,7 @@ export class AuthService {
     if (this.isTokenExpired(accessToken, 60)) {
       console.log('Access token expired, attempting refresh...');
       try {
-        await this.refreshToken().toPromise();
+        await firstValueFrom(this.refreshToken());
         console.log('Token refreshed successfully');
       } catch (error) {
         console.log('Token refresh failed, redirecting to login');
@@ -154,7 +154,11 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/auth/logout`, {}).pipe(
+    // Send the refresh token so the server can revoke this specific session
+    const refreshToken = this.storage.getRefreshToken();
+    const body = refreshToken ? { refresh_token: refreshToken } : {};
+
+    return this.http.post<void>(`${this.apiUrl}/auth/logout`, body).pipe(
       tap(() => this.clearSession()),
       catchError((err) => {
         // Clear session even if API call fails
@@ -259,8 +263,30 @@ export class AuthService {
   }
 
   /**
+   * Exchange Google OAuth authorization code for tokens
+   * This is the secure way to complete OAuth - code is exchanged via POST, not URL params
+   */
+  exchangeGoogleCode(code: string): Observable<AuthResponse> {
+    console.log('[AuthService] exchangeGoogleCode - exchanging code for tokens');
+    // Default to rememberMe=true for Google OAuth (no checkbox shown)
+    this.storage.setRememberMe(true);
+
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/google/exchange`, { code }).pipe(
+      tap((response) => {
+        console.log('[AuthService] exchangeGoogleCode - success, handling response');
+        this.handleAuthResponse(response);
+      }),
+      catchError((error) => {
+        console.error('[AuthService] exchangeGoogleCode - failed:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
    * Handle Google OAuth callback - stores tokens and updates user state
    * Google OAuth defaults to rememberMe=true since no checkbox is shown
+   * @deprecated Use exchangeGoogleCode instead for secure OAuth flow
    */
   handleGoogleAuth(response: { access_token: string; refresh_token: string; user: any }): void {
     console.log('[AuthService] handleGoogleAuth - setting rememberMe to true by default');

@@ -203,6 +203,31 @@ export class MainLayout implements OnInit, OnDestroy {
     });
   }
 
+  deleteNotification(event: Event, notification: Notification) {
+    event.stopPropagation(); // Prevent triggering markAsRead
+    this.notificationService.deleteNotification(notification.id).subscribe({
+      next: () => {
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al eliminar notificación');
+        console.error('Delete notification error:', error);
+      }
+    });
+  }
+
+  deleteAllRead() {
+    this.notificationService.deleteAllRead().subscribe({
+      next: () => {
+        this.toastService.success('Notificaciones leídas eliminadas');
+      },
+      error: (error) => {
+        this.toastService.error('Error al eliminar notificaciones');
+        console.error('Delete all read error:', error);
+      }
+    });
+  }
+
   getNotificationIcon(type: string | null | undefined): string {
     if (!type) return '🔔';
 

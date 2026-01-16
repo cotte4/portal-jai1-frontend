@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -16,6 +17,7 @@ export class Login implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   email: string = '';
   password: string = '';
@@ -34,8 +36,10 @@ export class Login implements OnInit {
       this.rememberMe = true;
     }
 
-    // Check for Google auth error
-    this.route.queryParams.subscribe(params => {
+    // Check for Google auth error (auto-cleanup on destroy)
+    this.route.queryParams.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(params => {
       if (params['error'] === 'google_auth_failed') {
         this.errorMessage = 'Error al iniciar sesion con Google. Intenta nuevamente.';
       }

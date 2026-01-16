@@ -206,6 +206,37 @@
       }
     </div>
 
+    <!-- Settings Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <h2>Configuración</h2>
+      </div>
+
+      <div class="info-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">🌐 Idioma de notificaciones</span>
+            <span class="setting-description">Las notificaciones se mostrarán en el idioma seleccionado</span>
+          </div>
+          <div class="language-selector">
+            <select
+              [value]="preferredLanguage"
+              (change)="onLanguageChange($any($event.target).value)"
+              [disabled]="isChangingLanguage"
+              class="language-select"
+            >
+              @for (lang of availableLanguages; track lang.code) {
+                <option [value]="lang.code">{{ lang.flag }} {{ lang.name }}</option>
+              }
+            </select>
+            @if (isChangingLanguage) {
+              <span class="language-saving">...</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="quick-actions">
       <button class="action-btn" (click)="goBack()">

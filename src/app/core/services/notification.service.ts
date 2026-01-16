@@ -175,6 +175,42 @@ export class NotificationService {
     );
   }
 
+  // ============= DELETE METHODS =============
+
+  deleteNotification(notificationId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/notifications/${notificationId}`
+    ).pipe(
+      tap(() => {
+        // Remove from local state
+        const notifications = this.notificationsSubject.value.filter(n => n.id !== notificationId);
+        this.notificationsSubject.next(notifications);
+        // Update unread count
+        const unread = notifications.filter(n => !n.isRead).length;
+        this.unreadCountSubject.next(unread);
+        // Remove from known IDs
+        this.knownNotificationIds.delete(notificationId);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  deleteAllRead(): Observable<{ message: string; count: number }> {
+    return this.http.delete<{ message: string; count: number }>(
+      `${this.apiUrl}/notifications/read`
+    ).pipe(
+      tap(() => {
+        // Remove all read notifications from local state
+        const notifications = this.notificationsSubject.value.filter(n => !n.isRead);
+        this.notificationsSubject.next(notifications);
+        // Update known IDs
+        this.knownNotificationIds.clear();
+        notifications.forEach(n => this.knownNotificationIds.add(n.id));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Notification error:', error);
     return throwError(() => error);
