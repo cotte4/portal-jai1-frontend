@@ -14,7 +14,8 @@ import {
   AlarmLevel,
   AlarmResolution,
   ThresholdsResponse,
-  SetThresholdsRequest
+  SetThresholdsRequest,
+  AdvancedFilters
 } from '../models';
 
 export interface SeasonStats {
@@ -81,22 +82,54 @@ export class AdminService {
   private apiUrl = environment.apiUrl;
 
   /**
-   * Get clients with server-side filtering
+   * Get clients with server-side filtering and sorting
    * @param status - Can be a special filter string:
    *   - 'group_pending', 'group_in_review', 'group_completed', 'group_needs_attention'
    *   - 'ready_to_present', 'incomplete'
    *   - Or undefined/'all' for no filter
+   * @param filters - Advanced filters for date range, status, etc.
+   * @param sortBy - Column to sort by (createdAt, name, email)
+   * @param sortOrder - Sort direction (asc, desc)
    */
   getClients(
     status?: Exclude<ClientStatusFilter, 'all'>,
     search?: string,
     cursor?: string,
-    limit = 20
+    limit = 20,
+    filters?: AdvancedFilters,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Observable<AdminClientListResponse> {
     const params: Record<string, string> = { limit: limit.toString() };
     if (status) params['status'] = status;
     if (search) params['search'] = search;
     if (cursor) params['cursor'] = cursor;
+
+    // Sorting
+    if (sortBy) params['sortBy'] = sortBy;
+    if (sortOrder) params['sortOrder'] = sortOrder;
+
+    // Advanced filters
+    if (filters) {
+      if (filters.hasProblem !== null && filters.hasProblem !== undefined) {
+        params['hasProblem'] = filters.hasProblem.toString();
+      }
+      if (filters.federalStatus) {
+        params['federalStatus'] = filters.federalStatus;
+      }
+      if (filters.stateStatus) {
+        params['stateStatus'] = filters.stateStatus;
+      }
+      if (filters.caseStatus) {
+        params['caseStatus'] = filters.caseStatus;
+      }
+      if (filters.dateFrom) {
+        params['dateFrom'] = filters.dateFrom;
+      }
+      if (filters.dateTo) {
+        params['dateTo'] = filters.dateTo;
+      }
+    }
 
     return this.http.get<AdminClientListResponse>(`${this.apiUrl}/admin/clients`, { params }).pipe(
       catchError((error) => this.handleError(error))
@@ -144,9 +177,48 @@ export class AdminService {
     );
   }
 
-  exportToExcel(): Observable<Blob> {
+  exportToExcel(
+    status?: string,
+    search?: string,
+    filters?: AdvancedFilters
+  ): Observable<Blob> {
+    const params: Record<string, string> = {};
+
+    // Status filter
+    if (status && status !== 'all') {
+      params['status'] = status;
+    }
+
+    // Search filter
+    if (search) {
+      params['search'] = search;
+    }
+
+    // Advanced filters
+    if (filters) {
+      if (filters.hasProblem !== null && filters.hasProblem !== undefined) {
+        params['hasProblem'] = filters.hasProblem.toString();
+      }
+      if (filters.federalStatus) {
+        params['federalStatus'] = filters.federalStatus;
+      }
+      if (filters.stateStatus) {
+        params['stateStatus'] = filters.stateStatus;
+      }
+      if (filters.caseStatus) {
+        params['caseStatus'] = filters.caseStatus;
+      }
+      if (filters.dateFrom) {
+        params['dateFrom'] = filters.dateFrom;
+      }
+      if (filters.dateTo) {
+        params['dateTo'] = filters.dateTo;
+      }
+    }
+
     return this.http.get(`${this.apiUrl}/admin/clients/export`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      params
     }).pipe(
       catchError(this.handleError)
     );

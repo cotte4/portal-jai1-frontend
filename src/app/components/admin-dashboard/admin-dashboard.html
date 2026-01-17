@@ -199,6 +199,66 @@
         </option>
       </select>
       <button class="btn-search" (click)="onSearch()">Buscar</button>
+      <button class="btn-advanced-filters" (click)="toggleAdvancedFilters()" [class.active]="showAdvancedFilters || activeAdvancedFiltersCount > 0">
+        <span>🔍 Filtros</span>
+        <span class="filter-count" *ngIf="activeAdvancedFiltersCount > 0">{{ activeAdvancedFiltersCount }}</span>
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div class="advanced-filters-panel" [class.expanded]="showAdvancedFilters">
+      <div class="filters-grid">
+        <!-- Date Range -->
+        <div class="filter-group">
+          <label>Fecha Registro (Desde)</label>
+          <input type="date" [(ngModel)]="advancedFilters.dateFrom" />
+        </div>
+        <div class="filter-group">
+          <label>Fecha Registro (Hasta)</label>
+          <input type="date" [(ngModel)]="advancedFilters.dateTo" />
+        </div>
+
+        <!-- Has Problem -->
+        <div class="filter-group">
+          <label>Con Problemas</label>
+          <select [(ngModel)]="advancedFilters.hasProblem">
+            <option *ngFor="let opt of hasProblemOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- Case Status -->
+        <div class="filter-group">
+          <label>Estado del Caso</label>
+          <select [(ngModel)]="advancedFilters.caseStatus">
+            <option *ngFor="let opt of caseStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- Federal Status -->
+        <div class="filter-group">
+          <label>Estado Federal</label>
+          <select [(ngModel)]="advancedFilters.federalStatus">
+            <option *ngFor="let opt of federalStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- State Status -->
+        <div class="filter-group">
+          <label>Estado Estatal</label>
+          <select [(ngModel)]="advancedFilters.stateStatus">
+            <option *ngFor="let opt of stateStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-apply-filters" (click)="applyAdvancedFilters()">
+          Aplicar Filtros
+        </button>
+        <button class="btn-clear-filters" (click)="clearAdvancedFilters()" *ngIf="activeAdvancedFiltersCount > 0">
+          Limpiar Filtros
+        </button>
+      </div>
     </div>
 
     <!-- Active Group Filter Indicator -->
@@ -227,32 +287,49 @@
         </div>
       </div>
 
-      <!-- Sort Buttons -->
+      <!-- Sort Buttons (Server-side) -->
       <div class="sort-buttons">
         <span class="sort-label">Ordenar por:</span>
         <button
           class="btn-sort"
-          [class.active]="sortField === 'name'"
+          [class.active]="sortColumn === 'createdAt'"
+          (click)="sortBy('createdAt')">
+          Fecha {{ sortColumn === 'createdAt' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+        </button>
+        <button
+          class="btn-sort"
+          [class.active]="sortColumn === 'name'"
           (click)="sortBy('name')">
-          Nombre {{ sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
+          Nombre {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
         </button>
         <button
           class="btn-sort"
-          [class.active]="sortField === 'federalRefund'"
-          (click)="sortBy('federalRefund')">
-          Dev. Federal {{ sortField === 'federalRefund' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
-        </button>
-        <button
-          class="btn-sort"
-          [class.active]="sortField === 'stateRefund'"
-          (click)="sortBy('stateRefund')">
-          Dev. Estatal {{ sortField === 'stateRefund' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+          [class.active]="sortColumn === 'email'"
+          (click)="sortBy('email')">
+          Email {{ sortColumn === 'email' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
         </button>
         <button
           class="btn-sort-clear"
-          *ngIf="sortField"
+          *ngIf="sortColumn !== 'createdAt' || sortDirection !== 'desc'"
           (click)="clearSort()">
           Limpiar
+        </button>
+      </div>
+
+      <!-- Combined Filter Indicator -->
+      <div class="active-filters-bar" *ngIf="getTotalActiveFiltersCount() > 0">
+        <span class="filters-label">Filtros activos ({{ getTotalActiveFiltersCount() }}):</span>
+        <div class="filter-tags">
+          <span
+            class="filter-tag"
+            *ngFor="let filter of getActiveFilterLabels()"
+            (click)="removeFilter(filter.key)">
+            {{ filter.label }}
+            <span class="remove-icon">×</span>
+          </span>
+        </div>
+        <button class="btn-clear-all-filters" (click)="clearAllFilters()">
+          Limpiar todos
         </button>
       </div>
 

@@ -419,6 +419,16 @@ export type ClientStatusFilter =
   | 'ready_to_present'
   | 'incomplete';
 
+// Advanced filters for admin clients listing
+export interface AdvancedFilters {
+  hasProblem?: boolean | null;
+  federalStatus?: FederalStatusNew | null;
+  stateStatus?: StateStatusNew | null;
+  caseStatus?: CaseStatus | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+}
+
 export interface ClientCredentials {
   turbotaxEmail: string | null;
   turbotaxPassword: string | null;

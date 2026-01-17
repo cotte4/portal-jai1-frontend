@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, Subject } from 'rxjs';
@@ -16,7 +16,8 @@ import {
   StateStatusNew,
   StatusAlarm,
   ClientCredentials,
-  ClientStatusFilter
+  ClientStatusFilter,
+  AdvancedFilters
 } from '../../core/models';
 
 @Component({
@@ -27,11 +28,13 @@ import {
 })
 export class AdminDashboard implements OnInit, OnDestroy {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private isInitialLoad = true; // Prevents URL sync on initial load from URL
 
   allClients: AdminClientListItem[] = [];
   filteredClients: AdminClientListItem[] = [];
@@ -69,9 +72,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   showCredentialsModal: boolean = false;
   selectedClientCredentials: { clientName: string; credentials?: ClientCredentials } | null = null;
 
-  // Sorting
-  sortField: 'name' | 'federalRefund' | 'stateRefund' | null = null;
-  sortDirection: 'asc' | 'desc' = 'asc';
+  // Sorting (server-side for name/createdAt, client-side for refunds)
+  sortColumn: string = 'createdAt';
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   // Missing docs check
   isCheckingMissingDocs: boolean = false;
@@ -83,6 +86,58 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isLoadingCronStatus: boolean = false;
   isTogglingCron: boolean = false;
   showMissingDocsInfoModal: boolean = false;
+
+  // Advanced filters
+  showAdvancedFilters: boolean = false;
+  advancedFilters: AdvancedFilters = {
+    hasProblem: null,
+    federalStatus: null,
+    stateStatus: null,
+    caseStatus: null,
+    dateFrom: null,
+    dateTo: null,
+  };
+  activeAdvancedFiltersCount: number = 0;
+
+  // Dropdown options for advanced filters
+  hasProblemOptions = [
+    { value: null, label: 'Todos' },
+    { value: true, label: 'Con Problemas' },
+    { value: false, label: 'Sin Problemas' },
+  ];
+
+  federalStatusOptions = [
+    { value: null, label: 'Todos' },
+    { value: FederalStatusNew.IN_PROCESS, label: 'En Proceso' },
+    { value: FederalStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
+    { value: FederalStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
+    { value: FederalStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
+    { value: FederalStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: FederalStatusNew.ISSUES, label: 'Problemas' },
+    { value: FederalStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
+    { value: FederalStatusNew.TAXES_COMPLETED, label: 'Completado' },
+  ];
+
+  stateStatusOptions = [
+    { value: null, label: 'Todos' },
+    { value: StateStatusNew.IN_PROCESS, label: 'En Proceso' },
+    { value: StateStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
+    { value: StateStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
+    { value: StateStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
+    { value: StateStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: StateStatusNew.ISSUES, label: 'Problemas' },
+    { value: StateStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
+    { value: StateStatusNew.TAXES_COMPLETED, label: 'Completado' },
+  ];
+
+  caseStatusOptions = [
+    { value: null, label: 'Todos' },
+    { value: CaseStatus.AWAITING_FORM, label: 'Esperando Form' },
+    { value: CaseStatus.AWAITING_DOCS, label: 'Esperando Docs' },
+    { value: CaseStatus.PREPARING, label: 'Preparando' },
+    { value: CaseStatus.TAXES_FILED, label: 'Presentados' },
+    { value: CaseStatus.CASE_ISSUES, label: 'Con Problemas' },
+  ];
 
   // Status filter options - using new phase-based status system
   statusFilters: { value: ClientStatusFilter; label: string; group: string }[] = [
@@ -99,16 +154,25 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    // Read filters from URL params first
+    this.loadFiltersFromUrl();
+
     this.loadClients();
     this.loadSeasonStats();
     this.loadMissingDocsCronStatus();
+
+    // Mark initial load complete after first load
+    setTimeout(() => { this.isInitialLoad = false; }, 100);
 
     // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        filter(event => event.urlAfterRedirects === '/admin/dashboard')
-      ).subscribe(() => this.loadClients())
+        filter(event => event.urlAfterRedirects.startsWith('/admin/dashboard'))
+      ).subscribe(() => {
+        this.loadFiltersFromUrl();
+        this.loadClients();
+      })
     );
 
     // Allow other components to trigger refresh
@@ -122,6 +186,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         debounceTime(300),
         distinctUntilChanged()
       ).subscribe(() => {
+        this.syncFiltersToUrl();
         this.loadClients();
       })
     );
@@ -145,15 +210,19 @@ export class AdminDashboard implements OnInit, OnDestroy {
     const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
     const searchFilter = this.searchQuery || undefined;
 
-    this.adminService.getClients(statusFilter, searchFilter, undefined, 100).subscribe({
+    // Build advanced filters object (only include non-null values)
+    const advFilters = this.buildActiveAdvancedFilters();
+
+    this.adminService.getClients(statusFilter, searchFilter, undefined, 500, advFilters, this.sortColumn, this.sortDirection).subscribe({
       next: (response) => {
         this.filteredClients = response.clients;
         this.nextCursor = response.nextCursor;
         this.hasMore = response.hasMore;
         this.totalLoaded = response.clients.length;
 
-        // For stats, we need to load all clients without filter (only on initial load or refresh)
-        if (!statusFilter && !searchFilter) {
+        // For stats, we need to load all clients without any filter (only on initial load or refresh)
+        // Don't recalculate if any filters are active
+        if (!statusFilter && !searchFilter && !advFilters) {
           this.allClients = response.clients;
           this.calculateStats();
         }
@@ -183,8 +252,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
       }
     });
 
-    // Also load stats separately (all clients without filters) if we have an active filter
-    if (statusFilter || searchFilter) {
+    // Also load stats separately (all clients without filters) if we have any active filter
+    if (statusFilter || searchFilter || advFilters) {
       this.loadStats();
     }
   }
@@ -192,7 +261,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   // Load stats separately (all clients without filters)
   private loadStats() {
     const currentRequestId = ++this.statsRequestId;
-    this.adminService.getClients(undefined, undefined, undefined, 100).subscribe({
+    this.adminService.getClients(undefined, undefined, undefined, 500).subscribe({
       next: (response) => {
         // Only update if this is still the latest request (prevents race condition)
         if (currentRequestId !== this.statsRequestId) return;
@@ -232,8 +301,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
     // Pass the same filter when loading more
     const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
     const searchFilter = this.searchQuery || undefined;
+    const advFilters = this.buildActiveAdvancedFilters();
 
-    this.adminService.getClients(statusFilter, searchFilter, this.nextCursor, 100).subscribe({
+    this.adminService.getClients(statusFilter, searchFilter, this.nextCursor, 500, advFilters, this.sortColumn, this.sortDirection).subscribe({
       next: (response) => {
         this.filteredClients = [...this.filteredClients, ...response.clients];
         this.nextCursor = response.nextCursor;
@@ -283,6 +353,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   filterClients(filter: ClientStatusFilter) {
     this.selectedFilter = filter;
+    this.syncFiltersToUrl();
     this.loadClients(); // Server-side filtering
   }
 
@@ -316,6 +387,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // Called on Enter key - immediate search
   onSearch() {
+    this.syncFiltersToUrl();
     this.loadClients(); // Server-side search
   }
 
@@ -380,7 +452,12 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.isExporting = true;
     this.errorMessage = '';
 
-    this.adminService.exportToExcel().subscribe({
+    // Pass current filters to export
+    const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
+    const searchFilter = this.searchQuery || undefined;
+    const advFilters = this.buildActiveAdvancedFilters();
+
+    this.adminService.exportToExcel(statusFilter, searchFilter, advFilters).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -488,57 +565,27 @@ export class AdminDashboard implements OnInit, OnDestroy {
     });
   }
 
-  // ===== SORTING =====
+  // ===== SORTING (Server-side) =====
 
-  sortBy(field: 'name' | 'federalRefund' | 'stateRefund') {
-    // If clicking the same field, toggle direction; otherwise set new field with default direction
-    if (this.sortField === field) {
+  sortBy(column: string) {
+    // If clicking the same column, toggle direction; otherwise set new column with default direction
+    if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      this.sortField = field;
-      // Name defaults to A-Z (asc), refunds default to highest first (desc)
-      this.sortDirection = field === 'name' ? 'asc' : 'desc';
+      this.sortColumn = column;
+      // Name/email defaults to A-Z (asc), dates default to newest first (desc)
+      this.sortDirection = (column === 'name' || column === 'email') ? 'asc' : 'desc';
     }
-    this.applySorting();
-  }
-
-  clearSort() {
-    this.sortField = null;
-    this.sortDirection = 'asc';
-    // Reload to get original order
+    // Reload with server-side sorting
+    this.syncFiltersToUrl();
     this.loadClients();
   }
 
-  private applySorting() {
-    if (!this.sortField) return;
-
-    this.filteredClients = [...this.filteredClients].sort((a, b) => {
-      let comparison = 0;
-
-      switch (this.sortField) {
-        case 'name':
-          const nameA = `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.toLowerCase();
-          const nameB = `${b.user?.firstName || ''} ${b.user?.lastName || ''}`.toLowerCase();
-          comparison = nameA.localeCompare(nameB);
-          break;
-
-        case 'federalRefund':
-          const fedA = a.federalActualRefund ?? -Infinity;
-          const fedB = b.federalActualRefund ?? -Infinity;
-          comparison = fedA - fedB;
-          break;
-
-        case 'stateRefund':
-          const stateA = a.stateActualRefund ?? -Infinity;
-          const stateB = b.stateActualRefund ?? -Infinity;
-          comparison = stateA - stateB;
-          break;
-      }
-
-      return this.sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-    this.cdr.detectChanges();
+  clearSort() {
+    this.sortColumn = 'createdAt';
+    this.sortDirection = 'desc';
+    this.syncFiltersToUrl();
+    this.loadClients();
   }
 
   // ===== NEW STATUS SYSTEM (v2) METHODS =====
@@ -593,6 +640,302 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   hasAnyAlarm(client: AdminClientListItem): boolean {
     return client.hasAlarm || false;
+  }
+
+  // ===== ADVANCED FILTERS =====
+
+  toggleAdvancedFilters() {
+    this.showAdvancedFilters = !this.showAdvancedFilters;
+    this.cdr.detectChanges();
+  }
+
+  applyAdvancedFilters() {
+    // Validate date range
+    if (this.advancedFilters.dateFrom && this.advancedFilters.dateTo) {
+      const from = new Date(this.advancedFilters.dateFrom);
+      const to = new Date(this.advancedFilters.dateTo);
+      if (from > to) {
+        this.errorMessage = 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"';
+        this.cdr.detectChanges();
+        return;
+      }
+    }
+    this.errorMessage = '';
+    this.updateActiveFiltersCount();
+    this.syncFiltersToUrl();
+    this.loadClients();
+  }
+
+  clearAdvancedFilters() {
+    this.advancedFilters = {
+      hasProblem: null,
+      federalStatus: null,
+      stateStatus: null,
+      caseStatus: null,
+      dateFrom: null,
+      dateTo: null,
+    };
+    this.activeAdvancedFiltersCount = 0;
+    this.syncFiltersToUrl();
+    this.loadClients();
+  }
+
+  private buildActiveAdvancedFilters(): AdvancedFilters | undefined {
+    const filters: AdvancedFilters = {};
+    let hasAnyFilter = false;
+
+    if (this.advancedFilters.hasProblem !== null) {
+      filters.hasProblem = this.advancedFilters.hasProblem;
+      hasAnyFilter = true;
+    }
+    if (this.advancedFilters.federalStatus) {
+      filters.federalStatus = this.advancedFilters.federalStatus;
+      hasAnyFilter = true;
+    }
+    if (this.advancedFilters.stateStatus) {
+      filters.stateStatus = this.advancedFilters.stateStatus;
+      hasAnyFilter = true;
+    }
+    if (this.advancedFilters.caseStatus) {
+      filters.caseStatus = this.advancedFilters.caseStatus;
+      hasAnyFilter = true;
+    }
+    if (this.advancedFilters.dateFrom) {
+      filters.dateFrom = this.advancedFilters.dateFrom;
+      hasAnyFilter = true;
+    }
+    if (this.advancedFilters.dateTo) {
+      filters.dateTo = this.advancedFilters.dateTo;
+      hasAnyFilter = true;
+    }
+
+    return hasAnyFilter ? filters : undefined;
+  }
+
+  private updateActiveFiltersCount() {
+    let count = 0;
+    if (this.advancedFilters.hasProblem !== null) count++;
+    if (this.advancedFilters.federalStatus) count++;
+    if (this.advancedFilters.stateStatus) count++;
+    if (this.advancedFilters.caseStatus) count++;
+    if (this.advancedFilters.dateFrom) count++;
+    if (this.advancedFilters.dateTo) count++;
+    this.activeAdvancedFiltersCount = count;
+  }
+
+  // ===== COMBINED FILTER INDICATOR =====
+
+  /**
+   * Get total count of all active filters (group + search + advanced)
+   */
+  getTotalActiveFiltersCount(): number {
+    let count = 0;
+    if (this.selectedFilter !== 'all') count++;
+    if (this.searchQuery) count++;
+    count += this.activeAdvancedFiltersCount;
+    return count;
+  }
+
+  /**
+   * Get list of active filter labels for display
+   */
+  getActiveFilterLabels(): { key: string; label: string }[] {
+    const labels: { key: string; label: string }[] = [];
+
+    // Group filter
+    if (this.selectedFilter !== 'all') {
+      const filterOption = this.statusFilters.find(f => f.value === this.selectedFilter);
+      if (filterOption) {
+        labels.push({ key: 'group', label: filterOption.label });
+      }
+    }
+
+    // Search
+    if (this.searchQuery) {
+      labels.push({ key: 'search', label: `"${this.searchQuery}"` });
+    }
+
+    // Advanced filters
+    if (this.advancedFilters.hasProblem !== null) {
+      labels.push({
+        key: 'hasProblem',
+        label: this.advancedFilters.hasProblem ? 'Con problemas' : 'Sin problemas'
+      });
+    }
+    if (this.advancedFilters.federalStatus) {
+      const statusLabel = this.getFederalStatusNewLabel(this.advancedFilters.federalStatus as any);
+      labels.push({ key: 'federalStatus', label: `Federal: ${statusLabel}` });
+    }
+    if (this.advancedFilters.stateStatus) {
+      const statusLabel = this.getStateStatusNewLabel(this.advancedFilters.stateStatus as any);
+      labels.push({ key: 'stateStatus', label: `Estatal: ${statusLabel}` });
+    }
+    if (this.advancedFilters.caseStatus) {
+      const statusLabel = this.getCaseStatusLabel(this.advancedFilters.caseStatus as any);
+      labels.push({ key: 'caseStatus', label: `Caso: ${statusLabel}` });
+    }
+    if (this.advancedFilters.dateFrom || this.advancedFilters.dateTo) {
+      const from = this.advancedFilters.dateFrom || '...';
+      const to = this.advancedFilters.dateTo || '...';
+      labels.push({ key: 'dateRange', label: `${from} a ${to}` });
+    }
+
+    return labels;
+  }
+
+  /**
+   * Remove a specific filter by key
+   */
+  removeFilter(key: string) {
+    switch (key) {
+      case 'group':
+        this.selectedFilter = 'all';
+        break;
+      case 'search':
+        this.searchQuery = '';
+        break;
+      case 'hasProblem':
+        this.advancedFilters.hasProblem = null;
+        break;
+      case 'federalStatus':
+        this.advancedFilters.federalStatus = null;
+        break;
+      case 'stateStatus':
+        this.advancedFilters.stateStatus = null;
+        break;
+      case 'caseStatus':
+        this.advancedFilters.caseStatus = null;
+        break;
+      case 'dateRange':
+        this.advancedFilters.dateFrom = null;
+        this.advancedFilters.dateTo = null;
+        break;
+    }
+    this.updateActiveFiltersCount();
+    this.syncFiltersToUrl();
+    this.loadClients();
+  }
+
+  /**
+   * Clear all filters at once
+   */
+  clearAllFilters() {
+    this.selectedFilter = 'all';
+    this.searchQuery = '';
+    this.advancedFilters = {
+      hasProblem: null,
+      federalStatus: null,
+      stateStatus: null,
+      caseStatus: null,
+      dateFrom: null,
+      dateTo: null,
+    };
+    this.activeAdvancedFiltersCount = 0;
+    this.syncFiltersToUrl();
+    this.loadClients();
+  }
+
+  // ===== URL FILTER PERSISTENCE =====
+
+  /**
+   * Read filters from URL query params and apply them
+   */
+  private loadFiltersFromUrl() {
+    const params = this.route.snapshot.queryParams;
+
+    // Status filter
+    if (params['status']) {
+      this.selectedFilter = params['status'] as ClientStatusFilter;
+    }
+
+    // Search
+    if (params['search']) {
+      this.searchQuery = params['search'];
+    }
+
+    // Sorting
+    if (params['sortBy']) {
+      this.sortColumn = params['sortBy'];
+    }
+    if (params['sortOrder'] === 'asc' || params['sortOrder'] === 'desc') {
+      this.sortDirection = params['sortOrder'];
+    }
+
+    // Advanced filters
+    if (params['hasProblem'] === 'true' || params['hasProblem'] === 'false') {
+      this.advancedFilters.hasProblem = params['hasProblem'] === 'true';
+    }
+    if (params['federalStatus']) {
+      this.advancedFilters.federalStatus = params['federalStatus'] as any;
+    }
+    if (params['stateStatus']) {
+      this.advancedFilters.stateStatus = params['stateStatus'] as any;
+    }
+    if (params['caseStatus']) {
+      this.advancedFilters.caseStatus = params['caseStatus'] as any;
+    }
+    if (params['dateFrom']) {
+      this.advancedFilters.dateFrom = params['dateFrom'];
+    }
+    if (params['dateTo']) {
+      this.advancedFilters.dateTo = params['dateTo'];
+    }
+
+    // Update advanced filters count
+    this.updateActiveFiltersCount();
+  }
+
+  /**
+   * Sync current filters to URL query params (without page reload)
+   */
+  private syncFiltersToUrl() {
+    // Skip during initial load to avoid unnecessary navigation
+    if (this.isInitialLoad) return;
+
+    const params: Record<string, string> = {};
+
+    // Status filter
+    if (this.selectedFilter && this.selectedFilter !== 'all') {
+      params['status'] = this.selectedFilter;
+    }
+
+    // Search
+    if (this.searchQuery) {
+      params['search'] = this.searchQuery;
+    }
+
+    // Sorting (only if not default)
+    if (this.sortColumn !== 'createdAt' || this.sortDirection !== 'desc') {
+      params['sortBy'] = this.sortColumn;
+      params['sortOrder'] = this.sortDirection;
+    }
+
+    // Advanced filters
+    if (this.advancedFilters.hasProblem !== null && this.advancedFilters.hasProblem !== undefined) {
+      params['hasProblem'] = this.advancedFilters.hasProblem.toString();
+    }
+    if (this.advancedFilters.federalStatus) {
+      params['federalStatus'] = this.advancedFilters.federalStatus;
+    }
+    if (this.advancedFilters.stateStatus) {
+      params['stateStatus'] = this.advancedFilters.stateStatus;
+    }
+    if (this.advancedFilters.caseStatus) {
+      params['caseStatus'] = this.advancedFilters.caseStatus;
+    }
+    if (this.advancedFilters.dateFrom) {
+      params['dateFrom'] = this.advancedFilters.dateFrom;
+    }
+    if (this.advancedFilters.dateTo) {
+      params['dateTo'] = this.advancedFilters.dateTo;
+    }
+
+    // Update URL without triggering navigation
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: params,
+      replaceUrl: true, // Replace current history entry instead of adding new one
+    });
   }
 
   // ===== TRACKBY FUNCTIONS =====
