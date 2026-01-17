@@ -356,7 +356,7 @@
               <!-- 1. Name -->
               <td class="col-name">
                 <div class="client-name-cell">
-                  <span class="client-name">{{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}</span>
+                  <span class="client-name">{{ client.user.firstName || 'Sin' }} {{ client.user.lastName || 'Nombre' }}</span>
                   <span class="ready-indicator" *ngIf="client.isReadyToPresent" title="Listo para presentar">✓</span>
                 </div>
               </td>

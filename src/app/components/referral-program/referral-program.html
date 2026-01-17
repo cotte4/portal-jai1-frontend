@@ -487,9 +487,9 @@
             <div class="referrals-list">
               @for (referral of referrals.slice().reverse().slice(0, 5); track referral.id) {
                 <div class="referral-item">
-                  <div class="referral-avatar">{{ referral.referredUser.firstName?.charAt(0) || '?' }}</div>
+                  <div class="referral-avatar">{{ referral.referredUser.firstName.charAt(0) || '?' }}</div>
                   <div class="referral-info">
-                    <span class="referral-name">{{ referral.referredUser.firstName || 'Usuario' }} {{ referral.referredUser.lastName?.charAt(0) || '' }}{{ referral.referredUser.lastName ? '.' : '' }}</span>
+                    <span class="referral-name">{{ referral.referredUser.firstName || 'Usuario' }} {{ referral.referredUser.lastName.charAt(0) || '' }}{{ referral.referredUser.lastName ? '.' : '' }}</span>
                     <span class="referral-date">{{ formatDate(referral.createdAt) }}</span>
                   </div>
                   <div class="referral-status" [class]="referral.status">

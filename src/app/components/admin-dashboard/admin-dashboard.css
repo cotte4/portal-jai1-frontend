@@ -576,47 +576,6 @@
   width: 100%;
 }
 
-.table-header {
-  display: grid;
-  grid-template-columns: 180px 200px 200px 100px 100px 140px;
-  gap: 16px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.table-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 180px 200px 200px 100px 100px 140px;
-  gap: 16px;
-  padding: 20px 16px;
-  background: #fafafa;
-  border-radius: 12px;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.table-row:hover {
-  background: white;
-  border-color: #1D345D;
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.1);
-}
-
 .col-client {
   display: flex;
   align-items: center;
@@ -666,7 +625,8 @@
   color: #2196f3;
 }
 
-.status-completed {
+.status-completed,
+.status-approved {
   background: #e8f5e9;
   color: #4caf50;
 }
@@ -681,18 +641,8 @@
   color: #1D345D;
 }
 
-.status-approved {
-  background: #e8f5e9;
-  color: #4caf50;
-}
-
 /* Phase-based Status Column */
-.col-status-phase {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
+.col-status-phase,
 .status-dual {
   display: flex;
   flex-direction: column;
@@ -704,10 +654,7 @@
   font-size: 11px;
 }
 
-.status-federal,
-.status-state {
-  /* Federal and state use the same color coding via getTaxStatusClass */
-}
+/* Federal/state status use getTaxStatusClass for colors */
 
 .badge {
   display: inline-block;
@@ -869,28 +816,6 @@
   font-size: 12px;
 }
 
-.btn-load-more {
-  background: transparent;
-  border: 2px solid #1D345D;
-  color: #1D345D;
-  padding: 12px 32px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-load-more:hover:not(:disabled) {
-  background: #1D345D;
-  color: white;
-}
-
-.btn-load-more:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Season Summary Stats */
 .season-stats {
   display: grid;
@@ -989,45 +914,22 @@
   .season-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .table-header > div {
-    display: none;
-  }
-
-  .table-row > div::before {
-    content: attr(class);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-    text-transform: uppercase;
-  }
 }
 
 @media (max-width: 768px) {
-  .season-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .season-stat-card {
-    padding: 20px;
-  }
-
-  .season-stat-value {
-    font-size: 24px;
-  }
+  .season-stats { grid-template-columns: 1fr; }
+  .season-stat-card { padding: 20px; }
+  .season-stat-value { font-size: 24px; }
+  .filters-grid { grid-template-columns: 1fr; }
+  .filter-actions { flex-direction: column; }
+  .btn-apply-filters,
+  .btn-clear-filters { width: 100%; text-align: center; }
+  .active-filters-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .filter-tags { width: 100%; }
+  .btn-clear-all-filters { width: 100%; text-align: center; }
 }
 
-/* ============================================
-   SORT BUTTONS
-   ============================================ */
+/* SORT BUTTONS */
 
 .sort-buttons {
   display: flex;
@@ -1083,33 +985,16 @@
   color: #B21B43;
 }
 
-.btn-sort:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-sort-clear:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-clear-filter:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
+.btn-sort:disabled,
+.btn-sort-clear:disabled,
+.btn-clear-filter:disabled,
 .btn-accounts:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
-/* ============================================
-   NEW 12-COLUMN TABLE STYLES
-   ============================================ */
+/* 12-COLUMN TABLE */
 
 .clients-table-wrapper {
   overflow-x: auto;
@@ -1261,9 +1146,7 @@
   border-radius: 8px;
 }
 
-/* ============================================
-   CREDENTIALS MODAL
-   ============================================ */
+/* CREDENTIALS MODAL */
 
 .modal-overlay {
   position: fixed;
@@ -1406,9 +1289,7 @@
   }
 }
 
-/* ============================================
-   MISSING DOCS MODAL
-   ============================================ */
+/* MISSING DOCS MODAL */
 
 .btn-missing-docs {
   background: #ff9800;
@@ -1556,6 +1437,7 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 /* Cron Status in Modal */
@@ -1591,204 +1473,8 @@
   color: #757575;
 }
 
-/* Info Button */
-.btn-info {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  opacity: 0.7;
-}
 
-.btn-info:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.05);
-  transform: scale(1.1);
-}
-
-/* Info Modal */
-.info-modal {
-  max-width: 550px;
-}
-
-.info-section {
-  margin-bottom: 20px;
-}
-
-.info-section h4 {
-  color: #1D345D;
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 10px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.info-section p {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.info-list {
-  margin: 0;
-  padding-left: 20px;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.info-list li {
-  margin-bottom: 4px;
-}
-
-.info-divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, #e0e0e0, transparent);
-  margin: 24px 0;
-}
-
-/* Control Explanations */
-.control-explanation {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.control-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.control-icon {
-  flex-shrink: 0;
-}
-
-.btn-demo {
-  background: #ff9800;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.toggle-demo {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.toggle-demo.enabled {
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-}
-
-.toggle-demo.disabled {
-  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
-}
-
-.control-desc {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.control-desc strong {
-  color: var(--color-text-primary);
-}
-
-/* Current Status Section */
-.current-status {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e8ecef 100%);
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 8px;
-}
-
-.status-display {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.status-display span:first-child {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.status-badge.enabled {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge.disabled {
-  background: #f5f5f5;
-  color: #757575;
-}
-
-.btn-toggle-cron {
-  width: 100%;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-toggle-cron.to-enable {
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-  color: white;
-}
-
-.btn-toggle-cron.to-enable:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
-.btn-toggle-cron.to-disable {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  color: white;
-}
-
-.btn-toggle-cron.to-disable:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-}
-
-.btn-toggle-cron:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ============================================
-   ADVANCED FILTERS
-   ============================================ */
+/* ADVANCED FILTERS */
 
 .btn-advanced-filters {
   background: white;
@@ -1935,22 +1621,6 @@
   color: white;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .filters-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-actions {
-    flex-direction: column;
-  }
-
-  .btn-apply-filters,
-  .btn-clear-filters {
-    width: 100%;
-    text-align: center;
-  }
-}
 
 /* ===== COMBINED FILTER INDICATOR ===== */
 
@@ -2032,20 +1702,3 @@
   color: #ffffff;
 }
 
-/* Responsive adjustments for filter bar */
-@media (max-width: 768px) {
-  .active-filters-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .filter-tags {
-    width: 100%;
-  }
-
-  .btn-clear-all-filters {
-    width: 100%;
-    text-align: center;
-  }
-}

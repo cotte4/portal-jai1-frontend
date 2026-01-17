@@ -31,22 +31,22 @@
     <!-- Client Info Header -->
     <div class="client-header">
       <div class="client-avatar-large">
-        {{ client.user?.firstName?.charAt(0) || '?' }}{{ client.user?.lastName?.charAt(0) || '?' }}
+        {{ client.user.firstName.charAt(0) || '?' }}{{ client.user.lastName.charAt(0) || '?' }}
       </div>
       <div class="client-info">
-        <h1>{{ client.user?.firstName || 'Sin nombre' }} {{ client.user?.lastName || '' }}</h1>
+        <h1>{{ client.user.firstName || 'Sin nombre' }} {{ client.user.lastName || '' }}</h1>
         <div class="client-meta">
           <span class="meta-item">
             <span class="meta-icon">📧</span>
-            {{ client.user?.email || 'Sin email' }}
+            {{ client.user.email || 'Sin email' }}
           </span>
-          <span class="meta-item" *ngIf="client.user?.phone">
+          <span class="meta-item" *ngIf="client.user.phone">
             <span class="meta-icon">📱</span>
-            {{ client.user?.phone }}
+            {{ client.user.phone }}
           </span>
           <span class="meta-item">
             <span class="meta-icon">📅</span>
-            Registrado: {{ client.user?.createdAt | date:'dd/MM/yyyy' }}
+            Registrado: {{ client.user.createdAt | date:'dd/MM/yyyy' }}
           </span>
         </div>
       </div>
@@ -361,7 +361,7 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases?.[0]?.paymentReceived">
+      <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
         @if (isMarkingPaid) {
           <span class="spinner"></span>
           <span>Procesando...</span>
@@ -399,7 +399,7 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Nombre Completo</span>
-                  <span class="info-value">{{ client.user?.firstName || '' }} {{ client.user?.lastName || '' }}</span>
+                  <span class="info-value">{{ client.user.firstName || '' }} {{ client.user.lastName || '' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">SSN</span>
@@ -411,7 +411,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Telefono</span>
-                  <span class="info-value">{{ client.user?.phone || 'No proporcionado' }}</span>
+                  <span class="info-value">{{ client.user.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
             </div>
@@ -575,15 +575,15 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Ano Fiscal</span>
-                  <span class="info-value">{{ client.taxCases?.[0]?.taxYear || 'No disponible' }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.taxYear || 'No disponible' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Reembolso Estimado</span>
-                  <span class="info-value">{{ client.taxCases?.[0]?.estimatedRefund ? ('$' + client.taxCases?.[0]?.estimatedRefund) : 'Pendiente' }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Pago Recibido</span>
-                  <span class="info-value">{{ client.taxCases?.[0]?.paymentReceived ? 'Si' : 'No' }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.paymentReceived ? 'Si' : 'No' }}</span>
                 </div>
               </div>
             </div>
@@ -600,7 +600,7 @@
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📁</span>
-              <h2>Documentos ({{ client.documents?.length || 0 }})</h2>
+              <h2>Documentos ({{ client.documents.length || 0 }})</h2>
             </div>
           </div>
 
@@ -670,7 +670,7 @@
                 <div class="history-header">
                   <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                   <span class="history-admin" *ngIf="history.changedBy">
-                    por {{ history.changedBy?.firstName || '' }} {{ history.changedBy?.lastName || '' }}
+                    por {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
                   </span>
                 </div>
                 <div class="history-change">
