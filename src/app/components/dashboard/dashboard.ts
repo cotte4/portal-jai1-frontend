@@ -64,6 +64,7 @@ export class Dashboard implements OnInit, OnDestroy {
   hasLoaded: boolean = false; // True after first load completes
   errorMessage: string = '';
   private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null; // Track timeout for cleanup
 
   // User info from auth service (available immediately)
   userName: string = '';
@@ -97,6 +98,11 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear safety timeout to prevent memory leaks and errors after component destroy
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+      this.safetyTimeoutId = null;
+    }
   }
 
   loadData() {
@@ -166,12 +172,17 @@ export class Dashboard implements OnInit, OnDestroy {
     });
 
     // Safety timeout - ensure content shows after 5 seconds even if APIs are slow
-    setTimeout(() => {
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
         console.log('Dashboard: Safety timeout triggered');
       }
+      this.safetyTimeoutId = null;
     }, 5000);
   }
 

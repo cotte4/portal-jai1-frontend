@@ -42,6 +42,7 @@ export class TaxTracking implements OnInit, OnDestroy {
   private previousFederalStatus?: TaxStatus;
   private previousStateStatus?: TaxStatus;
   private isLoadingInProgress = false;
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // Shared initial steps (before split)
   sharedSteps: TrackingStep[] = [];
@@ -84,6 +85,11 @@ export class TaxTracking implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear safety timeout to prevent memory leaks and errors after component destroy
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+      this.safetyTimeoutId = null;
+    }
   }
 
   loadTrackingData() {
@@ -119,13 +125,18 @@ export class TaxTracking implements OnInit, OnDestroy {
     });
 
     // Safety timeout - ensure content shows after 5 seconds
-    setTimeout(() => {
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.isLoading = false;
         this.cdr.detectChanges();
         console.log('TaxTracking: Safety timeout triggered');
       }
+      this.safetyTimeoutId = null;
     }, 5000);
   }
 

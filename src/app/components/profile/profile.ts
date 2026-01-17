@@ -25,6 +25,7 @@ export class Profile implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // User data
   userName: string = '';
@@ -127,6 +128,11 @@ export class Profile implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear safety timeout to prevent memory leaks and errors after component destroy
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+      this.safetyTimeoutId = null;
+    }
   }
 
   get userInitials(): string {
@@ -319,7 +325,11 @@ export class Profile implements OnInit, OnDestroy {
     });
 
     // Safety timeout - stop loading states after 8 seconds
-    setTimeout(() => {
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
       if (this.isLoading || !this.profileDataLoaded) {
         this.isLoading = false;
         this.profileDataLoaded = true; // Stop showing "Verificando..."
@@ -329,6 +339,7 @@ export class Profile implements OnInit, OnDestroy {
         console.log('Profile: Safety timeout triggered');
         this.cdr.detectChanges();
       }
+      this.safetyTimeoutId = null;
     }, 8000);
   }
 

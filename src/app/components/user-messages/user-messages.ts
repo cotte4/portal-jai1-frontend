@@ -45,6 +45,17 @@ export class UserMessages implements OnInit {
   isDeleting: boolean = false;
 
   private isLoadingInProgress: boolean = false;
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    // Register cleanup for safety timeout when component is destroyed
+    this.destroyRef.onDestroy(() => {
+      if (this.safetyTimeoutId) {
+        clearTimeout(this.safetyTimeoutId);
+        this.safetyTimeoutId = null;
+      }
+    });
+  }
 
   ngOnInit(): void {
     const user = this.authService.currentUser;
@@ -158,12 +169,17 @@ export class UserMessages implements OnInit {
     });
 
     // Safety timeout - ensure content shows after 5 seconds
-    setTimeout(() => {
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
         console.warn('UserMessages: Safety timeout triggered - data load exceeded 5 seconds');
       }
+      this.safetyTimeoutId = null;
     }, 5000);
   }
 

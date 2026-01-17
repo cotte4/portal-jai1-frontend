@@ -44,8 +44,7 @@ export class ProfileService {
       is_draft: data.isDraft
     };
 
-    console.log('Sending profile data to:', `${this.apiUrl}/profile/complete`);
-    console.log('Data:', apiData);
+    // Note: Don't log apiData - contains SSN, bank info, TurboTax credentials
 
     return this.http.post<{ profile: ClientProfile; message: string }>(
       `${this.apiUrl}/profile/complete`,
@@ -75,7 +74,6 @@ export class ProfileService {
       zip?: string;
     };
   }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
-    console.log('updateUserInfo called with:', data);
     return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
       `${this.apiUrl}/profile/user-info`,
       data

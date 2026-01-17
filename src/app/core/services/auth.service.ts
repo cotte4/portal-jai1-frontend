@@ -121,19 +121,19 @@ export class AuthService {
     if (data.referralCode) {
       apiData.referral_code = data.referralCode;
     }
-    console.log('[AuthService] register - Making API call to:', `${this.apiUrl}/auth/register`);
-    console.log('[AuthService] register - Data:', apiData);
+    // Log without sensitive data (password redacted)
+    console.log('[AuthService] register - Making API call');
 
     // New registrations default to rememberMe=true for better UX
     this.storage.setRememberMe(true);
 
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
       tap((response) => {
-        console.log('[AuthService] register - Response received:', response);
+        console.log('[AuthService] register - Response received');
         this.handleAuthResponse(response);
       }),
       catchError((error) => {
-        console.log('[AuthService] register - Error:', error);
+        console.log('[AuthService] register - Error');
         return this.handleError(error);
       })
     );
@@ -193,15 +193,11 @@ export class AuthService {
   }
 
   forgotPassword(email: string): Observable<{ message: string }> {
-    console.log('AuthService.forgotPassword - Calling API for:', email);
+    // Note: Don't log the email - it's PII
     return this.http
       .post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email })
       .pipe(
-        tap((response) => console.log('AuthService.forgotPassword - Response:', response)),
-        catchError((error) => {
-          console.log('AuthService.forgotPassword - Error:', error);
-          return this.handleError(error);
-        })
+        catchError((error) => this.handleError(error))
       );
   }
 
@@ -232,7 +228,7 @@ export class AuthService {
   private handleAuthResponse(response: any): void {
     // Guard against invalid response
     if (!response) {
-      console.error('[AuthService] handleAuthResponse called with invalid response:', response);
+      console.error('[AuthService] handleAuthResponse called with invalid response');
       return;
     }
 
@@ -241,15 +237,23 @@ export class AuthService {
     const refreshToken = response.refreshToken || response.refresh_token;
     const user = this.mapUserFromApi(response.user);
 
-    console.log('[AuthService] handleAuthResponse - tokens:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      rememberMeEnabled: this.storage.isRememberMeEnabled()
-    });
+    // CRITICAL: Validate tokens exist before storing
+    // Storing undefined/null tokens would break isAuthenticated() checks
+    if (!accessToken || typeof accessToken !== 'string' || accessToken.trim() === '') {
+      console.error('[AuthService] Invalid or missing access token in response');
+      this.clearSession();
+      return;
+    }
+
+    if (!refreshToken || typeof refreshToken !== 'string' || refreshToken.trim() === '') {
+      console.error('[AuthService] Invalid or missing refresh token in response');
+      this.clearSession();
+      return;
+    }
 
     // If user mapping failed, clear session and redirect to login
     if (!user) {
-      console.error('[AuthService] Failed to map user from auth response, clearing session');
+      console.error('[AuthService] Failed to map user from auth response');
       this.clearSession();
       return;
     }
@@ -289,11 +293,28 @@ export class AuthService {
    * @deprecated Use exchangeGoogleCode instead for secure OAuth flow
    */
   handleGoogleAuth(response: { access_token: string; refresh_token: string; user: any }): void {
-    console.log('[AuthService] handleGoogleAuth - setting rememberMe to true by default');
     // Default to rememberMe=true for Google OAuth (no checkbox shown)
     this.storage.setRememberMe(true);
 
+    // Validate tokens before storing (same validation as handleAuthResponse)
+    if (!response.access_token || typeof response.access_token !== 'string' || response.access_token.trim() === '') {
+      console.error('[AuthService] handleGoogleAuth - Invalid access token');
+      this.clearSession();
+      return;
+    }
+
+    if (!response.refresh_token || typeof response.refresh_token !== 'string' || response.refresh_token.trim() === '') {
+      console.error('[AuthService] handleGoogleAuth - Invalid refresh token');
+      this.clearSession();
+      return;
+    }
+
     const user = this.mapUserFromApi(response.user);
+    if (!user) {
+      console.error('[AuthService] handleGoogleAuth - Failed to map user');
+      this.clearSession();
+      return;
+    }
 
     this.storage.setAccessToken(response.access_token);
     this.storage.setRefreshToken(response.refresh_token);

@@ -28,7 +28,6 @@ export class StorageService {
    * Set the rememberMe preference - must be called BEFORE setting tokens
    */
   setRememberMe(rememberMe: boolean): void {
-    console.log('[StorageService] Setting rememberMe:', rememberMe);
     if (rememberMe) {
       localStorage.setItem(REMEMBER_ME_KEY, 'true');
     } else {
@@ -45,32 +44,20 @@ export class StorageService {
 
   getAccessToken(): string | null {
     // Check both storages - sessionStorage first (current session), then localStorage (remembered)
-    const sessionToken = sessionStorage.getItem(TOKEN_KEY);
-    const localToken = localStorage.getItem(TOKEN_KEY);
-    const token = sessionToken || localToken;
-    console.log('[StorageService] getAccessToken - found in:', sessionToken ? 'sessionStorage' : (localToken ? 'localStorage' : 'none'));
-    return token;
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
   }
 
   setAccessToken(token: string): void {
-    const storage = this.getStorage();
-    console.log('[StorageService] setAccessToken - using:', storage === localStorage ? 'localStorage' : 'sessionStorage');
-    storage.setItem(TOKEN_KEY, token);
+    this.getStorage().setItem(TOKEN_KEY, token);
   }
 
   getRefreshToken(): string | null {
     // Check both storages
-    const sessionToken = sessionStorage.getItem(REFRESH_TOKEN_KEY);
-    const localToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    const token = sessionToken || localToken;
-    console.log('[StorageService] getRefreshToken - found in:', sessionToken ? 'sessionStorage' : (localToken ? 'localStorage' : 'none'));
-    return token;
+    return sessionStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
   setRefreshToken(token: string): void {
-    const storage = this.getStorage();
-    console.log('[StorageService] setRefreshToken - using:', storage === localStorage ? 'localStorage' : 'sessionStorage');
-    storage.setItem(REFRESH_TOKEN_KEY, token);
+    this.getStorage().setItem(REFRESH_TOKEN_KEY, token);
   }
 
   getUser<T>(): T | null {
@@ -89,13 +76,10 @@ export class StorageService {
   }
 
   setUser<T>(user: T): void {
-    const storage = this.getStorage();
-    console.log('[StorageService] setUser - using:', storage === localStorage ? 'localStorage' : 'sessionStorage');
-    storage.setItem(USER_KEY, JSON.stringify(user));
+    this.getStorage().setItem(USER_KEY, JSON.stringify(user));
   }
 
   clearAuth(): void {
-    console.log('[StorageService] clearAuth - clearing both storages');
     // Clear from both storages to ensure complete logout
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);

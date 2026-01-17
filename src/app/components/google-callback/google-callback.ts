@@ -45,16 +45,13 @@ export class GoogleCallback implements OnInit {
 
   ngOnInit() {
     console.log('[GoogleCallback] Component initialized');
-    console.log('[GoogleCallback] Current URL:', window.location.href);
+    // Note: Don't log full URL or query params - they contain sensitive OAuth codes
 
     this.route.queryParams.subscribe(params => {
-      console.log('[GoogleCallback] Query params received:', Object.keys(params));
-
       const code = params['code'];
       const error = params['error'];
 
-      console.log('[GoogleCallback] Has code:', !!code);
-      console.log('[GoogleCallback] Has error:', !!error);
+      console.log('[GoogleCallback] Processing callback, hasCode:', !!code, 'hasError:', !!error);
 
       if (error) {
         console.error('[GoogleCallback] Error from backend:', error);
@@ -63,38 +60,32 @@ export class GoogleCallback implements OnInit {
       }
 
       if (code) {
-        console.log('[GoogleCallback] Exchanging code for tokens...');
-
         // Exchange the authorization code for tokens via secure POST request
         // This prevents tokens from ever appearing in URLs (security best practice)
         this.authService.exchangeGoogleCode(code).subscribe({
-          next: (response) => {
-            console.log('[GoogleCallback] Code exchange successful');
-
+          next: () => {
             // Clear caches to ensure fresh data on login
             localStorage.removeItem('jai1_dashboard_cache');
             localStorage.removeItem('jai1_cached_profile');
 
             // Get user from auth service (already set by exchangeGoogleCode)
             const user = this.authService.currentUser;
-            console.log('[GoogleCallback] Auth handled, redirecting...');
+            console.log('[GoogleCallback] Auth successful, redirecting');
 
             // Redirect based on role
             if (user?.role === UserRole.ADMIN) {
-              console.log('[GoogleCallback] Redirecting to admin dashboard');
               this.router.navigate(['/admin/dashboard']);
             } else {
-              console.log('[GoogleCallback] Redirecting to client dashboard');
               this.router.navigate(['/dashboard']);
             }
           },
-          error: (err) => {
-            console.error('[GoogleCallback] Code exchange failed:', err);
+          error: () => {
+            console.error('[GoogleCallback] Code exchange failed');
             this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
           }
         });
       } else {
-        console.warn('[GoogleCallback] Missing code param, redirecting to login');
+        console.warn('[GoogleCallback] Missing code param');
         this.router.navigate(['/login']);
       }
     });
