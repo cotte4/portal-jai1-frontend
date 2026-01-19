@@ -202,6 +202,17 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+export interface RegisterResponse {
+  message: string;
+  requiresVerification: boolean;
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
@@ -526,6 +537,32 @@ export interface UpdateStatusRequest {
   caseStatus?: CaseStatus;
   federalStatusNew?: FederalStatusNew;
   stateStatusNew?: StateStatusNew;
+  // Force transition override
+  forceTransition?: boolean;
+  overrideReason?: string;
+}
+
+// ============= STATUS TRANSITIONS =============
+
+export interface StatusTransitionInfo {
+  current: string | null;
+  validTransitions: string[];
+}
+
+export interface ValidTransitionsResponse {
+  taxCaseId: string;
+  caseStatus: StatusTransitionInfo;
+  federalStatusNew: StatusTransitionInfo;
+  stateStatusNew: StatusTransitionInfo;
+}
+
+export interface InvalidTransitionError {
+  code: 'INVALID_STATUS_TRANSITION';
+  statusType: 'case' | 'federal' | 'state';
+  currentStatus: string | null;
+  attemptedStatus: string;
+  allowedTransitions: string[];
+  message: string;
 }
 
 // ============= CALCULATOR =============

@@ -93,6 +93,16 @@ export class Login implements OnInit {
       error: (error) => {
         console.log('[Login] Login failed:', error);
         this.isLoading = false;
+
+        // Check for EMAIL_NOT_VERIFIED error
+        const errorCode = error?.error?.error || error?.error?.code || '';
+        if (errorCode === 'EMAIL_NOT_VERIFIED') {
+          // Store email and redirect to verification page
+          sessionStorage.setItem('pendingVerificationEmail', this.email);
+          this.router.navigate(['/verify-email-sent']);
+          return;
+        }
+
         // Map common error messages to Spanish
         const message = error.message || '';
         if (message.includes('Invalid credentials') || message.includes('credentials')) {

@@ -26,6 +26,14 @@ export const routes: Routes = [
     path: 'auth/google/callback',
     loadComponent: () => import('./components/google-callback/google-callback').then(m => m.GoogleCallback)
   },
+  {
+    path: 'verify-email-sent',
+    loadComponent: () => import('./components/verify-email-sent/verify-email-sent').then(m => m.VerifyEmailSent)
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () => import('./components/verify-email/verify-email').then(m => m.VerifyEmail)
+  },
 
   // Admin routes - lazy loaded
   {

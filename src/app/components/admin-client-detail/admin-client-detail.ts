@@ -19,7 +19,9 @@ import {
   Document,
   Ticket,
   UpdateStatusRequest,
-  ProblemType
+  ProblemType,
+  ValidTransitionsResponse,
+  InvalidTransitionError
 } from '../../core/models';
 import { getErrorMessage } from '../../core/utils/error-handler';
 
@@ -138,6 +140,18 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showMarkPaidConfirm: boolean = false;
   showMarkFiledConfirm: boolean = false;
 
+  // Status transition validation
+  validTransitions: ValidTransitionsResponse | null = null;
+  validCaseStatusTransitions: string[] = [];
+  validFederalStatusTransitions: string[] = [];
+  validStateStatusTransitions: string[] = [];
+
+  // Override modal for invalid transitions
+  showOverrideModal: boolean = false;
+  overrideReason: string = '';
+  pendingStatusUpdate: { type: 'case' | 'federal' | 'state'; updateData: UpdateStatusRequest } | null = null;
+  overrideError: InvalidTransitionError | null = null;
+
   ngOnInit() {
     this.clientId = this.route.snapshot.params['id'];
     this.loadClientData();
@@ -209,11 +223,29 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         if (data.user?.id) {
           this.loadTickets(data.user.id);
         }
+        // Load valid transitions for status dropdowns
+        this.loadValidTransitions();
       },
       error: (error) => {
         this.errorMessage = getErrorMessage(error, 'Error al cargar cliente');
         this.isLoading = false;
         this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadValidTransitions() {
+    this.adminService.getValidTransitions(this.clientId).subscribe({
+      next: (transitions) => {
+        this.validTransitions = transitions;
+        this.validCaseStatusTransitions = transitions.caseStatus.validTransitions;
+        this.validFederalStatusTransitions = transitions.federalStatusNew.validTransitions;
+        this.validStateStatusTransitions = transitions.stateStatusNew.validTransitions;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        // Don't show error - transitions are optional enhancement
+        console.warn('Could not load valid transitions:', error);
       }
     });
   }
@@ -937,26 +969,13 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   updateCaseStatus() {
     if (!this.selectedCaseStatus) return;
-    this.isSavingPreFiling = true;
     const updateData: UpdateStatusRequest = {
       caseStatus: this.selectedCaseStatus
     };
-
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingPreFiling = false;
-        this.toastService.success('Estado del caso actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingPreFiling = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado'));
-      }
-    });
+    this.executeCaseStatusUpdate(updateData);
   }
 
   updateFederalStatusNew() {
-    this.isSavingFederalState = true;
     const updateData: UpdateStatusRequest = {};
 
     if (this.selectedFederalStatusNew) {
@@ -975,22 +994,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.federalComment = this.federalComment;
     }
 
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.federalComment = '';
-        this.toastService.success('Estado Federal (v2) actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
-      }
-    });
+    this.executeFederalStatusUpdate(updateData);
   }
 
   updateStateStatusNew() {
-    this.isSavingFederalState = true;
     const updateData: UpdateStatusRequest = {};
 
     if (this.selectedStateStatusNew) {
@@ -1009,18 +1016,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.stateComment = this.stateComment;
     }
 
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.stateComment = '';
-        this.toastService.success('Estado Estatal (v2) actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
-      }
-    });
+    this.executeStateStatusUpdate(updateData);
   }
 
   // ===== TRACKBY FUNCTIONS =====
@@ -1031,5 +1027,180 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  // ===== STATUS TRANSITION VALIDATION =====
+
+  /**
+   * Check if a case status is a valid transition from current
+   */
+  isCaseStatusValid(status: CaseStatus): boolean {
+    if (!this.validCaseStatusTransitions.length) return true;
+    return this.validCaseStatusTransitions.includes(status);
+  }
+
+  /**
+   * Check if a federal status is a valid transition from current
+   */
+  isFederalStatusValid(status: FederalStatusNew): boolean {
+    if (!this.validFederalStatusTransitions.length) return true;
+    return this.validFederalStatusTransitions.includes(status);
+  }
+
+  /**
+   * Check if a state status is a valid transition from current
+   */
+  isStateStatusValid(status: StateStatusNew): boolean {
+    if (!this.validStateStatusTransitions.length) return true;
+    return this.validStateStatusTransitions.includes(status);
+  }
+
+  /**
+   * Get filtered case status options (valid transitions only)
+   */
+  get filteredCaseStatusOptions(): CaseStatus[] {
+    if (!this.validCaseStatusTransitions.length) {
+      return this.caseStatusOptions;
+    }
+    return this.caseStatusOptions.filter(status =>
+      this.validCaseStatusTransitions.includes(status)
+    );
+  }
+
+  /**
+   * Get filtered federal status options (valid transitions only)
+   */
+  get filteredFederalStatusOptions(): FederalStatusNew[] {
+    if (!this.validFederalStatusTransitions.length) {
+      return this.federalStatusNewOptions;
+    }
+    return this.federalStatusNewOptions.filter(status =>
+      this.validFederalStatusTransitions.includes(status)
+    );
+  }
+
+  /**
+   * Get filtered state status options (valid transitions only)
+   */
+  get filteredStateStatusOptions(): StateStatusNew[] {
+    if (!this.validStateStatusTransitions.length) {
+      return this.stateStatusNewOptions;
+    }
+    return this.stateStatusNewOptions.filter(status =>
+      this.validStateStatusTransitions.includes(status)
+    );
+  }
+
+  // ===== OVERRIDE MODAL METHODS =====
+
+  openOverrideModal(type: 'case' | 'federal' | 'state', updateData: UpdateStatusRequest, error: InvalidTransitionError) {
+    this.pendingStatusUpdate = { type, updateData };
+    this.overrideError = error;
+    this.overrideReason = '';
+    this.showOverrideModal = true;
+  }
+
+  closeOverrideModal() {
+    this.showOverrideModal = false;
+    this.overrideReason = '';
+    this.pendingStatusUpdate = null;
+    this.overrideError = null;
+  }
+
+  confirmOverride() {
+    if (!this.pendingStatusUpdate || this.overrideReason.length < 10) {
+      this.toastService.warning('La razon debe tener al menos 10 caracteres');
+      return;
+    }
+
+    const { type, updateData } = this.pendingStatusUpdate;
+
+    // Add force transition fields
+    updateData.forceTransition = true;
+    updateData.overrideReason = this.overrideReason;
+
+    // Close modal first
+    this.closeOverrideModal();
+
+    // Retry the update with force
+    switch (type) {
+      case 'case':
+        this.executeCaseStatusUpdate(updateData);
+        break;
+      case 'federal':
+        this.executeFederalStatusUpdate(updateData);
+        break;
+      case 'state':
+        this.executeStateStatusUpdate(updateData);
+        break;
+    }
+  }
+
+  /**
+   * Handle status update errors - check for invalid transition
+   */
+  private handleStatusUpdateError(error: any, type: 'case' | 'federal' | 'state', updateData: UpdateStatusRequest): boolean {
+    // Check if it's an invalid transition error
+    const errorBody = error?.error;
+    if (errorBody?.code === 'INVALID_STATUS_TRANSITION') {
+      this.openOverrideModal(type, updateData, errorBody as InvalidTransitionError);
+      return true;
+    }
+    return false;
+  }
+
+  // ===== UPDATED STATUS UPDATE METHODS WITH TRANSITION VALIDATION =====
+
+  private executeCaseStatusUpdate(updateData: UpdateStatusRequest) {
+    this.isSavingPreFiling = true;
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingPreFiling = false;
+        this.toastService.success('Estado del caso actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingPreFiling = false;
+        if (!this.handleStatusUpdateError(error, 'case', updateData)) {
+          this.toastService.error(getErrorMessage(error, 'Error al actualizar estado'));
+        }
+      }
+    });
+  }
+
+  private executeFederalStatusUpdate(updateData: UpdateStatusRequest) {
+    this.isSavingFederalState = true;
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.federalComment = '';
+        this.toastService.success('Estado Federal (v2) actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        if (!this.handleStatusUpdateError(error, 'federal', updateData)) {
+          this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
+        }
+      }
+    });
+  }
+
+  private executeStateStatusUpdate(updateData: UpdateStatusRequest) {
+    this.isSavingFederalState = true;
+    this.adminService.updateStatus(this.clientId, updateData).subscribe({
+      next: () => {
+        this.isSavingFederalState = false;
+        this.stateComment = '';
+        this.toastService.success('Estado Estatal (v2) actualizado');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isSavingFederalState = false;
+        if (!this.handleStatusUpdateError(error, 'state', updateData)) {
+          this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
+        }
+      }
+    });
   }
 }

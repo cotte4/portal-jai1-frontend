@@ -114,6 +114,36 @@ export class ProfileService {
     );
   }
 
+  /**
+   * Update sensitive profile fields (SSN, bank info, TurboTax credentials)
+   * Only available for users who have already completed their profile
+   */
+  updateSensitiveProfile(data: {
+    ssn?: string;
+    bankName?: string;
+    bankRoutingNumber?: string;
+    bankAccountNumber?: string;
+    turbotaxEmail?: string;
+    turbotaxPassword?: string;
+  }): Observable<{
+    profile: { ssn: string | null; turbotaxEmail: string | null; turbotaxPassword: string | null };
+    bank: { name: string | null; routingNumber: string | null; accountNumber: string | null };
+    message: string;
+  }> {
+    // Note: Don't log data - contains SSN, bank info, TurboTax credentials
+    return this.http.patch<{
+      profile: { ssn: string | null; turbotaxEmail: string | null; turbotaxPassword: string | null };
+      bank: { name: string | null; routingNumber: string | null; accountNumber: string | null };
+      message: string;
+    }>(
+      `${this.apiUrl}/profile/sensitive`,
+      data
+    ).pipe(
+      timeout(15000), // 15 second timeout
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Profile error:', error);
 

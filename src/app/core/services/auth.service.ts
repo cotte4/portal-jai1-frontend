@@ -10,6 +10,7 @@ import {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
+  RegisterResponse,
   RefreshTokenRequest,
 } from '../models';
 
@@ -107,7 +108,7 @@ export class AuthService {
     }
   }
 
-  register(data: RegisterRequest): Observable<AuthResponse> {
+  register(data: RegisterRequest): Observable<RegisterResponse> {
     // Convert to snake_case for API
     const apiData: any = {
       email: data.email,
@@ -124,13 +125,10 @@ export class AuthService {
     // Log without sensitive data (password redacted)
     console.log('[AuthService] register - Making API call');
 
-    // New registrations default to rememberMe=true for better UX
-    this.storage.setRememberMe(true);
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
       tap((response) => {
-        console.log('[AuthService] register - Response received');
-        this.handleAuthResponse(response);
+        console.log('[AuthService] register - Response received, requires verification:', response.requiresVerification);
+        // Don't call handleAuthResponse - no tokens returned, user must verify email
       }),
       catchError((error) => {
         console.log('[AuthService] register - Error');
@@ -223,6 +221,18 @@ export class AuthService {
         }),
         catchError(this.handleError)
       );
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http
+      .get<{ message: string }>(`${this.apiUrl}/auth/verify-email/${token}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  resendVerification(email: string): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/auth/resend-verification`, { email })
+      .pipe(catchError(this.handleError));
   }
 
   private handleAuthResponse(response: any): void {

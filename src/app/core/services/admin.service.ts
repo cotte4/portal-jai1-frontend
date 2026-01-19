@@ -15,7 +15,8 @@ import {
   AlarmResolution,
   ThresholdsResponse,
   SetThresholdsRequest,
-  AdvancedFilters
+  AdvancedFilters,
+  ValidTransitionsResponse
 } from '../models';
 
 export interface SeasonStats {
@@ -157,6 +158,17 @@ export class AdminService {
     return this.http.patch<void>(
       `${this.apiUrl}/admin/clients/${clientId}/status`,
       data
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get valid status transitions for a client
+   */
+  getValidTransitions(clientId: string): Observable<ValidTransitionsResponse> {
+    return this.http.get<ValidTransitionsResponse>(
+      `${this.apiUrl}/admin/clients/${clientId}/valid-transitions`
     ).pipe(
       catchError(this.handleError)
     );

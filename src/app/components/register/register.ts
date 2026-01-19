@@ -92,12 +92,15 @@ export class Register {
       next: (response) => {
         console.log('Registration successful:', response);
         this.isLoading = false;
-        this.successMessage = 'Registro exitoso! Redirigiendo...';
+        this.successMessage = 'Registro exitoso! Revisa tu email para verificar tu cuenta.';
         this.cdr.detectChanges();
 
-        // Redirect to tax form (F2) after registration
+        // Store email for verification page
+        sessionStorage.setItem('pendingVerificationEmail', this.email);
+
+        // Redirect to verify-email-sent page
         setTimeout(() => {
-          this.router.navigate(['/tax-form']);
+          this.router.navigate(['/verify-email-sent']);
         }, 1500);
       },
       error: (error) => {

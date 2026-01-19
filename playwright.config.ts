@@ -62,10 +62,23 @@ export default defineConfig({
   // Global timeout for each test
   timeout: 60000,
 
-  // Expect timeout
+  // Expect timeout and visual comparison settings
   expect: {
     timeout: 10000,
+    // Visual regression testing configuration
+    toHaveScreenshot: {
+      maxDiffPixels: 100,
+      threshold: 0.2,
+      animations: 'disabled',
+    },
+    toMatchSnapshot: {
+      maxDiffPixelRatio: 0.05,
+    },
   },
+
+  // Snapshot directory
+  snapshotDir: './e2e/snapshots',
+  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
 
   // Projects (browsers to test)
   projects: [

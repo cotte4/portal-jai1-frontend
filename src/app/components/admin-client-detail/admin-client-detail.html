@@ -288,7 +288,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedCaseStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of caseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getCaseStatusLabel(status) }}
                 </option>
               </select>
@@ -313,7 +313,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedFederalStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of federalStatusNewOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getFederalStatusNewLabel(status) }}
                 </option>
               </select>
@@ -342,7 +342,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of stateStatusNewOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getStateStatusNewLabel(status) }}
                 </option>
               </select>
@@ -976,6 +976,65 @@
         <button class="btn-cancel" (click)="cancelMarkFiled()">Cancelar</button>
         <button class="btn-confirm-action filed" (click)="confirmMarkFiled()" [disabled]="isMarkingFiled">
           {{ isMarkingFiled ? 'Procesando...' : 'Confirmar Presentacion' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Override Modal -->
+  <div class="modal-overlay" *ngIf="showOverrideModal" (click)="closeOverrideModal()">
+    <div class="modal-content override-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header override-header">
+        <h3>Transicion de Estado No Permitida</h3>
+        <button class="modal-close" (click)="closeOverrideModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="override-warning-banner">
+          <span class="warning-icon">!</span>
+          <p>{{ overrideError?.message }}</p>
+        </div>
+
+        <div class="override-details" *ngIf="overrideError">
+          <div class="detail-row">
+            <span class="detail-label">Estado actual:</span>
+            <span class="detail-value current">{{ overrideError.currentStatus || 'Sin estado' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Estado intentado:</span>
+            <span class="detail-value attempted">{{ overrideError.attemptedStatus }}</span>
+          </div>
+          <div class="detail-row" *ngIf="overrideError.allowedTransitions.length > 0">
+            <span class="detail-label">Transiciones permitidas:</span>
+            <div class="allowed-transitions">
+              <span class="allowed-status" *ngFor="let status of overrideError.allowedTransitions">{{ status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="override-form">
+          <p class="override-instruction">Para forzar esta transicion, proporcione una razon (minimo 10 caracteres):</p>
+          <div class="form-group">
+            <label>Razon del Override</label>
+            <textarea
+              [(ngModel)]="overrideReason"
+              placeholder="Explique por que es necesario forzar esta transicion de estado..."
+              rows="4"
+              [class.invalid]="overrideReason.length > 0 && overrideReason.length < 10"
+            ></textarea>
+            <span class="char-count" [class.invalid]="overrideReason.length > 0 && overrideReason.length < 10">
+              {{ overrideReason.length }}/10 caracteres minimos
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeOverrideModal()">Cancelar</button>
+        <button
+          class="btn-override"
+          (click)="confirmOverride()"
+          [disabled]="overrideReason.length < 10"
+        >
+          Forzar Transicion
         </button>
       </div>
     </div>

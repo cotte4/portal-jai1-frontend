@@ -51,6 +51,31 @@ export class Profile implements OnInit, OnDestroy {
     zip: ''
   };
 
+  // Sensitive data (masked from API)
+  bankInfo = {
+    name: '',
+    routingNumber: '',  // Masked: ****XXXX
+    accountNumber: ''   // Masked: ****XXXX
+  };
+  turbotaxEmail: string = '';
+  turbotaxPassword: string = '';
+
+  // Sensitive section edit states
+  editingSensitiveSection: 'tax' | 'bank' | 'turbotax' | null = null;
+  isSavingSensitive: boolean = false;
+  showConfirmDialog: boolean = false;
+  pendingSensitiveData: any = null;
+
+  // Sensitive form data
+  sensitiveForm = {
+    ssn: '',
+    bankName: '',
+    bankRoutingNumber: '',
+    bankAccountNumber: '',
+    turbotaxEmail: '',
+    turbotaxPassword: ''
+  };
+
   // UI State
   isLoading: boolean = true;
   hasLoadedOnce: boolean = false; // Track if we've ever loaded data
@@ -258,6 +283,16 @@ export class Profile implements OnInit, OnDestroy {
             this.editForm.city = response.profile.address.city || '';
             this.editForm.state = response.profile.address.state || '';
             this.editForm.zip = response.profile.address.zip || '';
+          }
+
+          // Load bank info (masked from API)
+          const profileAny = response.profile as any;
+          if (profileAny.bank) {
+            this.bankInfo = {
+              name: profileAny.bank.name || '',
+              routingNumber: profileAny.bank.routingNumber || '',
+              accountNumber: profileAny.bank.accountNumber || ''
+            };
           }
 
           // Cache profile data for faster loads on refresh
@@ -693,6 +728,226 @@ export class Profile implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  // ==================== SENSITIVE PROFILE EDITING ====================
+
+  toggleSensitiveSection(section: 'tax' | 'bank' | 'turbotax') {
+    if (this.editingSensitiveSection === section) {
+      // Close section
+      this.editingSensitiveSection = null;
+      this.resetSensitiveForm();
+    } else {
+      // Open section
+      this.editingSensitiveSection = section;
+      this.initSensitiveForm(section);
+    }
+  }
+
+  private initSensitiveForm(section: 'tax' | 'bank' | 'turbotax') {
+    switch (section) {
+      case 'tax':
+        // SSN is masked, user needs to enter new value
+        this.sensitiveForm.ssn = '';
+        break;
+      case 'bank':
+        this.sensitiveForm.bankName = this.bankInfo.name || '';
+        // Routing/account are masked, user needs to enter new values
+        this.sensitiveForm.bankRoutingNumber = '';
+        this.sensitiveForm.bankAccountNumber = '';
+        break;
+      case 'turbotax':
+        // Email is masked, password always hidden
+        this.sensitiveForm.turbotaxEmail = '';
+        this.sensitiveForm.turbotaxPassword = '';
+        break;
+    }
+  }
+
+  private resetSensitiveForm() {
+    this.sensitiveForm = {
+      ssn: '',
+      bankName: '',
+      bankRoutingNumber: '',
+      bankAccountNumber: '',
+      turbotaxEmail: '',
+      turbotaxPassword: ''
+    };
+  }
+
+  cancelSensitiveEdit() {
+    this.editingSensitiveSection = null;
+    this.resetSensitiveForm();
+  }
+
+  prepareSensitiveSave() {
+    // Validate before showing confirmation
+    const section = this.editingSensitiveSection;
+    if (!section) return;
+
+    let isValid = true;
+    let errorMsg = '';
+
+    switch (section) {
+      case 'tax':
+        if (!this.sensitiveForm.ssn) {
+          isValid = false;
+          errorMsg = 'Por favor ingresa tu SSN';
+        } else if (!this.isValidSSN(this.sensitiveForm.ssn)) {
+          isValid = false;
+          errorMsg = 'El SSN debe tener 9 digitos (XXX-XX-XXXX o XXXXXXXXX)';
+        }
+        break;
+      case 'bank':
+        if (this.sensitiveForm.bankRoutingNumber && !this.isValidRoutingNumber(this.sensitiveForm.bankRoutingNumber)) {
+          isValid = false;
+          errorMsg = 'El numero de ruta debe tener exactamente 9 digitos';
+        }
+        break;
+      case 'turbotax':
+        // TurboTax fields are optional, no validation needed
+        break;
+    }
+
+    if (!isValid) {
+      this.toastService.error(errorMsg);
+      return;
+    }
+
+    // Prepare data for confirmation
+    this.pendingSensitiveData = this.buildSensitivePayload(section);
+    this.showConfirmDialog = true;
+  }
+
+  private buildSensitivePayload(section: 'tax' | 'bank' | 'turbotax'): any {
+    switch (section) {
+      case 'tax':
+        return { ssn: this.sensitiveForm.ssn };
+      case 'bank':
+        const bankData: any = {};
+        if (this.sensitiveForm.bankName) bankData.bankName = this.sensitiveForm.bankName;
+        if (this.sensitiveForm.bankRoutingNumber) bankData.bankRoutingNumber = this.sensitiveForm.bankRoutingNumber;
+        if (this.sensitiveForm.bankAccountNumber) bankData.bankAccountNumber = this.sensitiveForm.bankAccountNumber;
+        return bankData;
+      case 'turbotax':
+        const ttData: any = {};
+        if (this.sensitiveForm.turbotaxEmail) ttData.turbotaxEmail = this.sensitiveForm.turbotaxEmail;
+        if (this.sensitiveForm.turbotaxPassword) ttData.turbotaxPassword = this.sensitiveForm.turbotaxPassword;
+        return ttData;
+      default:
+        return {};
+    }
+  }
+
+  cancelConfirmDialog() {
+    this.showConfirmDialog = false;
+    this.pendingSensitiveData = null;
+  }
+
+  confirmSensitiveSave() {
+    if (!this.pendingSensitiveData || this.isSavingSensitive) return;
+
+    this.showConfirmDialog = false;
+    this.isSavingSensitive = true;
+
+    this.subscriptions.add(
+      this.profileService.updateSensitiveProfile(this.pendingSensitiveData).subscribe({
+        next: (response) => {
+          this.isSavingSensitive = false;
+
+          // Update local state with masked values from response
+          if (response.profile) {
+            if (response.profile.ssn) {
+              this.dni = response.profile.ssn;
+            }
+            if (response.profile.turbotaxEmail !== undefined) {
+              this.turbotaxEmail = response.profile.turbotaxEmail || '';
+            }
+            if (response.profile.turbotaxPassword !== undefined) {
+              this.turbotaxPassword = response.profile.turbotaxPassword || '';
+            }
+          }
+
+          if (response.bank) {
+            if (response.bank.name !== undefined) {
+              this.bankInfo.name = response.bank.name || '';
+            }
+            if (response.bank.routingNumber !== undefined) {
+              this.bankInfo.routingNumber = response.bank.routingNumber || '';
+            }
+            if (response.bank.accountNumber !== undefined) {
+              this.bankInfo.accountNumber = response.bank.accountNumber || '';
+            }
+          }
+
+          this.editingSensitiveSection = null;
+          this.resetSensitiveForm();
+          this.pendingSensitiveData = null;
+
+          this.toastService.success('Informacion actualizada correctamente');
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.isSavingSensitive = false;
+          this.pendingSensitiveData = null;
+          console.error('Sensitive profile update error:', error);
+          this.toastService.error(error?.message || 'Error al actualizar. Intenta de nuevo.');
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  private isValidSSN(ssn: string): boolean {
+    // Accept XXX-XX-XXXX or XXXXXXXXX format
+    const ssnPattern = /^(\d{9}|\d{3}-\d{2}-\d{4})$/;
+    return ssnPattern.test(ssn);
+  }
+
+  private isValidRoutingNumber(routing: string): boolean {
+    // Must be exactly 9 digits
+    return /^\d{9}$/.test(routing);
+  }
+
+  formatSSNInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, ''); // Remove non-digits
+
+    if (value.length > 9) {
+      value = value.substring(0, 9);
+    }
+
+    // Format as XXX-XX-XXXX
+    if (value.length > 5) {
+      value = value.substring(0, 3) + '-' + value.substring(3, 5) + '-' + value.substring(5);
+    } else if (value.length > 3) {
+      value = value.substring(0, 3) + '-' + value.substring(3);
+    }
+
+    this.sensitiveForm.ssn = value;
+  }
+
+  formatRoutingInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, ''); // Remove non-digits
+
+    if (value.length > 9) {
+      value = value.substring(0, 9);
+    }
+
+    this.sensitiveForm.bankRoutingNumber = value;
+  }
+
+  formatAccountInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Allow only digits, max 17 characters (typical max for US accounts)
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 17) {
+      value = value.substring(0, 17);
+    }
+
+    this.sensitiveForm.bankAccountNumber = value;
   }
 
 }
