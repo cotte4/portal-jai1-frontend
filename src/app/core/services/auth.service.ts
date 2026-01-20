@@ -70,8 +70,25 @@ export class AuthService {
    * @param bufferSeconds Seconds before actual expiry to consider it expired
    */
   private isTokenExpired(token: string, bufferSeconds: number = 0): boolean {
+    // Validate token is a non-empty string
+    if (!token || typeof token !== 'string') {
+      return true;
+    }
+
+    // Validate JWT structure (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return true;
+    }
+
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1]));
+
+      // Validate exp claim exists and is a number
+      if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) {
+        return true; // No valid exp claim, consider expired for safety
+      }
+
       const exp = payload.exp * 1000; // Convert to milliseconds
       return Date.now() >= (exp - bufferSeconds * 1000);
     } catch {
