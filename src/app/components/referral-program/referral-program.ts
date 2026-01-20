@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -23,7 +23,8 @@ const REFERRAL_ONBOARDING_KEY = 'referral_onboarding_completed';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './referral-program.html',
-  styleUrl: './referral-program.css'
+  styleUrl: './referral-program.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReferralProgram implements OnInit, OnDestroy {
   private router = inject(Router);

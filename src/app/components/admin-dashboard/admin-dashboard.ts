@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +24,8 @@ import {
   selector: 'app-admin-dashboard',
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
-  styleUrl: './admin-dashboard.css'
+  styleUrl: './admin-dashboard.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminDashboard implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -35,6 +36,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private isInitialLoad = true; // Prevents URL sync on initial load from URL
+  private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
   allClients: AdminClientListItem[] = [];
   filteredClients: AdminClientListItem[] = [];
@@ -162,7 +164,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadMissingDocsCronStatus();
 
     // Mark initial load complete after first load
-    setTimeout(() => { this.isInitialLoad = false; }, 100);
+    this.refreshTimeout = setTimeout(() => { this.isInitialLoad = false; }, 100);
 
     // Auto-refresh on navigation
     this.subscriptions.add(
@@ -194,6 +196,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+    }
   }
 
   // Load clients with server-side filtering

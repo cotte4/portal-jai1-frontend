@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,8 @@ import { Document, DocumentType } from '../../core/models';
   selector: 'app-document-upload',
   imports: [CommonModule, FormsModule],
   templateUrl: './document-upload.html',
-  styleUrl: './document-upload.css'
+  styleUrl: './document-upload.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DocumentUpload implements OnInit, OnDestroy {
   private router = inject(Router);

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +29,8 @@ interface AccountsResponse {
   selector: 'app-admin-accounts',
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-accounts.html',
-  styleUrl: './admin-accounts.css'
+  styleUrl: './admin-accounts.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminAccounts implements OnInit, OnDestroy {
   private router = inject(Router);

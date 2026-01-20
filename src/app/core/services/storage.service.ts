@@ -7,6 +7,7 @@ const REMEMBER_ME_KEY = 'remember_me';
 const ONBOARDING_KEY = 'onboarding_completed';
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 const PROFILE_CACHE_KEY = 'jai1_cached_profile';
+const CALCULATOR_RESULT_KEY = 'jai1_calculator_result';
 
 @Injectable({
   providedIn: 'root'
@@ -87,6 +88,8 @@ export class StorageService {
     localStorage.removeItem(REMEMBER_ME_KEY);
     localStorage.removeItem(DASHBOARD_CACHE_KEY);
     localStorage.removeItem(PROFILE_CACHE_KEY);
+    localStorage.removeItem(CALCULATOR_RESULT_KEY);
+    localStorage.removeItem(ONBOARDING_KEY);
 
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -97,7 +100,7 @@ export class StorageService {
     return !!this.getAccessToken();
   }
 
-  // Onboarding methods
+  // Onboarding methods (simple localStorage, cleared on logout)
   isOnboardingCompleted(): boolean {
     return localStorage.getItem(ONBOARDING_KEY) === 'true';
   }

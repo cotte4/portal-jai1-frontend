@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,8 @@ import { environment } from '../../../environments/environment';
   selector: 'app-login',
   imports: [FormsModule, CommonModule],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login implements OnInit {
   private router = inject(Router);
@@ -56,16 +57,8 @@ export class Login implements OnInit {
 
     this.isLoading = true;
 
-    console.log('[Login] Attempting login with rememberMe:', this.rememberMe);
-
     this.authService.login({ email: this.email, password: this.password, rememberMe: this.rememberMe }).subscribe({
       next: (response) => {
-        console.log('[Login] Login successful, tokens received:', {
-          hasAccessToken: !!response.accessToken,
-          hasRefreshToken: !!response.refreshToken,
-          rememberMe: this.rememberMe
-        });
-
         // Block admin users from client login - they must use admin login page
         if (response.user.role === UserRole.ADMIN) {
           this.authService.logout().subscribe();
@@ -86,12 +79,20 @@ export class Login implements OnInit {
         // Clear caches to ensure fresh data on login
         localStorage.removeItem('jai1_dashboard_cache');
         localStorage.removeItem('jai1_cached_profile');
+        localStorage.removeItem('jai1_calculator_result'); // Clear old calculator data
 
-        // Redirect to client dashboard
-        this.router.navigate(['/dashboard']);
+        // Check if user has a profile (from backend response)
+        // hasProfile means they've been through onboarding before
+        const hasProfile = (response as any).hasProfile ?? (response as any).has_profile;
+        if (hasProfile) {
+          // User has profile - go to dashboard
+          this.router.navigate(['/dashboard']);
+        } else {
+          // First time - show onboarding
+          this.router.navigate(['/onboarding']);
+        }
       },
       error: (error) => {
-        console.log('[Login] Login failed:', error);
         this.isLoading = false;
 
         // Check for EMAIL_NOT_VERIFIED error
