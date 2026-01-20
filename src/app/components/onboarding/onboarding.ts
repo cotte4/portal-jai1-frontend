@@ -21,7 +21,8 @@ interface Benefit {
   selector: 'app-onboarding',
   imports: [CommonModule],
   templateUrl: './onboarding.html',
-  styleUrl: './onboarding.css'
+  styleUrl: './onboarding.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Onboarding implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -50,6 +51,9 @@ export class Onboarding implements OnInit, OnDestroy {
   calculatorState: 'upload' | 'calculating' | 'result' | 'error' = 'upload';
   calculationProgress = 0;
   estimatedRefund = 0;
+  box2Federal = 0;
+  box17State = 0;
+  ocrConfidence = '';
   errorMessage = '';
 
   // Benefits content
@@ -75,6 +79,15 @@ export class Onboarding implements OnInit, OnDestroy {
     const user = this.authService.currentUser;
     if (user) {
       this.userName = user.firstName || user.email.split('@')[0];
+    }
+
+    // Check if user already has a calculator result
+    const existingResult = this.calculatorResultService.getResult();
+    if (existingResult) {
+      this.estimatedRefund = existingResult.estimatedRefund;
+      this.box2Federal = existingResult.box2Federal || 0;
+      this.box17State = existingResult.box17State || 0;
+      this.ocrConfidence = existingResult.ocrConfidence || '';
     }
   }
 
@@ -202,6 +215,9 @@ export class Onboarding implements OnInit, OnDestroy {
         }
         this.calculationProgress = 100;
         this.estimatedRefund = response.estimatedRefund;
+        this.box2Federal = response.box2Federal || 0;
+        this.box17State = response.box17State || 0;
+        this.ocrConfidence = response.ocrConfidence || '';
 
         this.resultTimeoutId = setTimeout(() => {
           this.showResult();
@@ -227,13 +243,24 @@ export class Onboarding implements OnInit, OnDestroy {
     this.errorMessage = '';
   }
 
+  skipCalculator() {
+    // Allow user to skip calculator and go directly to dashboard
+    this.storage.setOnboardingCompleted();
+    this.router.navigate(['/dashboard']);
+  }
+
   showResult() {
     this.calculatorState = 'result';
 
-    // Save result to localStorage and backend
+    // Save result to localStorage and backend with full breakdown data
     this.calculatorResultService.saveResult(
       this.estimatedRefund,
-      this.uploadedFile?.name
+      this.uploadedFile?.name,
+      {
+        box2Federal: this.box2Federal,
+        box17State: this.box17State,
+        ocrConfidence: this.ocrConfidence
+      }
     );
 
     // Save W2 document
