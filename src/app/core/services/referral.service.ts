@@ -254,25 +254,17 @@ export class ReferralService {
    * Get current tier based on successful referral count
    */
   getCurrentTier(successfulCount: number): RewardTier | null {
-    let currentTier: RewardTier | null = null;
-    for (const tier of this.rewardTiers) {
-      if (successfulCount >= tier.referralsRequired) {
-        currentTier = tier;
-      }
-    }
-    return currentTier;
+    // Get all tiers the user qualifies for, return the highest one
+    const qualifiedTiers = this.rewardTiers.filter(tier => successfulCount >= tier.referralsRequired);
+    return qualifiedTiers.length > 0 ? qualifiedTiers[qualifiedTiers.length - 1] : null;
   }
 
   /**
    * Get next tier
    */
   getNextTier(successfulCount: number): RewardTier | null {
-    for (const tier of this.rewardTiers) {
-      if (successfulCount < tier.referralsRequired) {
-        return tier;
-      }
-    }
-    return null;
+    // Find the first tier that the user hasn't reached yet
+    return this.rewardTiers.find(tier => successfulCount < tier.referralsRequired) ?? null;
   }
 
   /**

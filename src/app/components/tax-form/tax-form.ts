@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -17,7 +17,8 @@ const TAX_FORM_CACHE_KEY = 'jai1_tax_form_draft';
   selector: 'app-tax-form',
   imports: [FormsModule, CommonModule],
   templateUrl: './tax-form.html',
-  styleUrl: './tax-form.css'
+  styleUrl: './tax-form.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxForm implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -284,6 +285,7 @@ export class TaxForm implements OnInit, OnDestroy {
           this.dataRefreshService.refreshDashboard();
           // Show success screen with animation
           this.showSuccessScreen = true;
+          this.cdr.detectChanges(); // Force Angular to update the view immediately
           window.scrollTo(0, 0);
         }
       },

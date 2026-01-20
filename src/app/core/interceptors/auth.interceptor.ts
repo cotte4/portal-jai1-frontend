@@ -41,18 +41,14 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
         return throwError(() => error);
       }
 
-      console.log('[AuthInterceptor] 401 caught, isRefreshing:', isRefreshing);
-
       if (isRefreshing) {
         // Another request is already refreshing - wait for it to complete
-        console.log('[AuthInterceptor] Waiting for ongoing refresh...');
         return waitForRefreshAndRetry(req, next, refreshTokenSubject);
       }
 
       // Start the refresh process
       isRefreshing = true;
       refreshTokenSubject = new Subject<string | null>(); // Reset subject for new refresh cycle
-      console.log('[AuthInterceptor] Starting token refresh...');
 
       return authService.refreshToken().pipe(
         switchMap(() => {
@@ -64,11 +60,9 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           refreshTokenSubject.complete();
 
           if (!newToken) {
-            console.log('[AuthInterceptor] No new token after refresh');
             return throwError(() => error);
           }
 
-          console.log('[AuthInterceptor] Token refreshed, retrying original request');
           return retryWithNewToken(req, next, newToken);
         }),
         catchError(refreshError => {
@@ -76,7 +70,6 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           // Notify waiting requests that refresh failed
           refreshTokenSubject.next(null);
           refreshTokenSubject.complete();
-          console.log('[AuthInterceptor] Token refresh failed');
           return throwError(() => refreshError);
         })
       );
@@ -100,7 +93,6 @@ function waitForRefreshAndRetry(
         // Refresh failed, propagate error
         return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' }));
       }
-      console.log('[AuthInterceptor] Retrying queued request after refresh');
       return retryWithNewToken(req, next, token);
     })
   );
