@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize, forkJoin, of } from 'rxjs';
@@ -16,8 +16,7 @@ type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'alread
   selector: 'app-tax-calculator',
   imports: [CommonModule],
   templateUrl: './tax-calculator.html',
-  styleUrl: './tax-calculator.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './tax-calculator.css'
 })
 export class TaxCalculator implements OnInit, OnDestroy {
   private router = inject(Router);

@@ -44,54 +44,50 @@ export class GoogleCallback implements OnInit {
   private authService = inject(AuthService);
 
   ngOnInit() {
+    console.log('[GoogleCallback] Component initialized');
+    // Note: Don't log full URL or query params - they contain sensitive OAuth codes
+
     this.route.queryParams.subscribe(params => {
-      const accessToken = params['access_token'];
-      const refreshToken = params['refresh_token'];
-      const userParam = params['user'];
-      const hasProfileParam = params['hasProfile'];
+      const code = params['code'];
       const error = params['error'];
 
+      console.log('[GoogleCallback] Processing callback, hasCode:', !!code, 'hasError:', !!error);
+
       if (error) {
+        console.error('[GoogleCallback] Error from backend:', error);
         this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
         return;
       }
 
-      if (accessToken && refreshToken && userParam) {
-        try {
-          const userData = JSON.parse(userParam);
-          const hasProfile = hasProfileParam === 'true';
+      if (code) {
+        // Exchange the authorization code for tokens via secure POST request
+        // This prevents tokens from ever appearing in URLs (security best practice)
+        this.authService.exchangeGoogleCode(code).subscribe({
+          next: () => {
+            // Clear caches to ensure fresh data on login
+            localStorage.removeItem('jai1_dashboard_cache');
+            localStorage.removeItem('jai1_cached_profile');
 
-          // Clear caches to ensure fresh data on login
-          localStorage.removeItem('jai1_dashboard_cache');
-          localStorage.removeItem('jai1_cached_profile');
-          localStorage.removeItem('jai1_calculator_result');
+            // Get user from auth service (already set by exchangeGoogleCode)
+            const user = this.authService.currentUser;
+            console.log('[GoogleCallback] Auth successful, redirecting');
 
-          // Store tokens and user data
-          this.authService.handleGoogleAuthCallback(userData, hasProfile);
-
-          // Also store the tokens (handleGoogleAuthCallback only stores user)
-          const storage = localStorage; // Google OAuth defaults to remember
-          storage.setItem('access_token', accessToken);
-          storage.setItem('refresh_token', refreshToken);
-
-          const user = this.authService.currentUser;
-
-          // Redirect based on role and profile status
-          if (user?.role === UserRole.ADMIN) {
-            this.router.navigate(['/admin/dashboard']);
-          } else if (hasProfile) {
-            this.router.navigate(['/dashboard']);
-          } else {
-            this.router.navigate(['/onboarding']);
+            // Redirect based on role
+            if (user?.role === UserRole.ADMIN) {
+              this.router.navigate(['/admin/dashboard']);
+            } else {
+              this.router.navigate(['/dashboard']);
+            }
+          },
+          error: () => {
+            console.error('[GoogleCallback] Code exchange failed');
+            this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
           }
-        } catch {
-          this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
-        }
-        return;
+        });
+      } else {
+        console.warn('[GoogleCallback] Missing code param');
+        this.router.navigate(['/login']);
       }
-
-      // No valid params - redirect to login
-      this.router.navigate(['/login']);
     });
   }
 }

@@ -200,21 +200,17 @@ export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
-  hasProfile: boolean;
 }
 
 export interface RegisterResponse {
+  message: string;
+  requiresVerification: boolean;
   user: {
     id: string;
     email: string;
     first_name: string;
     last_name: string;
-    role: string;
   };
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  hasProfile: boolean;
 }
 
 export interface RefreshTokenRequest {

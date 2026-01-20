@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -45,8 +45,7 @@ interface PaymentsSummaryResponse {
   selector: 'app-admin-payments',
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-payments.html',
-  styleUrl: './admin-payments.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './admin-payments.css'
 })
 export class AdminPayments implements OnInit, OnDestroy {
   private router = inject(Router);

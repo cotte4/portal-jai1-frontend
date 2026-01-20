@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
@@ -21,8 +21,7 @@ interface TrackingStep {
   selector: 'app-tax-tracking',
   imports: [CommonModule],
   templateUrl: './tax-tracking.html',
-  styleUrl: './tax-tracking.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './tax-tracking.css'
 })
 export class TaxTracking implements OnInit, OnDestroy {
   private router = inject(Router);

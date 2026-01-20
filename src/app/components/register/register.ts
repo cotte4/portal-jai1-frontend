@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -10,8 +10,7 @@ import { environment } from '../../../environments/environment';
   selector: 'app-register',
   imports: [FormsModule, CommonModule],
   templateUrl: './register.html',
-  styleUrl: './register.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './register.css'
 })
 export class Register {
   private router = inject(Router);
@@ -80,6 +79,7 @@ export class Register {
     }
 
     this.isLoading = true;
+    console.log('Starting registration...');
 
     this.authService.register({
       email: this.email,
@@ -89,20 +89,28 @@ export class Register {
       phone: this.phone || undefined,
       referralCode: this.referralCode || undefined
     }).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Registration successful:', response);
         this.isLoading = false;
-        this.successMessage = 'Registro exitoso! Redirigiendo...';
+        this.successMessage = 'Registro exitoso! Revisa tu email para verificar tu cuenta.';
         this.cdr.detectChanges();
 
-        // Redirect to onboarding for first-time users
+        // Store email for verification page
+        sessionStorage.setItem('pendingVerificationEmail', this.email);
+
+        // Redirect to verify-email-sent page
         setTimeout(() => {
-          this.router.navigate(['/onboarding']);
-        }, 1000);
+          this.router.navigate(['/verify-email-sent']);
+        }, 1500);
       },
       error: (error) => {
+        console.log('Registration error:', error);
         this.isLoading = false;
         this.errorMessage = error.message || 'Error al registrar. Intenta nuevamente.';
         this.cdr.detectChanges();
+      },
+      complete: () => {
+        console.log('Registration observable completed');
       }
     });
   }

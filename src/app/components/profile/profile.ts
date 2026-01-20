@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
@@ -15,8 +15,7 @@ import { of, Subscription, timer } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './profile.html',
-  styleUrl: './profile.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './profile.css'
 })
 export class Profile implements OnInit, OnDestroy {
   private router = inject(Router);

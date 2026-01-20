@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -15,8 +15,7 @@ import { ToastComponent } from '../toast/toast';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   templateUrl: './main-layout.html',
-  styleUrl: './main-layout.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './main-layout.css'
 })
 export class MainLayout implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -27,7 +26,6 @@ export class MainLayout implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private chatbotScriptId = 'relevance-ai-chatbot';
   private subscriptions = new Subscription();
-  private navTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   userName: string = '';
   userEmail: string = '';
@@ -47,8 +45,6 @@ export class MainLayout implements OnInit, OnDestroy {
     this.removeChatbotScript();
     this.notificationService.stopPolling();
     this.subscriptions.unsubscribe();
-    this.navTimeouts.forEach(t => clearTimeout(t));
-    this.navTimeouts = [];
   }
 
   private setupNotifications() {
@@ -292,9 +288,9 @@ export class MainLayout implements OnInit, OnDestroy {
       this.dataRefreshService.triggerRefresh(route);
     } else {
       // Navigating to different route - trigger refresh after navigation completes
-      this.navTimeouts.push(setTimeout(() => {
+      setTimeout(() => {
         this.dataRefreshService.triggerRefresh(route);
-      }, 150));
+      }, 150);
     }
   }
 
@@ -312,9 +308,9 @@ export class MainLayout implements OnInit, OnDestroy {
       // Navigate first, then trigger refresh AFTER component is ready
       this.router.navigate([route]).then(() => {
         // Small delay to ensure component has subscribed
-        this.navTimeouts.push(setTimeout(() => {
+        setTimeout(() => {
           this.dataRefreshService.triggerRefresh(route);
-        }, 100));
+        }, 100);
       });
     }
   }

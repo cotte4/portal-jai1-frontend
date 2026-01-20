@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,8 +11,7 @@ import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models
   selector: 'app-admin-tickets',
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-tickets.html',
-  styleUrl: './admin-tickets.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './admin-tickets.css'
 })
 export class AdminTickets implements OnInit, OnDestroy {
   private router = inject(Router);
