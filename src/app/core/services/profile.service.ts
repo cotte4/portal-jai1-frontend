@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ProfileResponse,
@@ -44,13 +44,13 @@ export class ProfileService {
       is_draft: data.isDraft
     };
 
-    console.log('Sending profile data to:', `${this.apiUrl}/profile/complete`);
-    console.log('Data:', apiData);
+    // Note: Don't log apiData - contains SSN, bank info, TurboTax credentials
 
     return this.http.post<{ profile: ClientProfile; message: string }>(
       `${this.apiUrl}/profile/complete`,
       apiData
     ).pipe(
+      timeout(30000), // 30 second timeout to prevent indefinite hanging
       catchError(this.handleError)
     );
   }
@@ -66,24 +66,103 @@ export class ProfileService {
     lastName?: string;
     phone?: string;
     dateOfBirth?: string;
+    preferredLanguage?: string;
     address?: {
       street?: string;
       city?: string;
       state?: string;
       zip?: string;
     };
-  }): Observable<{ user: any; address?: any; dateOfBirth?: string; message: string }> {
-    console.log('Updating user info:', data);
-    return this.http.patch<{ user: any; address?: any; message: string }>(
+  }): Observable<{ user: any; address?: any; dateOfBirth?: string | null; message: string }> {
+    return this.http.patch<{ user: any; address?: any; dateOfBirth?: string | null; message: string }>(
       `${this.apiUrl}/profile/user-info`,
       data
     ).pipe(
+      timeout(8000), // 8 second timeout to prevent indefinite hanging
+      catchError(this.handleError)
+    );
+  }
+
+  uploadProfilePicture(file: File): Observable<{ profilePictureUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<{ profilePictureUrl: string }>(
+      `${this.apiUrl}/profile/picture`,
+      formData
+    ).pipe(
+      timeout(30000), // 30 second timeout for uploads
+      catchError(this.handleError)
+    );
+  }
+
+  deleteProfilePicture(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/profile/picture`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  updateLanguage(language: string): Observable<{ user: any; message: string }> {
+    return this.http.patch<{ user: any; message: string }>(
+      `${this.apiUrl}/profile/user-info`,
+      { preferredLanguage: language }
+    ).pipe(
+      timeout(8000),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Update sensitive profile fields (SSN, bank info, TurboTax credentials)
+   * Only available for users who have already completed their profile
+   */
+  updateSensitiveProfile(data: {
+    ssn?: string;
+    bankName?: string;
+    bankRoutingNumber?: string;
+    bankAccountNumber?: string;
+    turbotaxEmail?: string;
+    turbotaxPassword?: string;
+  }): Observable<{
+    profile: { ssn: string | null; turbotaxEmail: string | null; turbotaxPassword: string | null };
+    bank: { name: string | null; routingNumber: string | null; accountNumber: string | null };
+    message: string;
+  }> {
+    // Note: Don't log data - contains SSN, bank info, TurboTax credentials
+    return this.http.patch<{
+      profile: { ssn: string | null; turbotaxEmail: string | null; turbotaxPassword: string | null };
+      bank: { name: string | null; routingNumber: string | null; accountNumber: string | null };
+      message: string;
+    }>(
+      `${this.apiUrl}/profile/sensitive`,
+      data
+    ).pipe(
+      timeout(15000), // 15 second timeout
       catchError(this.handleError)
     );
   }
 
   private handleError(error: any): Observable<never> {
     console.error('Profile error:', error);
-    return throwError(() => error);
+
+    // Extract error message from HTTP response
+    let errorMessage = 'Error al procesar la solicitud';
+
+    if (error.name === 'TimeoutError') {
+      errorMessage = 'La solicitud tardó demasiado. Por favor intenta de nuevo.';
+    } else if (error.error?.message) {
+      // NestJS error response format
+      errorMessage = Array.isArray(error.error.message)
+        ? error.error.message[0]
+        : error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else if (error.statusText) {
+      errorMessage = error.statusText;
+    }
+
+    return throwError(() => ({ message: errorMessage, originalError: error }));
   }
 }

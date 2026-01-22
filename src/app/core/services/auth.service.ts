@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
 import {
@@ -10,7 +10,7 @@ import {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
-  RefreshTokenRequest,
+  RegisterResponse,
 } from '../models';
 
 @Injectable({
@@ -52,13 +52,10 @@ export class AuthService {
 
     // Check if access token is expired or about to expire (within 1 minute)
     if (this.isTokenExpired(accessToken, 60)) {
-      console.log('Access token expired, attempting refresh...');
       try {
-        await this.refreshToken().toPromise();
-        console.log('Token refreshed successfully');
-      } catch (error) {
-        console.log('Token refresh failed, redirecting to login');
-        this.clearSession(); // This clears auth AND redirects to login
+        await firstValueFrom(this.refreshToken());
+      } catch {
+        this.clearSession();
       }
     }
   }
@@ -69,8 +66,25 @@ export class AuthService {
    * @param bufferSeconds Seconds before actual expiry to consider it expired
    */
   private isTokenExpired(token: string, bufferSeconds: number = 0): boolean {
+    // Validate token is a non-empty string
+    if (!token || typeof token !== 'string') {
+      return true;
+    }
+
+    // Validate JWT structure (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return true;
+    }
+
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1]));
+
+      // Validate exp claim exists and is a finite number
+      if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) {
+        return true; // No valid exp = treat as expired for safety
+      }
+
       const exp = payload.exp * 1000; // Convert to milliseconds
       return Date.now() >= (exp - bufferSeconds * 1000);
     } catch {
@@ -94,30 +108,48 @@ export class AuthService {
     return this.currentUser?.role === UserRole.CLIENT;
   }
 
-  register(data: RegisterRequest): Observable<AuthResponse> {
+  /**
+   * Update current user data after profile changes
+   * This properly triggers the BehaviorSubject and persists to storage
+   */
+  updateCurrentUser(updates: Partial<User>): void {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...updates };
+      this.storage.setUser(updatedUser);
+      this.currentUserSubject.next(updatedUser);
+    }
+  }
+
+  register(data: RegisterRequest): Observable<RegisterResponse> {
     // Convert to snake_case for API
-    const apiData = {
+    const apiData: any = {
       email: data.email,
       password: data.password,
       first_name: data.firstName,
       last_name: data.lastName,
       phone: data.phone,
     };
-    console.log('AuthService.register - Making API call to:', `${this.apiUrl}/auth/register`);
-    console.log('AuthService.register - Data:', apiData);
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
+
+    // Only include referral_code if provided
+    if (data.referralCode) {
+      apiData.referral_code = data.referralCode;
+    }
+
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
       tap((response) => {
-        console.log('AuthService.register - Response received:', response);
+        // Log the user in immediately after registration
+        this.storage.setRememberMe(true); // Default to remember for new registrations
         this.handleAuthResponse(response);
       }),
-      catchError((error) => {
-        console.log('AuthService.register - Error:', error);
-        return this.handleError(error);
-      })
+      catchError((error) => this.handleError(error))
     );
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
+    // Set rememberMe BEFORE the response comes back so storage knows where to save
+    this.storage.setRememberMe(data.rememberMe || false);
+
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, data).pipe(
       tap((response) => this.handleAuthResponse(response)),
       catchError((error) => this.handleError(error))
@@ -125,7 +157,11 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/auth/logout`, {}).pipe(
+    // Send the refresh token so the server can revoke this specific session
+    const refreshToken = this.storage.getRefreshToken();
+    const body = refreshToken ? { refresh_token: refreshToken } : {};
+
+    return this.http.post<void>(`${this.apiUrl}/auth/logout`, body).pipe(
       tap(() => this.clearSession()),
       catchError((err) => {
         // Clear session even if API call fails
@@ -137,6 +173,7 @@ export class AuthService {
 
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.storage.getRefreshToken();
+
     if (!refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
@@ -153,16 +190,9 @@ export class AuthService {
   }
 
   forgotPassword(email: string): Observable<{ message: string }> {
-    console.log('AuthService.forgotPassword - Calling API for:', email);
     return this.http
       .post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email })
-      .pipe(
-        tap((response) => console.log('AuthService.forgotPassword - Response:', response)),
-        catchError((error) => {
-          console.log('AuthService.forgotPassword - Error:', error);
-          return this.handleError(error);
-        })
-      );
+      .pipe(catchError((error) => this.handleError(error)));
   }
 
   resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
@@ -174,10 +204,36 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/auth/change-password`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      })
+      .pipe(
+        tap(() => {
+          // Password changed - clear session since all tokens are invalidated
+          this.clearSession();
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http
+      .get<{ message: string }>(`${this.apiUrl}/auth/verify-email/${token}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  resendVerification(email: string): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/auth/resend-verification`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
   private handleAuthResponse(response: any): void {
     // Guard against invalid response
     if (!response) {
-      console.error('handleAuthResponse called with invalid response:', response);
       return;
     }
 
@@ -186,9 +242,19 @@ export class AuthService {
     const refreshToken = response.refreshToken || response.refresh_token;
     const user = this.mapUserFromApi(response.user);
 
+    // CRITICAL: Validate tokens exist before storing
+    if (!accessToken || typeof accessToken !== 'string' || accessToken.trim() === '') {
+      this.clearSession();
+      return;
+    }
+
+    if (!refreshToken || typeof refreshToken !== 'string' || refreshToken.trim() === '') {
+      this.clearSession();
+      return;
+    }
+
     // If user mapping failed, clear session and redirect to login
     if (!user) {
-      console.error('Failed to map user from auth response, clearing session');
       this.clearSession();
       return;
     }
@@ -201,12 +267,18 @@ export class AuthService {
 
   /**
    * Handle Google OAuth callback - stores tokens and updates user state
+   * Google OAuth defaults to rememberMe=true since no checkbox is shown
    */
-  handleGoogleAuth(response: { access_token: string; refresh_token: string; user: any }): void {
-    const user = this.mapUserFromApi(response.user);
+  handleGoogleAuthCallback(userData: any, hasProfile: boolean): void {
+    // Default to rememberMe=true for Google OAuth (no checkbox shown)
+    this.storage.setRememberMe(true);
 
-    this.storage.setAccessToken(response.access_token);
-    this.storage.setRefreshToken(response.refresh_token);
+    const user = this.mapUserFromApi(userData);
+    if (!user) {
+      this.clearSession();
+      return;
+    }
+
     this.storage.setUser(user);
     this.currentUserSubject.next(user);
   }
@@ -214,7 +286,6 @@ export class AuthService {
   private mapUserFromApi(apiUser: any): User | null {
     // Guard against undefined or null user data
     if (!apiUser || typeof apiUser !== 'object') {
-      console.error('mapUserFromApi called with invalid user data:', apiUser);
       return null;
     }
 
@@ -225,6 +296,7 @@ export class AuthService {
       firstName: apiUser.firstName || apiUser.first_name,
       lastName: apiUser.lastName || apiUser.last_name,
       phone: apiUser.phone,
+      profilePictureUrl: apiUser.profilePictureUrl || apiUser.profile_picture_url,
       isActive: apiUser.isActive ?? apiUser.is_active ?? true,
       lastLoginAt: apiUser.lastLoginAt || apiUser.last_login_at,
       createdAt: apiUser.createdAt || apiUser.created_at,
@@ -239,7 +311,6 @@ export class AuthService {
   }
 
   private handleError(error: any): Observable<never> {
-    console.error('Auth error:', error);
     return throwError(() => error);
   }
 }

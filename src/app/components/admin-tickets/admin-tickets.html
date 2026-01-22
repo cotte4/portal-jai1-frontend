@@ -1,0 +1,256 @@
+<div class="admin-container">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn-back" (click)="goBack()">
+          <span class="back-arrow">←</span>
+          <span>Volver</span>
+        </button>
+        <div class="logo">JAI1</div>
+        <span class="admin-badge">Tickets</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Actualizar</span>
+          <span *ngIf="isLoading">Cargando...</span>
+        </button>
+        <button class="btn-logout" (click)="logout()">
+          Cerrar sesion
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div>
+        <h1>Gestion de Tickets</h1>
+        <p>Todos los tickets de soporte de clientes</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-banner" *ngIf="errorMessage">
+      <div class="error-content">
+        <span class="error-icon">!</span>
+        <span class="error-message">{{ errorMessage }}</span>
+      </div>
+      <button class="btn-dismiss" (click)="errorMessage = ''">Cerrar</button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card total" [class.active]="selectedFilter === 'all'" (click)="filterTickets('all')">
+        <div class="stat-icon">*</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-label">Total Tickets</div>
+        </div>
+      </div>
+
+      <div class="stat-card open" [class.active]="selectedFilter === TicketStatus.OPEN" (click)="filterTickets(TicketStatus.OPEN)">
+        <div class="stat-icon">O</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.open }}</div>
+          <div class="stat-label">Abiertos</div>
+        </div>
+      </div>
+
+      <div class="stat-card progress" [class.active]="selectedFilter === TicketStatus.IN_PROGRESS" (click)="filterTickets(TicketStatus.IN_PROGRESS)">
+        <div class="stat-icon">~</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.inProgress }}</div>
+          <div class="stat-label">En Progreso</div>
+        </div>
+      </div>
+
+      <div class="stat-card closed" [class.active]="selectedFilter === TicketStatus.CLOSED" (click)="filterTickets(TicketStatus.CLOSED)">
+        <div class="stat-icon">V</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.closed }}</div>
+          <div class="stat-label">Cerrados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading && !hasLoaded">
+      <div class="spinner"></div>
+      <p>Cargando tickets...</p>
+    </div>
+
+    <!-- Split View: Ticket List + Conversation -->
+    <div class="split-view" *ngIf="hasLoaded">
+      <!-- Ticket List Panel -->
+      <div class="ticket-list-panel">
+        <div class="panel-header">
+          <h2>Lista de Tickets</h2>
+          <span class="ticket-count">{{ filteredTickets.length }} tickets</span>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="filteredTickets.length === 0">
+          <div class="empty-icon">X</div>
+          <h3>No hay tickets</h3>
+          <p>No se encontraron tickets con este filtro</p>
+        </div>
+
+        <!-- Ticket List -->
+        <div class="ticket-list" *ngIf="filteredTickets.length > 0">
+          <div
+            class="ticket-item"
+            *ngFor="let ticket of filteredTickets; trackBy: trackById"
+            [class.active]="selectedTicket?.id === ticket.id"
+            [class.has-unread]="hasUnread(ticket)"
+            (click)="selectTicket(ticket)"
+          >
+            <div class="ticket-row-main">
+              <div class="ticket-avatar">{{ getInitials(ticket) }}</div>
+              <div class="ticket-info">
+                <div class="ticket-client">{{ getClientName(ticket) }}</div>
+                <div class="ticket-subject">{{ ticket.subject }}</div>
+              </div>
+              <div class="ticket-meta">
+                <span class="ticket-status-badge" [ngClass]="getStatusClass(ticket.status)">
+                  {{ getStatusLabel(ticket.status) }}
+                </span>
+                <span class="unread-badge" *ngIf="hasUnread(ticket)">{{ ticket.unreadCount }}</span>
+              </div>
+            </div>
+            <div class="ticket-row-secondary">
+              <span class="ticket-email">{{ getClientEmail(ticket) }}</span>
+              <span class="ticket-date">{{ formatFullDate(ticket.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversation Panel -->
+      <div class="conversation-panel" [class.has-ticket]="selectedTicket">
+        <!-- No Ticket Selected -->
+        <div class="no-selection" *ngIf="!selectedTicket">
+          <div class="no-selection-icon">&lt;-</div>
+          <h3>Selecciona un ticket</h3>
+          <p>Elige un ticket de la lista para ver la conversacion</p>
+        </div>
+
+        <!-- Ticket Detail -->
+        <div class="ticket-detail" *ngIf="selectedTicket">
+          <!-- Ticket Header -->
+          <div class="conversation-header">
+            <div class="conversation-client">
+              <div class="client-avatar">{{ getInitials(selectedTicket) }}</div>
+              <div class="client-info">
+                <div class="client-name">{{ getClientName(selectedTicket) }}</div>
+                <div class="client-email">{{ getClientEmail(selectedTicket) }}</div>
+              </div>
+            </div>
+            <div class="conversation-meta">
+              <span class="conversation-status" [ngClass]="getStatusClass(selectedTicket.status)">
+                {{ getStatusLabel(selectedTicket.status) }}
+              </span>
+              <span class="conversation-date">Creado: {{ formatFullDate(selectedTicket.createdAt) }}</span>
+            </div>
+          </div>
+
+          <!-- Ticket Subject -->
+          <div class="conversation-subject">
+            <strong>Asunto:</strong> {{ selectedTicket.subject }}
+          </div>
+
+          <!-- Status Actions -->
+          <div class="status-actions">
+            <span class="actions-label">Acciones:</span>
+            <button
+              class="btn-status btn-in-progress"
+              *ngIf="selectedTicket.status === TicketStatus.OPEN"
+              (click)="markInProgress()"
+              [disabled]="isUpdatingStatus"
+            >
+              {{ isUpdatingStatus ? 'Actualizando...' : 'Marcar En Progreso' }}
+            </button>
+            <button
+              class="btn-status btn-close"
+              *ngIf="selectedTicket.status !== TicketStatus.CLOSED"
+              (click)="closeTicket()"
+              [disabled]="isUpdatingStatus"
+            >
+              {{ isUpdatingStatus ? 'Cerrando...' : 'Cerrar Ticket' }}
+            </button>
+            <button
+              class="btn-status btn-reopen"
+              *ngIf="selectedTicket.status === TicketStatus.CLOSED"
+              (click)="reopenTicket()"
+              [disabled]="isUpdatingStatus"
+            >
+              {{ isUpdatingStatus ? 'Reabriendo...' : 'Reabrir Ticket' }}
+            </button>
+          </div>
+
+          <!-- Messages -->
+          <div class="conversation-messages">
+            <ng-container *ngFor="let message of messages; let i = index; trackBy: trackById">
+              <!-- Date Separator -->
+              <div class="date-separator" *ngIf="shouldShowDateSeparator(i)">
+                <span>{{ formatDate(message.createdAt) }}</span>
+              </div>
+
+              <!-- Message Bubble -->
+              <div
+                class="message-wrapper"
+                [class.admin]="isFromAdmin(message)"
+                [class.client]="!isFromAdmin(message)"
+              >
+                <div class="message-bubble">
+                  <div class="message-sender" *ngIf="!isFromAdmin(message)">
+                    <span class="sender-label">Cliente</span>
+                  </div>
+                  <div class="message-sender admin-sender" *ngIf="isFromAdmin(message)">
+                    <span class="sender-label">Soporte JAI1</span>
+                  </div>
+                  <p class="message-text">{{ message.message }}</p>
+                  <span class="message-time">{{ formatTime(message.createdAt) }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Empty Messages -->
+            <div class="empty-messages" *ngIf="messages.length === 0">
+              <p>Sin mensajes en este ticket</p>
+            </div>
+          </div>
+
+          <!-- Reply Input -->
+          <div class="reply-section" *ngIf="selectedTicket.status !== TicketStatus.CLOSED">
+            <div class="reply-input-container">
+              <textarea
+                [(ngModel)]="newMessage"
+                placeholder="Escribe tu respuesta..."
+                rows="2"
+                (keydown.enter)="$event.preventDefault(); sendMessage()"
+                [disabled]="isSending"
+              ></textarea>
+              <button
+                class="btn-send"
+                (click)="sendMessage()"
+                [disabled]="!newMessage.trim() || isSending"
+              >
+                <span *ngIf="!isSending">Enviar</span>
+                <span *ngIf="isSending">Enviando...</span>
+              </button>
+            </div>
+            <p class="reply-hint">Presiona Enter para enviar</p>
+          </div>
+
+          <!-- Closed Notice -->
+          <div class="closed-notice" *ngIf="selectedTicket.status === TicketStatus.CLOSED">
+            <span>Este ticket esta cerrado. Reabrelo para enviar mensajes.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -557,6 +557,26 @@
   background: #f8fafc;
 }
 
+/* Skip Link */
+.skip-link {
+  display: block;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.skip-link:hover {
+  color: #1D345D;
+}
+
 .btn-icon {
   width: 20px;
   height: 20px;

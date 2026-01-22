@@ -1,0 +1,252 @@
+<!-- Base Background -->
+<div class="leaderboard-base"></div>
+
+<!-- Ambient Effects -->
+<div class="ambient-glow ambient-glow-1"></div>
+<div class="ambient-glow ambient-glow-2"></div>
+<div class="ambient-glow ambient-glow-3"></div>
+
+<!-- Floating Particles -->
+<div class="particles">
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+</div>
+
+<!-- Main Container -->
+<div class="leaderboard-container">
+
+  <!-- Sticky Header Group - stays fixed at top while scrolling -->
+  <div class="sticky-header-group">
+    <!-- Header -->
+    <header class="leaderboard-header">
+      <button class="btn-back" (click)="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Volver</span>
+      </button>
+
+      <div class="header-title">
+        <span class="title-icon">🏆</span>
+        <h1>Arena JAIgents</h1>
+      </div>
+
+      <button class="btn-mode" (click)="goToTaxMode()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Countdown Banner -->
+    <div class="countdown-banner">
+      <div class="countdown-pulse"></div>
+      <div class="countdown-content">
+        <svg class="countdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="countdown-text">
+          <strong>El leaderboard termina el {{ contestEndDate }}</strong>
+        </span>
+        <div class="countdown-shimmer"></div>
+      </div>
+    </div>
+
+    <!-- Secret Prizes Section -->
+    <div class="prizes-section">
+      <div class="prizes-glow"></div>
+      <div class="prizes-content">
+        <div class="prizes-icon-wrapper">
+          <span class="prizes-icon">🎁</span>
+          <div class="prizes-sparkles">
+            <span class="sparkle">✦</span>
+            <span class="sparkle">✦</span>
+            <span class="sparkle">✦</span>
+          </div>
+        </div>
+        <div class="prizes-text">
+          <span class="prizes-label">EXCLUSIVO</span>
+          <span class="prizes-title">Premios Secretos</span>
+          <span class="prizes-subtitle">para los mejores JAIgents</span>
+        </div>
+        <div class="prizes-mystery">
+          <span class="mystery-box">?</span>
+          <span class="mystery-box">?</span>
+          <span class="mystery-box">?</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (!hasLoaded) {
+    <div class="loading-state">
+      <div class="loading-ring">
+        <div class="ring-segment"></div>
+        <div class="ring-segment"></div>
+        <div class="ring-segment"></div>
+      </div>
+      <p>Cargando campeones...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (hasLoaded && errorMessage) {
+    <div class="error-state">
+      <div class="error-icon">⚠️</div>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-retry" (click)="loadLeaderboard()">
+        <span>Reintentar</span>
+      </button>
+    </div>
+  }
+
+  <!-- Leaderboard Content -->
+  @if (hasLoaded && !errorMessage) {
+    <main class="leaderboard-main">
+
+      <!-- Podium Section -->
+      @if (top3.length > 0) {
+        <section class="podium-section">
+          <div class="podium-spotlight"></div>
+          <div class="podium-title">
+            <span class="crown">👑</span>
+            <h2>TOP 3 JAIgents</h2>
+          </div>
+
+          <div class="podium">
+            @for (entry of podiumEntries; track $index; let i = $index) {
+              @if (entry) {
+                <div class="podium-slot"
+                     [class.first]="entry.rank === 1"
+                     [class.second]="entry.rank === 2"
+                     [class.third]="entry.rank === 3"
+                     [class.is-you]="isCurrentUser(entry)"
+                     [style.animation-delay]="(i * 0.15) + 's'">
+
+                  <!-- Avatar -->
+                  <div class="podium-avatar-wrapper">
+                    <div class="avatar-ring" [class]="getRankClass(entry.rank)"></div>
+                    <div class="podium-avatar">
+                      @if (entry.profilePicturePath) {
+                        <img [src]="entry.profilePicturePath" [alt]="entry.displayName" />
+                      } @else {
+                        <span class="avatar-initial">{{ getInitial(entry.displayName) }}</span>
+                      }
+                    </div>
+                    @if (isCurrentUser(entry)) {
+                      <div class="you-badge">TÚ</div>
+                    }
+                  </div>
+
+                  <!-- Medal -->
+                  <div class="podium-medal" [class]="getRankClass(entry.rank)">
+                    @if (entry.rank === 1) { <span>🥇</span> }
+                    @if (entry.rank === 2) { <span>🥈</span> }
+                    @if (entry.rank === 3) { <span>🥉</span> }
+                  </div>
+
+                  <!-- Info -->
+                  <div class="podium-info">
+                    <span class="podium-name">{{ entry.displayName }}</span>
+                    <div class="podium-stats">
+                      <span class="stat-value">{{ entry.successfulReferrals }}</span>
+                      <span class="stat-label">referidos</span>
+                    </div>
+                  </div>
+
+                  <!-- Stand -->
+                  <div class="podium-stand" [class]="getRankClass(entry.rank)">
+                    <span class="stand-rank">{{ entry.rank }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Rest of Leaderboard (4-10) -->
+      @if (rest.length > 0) {
+        <section class="list-section">
+          <div class="list-header">
+            <h3>Clasificación General</h3>
+            <span class="list-badge">Posiciones 4-10</span>
+          </div>
+
+          <div class="leaderboard-list">
+            @for (entry of rest; track entry.userId; let i = $index) {
+              <div class="list-item"
+                   [class.is-you]="isCurrentUser(entry)"
+                   [style.animation-delay]="(i * 0.08) + 's'">
+
+                <!-- Rank -->
+                <div class="item-rank">
+                  <span>{{ entry.rank }}</span>
+                </div>
+
+                <!-- Avatar -->
+                <div class="item-avatar">
+                  @if (entry.profilePicturePath) {
+                    <img [src]="entry.profilePicturePath" [alt]="entry.displayName" />
+                  } @else {
+                    <span>{{ getInitial(entry.displayName) }}</span>
+                  }
+                </div>
+
+                <!-- Info -->
+                <div class="item-info">
+                  <span class="item-name">
+                    {{ entry.displayName }}
+                    @if (isCurrentUser(entry)) {
+                      <span class="you-tag">(Tú)</span>
+                    }
+                  </span>
+                  <span class="item-tier">Nivel {{ entry.currentTier }}</span>
+                </div>
+
+                <!-- Count -->
+                <div class="item-count">
+                  <span class="count-number">{{ entry.successfulReferrals }}</span>
+                  <span class="count-label">referidos</span>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Empty State -->
+      @if (leaderboard.length === 0) {
+        <div class="empty-state">
+          <div class="empty-trophy">🏆</div>
+          <h2>El arena está vacía</h2>
+          <p>¡Sé el primero en referir amigos y conquistar el podio!</p>
+          <button class="btn-start" (click)="goBack()">
+            <span>Comenzar a referir</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      }
+
+    </main>
+  }
+
+  <!-- Footer -->
+  <footer class="leaderboard-footer">
+    <p>Los rankings se actualizan en tiempo real</p>
+  </footer>
+
+</div>

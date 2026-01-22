@@ -16,28 +16,33 @@
         </div>
         
         <!-- Profile Picture -->
-        <div class="profile-picture-container">
-          <div class="profile-picture" (click)="triggerFileInput()">
-            @if (profilePicture) {
-              <img [src]="profilePicture" alt="Foto de perfil" />
+        <div class="profile-picture-container" [class.editing]="isEditing" [class.has-changes]="hasPendingPictureChange">
+          <div class="profile-picture" [class.clickable]="isEditing" (click)="isEditing && triggerFileInput()">
+            @if (isEditing ? pendingProfilePicture : profilePicture) {
+              <img [src]="isEditing ? pendingProfilePicture : profilePicture" alt="Foto de perfil" />
             } @else {
               <div class="avatar-placeholder">
                 <span class="avatar-initials">{{ userInitials }}</span>
               </div>
             }
-            <div class="picture-overlay">
-              <span class="camera-icon">📷</span>
-            </div>
+            @if (isEditing) {
+              <div class="picture-overlay">
+                <span class="camera-icon">📷</span>
+              </div>
+            }
           </div>
-          <input 
-            type="file" 
-            id="profilePictureInput" 
-            accept="image/*" 
+          <input
+            type="file"
+            id="profilePictureInput"
+            accept="image/*"
             (change)="onFileSelected($event)"
             hidden
           />
-          @if (profilePicture) {
+          @if (isEditing && pendingProfilePicture) {
             <button class="btn-remove-picture" (click)="removeProfilePicture(); $event.stopPropagation()">✕</button>
+          }
+          @if (hasPendingPictureChange) {
+            <div class="picture-changed-indicator">Cambios pendientes</div>
           }
         </div>
       </div>
@@ -137,6 +142,15 @@
             <span class="info-value">{{ userPhone || 'No especificado' }}</span>
           </div>
         </div>
+
+        @if (userAge) {
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Edad</span>
+              <span class="info-value">{{ userAge }} años</span>
+            </div>
+          </div>
+        }
       }
     </div>
 
@@ -150,10 +164,10 @@
         <!-- Edit Address -->
         <div class="edit-form">
           <div class="form-group">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y número" />
+            <label>Direccion</label>
+            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y numero" />
           </div>
-          
+
           <div class="form-row">
             <div class="form-group">
               <label>Ciudad</label>
@@ -166,7 +180,7 @@
           </div>
 
           <div class="form-group">
-            <label>Código postal</label>
+            <label>Codigo postal</label>
             <input type="text" [(ngModel)]="editForm.zip" placeholder="ZIP Code" />
           </div>
         </div>
@@ -185,35 +199,245 @@
             <div class="empty-address">
               <span class="empty-icon">🏠</span>
               <span>No has agregado tu domicilio</span>
-              <button class="btn-add-address" (click)="toggleEdit()">Agregar dirección</button>
+              <button class="btn-add-address" (click)="toggleEdit()">Agregar direccion</button>
             </div>
           }
         </div>
       }
     </div>
 
-    <!-- Account Info Section -->
-    <div class="info-section">
-      <div class="section-header">
-        <h2>Mi cuenta</h2>
+    <!-- Sensitive Information Sections (only show if profile is verified/complete) -->
+    @if (isVerified) {
+      <!-- Tax Information Section -->
+      <div class="info-section sensitive-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <span class="section-icon">🔒</span>
+            <h2>Informacion Fiscal</h2>
+          </div>
+          <button class="btn-edit" (click)="toggleSensitiveSection('tax')" [disabled]="isSavingSensitive">
+            @if (editingSensitiveSection === 'tax') {
+              <span>Cancelar</span>
+            } @else {
+              <span>✏️ Editar</span>
+            }
+          </button>
+        </div>
+
+        @if (editingSensitiveSection === 'tax') {
+          <div class="edit-form sensitive-form">
+            <div class="form-group">
+              <label>Numero de Seguro Social (SSN)</label>
+              <input
+                type="text"
+                [value]="sensitiveForm.ssn"
+                (input)="formatSSNInput($event)"
+                placeholder="XXX-XX-XXXX"
+                maxlength="11"
+                autocomplete="off"
+              />
+              <span class="field-hint">Ingresa tu SSN completo para actualizarlo</span>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-cancel" (click)="cancelSensitiveEdit()">Cancelar</button>
+              <button class="btn-save-sensitive" (click)="prepareSensitiveSave()" [disabled]="isSavingSensitive">
+                @if (isSavingSensitive) {
+                  <span class="spinner"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>Guardar SSN</span>
+                }
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">SSN</span>
+              <span class="info-value masked-value">{{ dni || 'No especificado' }}</span>
+            </div>
+          </div>
+        }
       </div>
 
-      <div class="info-card">
-        <div class="info-row">
-          <span class="info-label">Fecha de nacimiento</span>
-          <span class="info-value">{{ formatDate(dateOfBirth) }}</span>
+      <!-- Bank Information Section -->
+      <div class="info-section sensitive-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <span class="section-icon">🏦</span>
+            <h2>Informacion Bancaria</h2>
+          </div>
+          <button class="btn-edit" (click)="toggleSensitiveSection('bank')" [disabled]="isSavingSensitive">
+            @if (editingSensitiveSection === 'bank') {
+              <span>Cancelar</span>
+            } @else {
+              <span>✏️ Editar</span>
+            }
+          </button>
         </div>
+
+        @if (editingSensitiveSection === 'bank') {
+          <div class="edit-form sensitive-form">
+            <div class="form-group">
+              <label>Nombre del Banco</label>
+              <input
+                type="text"
+                [(ngModel)]="sensitiveForm.bankName"
+                placeholder="Ej: Bank of America"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Numero de Ruta (Routing Number)</label>
+              <input
+                type="text"
+                [value]="sensitiveForm.bankRoutingNumber"
+                (input)="formatRoutingInput($event)"
+                placeholder="9 digitos"
+                maxlength="9"
+                autocomplete="off"
+              />
+              <span class="field-hint">Deja vacio para mantener el actual</span>
+            </div>
+
+            <div class="form-group">
+              <label>Numero de Cuenta</label>
+              <input
+                type="text"
+                [value]="sensitiveForm.bankAccountNumber"
+                (input)="formatAccountInput($event)"
+                placeholder="Tu numero de cuenta"
+                maxlength="17"
+                autocomplete="off"
+              />
+              <span class="field-hint">Deja vacio para mantener el actual</span>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-cancel" (click)="cancelSensitiveEdit()">Cancelar</button>
+              <button class="btn-save-sensitive" (click)="prepareSensitiveSave()" [disabled]="isSavingSensitive">
+                @if (isSavingSensitive) {
+                  <span class="spinner"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>Guardar Datos Bancarios</span>
+                }
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Banco</span>
+              <span class="info-value">{{ bankInfo.name || 'No especificado' }}</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Numero de Ruta</span>
+              <span class="info-value masked-value">{{ bankInfo.routingNumber || 'No especificado' }}</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Numero de Cuenta</span>
+              <span class="info-value masked-value">{{ bankInfo.accountNumber || 'No especificado' }}</span>
+            </div>
+          </div>
+        }
       </div>
 
-      <div class="info-card">
-        <div class="info-row">
-          <span class="info-label">Estado de verificación</span>
-          <span class="info-value status" [class.verified]="isVerified">
-            {{ isVerified ? 'Verificado ✓' : 'Pendiente' }}
-          </span>
+      <!-- TurboTax Credentials Section -->
+      <div class="info-section sensitive-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <span class="section-icon">📊</span>
+            <h2>Credenciales TurboTax</h2>
+          </div>
+          <button class="btn-edit" (click)="toggleSensitiveSection('turbotax')" [disabled]="isSavingSensitive">
+            @if (editingSensitiveSection === 'turbotax') {
+              <span>Cancelar</span>
+            } @else {
+              <span>✏️ Editar</span>
+            }
+          </button>
+        </div>
+
+        @if (editingSensitiveSection === 'turbotax') {
+          <div class="edit-form sensitive-form">
+            <div class="form-group">
+              <label>Email de TurboTax</label>
+              <input
+                type="email"
+                [(ngModel)]="sensitiveForm.turbotaxEmail"
+                placeholder="tu@email.com"
+                autocomplete="off"
+              />
+              <span class="field-hint">Deja vacio para mantener el actual</span>
+            </div>
+
+            <div class="form-group">
+              <label>Contrasena de TurboTax</label>
+              <input
+                type="password"
+                [(ngModel)]="sensitiveForm.turbotaxPassword"
+                placeholder="Nueva contrasena"
+                autocomplete="new-password"
+              />
+              <span class="field-hint">Deja vacio para mantener la actual</span>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-cancel" (click)="cancelSensitiveEdit()">Cancelar</button>
+              <button class="btn-save-sensitive" (click)="prepareSensitiveSave()" [disabled]="isSavingSensitive">
+                @if (isSavingSensitive) {
+                  <span class="spinner"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>Guardar Credenciales</span>
+                }
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Email TurboTax</span>
+              <span class="info-value masked-value">{{ turbotaxEmail || 'No especificado' }}</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Contrasena TurboTax</span>
+              <span class="info-value masked-value">{{ turbotaxPassword || 'No especificada' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Confirmation Dialog -->
+    @if (showConfirmDialog) {
+      <div class="confirm-overlay" (click)="cancelConfirmDialog()">
+        <div class="confirm-dialog" (click)="$event.stopPropagation()">
+          <div class="confirm-icon">⚠️</div>
+          <h3>Confirmar cambios</h3>
+          <p>Estas a punto de actualizar informacion sensible de tu perfil. Esta accion quedara registrada por seguridad.</p>
+          <p class="confirm-warning">¿Estas seguro de que deseas continuar?</p>
+          <div class="confirm-actions">
+            <button class="btn-confirm-cancel" (click)="cancelConfirmDialog()">Cancelar</button>
+            <button class="btn-confirm-save" (click)="confirmSensitiveSave()" [disabled]="isSavingSensitive">
+              @if (isSavingSensitive) {
+                <span class="spinner"></span>
+              } @else {
+                <span>Confirmar</span>
+              }
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    }
 
     <!-- Quick Actions -->
     <div class="quick-actions">

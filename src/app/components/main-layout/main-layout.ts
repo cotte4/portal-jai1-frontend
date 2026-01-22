@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { NotificationSoundService } from '../../core/services/notification-sound.service';
 import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
@@ -14,19 +15,23 @@ import { ToastComponent } from '../toast/toast';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   templateUrl: './main-layout.html',
-  styleUrl: './main-layout.css'
+  styleUrl: './main-layout.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainLayout implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private notificationSoundService = inject(NotificationSoundService);
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
   private chatbotScriptId = 'relevance-ai-chatbot';
   private subscriptions = new Subscription();
+  private navTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   userName: string = '';
   userEmail: string = '';
+  userProfilePicture: string | null = null;
   sidebarOpen: boolean = false;
   showNotificationsPanel: boolean = false;
   unreadNotifications: number = 0;
@@ -42,6 +47,8 @@ export class MainLayout implements OnInit, OnDestroy {
     this.removeChatbotScript();
     this.notificationService.stopPolling();
     this.subscriptions.unsubscribe();
+    this.navTimeouts.forEach(t => clearTimeout(t));
+    this.navTimeouts = [];
   }
 
   private setupNotifications() {
@@ -59,15 +66,21 @@ export class MainLayout implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to new notifications for toast alerts
+    // Subscribe to new notifications for toast alerts and sound
     this.subscriptions.add(
       this.notificationService.newNotification$.subscribe((newNotifications) => {
-        newNotifications.forEach((notification) => {
-          this.toastService.notification(
-            notification.message,
-            notification.title
-          );
-        });
+        if (newNotifications.length > 0) {
+          // Play notification sound once for all new notifications
+          this.notificationSoundService.playNotificationSound();
+
+          // Show toast for each notification
+          newNotifications.forEach((notification) => {
+            this.toastService.notification(
+              notification.message,
+              notification.title
+            );
+          });
+        }
       })
     );
 
@@ -115,11 +128,29 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   loadUserData() {
+    // Initial load
     const user = this.authService.currentUser;
     if (user) {
       this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       this.userEmail = user.email;
+      this.userProfilePicture = user.profilePictureUrl || null;
     }
+
+    // Subscribe to auth changes (e.g., when profile picture is updated or user logs out)
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe((user) => {
+        if (user) {
+          this.userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          this.userEmail = user.email;
+          this.userProfilePicture = user.profilePictureUrl || null;
+        } else {
+          // Clear user data when logged out to prevent stale data on next login
+          this.userName = '';
+          this.userEmail = '';
+          this.userProfilePicture = null;
+        }
+      })
+    );
   }
 
   toggleNotificationsPanel() {
@@ -151,7 +182,59 @@ export class MainLayout implements OnInit, OnDestroy {
     });
   }
 
-  getNotificationIcon(type: string): string {
+  archiveNotification(event: Event, notification: Notification) {
+    event.stopPropagation(); // Prevent triggering markAsRead
+    this.notificationService.archiveNotification(notification.id).subscribe({
+      next: () => {
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al archivar notificación');
+        console.error('Archive notification error:', error);
+      }
+    });
+  }
+
+  archiveAllRead() {
+    this.notificationService.archiveAllRead().subscribe({
+      next: () => {
+        this.toastService.success('Notificaciones leídas archivadas');
+      },
+      error: (error) => {
+        this.toastService.error('Error al archivar notificaciones');
+        console.error('Archive all read error:', error);
+      }
+    });
+  }
+
+  deleteNotification(event: Event, notification: Notification) {
+    event.stopPropagation(); // Prevent triggering markAsRead
+    this.notificationService.deleteNotification(notification.id).subscribe({
+      next: () => {
+        // State is updated reactively via subscription
+      },
+      error: (error) => {
+        this.toastService.error('Error al eliminar notificación');
+        console.error('Delete notification error:', error);
+      }
+    });
+  }
+
+  deleteAllRead() {
+    this.notificationService.deleteAllRead().subscribe({
+      next: () => {
+        this.toastService.success('Notificaciones leídas eliminadas');
+      },
+      error: (error) => {
+        this.toastService.error('Error al eliminar notificaciones');
+        console.error('Delete all read error:', error);
+      }
+    });
+  }
+
+  getNotificationIcon(type: string | null | undefined): string {
+    if (!type) return '🔔';
+
     switch (type) {
       case 'status_change': return '📊';
       case 'docs_missing': return '📁';
@@ -163,7 +246,15 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   formatNotificationDate(dateStr: string): string {
+    if (!dateStr) return '';
+
     const date = new Date(dateStr);
+
+    // Check for invalid date
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -201,9 +292,9 @@ export class MainLayout implements OnInit, OnDestroy {
       this.dataRefreshService.triggerRefresh(route);
     } else {
       // Navigating to different route - trigger refresh after navigation completes
-      setTimeout(() => {
+      this.navTimeouts.push(setTimeout(() => {
         this.dataRefreshService.triggerRefresh(route);
-      }, 150);
+      }, 150));
     }
   }
 
@@ -221,14 +312,17 @@ export class MainLayout implements OnInit, OnDestroy {
       // Navigate first, then trigger refresh AFTER component is ready
       this.router.navigate([route]).then(() => {
         // Small delay to ensure component has subscribed
-        setTimeout(() => {
+        this.navTimeouts.push(setTimeout(() => {
           this.dataRefreshService.triggerRefresh(route);
-        }, 100);
+        }, 100));
       });
     }
   }
 
   logout() {
+    // Reset notification state before logout
+    this.notificationService.reset();
+
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),
       error: () => this.router.navigate(['/login'])

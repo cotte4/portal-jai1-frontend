@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -10,12 +11,14 @@ import { environment } from '../../../environments/environment';
   selector: 'app-login',
   imports: [FormsModule, CommonModule],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   email: string = '';
   password: string = '';
@@ -24,9 +27,20 @@ export class Login implements OnInit {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
+  private readonly REMEMBER_EMAIL_KEY = 'jai1_remembered_email';
+
   ngOnInit() {
-    // Check for Google auth error
-    this.route.queryParams.subscribe(params => {
+    // Load remembered email if exists
+    const rememberedEmail = localStorage.getItem(this.REMEMBER_EMAIL_KEY);
+    if (rememberedEmail) {
+      this.email = rememberedEmail;
+      this.rememberMe = true;
+    }
+
+    // Check for Google auth error (auto-cleanup on destroy)
+    this.route.queryParams.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(params => {
       if (params['error'] === 'google_auth_failed') {
         this.errorMessage = 'Error al iniciar sesion con Google. Intenta nuevamente.';
       }
@@ -45,17 +59,62 @@ export class Login implements OnInit {
 
     this.authService.login({ email: this.email, password: this.password, rememberMe: this.rememberMe }).subscribe({
       next: (response) => {
-        this.isLoading = false;
-        // Redirect based on role
+        // Block admin users from client login - they must use admin login page
         if (response.user.role === UserRole.ADMIN) {
-          this.router.navigate(['/admin/dashboard']);
+          this.authService.logout().subscribe();
+          this.isLoading = false;
+          this.errorMessage = 'Los administradores deben usar el panel de admin. Ir a /admin-login';
+          return;
+        }
+
+        this.isLoading = false;
+
+        // Save or remove remembered email based on checkbox
+        if (this.rememberMe) {
+          localStorage.setItem(this.REMEMBER_EMAIL_KEY, this.email);
         } else {
+          localStorage.removeItem(this.REMEMBER_EMAIL_KEY);
+        }
+
+        // Clear caches to ensure fresh data on login
+        localStorage.removeItem('jai1_dashboard_cache');
+        localStorage.removeItem('jai1_cached_profile');
+        localStorage.removeItem('jai1_calculator_result'); // Clear old calculator data
+
+        // Check if user has a profile (from backend response)
+        // hasProfile means they've been through onboarding before
+        const hasProfile = (response as any).hasProfile ?? (response as any).has_profile;
+        if (hasProfile) {
+          // User has profile - go to dashboard
           this.router.navigate(['/dashboard']);
+        } else {
+          // First time - show onboarding
+          this.router.navigate(['/onboarding']);
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Credenciales invalidas';
+
+        // Check for EMAIL_NOT_VERIFIED error
+        const errorCode = error?.error?.error || error?.error?.code || '';
+        if (errorCode === 'EMAIL_NOT_VERIFIED') {
+          // Store email and redirect to verification page
+          sessionStorage.setItem('pendingVerificationEmail', this.email);
+          this.router.navigate(['/verify-email-sent']);
+          return;
+        }
+
+        // Map common error messages to Spanish
+        const message = error.message || '';
+        if (message.includes('Invalid credentials') || message.includes('credentials')) {
+          this.errorMessage = 'Email o contraseña incorrectos';
+        } else if (message.includes('deactivated')) {
+          this.errorMessage = 'Tu cuenta ha sido desactivada';
+        } else if (message.includes('Session expired')) {
+          this.errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+        } else {
+          this.errorMessage = message || 'Credenciales inválidas';
+        }
       }
     });
   }

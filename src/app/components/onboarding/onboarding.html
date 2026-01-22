@@ -178,7 +178,7 @@
             <input
               #fileInput
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              accept=".jpg,.jpeg,.png"
               (change)="onFileSelect($event)"
               hidden
             >
@@ -189,8 +189,12 @@
               </svg>
             </div>
             <p class="upload-text">Arrastrá tu W2 aquí o hacé clic para seleccionar</p>
-            <span class="upload-hint">PDF, JPG o PNG</span>
+            <span class="upload-hint">JPG o PNG</span>
           </div>
+
+          <button class="skip-link" (click)="skipCalculator()">
+            Omitir por ahora
+          </button>
         }
 
         @if (calculatorState === 'calculating') {

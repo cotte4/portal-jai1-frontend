@@ -30,7 +30,7 @@ export class DocumentService {
   getDocuments(clientId?: string): Observable<Document[]> {
     let params = new HttpParams();
     if (clientId) {
-      params = params.set('clientId', clientId);
+      params = params.set('client_id', clientId);
     }
     return this.http.get<Document[]>(`${this.apiUrl}/documents`, { params }).pipe(
       catchError(this.handleError)

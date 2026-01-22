@@ -297,20 +297,65 @@
   border-left: 3px solid #1D345D;
 }
 
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .ticket-subject {
   font-size: 13px;
   font-weight: 500;
   color: #333;
-  margin-bottom: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+}
+
+.ticket-item.has-unread .ticket-subject {
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.unread-badge {
+  background: #B21B43;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .ticket-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.btn-delete-ticket {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ticket-item:hover .btn-delete-ticket {
+  opacity: 0.5;
+}
+
+.btn-delete-ticket:hover {
+  opacity: 1 !important;
 }
 
 .ticket-status {
@@ -711,4 +756,119 @@
   .form-actions button {
     width: 100%;
   }
+}
+
+/* ==================== DELETE CONFIRMATION MODAL ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1D345D;
+  margin: 0 0 16px 0;
+}
+
+.modal-body p {
+  font-size: 14px;
+  color: #333;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.modal-ticket-subject {
+  background: #f5f5f5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-style: italic;
+  color: #666;
+}
+
+.modal-warning {
+  color: #B21B43 !important;
+  font-size: 13px !important;
+  font-weight: 500;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.modal-actions .btn-cancel {
+  padding: 10px 20px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: #666;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .btn-cancel:hover:not(:disabled) {
+  border-color: #ccc;
+  background: #f9f9f9;
+}
+
+.modal-actions .btn-delete {
+  padding: 10px 20px;
+  border: none;
+  background: #dc2626;
+  color: white;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .btn-delete:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.modal-actions .btn-delete:disabled,
+.modal-actions .btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

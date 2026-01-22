@@ -21,6 +21,7 @@ export class NotificationService {
   public newNotification$ = this.newNotificationSubject.asObservable();
 
   private pollingSubscription: Subscription | null = null;
+  private fetchSubscription: Subscription | null = null;
   private knownNotificationIds = new Set<string>();
 
   getNotifications(unreadOnly = false): Observable<Notification[]> {
@@ -58,10 +59,29 @@ export class NotificationService {
       this.pollingSubscription.unsubscribe();
       this.pollingSubscription = null;
     }
+    if (this.fetchSubscription) {
+      this.fetchSubscription.unsubscribe();
+      this.fetchSubscription = null;
+    }
+  }
+
+  /**
+   * Reset all notification state - call this on logout
+   */
+  reset(): void {
+    this.stopPolling();
+    this.unreadCountSubject.next(0);
+    this.notificationsSubject.next([]);
+    this.knownNotificationIds.clear();
   }
 
   private fetchAndCheckNewNotifications(): void {
-    this.http.get<Notification[]>(`${this.apiUrl}/notifications`).subscribe({
+    // Cancel any in-flight fetch request
+    if (this.fetchSubscription) {
+      this.fetchSubscription.unsubscribe();
+    }
+
+    this.fetchSubscription = this.http.get<Notification[]>(`${this.apiUrl}/notifications`).subscribe({
       next: (notifications) => {
         // Update counts and state
         const unread = notifications.filter(n => !n.isRead).length;
@@ -119,6 +139,78 @@ export class NotificationService {
     );
   }
 
+  archiveNotification(notificationId: string): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(
+      `${this.apiUrl}/notifications/${notificationId}/archive`,
+      {}
+    ).pipe(
+      tap(() => {
+        // Remove from local state (archived notifications are excluded by default)
+        const notifications = this.notificationsSubject.value.filter(n => n.id !== notificationId);
+        this.notificationsSubject.next(notifications);
+        // Update unread count
+        const unread = notifications.filter(n => !n.isRead).length;
+        this.unreadCountSubject.next(unread);
+        // Remove from known IDs
+        this.knownNotificationIds.delete(notificationId);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  archiveAllRead(): Observable<{ message: string; count: number }> {
+    return this.http.patch<{ message: string; count: number }>(
+      `${this.apiUrl}/notifications/archive-all-read`,
+      {}
+    ).pipe(
+      tap(() => {
+        // Remove all read notifications from local state
+        const notifications = this.notificationsSubject.value.filter(n => !n.isRead);
+        this.notificationsSubject.next(notifications);
+        // Update known IDs
+        this.knownNotificationIds.clear();
+        notifications.forEach(n => this.knownNotificationIds.add(n.id));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // ============= DELETE METHODS =============
+
+  deleteNotification(notificationId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/notifications/${notificationId}`
+    ).pipe(
+      tap(() => {
+        // Remove from local state
+        const notifications = this.notificationsSubject.value.filter(n => n.id !== notificationId);
+        this.notificationsSubject.next(notifications);
+        // Update unread count
+        const unread = notifications.filter(n => !n.isRead).length;
+        this.unreadCountSubject.next(unread);
+        // Remove from known IDs
+        this.knownNotificationIds.delete(notificationId);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  deleteAllRead(): Observable<{ message: string; count: number }> {
+    return this.http.delete<{ message: string; count: number }>(
+      `${this.apiUrl}/notifications/read`
+    ).pipe(
+      tap(() => {
+        // Remove all read notifications from local state
+        const notifications = this.notificationsSubject.value.filter(n => !n.isRead);
+        this.notificationsSubject.next(notifications);
+        // Update known IDs
+        this.knownNotificationIds.clear();
+        notifications.forEach(n => this.knownNotificationIds.add(n.id));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Notification error:', error);
     return throwError(() => error);
@@ -133,6 +225,7 @@ export class NotificationService {
       message,
       type,
       isRead: false,
+      isArchived: false,
       createdAt: new Date().toISOString()
     };
 

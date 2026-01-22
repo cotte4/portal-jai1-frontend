@@ -11,11 +11,51 @@
           <span class="admin-icon">👤</span>
           <span class="admin-email">Administrador</span>
         </div>
-        <button class="btn-refresh" (click)="refreshData()">
-          🔄 Actualizar
+        <button class="btn-nav" (click)="goToDelays()">
+          📊 Demoras
         </button>
-        <button class="btn-export" (click)="exportToExcel()">
-          📊 Exportar Excel
+        <button class="btn-nav" (click)="goToPayments()">
+          💰 Pagos
+        </button>
+        <button class="btn-nav" (click)="goToAccounts()">
+          🔑 Cuentas
+        </button>
+        <button class="btn-nav" (click)="goToReferrals()">
+          👥 Referidos
+        </button>
+        <button class="btn-nav" (click)="goToTickets()">
+          🎫 Tickets
+        </button>
+        <button class="btn-nav btn-alarms" (click)="goToAlarms()">
+          🔔 Alarmas
+        </button>
+        <div class="cron-control-group">
+          <button class="btn-nav btn-missing-docs" (click)="checkMissingDocuments()" [disabled]="isCheckingMissingDocs">
+            <span *ngIf="!isCheckingMissingDocs">📄 Recordar Docs</span>
+            <span *ngIf="isCheckingMissingDocs">⏳ Verificando...</span>
+          </button>
+          <button
+            class="btn-cron-toggle"
+            [class.enabled]="missingDocsCronEnabled"
+            [class.disabled]="!missingDocsCronEnabled"
+            (click)="toggleMissingDocsCron()"
+            [disabled]="isTogglingCron || isLoadingCronStatus"
+            [title]="missingDocsCronEnabled ? 'Recordatorio automatico ACTIVO - Click para pausar' : 'Recordatorio automatico PAUSADO - Click para activar'">
+            <span *ngIf="isLoadingCronStatus || isTogglingCron">⏳</span>
+            <span *ngIf="!isLoadingCronStatus && !isTogglingCron && missingDocsCronEnabled">⏰</span>
+            <span *ngIf="!isLoadingCronStatus && !isTogglingCron && !missingDocsCronEnabled">⏸️</span>
+          </button>
+          <button class="btn-info" (click)="showMissingDocsInfoModal = true" title="Ver informacion sobre esta funcion">
+            ℹ️
+          </button>
+        </div>
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isRefreshing">
+          <span *ngIf="!isRefreshing">🔄 Actualizar</span>
+          <span *ngIf="isRefreshing">⏳ Actualizando...</span>
+        </button>
+        <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting">
+          <span *ngIf="!isExporting">📊 Exportar Excel</span>
+          <span *ngIf="isExporting">⏳ Exportando...</span>
         </button>
         <button class="btn-logout" (click)="logout()">
           <span>Cerrar sesion</span>
@@ -34,22 +74,84 @@
       </div>
     </div>
 
+    <!-- Season Summary Stats -->
+    <div class="season-stats" *ngIf="seasonStats || isLoadingStats">
+      <div class="season-stat-card">
+        <div class="season-stat-icon clients-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.totalClients || 0 }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
+          <div class="season-stat-label">Total Clientes</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card">
+        <div class="season-stat-icon completed-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">{{ seasonStats?.taxesCompletedPercent || 0 }}%</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
+          <div class="season-stat-label">Taxes Completados</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card">
+        <div class="season-stat-icon projected-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.projectedEarnings || 0) | number:'1.0-0' }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
+          <div class="season-stat-label">Ganancias Proyectadas</div>
+        </div>
+      </div>
+
+      <div class="season-stat-card highlight">
+        <div class="season-stat-icon earnings-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
+        <div class="season-stat-content">
+          <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</div>
+          <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
+          <div class="season-stat-label">Ganancias Realizadas</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Error Message -->
-    <div class="error-message" *ngIf="errorMessage">
-      {{ errorMessage }}
+    <div class="error-banner" *ngIf="errorMessage">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <div class="error-text">
+          <span class="error-message">{{ errorMessage }}</span>
+          <span class="error-code" *ngIf="errorCode">({{ errorCode }})</span>
+        </div>
+      </div>
+      <div class="error-actions">
+        <button class="btn-retry" (click)="refreshData()">Reintentar</button>
+        <button class="btn-dismiss" (click)="clearError()">Cerrar</button>
+      </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <div class="stat-card total" [class.active]="selectedFilter === 'all'" (click)="filterClients('all')">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats.total }}</div>
-          <div class="stat-label">Total Clientes</div>
-        </div>
-      </div>
-
-      <div class="stat-card pending" [class.active]="selectedFilter === 'sin_asignar'" (click)="filterClients('sin_asignar')">
+      <div class="stat-card pending" [class.active]="selectedFilter === 'group_pending'" (click)="filterClients('group_pending')">
         <div class="stat-icon">⏳</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.pending }}</div>
@@ -57,7 +159,7 @@
         </div>
       </div>
 
-      <div class="stat-card review" [class.active]="selectedFilter === 'en_proceso'" (click)="filterClients('en_proceso')">
+      <div class="stat-card review" [class.active]="selectedFilter === 'group_in_review'" (click)="filterClients('group_in_review')">
         <div class="stat-icon">🔍</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.inReview }}</div>
@@ -65,7 +167,7 @@
         </div>
       </div>
 
-      <div class="stat-card completed" [class.active]="selectedFilter === 'proceso_finalizado'" (click)="filterClients('proceso_finalizado')">
+      <div class="stat-card completed" [class.active]="selectedFilter === 'group_completed'" (click)="filterClients('group_completed')">
         <div class="stat-icon">✓</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.completed }}</div>
@@ -73,7 +175,7 @@
         </div>
       </div>
 
-      <div class="stat-card attention" [class.active]="selectedFilter === 'falta_documentacion'" (click)="filterClients('falta_documentacion')">
+      <div class="stat-card attention" [class.active]="selectedFilter === 'group_needs_attention'" (click)="filterClients('group_needs_attention')">
         <div class="stat-icon">⚠️</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.needsAttention }}</div>
@@ -88,14 +190,84 @@
         type="text"
         [(ngModel)]="searchQuery"
         placeholder="Buscar por nombre o email..."
+        (input)="onSearchInput()"
         (keyup.enter)="onSearch()"
       />
       <select [(ngModel)]="selectedFilter" (change)="filterClients(selectedFilter)">
-        <option *ngFor="let filter of statusFilters" [value]="filter.value">
+        <option *ngFor="let filter of statusFilters; trackBy: trackByFilterValue" [value]="filter.value">
           {{ filter.label }}
         </option>
       </select>
       <button class="btn-search" (click)="onSearch()">Buscar</button>
+      <button class="btn-advanced-filters" (click)="toggleAdvancedFilters()" [class.active]="showAdvancedFilters || activeAdvancedFiltersCount > 0">
+        <span>🔍 Filtros</span>
+        <span class="filter-count" *ngIf="activeAdvancedFiltersCount > 0">{{ activeAdvancedFiltersCount }}</span>
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div class="advanced-filters-panel" [class.expanded]="showAdvancedFilters">
+      <div class="filters-grid">
+        <!-- Date Range -->
+        <div class="filter-group">
+          <label>Fecha Registro (Desde)</label>
+          <input type="date" [(ngModel)]="advancedFilters.dateFrom" />
+        </div>
+        <div class="filter-group">
+          <label>Fecha Registro (Hasta)</label>
+          <input type="date" [(ngModel)]="advancedFilters.dateTo" />
+        </div>
+
+        <!-- Has Problem -->
+        <div class="filter-group">
+          <label>Con Problemas</label>
+          <select [(ngModel)]="advancedFilters.hasProblem">
+            <option *ngFor="let opt of hasProblemOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- Case Status -->
+        <div class="filter-group">
+          <label>Estado del Caso</label>
+          <select [(ngModel)]="advancedFilters.caseStatus">
+            <option *ngFor="let opt of caseStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- Federal Status -->
+        <div class="filter-group">
+          <label>Estado Federal</label>
+          <select [(ngModel)]="advancedFilters.federalStatus">
+            <option *ngFor="let opt of federalStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <!-- State Status -->
+        <div class="filter-group">
+          <label>Estado Estatal</label>
+          <select [(ngModel)]="advancedFilters.stateStatus">
+            <option *ngFor="let opt of stateStatusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-apply-filters" (click)="applyAdvancedFilters()">
+          Aplicar Filtros
+        </button>
+        <button class="btn-clear-filters" (click)="clearAdvancedFilters()" *ngIf="activeAdvancedFiltersCount > 0">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Group Filter Indicator -->
+    <div class="active-filter-indicator" *ngIf="getActiveGroupFilterInfo() as groupInfo">
+      <div class="filter-indicator-content">
+        <span class="filter-label">Filtrando: <strong>{{ groupInfo.label }}</strong></span>
+        <span class="filter-includes">Incluye: {{ groupInfo.statuses.join(', ') }}</span>
+      </div>
+      <button class="btn-clear-indicator" (click)="filterClients('all')">Limpiar filtro</button>
     </div>
 
     <!-- Loading State -->
@@ -115,62 +287,166 @@
         </div>
       </div>
 
-      <div class="clients-table">
-        <div class="table-header">
-          <div class="col-client">Cliente</div>
-          <div class="col-email">Email</div>
-          <div class="col-status">Estado</div>
-          <div class="col-payment">Pago</div>
-          <div class="col-activity">Fecha Registro</div>
-          <div class="col-actions">Acciones</div>
+      <!-- Sort Buttons (Server-side) -->
+      <div class="sort-buttons">
+        <span class="sort-label">Ordenar por:</span>
+        <button
+          class="btn-sort"
+          [class.active]="sortColumn === 'createdAt'"
+          (click)="sortBy('createdAt')">
+          Fecha {{ sortColumn === 'createdAt' ? (sortDirection === 'desc' ? '↓' : '↑') : '↓' }}
+        </button>
+        <button
+          class="btn-sort"
+          [class.active]="sortColumn === 'name'"
+          (click)="sortBy('name')">
+          Nombre {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
+        </button>
+        <button
+          class="btn-sort"
+          [class.active]="sortColumn === 'email'"
+          (click)="sortBy('email')">
+          Email {{ sortColumn === 'email' ? (sortDirection === 'asc' ? '↑' : '↓') : 'A-Z' }}
+        </button>
+        <button
+          class="btn-sort-clear"
+          *ngIf="sortColumn !== 'createdAt' || sortDirection !== 'desc'"
+          (click)="clearSort()">
+          Limpiar
+        </button>
+      </div>
+
+      <!-- Combined Filter Indicator -->
+      <div class="active-filters-bar" *ngIf="getTotalActiveFiltersCount() > 0">
+        <span class="filters-label">Filtros activos ({{ getTotalActiveFiltersCount() }}):</span>
+        <div class="filter-tags">
+          <span
+            class="filter-tag"
+            *ngFor="let filter of getActiveFilterLabels()"
+            (click)="removeFilter(filter.key)">
+            {{ filter.label }}
+            <span class="remove-icon">×</span>
+          </span>
         </div>
+        <button class="btn-clear-all-filters" (click)="clearAllFilters()">
+          Limpiar todos
+        </button>
+      </div>
 
-        <div class="table-body">
-          <div class="table-row" *ngFor="let client of filteredClients" (click)="viewClient(client.id)">
-            <div class="col-client">
-              <div class="client-avatar" [class.ready]="client.isReadyToPresent">
-                {{ getInitials(client.user?.firstName, client.user?.lastName) }}
-              </div>
-              <div class="client-info">
-                <div class="client-name">
-                  {{ client.user?.firstName || 'Sin' }} {{ client.user?.lastName || 'Nombre' }}
-                  <span class="ready-badge" *ngIf="client.isReadyToPresent">✓</span>
+      <div class="clients-table-wrapper">
+        <table class="clients-table-new">
+          <thead>
+            <tr>
+              <th class="col-name">Nombre</th>
+              <th class="col-ssn">SSN</th>
+              <th class="col-date">Fecha Presentacion</th>
+              <th class="col-date">Ultima Revision</th>
+              <th class="col-notes">Obs. Federal</th>
+              <th class="col-refund">Dev. Federal</th>
+              <th class="col-status">Estado Fed.</th>
+              <th class="col-notes">Obs. Estatal</th>
+              <th class="col-refund">Dev. Estatal</th>
+              <th class="col-status">Estado Est.</th>
+              <th class="col-accounts">Cuentas</th>
+              <th class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let client of filteredClients; trackBy: trackById" class="table-row-new">
+              <!-- 1. Name -->
+              <td class="col-name">
+                <div class="client-name-cell">
+                  <span class="client-name">{{ client.user.firstName || 'Sin' }} {{ client.user.lastName || 'Nombre' }}</span>
+                  <span class="ready-indicator" *ngIf="client.isReadyToPresent" title="Listo para presentar">✓</span>
                 </div>
-                <div class="missing-tags" *ngIf="client.missingItems && client.missingItems.length > 0">
-                  <span class="missing-tag" *ngFor="let item of client.missingItems">
-                    {{ item }}
-                  </span>
-                </div>
-              </div>
-            </div>
+              </td>
 
-            <div class="col-email">
-              {{ client.user?.email || 'Sin email' }}
-            </div>
+              <!-- 2. SSN -->
+              <!-- SSN (click to copy without dashes) -->
+              <td class="col-ssn">
+                <span class="ssn-value" (click)="copyToClipboard(client.ssn?.replace(/-/g, '')); $event.stopPropagation()" [title]="'Click para copiar'">
+                  {{ client.ssn ? client.ssn.replace(/-/g, '') : '---' }}
+                </span>
+              </td>
 
-            <div class="col-status">
-              <span class="status-badge" [ngClass]="getStatusClass(client.internalStatus)">
-                {{ getStatusLabel(client.internalStatus) }}
-              </span>
-            </div>
+              <!-- 3. Tax Filing Date -->
+              <td class="col-date">
+                <span *ngIf="client.taxesFiledAt">{{ client.taxesFiledAt | date:'dd/MM/yy' }}</span>
+                <span *ngIf="!client.taxesFiledAt" class="no-data">---</span>
+              </td>
 
-            <div class="col-payment">
-              <span class="badge" [class.success]="client.paymentReceived" [class.pending]="!client.paymentReceived">
-                {{ client.paymentReceived ? '✓ Recibido' : '⏳ Pendiente' }}
-              </span>
-            </div>
+              <!-- 4. Last Review Date -->
+              <td class="col-date">
+                <span *ngIf="client.lastReviewDate">{{ client.lastReviewDate | date:'dd/MM/yy' }}</span>
+                <span *ngIf="!client.lastReviewDate" class="no-data">---</span>
+              </td>
 
-            <div class="col-activity">
-              {{ client.createdAt | date:'dd/MM/yyyy' }}
-            </div>
+              <!-- 5. Federal Notes -->
+              <td class="col-notes">
+                <span class="notes-preview" *ngIf="client.federalLastComment" [title]="client.federalLastComment">
+                  {{ client.federalLastComment | slice:0:30 }}{{ client.federalLastComment.length > 30 ? '...' : '' }}
+                </span>
+                <span *ngIf="!client.federalLastComment" class="no-data">---</span>
+              </td>
 
-            <div class="col-actions">
-              <button class="btn-view" (click)="viewClient(client.id); $event.stopPropagation()">
-                Ver detalles →
-              </button>
-            </div>
-          </div>
-        </div>
+              <!-- 6. Federal Refund -->
+              <td class="col-refund">
+                <span *ngIf="client.federalActualRefund != null" class="refund-amount">
+                  ${{ client.federalActualRefund | number:'1.0-0' }}
+                </span>
+                <span *ngIf="client.federalActualRefund == null" class="no-data">---</span>
+              </td>
+
+              <!-- 7. Federal Status -->
+              <td class="col-status">
+                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.federalStatus)">
+                  {{ getTaxStatusLabel(client.federalStatus) }}
+                </span>
+                <span *ngIf="!client.taxesFiled" class="status-badge-mini" [ngClass]="getPreFilingStatusClass(client.preFilingStatus)">
+                  {{ getPreFilingStatusLabel(client.preFilingStatus) }}
+                </span>
+              </td>
+
+              <!-- 8. State Notes -->
+              <td class="col-notes">
+                <span class="notes-preview" *ngIf="client.stateLastComment" [title]="client.stateLastComment">
+                  {{ client.stateLastComment | slice:0:30 }}{{ client.stateLastComment.length > 30 ? '...' : '' }}
+                </span>
+                <span *ngIf="!client.stateLastComment" class="no-data">---</span>
+              </td>
+
+              <!-- 9. State Refund -->
+              <td class="col-refund">
+                <span *ngIf="client.stateActualRefund != null" class="refund-amount">
+                  ${{ client.stateActualRefund | number:'1.0-0' }}
+                </span>
+                <span *ngIf="client.stateActualRefund == null" class="no-data">---</span>
+              </td>
+
+              <!-- 10. State Status -->
+              <td class="col-status">
+                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.stateStatus)">
+                  {{ getTaxStatusLabel(client.stateStatus) }}
+                </span>
+                <span *ngIf="!client.taxesFiled" class="no-data">---</span>
+              </td>
+
+              <!-- 11. Client Accounts Link -->
+              <td class="col-accounts">
+                <button class="btn-accounts" (click)="openCredentialsModal(client)" title="Ver credenciales">
+                  🔑
+                </button>
+              </td>
+
+              <!-- 12. Actions -->
+              <td class="col-actions">
+                <button class="btn-view" (click)="viewClient(client.id)">
+                  Ver →
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Empty State -->
@@ -179,6 +455,208 @@
         <h3>No hay clientes en esta categoria</h3>
         <p>Selecciona "Mostrar todos" para ver todos los clientes</p>
       </div>
+
+      <!-- Load More / Pagination Info -->
+      <div class="pagination-section" *ngIf="filteredClients.length > 0">
+        <div class="pagination-info" *ngIf="hasMore">
+          <span class="loaded-count">Mostrando {{ totalLoaded }} clientes</span>
+          <span class="more-available">Hay mas clientes disponibles</span>
+        </div>
+        <button
+          class="btn-load-more"
+          *ngIf="hasMore"
+          (click)="loadMoreClients()"
+          [disabled]="isLoadingMore"
+        >
+          <span *ngIf="!isLoadingMore">Cargar mas clientes</span>
+          <span *ngIf="isLoadingMore">Cargando...</span>
+        </button>
+      </div>
     </div>
   </main>
+</div>
+
+<!-- Credentials Modal -->
+<div class="modal-overlay" *ngIf="showCredentialsModal" (click)="closeCredentialsModal()">
+  <div class="modal-content credentials-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Credenciales de Cliente</h3>
+      <button class="modal-close" (click)="closeCredentialsModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedClientCredentials">
+      <p class="client-name-modal">{{ selectedClientCredentials.clientName }}</p>
+
+      <div class="credentials-section">
+        <h4>TurboTax</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.turbotaxEmail)">
+            {{ selectedClientCredentials.credentials?.turbotaxEmail || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.turbotaxPassword)">
+            {{ selectedClientCredentials.credentials?.turbotaxPassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="credentials-section">
+        <h4>IRS</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.irsUsername)">
+            {{ selectedClientCredentials.credentials?.irsUsername || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.irsPassword)">
+            {{ selectedClientCredentials.credentials?.irsPassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="credentials-section">
+        <h4>Estado</h4>
+        <div class="credential-row">
+          <span class="credential-label">Usuario:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.stateUsername)">
+            {{ selectedClientCredentials.credentials?.stateUsername || '---' }}
+          </span>
+        </div>
+        <div class="credential-row">
+          <span class="credential-label">Password:</span>
+          <span class="credential-value" (click)="copyToClipboard(selectedClientCredentials.credentials?.statePassword)">
+            {{ selectedClientCredentials.credentials?.statePassword || '---' }}
+          </span>
+        </div>
+      </div>
+
+      <p class="copy-hint">Click en cualquier valor para copiar al portapapeles</p>
+    </div>
+  </div>
+</div>
+
+<!-- Missing Documents Result Modal -->
+<div class="modal-overlay" *ngIf="showMissingDocsModal" (click)="closeMissingDocsModal()">
+  <div class="modal-content missing-docs-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Recordatorio de Documentos Enviado</h3>
+      <button class="modal-close" (click)="closeMissingDocsModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="missingDocsResult">
+      <div class="missing-docs-results">
+        <div class="result-item success">
+          <span class="result-icon">✅</span>
+          <span class="result-label">Clientes notificados:</span>
+          <span class="result-value">{{ missingDocsResult.notified }}</span>
+        </div>
+        <div class="result-item skipped">
+          <span class="result-icon">⏭️</span>
+          <span class="result-label">Omitidos (ya notificados):</span>
+          <span class="result-value">{{ missingDocsResult.skipped }}</span>
+        </div>
+      </div>
+      <p class="missing-docs-info">
+        Se enviaron notificaciones a clientes que llevan mas de 3 dias sin completar su perfil o subir documentos W2.
+        Cada cliente recibe maximo 3 recordatorios por mes.
+      </p>
+      <div class="cron-status-info">
+        <span class="cron-status-label">Recordatorio automatico diario (9:00 AM):</span>
+        <span class="cron-status-value" [class.enabled]="missingDocsCronEnabled" [class.disabled]="!missingDocsCronEnabled">
+          {{ missingDocsCronEnabled ? 'ACTIVO' : 'PAUSADO' }}
+        </span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeMissingDocsModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Missing Documents Info Modal -->
+<div class="modal-overlay" *ngIf="showMissingDocsInfoModal" (click)="showMissingDocsInfoModal = false">
+  <div class="modal-content info-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📄 Recordatorio de Documentos - Informacion</h3>
+      <button class="modal-close" (click)="showMissingDocsInfoModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-section">
+        <h4>¿Que hace esta funcion?</h4>
+        <p>
+          Envia notificaciones automaticas a clientes que se registraron pero <strong>no han completado su documentacion</strong>.
+          Les recuerda que deben completar su perfil y/o subir su documento W2.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h4>¿A quienes se les envia?</h4>
+        <ul class="info-list">
+          <li>Clientes registrados hace <strong>mas de 3 dias</strong></li>
+          <li>Que <strong>NO</strong> han completado su perfil, <strong>O</strong></li>
+          <li>Que <strong>NO</strong> han subido su documento W2</li>
+        </ul>
+      </div>
+
+      <div class="info-section">
+        <h4>Proteccion contra spam</h4>
+        <p>
+          Cada cliente recibe <strong>maximo 3 recordatorios por mes</strong>.
+          Si ya recibio 3, se omite automaticamente para no molestarlo.
+        </p>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="info-section">
+        <h4>Controles disponibles</h4>
+        <div class="control-explanation">
+          <div class="control-item">
+            <span class="control-icon btn-demo">📄 Recordar Docs</span>
+            <span class="control-desc">
+              <strong>Envio manual:</strong> Click para enviar recordatorios ahora mismo a todos los clientes pendientes.
+            </span>
+          </div>
+          <div class="control-item">
+            <span class="control-icon toggle-demo enabled">⏰</span>
+            <span class="control-desc">
+              <strong>Automatico ACTIVO:</strong> El sistema envia recordatorios automaticamente todos los dias a las 9:00 AM (hora Argentina).
+            </span>
+          </div>
+          <div class="control-item">
+            <span class="control-icon toggle-demo disabled">⏸️</span>
+            <span class="control-desc">
+              <strong>Automatico PAUSADO:</strong> No se envian recordatorios automaticos. Solo se envian cuando haces click en "Recordar Docs".
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section current-status">
+        <h4>Estado actual</h4>
+        <div class="status-display">
+          <span>Recordatorio automatico diario:</span>
+          <span class="status-badge" [class.enabled]="missingDocsCronEnabled" [class.disabled]="!missingDocsCronEnabled">
+            {{ missingDocsCronEnabled ? '⏰ ACTIVO' : '⏸️ PAUSADO' }}
+          </span>
+        </div>
+        <button
+          class="btn-toggle-cron"
+          [class.to-enable]="!missingDocsCronEnabled"
+          [class.to-disable]="missingDocsCronEnabled"
+          (click)="toggleMissingDocsCron()"
+          [disabled]="isTogglingCron">
+          <span *ngIf="isTogglingCron">Cambiando...</span>
+          <span *ngIf="!isTogglingCron && !missingDocsCronEnabled">Activar recordatorio automatico</span>
+          <span *ngIf="!isTogglingCron && missingDocsCronEnabled">Pausar recordatorio automatico</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="showMissingDocsInfoModal = false">Entendido</button>
+    </div>
+  </div>
 </div>

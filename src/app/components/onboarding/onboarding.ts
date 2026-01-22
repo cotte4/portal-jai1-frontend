@@ -1,10 +1,12 @@
-import { Component, inject, NgZone, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
 import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
+import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DocumentType } from '../../core/models';
 
 type OnboardingStep = 'welcome' | 'benefits' | 'documents' | 'calculator' | 'warning';
@@ -19,15 +21,24 @@ interface Benefit {
   selector: 'app-onboarding',
   imports: [CommonModule],
   templateUrl: './onboarding.html',
-  styleUrl: './onboarding.css'
+  styleUrl: './onboarding.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Onboarding implements OnInit {
+export class Onboarding implements OnInit, OnDestroy {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
   private documentService = inject(DocumentService);
   private calculatorResultService = inject(CalculatorResultService);
+  private calculatorApiService = inject(CalculatorApiService);
+  private cdr = inject(ChangeDetectorRef);
+
+  // Cleanup tracking
+  private progressIntervalId: ReturnType<typeof setInterval> | null = null;
+  private resultTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private uploadSubscription: Subscription | null = null;
+  private apiSubscription: Subscription | null = null;
 
   // State
   currentStep: OnboardingStep = 'welcome';
@@ -37,9 +48,13 @@ export class Onboarding implements OnInit {
   // Calculator state
   uploadedFile: File | null = null;
   isDragging = false;
-  calculatorState: 'upload' | 'calculating' | 'result' = 'upload';
+  calculatorState: 'upload' | 'calculating' | 'result' | 'error' = 'upload';
   calculationProgress = 0;
   estimatedRefund = 0;
+  box2Federal = 0;
+  box17State = 0;
+  ocrConfidence = '';
+  errorMessage = '';
 
   // Benefits content
   benefits: Benefit[] = [
@@ -64,6 +79,30 @@ export class Onboarding implements OnInit {
     const user = this.authService.currentUser;
     if (user) {
       this.userName = user.firstName || user.email.split('@')[0];
+    }
+
+    // Check if user already has a calculator result
+    const existingResult = this.calculatorResultService.getResult();
+    if (existingResult) {
+      this.estimatedRefund = existingResult.estimatedRefund;
+      this.box2Federal = existingResult.box2Federal || 0;
+      this.box17State = existingResult.box17State || 0;
+      this.ocrConfidence = existingResult.ocrConfidence || '';
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.progressIntervalId) {
+      clearInterval(this.progressIntervalId);
+    }
+    if (this.resultTimeoutId) {
+      clearTimeout(this.resultTimeoutId);
+    }
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+    }
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
     }
   }
 
@@ -136,50 +175,98 @@ export class Onboarding implements OnInit {
   }
 
   handleFile(file: File) {
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    // Only accept JPG/PNG for OCR analysis
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(file.type)) {
-      alert('Por favor sube un archivo PDF o imagen de tu W2');
+      alert('Solo archivos JPG y PNG son compatibles. Por favor convierte tu W2 a uno de estos formatos.');
       return;
     }
 
     this.uploadedFile = file;
+    this.errorMessage = '';
     this.startCalculation();
   }
 
   startCalculation() {
+    if (!this.uploadedFile) return;
+
     this.calculatorState = 'calculating';
     this.calculationProgress = 0;
+    this.errorMessage = '';
 
+    // Start progress animation
     this.ngZone.runOutsideAngular(() => {
-      const progressInterval = setInterval(() => {
+      this.progressIntervalId = setInterval(() => {
         this.ngZone.run(() => {
-          this.calculationProgress += Math.random() * 15 + 5;
-          if (this.calculationProgress >= 100) {
-            this.calculationProgress = 100;
-            clearInterval(progressInterval);
-
-            setTimeout(() => {
-              this.showResult();
-            }, 600);
+          if (this.calculationProgress < 90) {
+            this.calculationProgress += Math.random() * 10 + 3;
+            this.cdr.detectChanges();
           }
         });
-      }, 400);
+      }, 500);
+    });
+
+    // Call real OCR API
+    this.apiSubscription = this.calculatorApiService.estimateRefund(this.uploadedFile).subscribe({
+      next: (response) => {
+        if (this.progressIntervalId) {
+          clearInterval(this.progressIntervalId);
+          this.progressIntervalId = null;
+        }
+        this.calculationProgress = 100;
+        this.estimatedRefund = response.estimatedRefund;
+        this.box2Federal = response.box2Federal || 0;
+        this.box17State = response.box17State || 0;
+        this.ocrConfidence = response.ocrConfidence || '';
+
+        this.resultTimeoutId = setTimeout(() => {
+          this.showResult();
+        }, 600);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        if (this.progressIntervalId) {
+          clearInterval(this.progressIntervalId);
+          this.progressIntervalId = null;
+        }
+        console.error('Calculator API error:', error);
+        this.errorMessage = 'Error al analizar el documento. Intenta con otra imagen.';
+        this.calculatorState = 'error';
+        this.cdr.detectChanges();
+      }
     });
   }
 
+  retryCalculation() {
+    this.calculatorState = 'upload';
+    this.uploadedFile = null;
+    this.errorMessage = '';
+  }
+
+  skipCalculator() {
+    // Allow user to skip calculator and go directly to dashboard
+    this.storage.setOnboardingCompleted();
+    this.router.navigate(['/dashboard']);
+  }
+
   showResult() {
-    this.estimatedRefund = Math.floor(Math.random() * 1700) + 800;
     this.calculatorState = 'result';
 
-    // Save result
+    // Save result to localStorage and backend with full breakdown data
     this.calculatorResultService.saveResult(
       this.estimatedRefund,
-      this.uploadedFile?.name
+      this.uploadedFile?.name,
+      {
+        box2Federal: this.box2Federal,
+        box17State: this.box17State,
+        ocrConfidence: this.ocrConfidence
+      }
     );
 
-    // Save document to storage
+    // Save W2 document
     if (this.uploadedFile) {
-      this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
+      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
+        next: () => console.log('W2 saved successfully'),
         error: (err) => console.error('Error saving W2:', err)
       });
     }

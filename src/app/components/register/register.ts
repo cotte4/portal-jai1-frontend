@@ -1,19 +1,22 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { ReferralService } from '../../core/services/referral.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-register',
   imports: [FormsModule, CommonModule],
   templateUrl: './register.html',
-  styleUrl: './register.css'
+  styleUrl: './register.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Register {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private referralService = inject(ReferralService);
   private cdr = inject(ChangeDetectorRef);
 
   // Form data
@@ -23,6 +26,7 @@ export class Register {
   phone: string = '';
   password: string = '';
   confirmPassword: string = '';
+  referralCode: string = '';
   agreeToTerms: boolean = false;
 
   errorMessage: string = '';
@@ -30,6 +34,11 @@ export class Register {
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isLoading: boolean = false;
+
+  // Referral code validation state
+  referralCodeValid: boolean | null = null;
+  referralCodeValidating: boolean = false;
+  referrerName: string = '';
 
   // Modal state
   showTermsModal: boolean = false;
@@ -71,34 +80,29 @@ export class Register {
     }
 
     this.isLoading = true;
-    console.log('Starting registration...');
 
     this.authService.register({
       email: this.email,
       password: this.password,
       firstName: this.firstName,
       lastName: this.lastName,
-      phone: this.phone || undefined
+      phone: this.phone || undefined,
+      referralCode: this.referralCode || undefined
     }).subscribe({
-      next: (response) => {
-        console.log('Registration successful:', response);
+      next: () => {
         this.isLoading = false;
         this.successMessage = 'Registro exitoso! Redirigiendo...';
         this.cdr.detectChanges();
 
-        // Redirect to tax form (F2) after registration
+        // Redirect to onboarding for first-time users
         setTimeout(() => {
-          this.router.navigate(['/tax-form']);
-        }, 1500);
+          this.router.navigate(['/onboarding']);
+        }, 1000);
       },
       error: (error) => {
-        console.log('Registration error:', error);
         this.isLoading = false;
         this.errorMessage = error.message || 'Error al registrar. Intenta nuevamente.';
         this.cdr.detectChanges();
-      },
-      complete: () => {
-        console.log('Registration observable completed');
       }
     });
   }
@@ -113,6 +117,36 @@ export class Register {
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  validateReferralCode() {
+    if (!this.referralCode || this.referralCode.length < 4) {
+      this.referralCodeValid = null;
+      this.referrerName = '';
+      return;
+    }
+
+    this.referralCodeValidating = true;
+    this.referralService.validateCode(this.referralCode).subscribe({
+      next: (result) => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = result.valid;
+        this.referrerName = result.referrerName || '';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = false;
+        this.referrerName = '';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  clearReferralCode() {
+    this.referralCode = '';
+    this.referralCodeValid = null;
+    this.referrerName = '';
   }
 
   openTermsModal(event: Event) {

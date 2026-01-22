@@ -153,8 +153,60 @@
     {{ errorMessage }}
   </div>
 
+  <!-- Referral Code Section -->
+  <section class="referral-section" *ngIf="!hasAppliedReferral">
+    <div class="referral-banner">
+      <div class="referral-icon">🎁</div>
+      <div class="referral-content">
+        <h3>¿Tienes un código de referido?</h3>
+        <p>Ingresa el código y obtén $11 de descuento en tu comisión</p>
+      </div>
+      <div class="referral-input-group">
+        <div class="referral-input-wrapper" [class.input-valid]="referralCodeValid === true" [class.input-invalid]="referralCodeValid === false">
+          <input
+            type="text"
+            [(ngModel)]="referralCode"
+            name="referralCode"
+            placeholder="Ej: ABC1234"
+            maxlength="10"
+            (blur)="validateReferralCode()"
+            (keyup.enter)="referralCodeValid ? applyReferralCode() : validateReferralCode()"
+          >
+          <span class="validation-spinner" *ngIf="referralCodeValidating"></span>
+          <span class="validation-check" *ngIf="referralCodeValid === true && !referralCodeValidating">✓</span>
+          <span class="validation-x" *ngIf="referralCodeValid === false && !referralCodeValidating">✗</span>
+        </div>
+        <button
+          type="button"
+          class="btn-apply-referral"
+          [disabled]="!referralCodeValid || referralCodeApplying"
+          (click)="applyReferralCode()"
+        >
+          {{ referralCodeApplying ? 'Aplicando...' : 'Aplicar' }}
+        </button>
+      </div>
+      <div class="referral-feedback" *ngIf="referralCodeValid === true && referrerName">
+        <span class="referral-success">Referido por: <strong>{{ referrerName }}</strong> - $11 de descuento</span>
+      </div>
+      <div class="referral-feedback" *ngIf="referralCodeValid === false">
+        <span class="referral-error">Código inválido. Verifica e intenta de nuevo.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Referral Applied Success -->
+  <section class="referral-section applied" *ngIf="hasAppliedReferral">
+    <div class="referral-banner success">
+      <div class="referral-icon">✓</div>
+      <div class="referral-content">
+        <h3>Código de referido aplicado</h3>
+        <p>Obtendrás $11 de descuento en tu comisión. Referido por: <strong>{{ referrerName }}</strong></p>
+      </div>
+    </div>
+  </section>
+
   <!-- Form -->
-  <form class="tax-form" (ngSubmit)="onSubmit()">
+  <form class="tax-form" (ngSubmit)="onSubmit()" (input)="onFormChange()">
 
     <!-- Personal & Employment Row -->
     <div class="sections-row">

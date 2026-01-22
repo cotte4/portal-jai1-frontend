@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { ProfileResponse, ClientStatus, TaxStatus, NotificationType } from '../../core/models';
+import { ProfileResponse, TaxStatus, NotificationType, PreFilingStatus } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 
 interface TrackingStep {
@@ -21,7 +21,8 @@ interface TrackingStep {
   selector: 'app-tax-tracking',
   imports: [CommonModule],
   templateUrl: './tax-tracking.html',
-  styleUrl: './tax-tracking.css'
+  styleUrl: './tax-tracking.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxTracking implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -37,10 +38,12 @@ export class TaxTracking implements OnInit, OnDestroy {
   isRefreshing = false;
 
   private subscriptions = new Subscription();
-  private previousStatus?: ClientStatus;
+  private previousPreFilingStatus?: PreFilingStatus;
+  private previousTaxesFiled?: boolean;
   private previousFederalStatus?: TaxStatus;
   private previousStateStatus?: TaxStatus;
   private isLoadingInProgress = false;
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // Shared initial steps (before split)
   sharedSteps: TrackingStep[] = [];
@@ -83,13 +86,22 @@ export class TaxTracking implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear safety timeout to prevent memory leaks and errors after component destroy
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+      this.safetyTimeoutId = null;
+    }
   }
 
   loadTrackingData() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
-    this.isLoading = true;
+
+    // Build default steps (all pending) for initial state
     this.buildSteps();
+
+    // Keep isLoading = true until API completes to show spinner
+    // This ensures user sees complete, up-to-date data
 
     this.profileService.getProfile().pipe(
       finalize(() => {
@@ -103,7 +115,8 @@ export class TaxTracking implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           this.profileData = data;
-          this.previousStatus = data.taxCase?.clientStatus;
+          this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
+          this.previousTaxesFiled = data.taxCase?.taxesFiled;
           this.previousFederalStatus = data.taxCase?.federalStatus;
           this.previousStateStatus = data.taxCase?.stateStatus;
           this.buildSteps();
@@ -111,13 +124,29 @@ export class TaxTracking implements OnInit, OnDestroy {
       },
       error: () => {}
     });
+
+    // Safety timeout - ensure content shows after 5 seconds
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
+      if (!this.hasLoaded) {
+        this.hasLoaded = true;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        console.log('TaxTracking: Safety timeout triggered');
+      }
+      this.safetyTimeoutId = null;
+    }, 5000);
   }
 
   silentRefresh() {
     this.profileService.getProfile().subscribe({
       next: (data) => {
-        if (this.previousStatus && data.taxCase?.clientStatus !== this.previousStatus) {
-          this.onStatusChanged(data.taxCase?.clientStatus);
+        // Check for taxesFiled change (new filing)
+        if (this.previousTaxesFiled === false && data.taxCase?.taxesFiled === true) {
+          this.onTaxesFiled();
         }
 
         // Check for Federal status changes
@@ -126,7 +155,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         // Check for State status changes
         this.checkStateStatusChange(data.taxCase?.stateStatus);
 
-        this.previousStatus = data.taxCase?.clientStatus;
+        this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
+        this.previousTaxesFiled = data.taxCase?.taxesFiled;
         this.previousFederalStatus = data.taxCase?.federalStatus;
         this.previousStateStatus = data.taxCase?.stateStatus;
         this.profileData = data;
@@ -141,8 +171,9 @@ export class TaxTracking implements OnInit, OnDestroy {
     this.isRefreshing = true;
     this.profileService.getProfile().subscribe({
       next: (data) => {
-        if (this.previousStatus && data.taxCase?.clientStatus !== this.previousStatus) {
-          this.onStatusChanged(data.taxCase?.clientStatus);
+        // Check for taxesFiled change (new filing)
+        if (this.previousTaxesFiled === false && data.taxCase?.taxesFiled === true) {
+          this.onTaxesFiled();
         }
 
         // Check for Federal status changes
@@ -151,7 +182,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         // Check for State status changes
         this.checkStateStatusChange(data.taxCase?.stateStatus);
 
-        this.previousStatus = data.taxCase?.clientStatus;
+        this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
+        this.previousTaxesFiled = data.taxCase?.taxesFiled;
         this.previousFederalStatus = data.taxCase?.federalStatus;
         this.previousStateStatus = data.taxCase?.stateStatus;
         this.profileData = data;
@@ -167,21 +199,8 @@ export class TaxTracking implements OnInit, OnDestroy {
     });
   }
 
-  private onStatusChanged(newStatus?: ClientStatus) {
-    if (!newStatus) return;
-
-    const statusMessages: Record<ClientStatus, string> = {
-      [ClientStatus.ESPERANDO_DATOS]: 'Estamos esperando tus datos',
-      [ClientStatus.CUENTA_EN_REVISION]: '¡Tu cuenta está siendo revisada!',
-      [ClientStatus.TAXES_EN_PROCESO]: '¡Tu declaración está siendo procesada!',
-      [ClientStatus.TAXES_EN_CAMINO]: '¡Tu reembolso está en camino!',
-      [ClientStatus.TAXES_DEPOSITADOS]: '¡Tu reembolso fue depositado!',
-      [ClientStatus.PAGO_REALIZADO]: 'Pago recibido, gracias!',
-      [ClientStatus.EN_VERIFICACION]: 'El IRS está verificando tu declaración',
-      [ClientStatus.TAXES_FINALIZADOS]: '¡Proceso completado exitosamente!'
-    };
-
-    console.log('Status changed:', statusMessages[newStatus]);
+  private onTaxesFiled() {
+    console.log('Taxes filed - declaration submitted to IRS');
   }
 
   private checkFederalStatusChange(newStatus?: TaxStatus): void {
@@ -236,7 +255,8 @@ export class TaxTracking implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
 
-    const clientStatus = taxCase?.clientStatus || ClientStatus.ESPERANDO_DATOS;
+    const taxesFiled = taxCase?.taxesFiled || false;
+    const preFilingStatus = taxCase?.preFilingStatus;
     const federalStatus = taxCase?.federalStatus;
     const stateStatus = taxCase?.stateStatus;
 
@@ -247,7 +267,7 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Información Recibida',
         description: 'Recibimos tus datos y documentos',
         icon: '📋',
-        status: this.getStepStatus('received', clientStatus, profile?.profileComplete),
+        status: this.getStepStatusNew('received', taxesFiled, preFilingStatus, profile?.profileComplete),
         date: profile?.updatedAt ? this.formatDate(profile.updatedAt) : undefined,
         detail: profile?.profileComplete ? 'Perfil completo' : 'Pendiente de completar'
       },
@@ -256,9 +276,9 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Presentado al IRS',
         description: 'Tu declaración fue enviada al IRS',
         icon: '🏛️',
-        status: this.getStepStatus('submitted', clientStatus),
-        date: this.isSubmitted(clientStatus) ? this.formatDate(taxCase?.statusUpdatedAt) : undefined,
-        detail: this.isSubmitted(clientStatus) ? 'Declaración enviada' : 'Esperando envío'
+        status: this.getStepStatusNew('submitted', taxesFiled, preFilingStatus),
+        date: taxesFiled ? this.formatDate(taxCase?.statusUpdatedAt) : undefined,
+        detail: taxesFiled ? 'Declaración enviada' : 'Esperando envío'
       }
     ];
 
@@ -269,7 +289,7 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Decisión Federal',
         description: 'Resultado del IRS Federal',
         icon: this.getFederalDecisionIcon(federalStatus),
-        status: this.getFederalDecisionStatus(federalStatus, clientStatus),
+        status: this.getFederalDecisionStatusNew(federalStatus, taxesFiled),
         date: this.isFederalProcessed(federalStatus) ? this.formatDate(taxCase?.statusUpdatedAt) : undefined,
         detail: this.getFederalDecisionDetail(federalStatus)
       },
@@ -278,16 +298,16 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Fecha Estimada',
         description: 'Reembolso federal',
         icon: '📅',
-        status: this.getFederalEstimateStatus(federalStatus, clientStatus),
+        status: this.getFederalEstimateStatusNew(federalStatus, taxesFiled),
         date: taxCase?.federalEstimatedDate ? this.formatDate(taxCase.federalEstimatedDate) : undefined,
-        detail: this.getFederalEstimateDetail(federalStatus, taxCase?.federalEstimatedDate)
+        detail: this.getFederalEstimateDetailNew(federalStatus, taxCase?.federalEstimatedDate)
       },
       {
         id: 'federal-sent',
         title: 'Reembolso Enviado',
         description: 'Federal depositado',
         icon: '💵',
-        status: this.getFederalRefundStatus(federalStatus, clientStatus),
+        status: this.getFederalRefundStatusNew(federalStatus, taxesFiled),
         date: taxCase?.federalDepositDate ? this.formatDate(taxCase.federalDepositDate) : undefined,
         detail: this.getFederalRefundDetail(federalStatus, taxCase?.federalActualRefund)
       }
@@ -300,7 +320,7 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Decisión Estatal',
         description: 'Resultado del IRS Estatal',
         icon: this.getStateDecisionIcon(stateStatus),
-        status: this.getStateDecisionStatus(stateStatus, clientStatus),
+        status: this.getStateDecisionStatusNew(stateStatus, taxesFiled),
         date: this.isStateProcessed(stateStatus) ? this.formatDate(taxCase?.statusUpdatedAt) : undefined,
         detail: this.getStateDecisionDetail(stateStatus)
       },
@@ -309,16 +329,16 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Fecha Estimada',
         description: 'Reembolso estatal',
         icon: '📅',
-        status: this.getStateEstimateStatus(stateStatus, clientStatus),
+        status: this.getStateEstimateStatusNew(stateStatus, taxesFiled),
         date: taxCase?.stateEstimatedDate ? this.formatDate(taxCase.stateEstimatedDate) : undefined,
-        detail: this.getStateEstimateDetail(stateStatus, taxCase?.stateEstimatedDate)
+        detail: this.getStateEstimateDetailNew(stateStatus, taxCase?.stateEstimatedDate)
       },
       {
         id: 'state-sent',
         title: 'Reembolso Enviado',
         description: 'Estatal depositado',
         icon: '💵',
-        status: this.getStateRefundStatus(stateStatus, clientStatus),
+        status: this.getStateRefundStatusNew(stateStatus, taxesFiled),
         date: taxCase?.stateDepositDate ? this.formatDate(taxCase.stateDepositDate) : undefined,
         detail: this.getStateRefundDetail(stateStatus, taxCase?.stateActualRefund)
       }
@@ -326,37 +346,19 @@ export class TaxTracking implements OnInit, OnDestroy {
   }
 
   // ============ SHARED STEP HELPERS ============
-  private getStepStatus(step: string, clientStatus: ClientStatus, profileComplete?: boolean): TrackingStep['status'] {
+  private getStepStatusNew(step: string, taxesFiled: boolean, preFilingStatus?: PreFilingStatus, profileComplete?: boolean): TrackingStep['status'] {
     if (step === 'received') {
       if (profileComplete) return 'completed';
       return 'active';
     }
 
     if (step === 'submitted') {
-      const submittedStatuses = [
-        ClientStatus.TAXES_EN_PROCESO,
-        ClientStatus.TAXES_EN_CAMINO,
-        ClientStatus.EN_VERIFICACION,
-        ClientStatus.TAXES_DEPOSITADOS,
-        ClientStatus.TAXES_FINALIZADOS
-      ];
-      if (submittedStatuses.includes(clientStatus)) return 'completed';
-      if (clientStatus === ClientStatus.CUENTA_EN_REVISION) return 'active';
+      if (taxesFiled) return 'completed';
+      if (preFilingStatus === PreFilingStatus.DOCUMENTATION_COMPLETE) return 'active';
       return 'pending';
     }
 
     return 'pending';
-  }
-
-  private isSubmitted(status: ClientStatus): boolean {
-    const submittedStatuses = [
-      ClientStatus.TAXES_EN_PROCESO,
-      ClientStatus.TAXES_EN_CAMINO,
-      ClientStatus.EN_VERIFICACION,
-      ClientStatus.TAXES_DEPOSITADOS,
-      ClientStatus.TAXES_FINALIZADOS
-    ];
-    return submittedStatuses.includes(status);
   }
 
   // ============ FEDERAL HELPERS ============
@@ -366,11 +368,11 @@ export class TaxTracking implements OnInit, OnDestroy {
     return '🦅';
   }
 
-  private getFederalDecisionStatus(federalStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getFederalDecisionStatusNew(federalStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (federalStatus === TaxStatus.APPROVED || federalStatus === TaxStatus.DEPOSITED) return 'completed';
     if (federalStatus === TaxStatus.REJECTED) return 'rejected';
     if (federalStatus === TaxStatus.PROCESSING) return 'active';
-    if (this.isSubmitted(clientStatus || ClientStatus.ESPERANDO_DATOS)) return 'active';
+    if (taxesFiled) return 'active';
     return 'pending';
   }
 
@@ -385,13 +387,13 @@ export class TaxTracking implements OnInit, OnDestroy {
     return status === TaxStatus.APPROVED || status === TaxStatus.REJECTED || status === TaxStatus.DEPOSITED;
   }
 
-  private getFederalEstimateStatus(federalStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getFederalEstimateStatusNew(federalStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (federalStatus === TaxStatus.APPROVED || federalStatus === TaxStatus.DEPOSITED) return 'completed';
     if (federalStatus === TaxStatus.REJECTED) return 'rejected';
     return 'pending';
   }
 
-  private getFederalEstimateDetail(federalStatus?: TaxStatus, estimatedDate?: string): string {
+  private getFederalEstimateDetailNew(federalStatus?: TaxStatus, estimatedDate?: string): string {
     if (federalStatus === TaxStatus.REJECTED) return 'No aplica';
     if (federalStatus === TaxStatus.APPROVED || federalStatus === TaxStatus.DEPOSITED) {
       return estimatedDate ? this.formatDate(estimatedDate) : 'Fecha por confirmar';
@@ -399,7 +401,7 @@ export class TaxTracking implements OnInit, OnDestroy {
     return 'Pendiente de aprobación';
   }
 
-  private getFederalRefundStatus(federalStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getFederalRefundStatusNew(federalStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (federalStatus === TaxStatus.DEPOSITED) return 'completed';
     if (federalStatus === TaxStatus.REJECTED) return 'rejected';
     if (federalStatus === TaxStatus.APPROVED) return 'active';
@@ -422,11 +424,11 @@ export class TaxTracking implements OnInit, OnDestroy {
     return '🗽';
   }
 
-  private getStateDecisionStatus(stateStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getStateDecisionStatusNew(stateStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (stateStatus === TaxStatus.APPROVED || stateStatus === TaxStatus.DEPOSITED) return 'completed';
     if (stateStatus === TaxStatus.REJECTED) return 'rejected';
     if (stateStatus === TaxStatus.PROCESSING) return 'active';
-    if (this.isSubmitted(clientStatus || ClientStatus.ESPERANDO_DATOS)) return 'active';
+    if (taxesFiled) return 'active';
     return 'pending';
   }
 
@@ -441,13 +443,13 @@ export class TaxTracking implements OnInit, OnDestroy {
     return status === TaxStatus.APPROVED || status === TaxStatus.REJECTED || status === TaxStatus.DEPOSITED;
   }
 
-  private getStateEstimateStatus(stateStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getStateEstimateStatusNew(stateStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (stateStatus === TaxStatus.APPROVED || stateStatus === TaxStatus.DEPOSITED) return 'completed';
     if (stateStatus === TaxStatus.REJECTED) return 'rejected';
     return 'pending';
   }
 
-  private getStateEstimateDetail(stateStatus?: TaxStatus, estimatedDate?: string): string {
+  private getStateEstimateDetailNew(stateStatus?: TaxStatus, estimatedDate?: string): string {
     if (stateStatus === TaxStatus.REJECTED) return 'No aplica';
     if (stateStatus === TaxStatus.APPROVED || stateStatus === TaxStatus.DEPOSITED) {
       return estimatedDate ? this.formatDate(estimatedDate) : 'Fecha por confirmar';
@@ -455,7 +457,7 @@ export class TaxTracking implements OnInit, OnDestroy {
     return 'Pendiente de aprobación';
   }
 
-  private getStateRefundStatus(stateStatus?: TaxStatus, clientStatus?: ClientStatus): TrackingStep['status'] {
+  private getStateRefundStatusNew(stateStatus?: TaxStatus, taxesFiled?: boolean): TrackingStep['status'] {
     if (stateStatus === TaxStatus.DEPOSITED) return 'completed';
     if (stateStatus === TaxStatus.REJECTED) return 'rejected';
     if (stateStatus === TaxStatus.APPROVED) return 'active';
@@ -510,8 +512,16 @@ export class TaxTracking implements OnInit, OnDestroy {
     return this.profileData?.taxCase?.estimatedRefund || null;
   }
 
+  get hasProblem(): boolean {
+    return this.profileData?.taxCase?.hasProblem || false;
+  }
+
   get actualRefund(): number | null {
-    return this.profileData?.taxCase?.actualRefund || null;
+    // Compute from federal + state (source of truth)
+    const federal = this.profileData?.taxCase?.federalActualRefund || 0;
+    const state = this.profileData?.taxCase?.stateActualRefund || 0;
+    const total = federal + state;
+    return total > 0 ? total : null;
   }
 
   get lastRefreshFormatted(): string {

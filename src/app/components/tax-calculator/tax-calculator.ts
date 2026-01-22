@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize, forkJoin, of } from 'rxjs';
@@ -16,7 +16,8 @@ type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'alread
   selector: 'app-tax-calculator',
   imports: [CommonModule],
   templateUrl: './tax-calculator.html',
-  styleUrl: './tax-calculator.css'
+  styleUrl: './tax-calculator.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxCalculator implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -29,6 +30,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private isLoadingInProgress = false;
+  private activeIntervals: ReturnType<typeof setInterval>[] = [];
 
   state: CalculatorState = 'loading';
   existingW2: Document | null = null;
@@ -53,11 +55,26 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.checkExistingW2();
 
     // Check if coming from documents with a W2 already uploaded
+    // Skip the initial BehaviorSubject replay by only reacting to fresh events
     this.subscriptions.add(
-      this.w2SharedService.w2Uploaded$.subscribe(event => {
-        if (event && event.source === 'documents') {
+      this.w2SharedService.w2Uploaded$.pipe(
+        filter(event => {
+          if (!event || event.source !== 'documents') return false;
+          // Only process if user doesn't already have a calculated result
+          // This prevents recalculation when navigating back
+          const existingResult = this.calculatorResultService.getResult();
+          if (existingResult) {
+            console.log('=== CALCULATOR: Ignoring W2 upload event - already have result ===');
+            return false;
+          }
+          return true;
+        })
+      ).subscribe(event => {
+        if (event) {
           this.isFromDocuments = true;
           this.documentSaved = true;
+          // Clear the event to prevent replay on subsequent navigations
+          this.w2SharedService.clear();
           // Start calculation automatically since doc is already saved
           this.startCalculation();
         }
@@ -80,6 +97,13 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    // Clear any active intervals to prevent memory leaks
+    this.clearAllIntervals();
+  }
+
+  private clearAllIntervals() {
+    this.activeIntervals.forEach(interval => clearInterval(interval));
+    this.activeIntervals = [];
   }
 
   /**
@@ -89,9 +113,22 @@ export class TaxCalculator implements OnInit, OnDestroy {
   checkExistingW2() {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
-    this.state = 'loading';
 
-    // Fetch both documents AND backend estimate in parallel
+    // Check localStorage FIRST for cached calculator result (instant)
+    const cachedResult = this.calculatorResultService.getResult();
+    if (cachedResult) {
+      this.estimatedRefund = cachedResult.estimatedRefund;
+      this.box2Federal = cachedResult.box2Federal || 0;
+      this.box17State = cachedResult.box17State || 0;
+      this.ocrConfidence = (cachedResult.ocrConfidence as OcrConfidence) || 'high';
+      this.savedCalculatorResult = cachedResult;
+      this.state = 'already-calculated';
+      this.cdr.detectChanges();
+    } else {
+      this.state = 'loading';
+    }
+
+    // Fetch both documents AND backend estimate in parallel (to sync/update)
     forkJoin({
       documents: this.documentService.getDocuments().pipe(
         catchError(() => of([] as Document[]))
@@ -227,10 +264,12 @@ export class TaxCalculator implements OnInit, OnDestroy {
     // Try to get file from service if not in component state
     const fileToProcess = this.uploadedFile || this.calculatorApiService.getCurrentFile();
 
-    // If no file available, use mock calculation (demo mode)
+    // If no file available, return to upload state (don't run demo mode automatically)
     if (!fileToProcess) {
-      console.warn('=== CALCULATOR: No file found, running DEMO MODE (random numbers) ===');
-      this.runMockCalculation();
+      console.warn('=== CALCULATOR: No file found, returning to upload state ===');
+      this.state = 'upload';
+      this.errorMessage = 'Por favor sube un documento W2 para calcular tu reembolso.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -244,18 +283,20 @@ export class TaxCalculator implements OnInit, OnDestroy {
       return;
     }
 
-    // Start progress animation
+    // Start progress animation (track interval for cleanup)
     const progressInterval = setInterval(() => {
       if (this.calculationProgress < 90) {
         this.calculationProgress += Math.random() * 10 + 3;
         this.cdr.detectChanges();
       }
     }, 500);
+    this.activeIntervals.push(progressInterval);
 
     // Call real API with OCR
     this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
       next: (response) => {
         clearInterval(progressInterval);
+        this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         this.calculationProgress = 100;
         console.log('=== CALCULATOR: API response received ===', response);
 
@@ -271,6 +312,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
       },
       error: (error) => {
         clearInterval(progressInterval);
+        this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         console.error('=== CALCULATOR: API ERROR ===', error);
         console.error('Error status:', error.status);
         console.error('Error details:', error.error);
@@ -300,7 +342,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   runMockCalculation() {
     console.log('=== CALCULATOR: DEMO MODE - Generating random values (NOT using API) ===');
 
-    // Demo mode with simulated progress
+    // Demo mode with simulated progress (track interval for cleanup)
     this.ngZone.runOutsideAngular(() => {
       const progressInterval = setInterval(() => {
         this.ngZone.run(() => {
@@ -308,6 +350,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
           if (this.calculationProgress >= 100) {
             this.calculationProgress = 100;
             clearInterval(progressInterval);
+            this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
 
             // Generate mock random values
             this.box2Federal = Math.floor(Math.random() * 1500) + 500;
@@ -327,6 +370,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
           }
         });
       }, 400);
+      this.activeIntervals.push(progressInterval);
     });
   }
 
@@ -409,7 +453,10 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   runDemo() {
     this.isFromDocuments = true; // Demo mode - no auto-save needed
-    this.startCalculation();
+    this.state = 'calculating';
+    this.calculationProgress = 0;
+    this.errorMessage = '';
+    this.runMockCalculation();
   }
 
   startProcess() {

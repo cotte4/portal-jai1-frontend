@@ -26,6 +26,18 @@
     </div>
   </div>
 
+  <!-- Problem Warning Banner -->
+  @if (hasProblem) {
+    <div class="problem-warning-banner" (click)="navigateTo('/messages')">
+      <div class="problem-warning-icon">⚠️</div>
+      <div class="problem-warning-content">
+        <span class="problem-warning-title">Tu tramite requiere atencion</span>
+        <span class="problem-warning-text">Contacta a soporte para mas detalles y resolver el inconveniente.</span>
+      </div>
+      <button class="problem-warning-btn">Contactar →</button>
+    </div>
+  }
+
   <!-- Summary Cards -->
   @if (!isLoading) {
     <div class="summary-cards">

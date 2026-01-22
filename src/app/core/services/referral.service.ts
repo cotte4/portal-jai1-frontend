@@ -1,228 +1,330 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, of, delay } from 'rxjs';
-import { StorageService } from './storage.service';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of, catchError, tap, map, forkJoin } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-export interface ReferralData {
-  code: string;
-  referralCount: number;
-  totalEarnings: number;
-  referrals: ReferralRecord[];
-  createdAt: string;
+// API Response interfaces
+export interface ReferralCodeResponse {
+  code: string | null;
+  isEligible: boolean;
+  createdAt: string | null;
 }
 
 export interface ReferralRecord {
   id: string;
-  name: string;
-  date: string;
-  status: 'pending' | 'completed';
-  reward: number;
+  referredUser: {
+    firstName: string;
+    lastName: string;
+  };
+  status: 'pending' | 'tax_form_submitted' | 'awaiting_refund' | 'successful' | 'expired';
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface DiscountInfo {
+  successfulReferrals: number;
+  pendingReferrals: number;
+  currentDiscountPercent: number;
+  nextTierAt: number;
+  discountTiers: Array<{ min: number; percent: number }>;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  profilePicturePath: string | null;
+  successfulReferrals: number;
+  currentTier: number;
+}
+
+export interface ValidateCodeResponse {
+  valid: boolean;
+  referrerName?: string;
+  referrerId?: string;
 }
 
 export interface RewardTier {
   tier: number;
   referralsRequired: number;
   reward: string;
-  rewardAmount: number;
+  discountPercent: number;
   description: string;
   icon: string;
 }
-
-const REFERRAL_STORAGE_KEY = 'jai1_referral_data';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReferralService {
-  private storageService = inject(StorageService);
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
 
-  private referralDataSubject = new BehaviorSubject<ReferralData | null>(this.loadFromStorage());
-  referralData$ = this.referralDataSubject.asObservable();
+  // Cached data subjects
+  private myCodeSubject = new BehaviorSubject<ReferralCodeResponse | null>(null);
+  private myReferralsSubject = new BehaviorSubject<ReferralRecord[]>([]);
+  private myDiscountSubject = new BehaviorSubject<DiscountInfo | null>(null);
+  private leaderboardSubject = new BehaviorSubject<LeaderboardEntry[]>([]);
 
-  // Reward tiers
+  myCode$ = this.myCodeSubject.asObservable();
+  myReferrals$ = this.myReferralsSubject.asObservable();
+  myDiscount$ = this.myDiscountSubject.asObservable();
+  leaderboard$ = this.leaderboardSubject.asObservable();
+
+  // Reward tiers (matching backend)
   readonly rewardTiers: RewardTier[] = [
     {
       tier: 1,
       referralsRequired: 1,
-      reward: '$15 USD',
-      rewardAmount: 15,
-      description: 'Por tu primer referido',
-      icon: '🌟'
+      reward: '5% descuento',
+      discountPercent: 5,
+      description: 'Por tu primer referido exitoso',
+      icon: '1'
     },
     {
       tier: 2,
-      referralsRequired: 3,
-      reward: '$50 USD',
-      rewardAmount: 50,
-      description: 'Al alcanzar 3 referidos',
-      icon: '🔥'
+      referralsRequired: 2,
+      reward: '10% descuento',
+      discountPercent: 10,
+      description: 'Al alcanzar 2 referidos',
+      icon: '2'
     },
     {
       tier: 3,
-      referralsRequired: 5,
-      reward: '$100 USD',
-      rewardAmount: 100,
-      description: 'Al alcanzar 5 referidos',
-      icon: '💎'
+      referralsRequired: 3,
+      reward: '20% descuento',
+      discountPercent: 20,
+      description: 'Al alcanzar 3 referidos',
+      icon: '3'
     },
     {
       tier: 4,
-      referralsRequired: 10,
-      reward: '$250 USD',
-      rewardAmount: 250,
-      description: 'Al alcanzar 10 referidos',
-      icon: '👑'
+      referralsRequired: 4,
+      reward: '30% descuento',
+      discountPercent: 30,
+      description: 'Al alcanzar 4 referidos',
+      icon: '4'
     },
     {
       tier: 5,
-      referralsRequired: 25,
-      reward: '$750 USD + VIP',
-      rewardAmount: 750,
-      description: 'Jaigent VIP - 25 referidos',
-      icon: '🏆'
+      referralsRequired: 5,
+      reward: '50% descuento',
+      discountPercent: 50,
+      description: 'Al alcanzar 5 referidos',
+      icon: '5'
+    },
+    {
+      tier: 6,
+      referralsRequired: 6,
+      reward: '75% descuento',
+      discountPercent: 75,
+      description: 'Al alcanzar 6 referidos',
+      icon: '6'
+    },
+    {
+      tier: 7,
+      referralsRequired: 7,
+      reward: '100% GRATIS',
+      discountPercent: 100,
+      description: 'Al alcanzar 7+ referidos',
+      icon: '7'
     }
   ];
 
-  private loadFromStorage(): ReferralData | null {
-    const stored = localStorage.getItem(REFERRAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
-      }
-    }
-    return null;
+  // === PUBLIC API CALLS ===
+
+  /**
+   * Validate a referral code (public - for registration)
+   */
+  validateCode(code: string): Observable<ValidateCodeResponse> {
+    return this.http.get<ValidateCodeResponse>(`${this.apiUrl}/referrals/validate/${code}`).pipe(
+      catchError(() => of({ valid: false }))
+    );
   }
 
-  private saveToStorage(data: ReferralData): void {
-    localStorage.setItem(REFERRAL_STORAGE_KEY, JSON.stringify(data));
-    this.referralDataSubject.next(data);
+  /**
+   * Apply a referral code post-registration
+   */
+  applyCode(code: string): Observable<{
+    success: boolean;
+    referrerName: string;
+    discount: number;
+    message: string;
+  }> {
+    return this.http.post<{
+      success: boolean;
+      referrerName: string;
+      discount: number;
+      message: string;
+    }>(`${this.apiUrl}/referrals/apply-code`, { code });
   }
 
-  // Generate unique code based on user data
-  generateReferralCode(userId: string, firstName: string): string {
-    const prefix = firstName.substring(0, 3).toUpperCase();
-    const suffix = userId.substring(0, 4).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `${prefix}${suffix}${random}`;
+  /**
+   * Check if current user was referred by someone
+   */
+  getMyReferrer(): Observable<{
+    wasReferred: boolean;
+    referrerName?: string;
+    discount: number;
+  }> {
+    return this.http.get<{
+      wasReferred: boolean;
+      referrerName?: string;
+      discount: number;
+    }>(`${this.apiUrl}/referrals/my-referrer`).pipe(
+      catchError(() => of({ wasReferred: false, discount: 0 }))
+    );
   }
 
-  // Check if user has a referral code (only after tax return is submitted)
+  // === PROTECTED API CALLS ===
+
+  /**
+   * Get current user's referral code
+   */
+  getMyCode(): Observable<ReferralCodeResponse> {
+    return this.http.get<ReferralCodeResponse>(`${this.apiUrl}/referrals/my-code`).pipe(
+      tap(response => this.myCodeSubject.next(response)),
+      catchError(() => of({ code: null, isEligible: false, createdAt: null }))
+    );
+  }
+
+  /**
+   * Get referrals made by current user
+   */
+  getMyReferrals(): Observable<ReferralRecord[]> {
+    return this.http.get<ReferralRecord[]>(`${this.apiUrl}/referrals/my-referrals`).pipe(
+      tap(response => this.myReferralsSubject.next(response)),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Get current user's discount info
+   */
+  getMyDiscount(): Observable<DiscountInfo> {
+    return this.http.get<DiscountInfo>(`${this.apiUrl}/referrals/my-discount`).pipe(
+      tap(response => this.myDiscountSubject.next(response)),
+      catchError(() => of({
+        successfulReferrals: 0,
+        pendingReferrals: 0,
+        currentDiscountPercent: 0,
+        nextTierAt: 1,
+        discountTiers: []
+      }))
+    );
+  }
+
+  /**
+   * Get global leaderboard
+   */
+  getLeaderboard(limit = 10): Observable<LeaderboardEntry[]> {
+    return this.http.get<LeaderboardEntry[]>(`${this.apiUrl}/referrals/leaderboard?limit=${limit}`).pipe(
+      tap(response => this.leaderboardSubject.next(response)),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Load all referral data at once
+   */
+  loadAllData(): Observable<{
+    code: ReferralCodeResponse;
+    referrals: ReferralRecord[];
+    discount: DiscountInfo;
+    leaderboard: LeaderboardEntry[];
+  }> {
+    return forkJoin({
+      code: this.getMyCode(),
+      referrals: this.getMyReferrals(),
+      discount: this.getMyDiscount(),
+      leaderboard: this.getLeaderboard()
+    });
+  }
+
+  // === HELPER METHODS ===
+
+  /**
+   * Check if user has a referral code
+   */
   hasReferralCode(): boolean {
-    return this.referralDataSubject.value !== null;
+    return this.myCodeSubject.value?.code !== null;
   }
 
-  // Get referral data
-  getReferralData(): ReferralData | null {
-    return this.referralDataSubject.value;
+  /**
+   * Get current tier based on successful referral count
+   */
+  getCurrentTier(successfulCount: number): RewardTier | null {
+    // Get all tiers the user qualifies for, return the highest one
+    const qualifiedTiers = this.rewardTiers.filter(tier => successfulCount >= tier.referralsRequired);
+    return qualifiedTiers.length > 0 ? qualifiedTiers[qualifiedTiers.length - 1] : null;
   }
 
-  // Initialize referral code after user submits their tax return
-  initializeReferralCode(userId: string, firstName: string): Observable<ReferralData> {
-    const existingData = this.getReferralData();
-    if (existingData) {
-      return of(existingData);
-    }
-
-    const code = this.generateReferralCode(userId, firstName);
-    const data: ReferralData = {
-      code,
-      referralCount: 0,
-      totalEarnings: 0,
-      referrals: [],
-      createdAt: new Date().toISOString()
-    };
-
-    this.saveToStorage(data);
-    return of(data).pipe(delay(500)); // Simulate API delay
+  /**
+   * Get next tier
+   */
+  getNextTier(successfulCount: number): RewardTier | null {
+    // Find the first tier that the user hasn't reached yet
+    return this.rewardTiers.find(tier => successfulCount < tier.referralsRequired) ?? null;
   }
 
-  // Get current tier based on referral count
-  getCurrentTier(referralCount: number): RewardTier | null {
-    let currentTier: RewardTier | null = null;
-    for (const tier of this.rewardTiers) {
-      if (referralCount >= tier.referralsRequired) {
-        currentTier = tier;
-      }
-    }
-    return currentTier;
-  }
-
-  // Get next tier
-  getNextTier(referralCount: number): RewardTier | null {
-    for (const tier of this.rewardTiers) {
-      if (referralCount < tier.referralsRequired) {
-        return tier;
-      }
-    }
-    return null;
-  }
-
-  // Progress to next tier (percentage)
-  getProgressToNextTier(referralCount: number): number {
-    const nextTier = this.getNextTier(referralCount);
+  /**
+   * Progress to next tier (percentage)
+   */
+  getProgressToNextTier(successfulCount: number): number {
+    const nextTier = this.getNextTier(successfulCount);
     if (!nextTier) return 100;
 
-    const currentTier = this.getCurrentTier(referralCount);
+    const currentTier = this.getCurrentTier(successfulCount);
     const currentThreshold = currentTier ? currentTier.referralsRequired : 0;
     const nextThreshold = nextTier.referralsRequired;
 
-    const progress = ((referralCount - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+    const progress = ((successfulCount - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
     return Math.min(Math.max(progress, 0), 100);
   }
 
-  // Add a demo referral (for testing)
-  addDemoReferral(): void {
-    const data = this.getReferralData();
-    if (!data) return;
-
-    const names = ['María García', 'Carlos López', 'Ana Martínez', 'Juan Rodriguez', 'Laura Pérez'];
-    const randomName = names[Math.floor(Math.random() * names.length)];
-
-    const newReferral: ReferralRecord = {
-      id: `ref_${Date.now()}`,
-      name: randomName,
-      date: new Date().toISOString(),
-      status: 'completed',
-      reward: 15
-    };
-
-    data.referrals.push(newReferral);
-    data.referralCount = data.referrals.filter(r => r.status === 'completed').length;
-
-    // Calculate total earnings based on tiers reached
-    let earnings = 0;
-    for (const tier of this.rewardTiers) {
-      if (data.referralCount >= tier.referralsRequired) {
-        earnings = tier.rewardAmount;
-      }
-    }
-    data.totalEarnings = earnings;
-
-    this.saveToStorage(data);
-  }
-
-  // Copy referral code to clipboard
+  /**
+   * Copy referral code to clipboard
+   */
   copyCodeToClipboard(): Promise<boolean> {
-    const data = this.getReferralData();
-    if (!data) return Promise.resolve(false);
+    const code = this.myCodeSubject.value?.code;
+    if (!code) return Promise.resolve(false);
 
-    return navigator.clipboard.writeText(data.code)
+    return navigator.clipboard.writeText(code)
       .then(() => true)
       .catch(() => false);
   }
 
-  // Get share message
+  /**
+   * Get share message
+   */
   getShareMessage(): string {
-    const data = this.getReferralData();
-    if (!data) return '';
+    const code = this.myCodeSubject.value?.code;
+    if (!code) return '';
 
-    return `¡Usa mi código ${data.code} en JAI1 y obtén $11 de descuento en tu declaración de taxes! 🎉 https://jai1.app`;
+    return `Usa mi codigo ${code} en JAI1 y obtén $11 de descuento en tu declaracion de taxes! https://jai1.app`;
   }
 
-  // Clear referral data (for testing)
-  clearReferralData(): void {
-    localStorage.removeItem(REFERRAL_STORAGE_KEY);
-    this.referralDataSubject.next(null);
+  /**
+   * Get referral status label in Spanish
+   */
+  getStatusLabel(status: ReferralRecord['status']): string {
+    const labels: Record<ReferralRecord['status'], string> = {
+      pending: 'Pendiente',
+      tax_form_submitted: 'Formulario enviado',
+      awaiting_refund: 'Esperando reembolso',
+      successful: 'Exitoso',
+      expired: 'Expirado'
+    };
+    return labels[status] || status;
+  }
+
+  /**
+   * Clear cached data (useful on logout)
+   */
+  clearCache(): void {
+    this.myCodeSubject.next(null);
+    this.myReferralsSubject.next([]);
+    this.myDiscountSubject.next(null);
+    this.leaderboardSubject.next([]);
   }
 }

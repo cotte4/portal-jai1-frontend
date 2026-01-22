@@ -5,37 +5,148 @@ export enum UserRole {
   ADMIN = 'admin'
 }
 
-export enum InternalStatus {
-  REVISION_DE_REGISTRO = 'revision_de_registro',
-  ESPERANDO_DATOS = 'esperando_datos',
-  FALTA_DOCUMENTACION = 'falta_documentacion',
-  EN_PROCESO = 'en_proceso',
-  EN_VERIFICACION = 'en_verificacion',
-  RESOLVIENDO_VERIFICACION = 'resolviendo_verificacion',
-  INCONVENIENTES = 'inconvenientes',
-  CHEQUE_EN_CAMINO = 'cheque_en_camino',
-  ESPERANDO_PAGO_COMISION = 'esperando_pago_comision',
-  PROCESO_FINALIZADO = 'proceso_finalizado'
-}
-
-export enum ClientStatus {
-  ESPERANDO_DATOS = 'esperando_datos',
-  CUENTA_EN_REVISION = 'cuenta_en_revision',
-  TAXES_EN_PROCESO = 'taxes_en_proceso',
-  TAXES_EN_CAMINO = 'taxes_en_camino',
-  TAXES_DEPOSITADOS = 'taxes_depositados',
-  PAGO_REALIZADO = 'pago_realizado',
-  EN_VERIFICACION = 'en_verificacion',
-  TAXES_FINALIZADOS = 'taxes_finalizados'
-}
-
 export enum TaxStatus {
+  FILED = 'filed',
   PENDING = 'pending',
   PROCESSING = 'processing',
   APPROVED = 'approved',
   REJECTED = 'rejected',
   DEPOSITED = 'deposited'
 }
+
+// NEW: Pre-filing workflow status (before taxes are filed)
+export enum PreFilingStatus {
+  AWAITING_REGISTRATION = 'awaiting_registration',
+  AWAITING_DOCUMENTS = 'awaiting_documents',
+  DOCUMENTATION_COMPLETE = 'documentation_complete'
+}
+
+// NEW STATUS SYSTEM (v2): Unified case status
+export enum CaseStatus {
+  AWAITING_FORM = 'awaiting_form',
+  AWAITING_DOCS = 'awaiting_docs',
+  PREPARING = 'preparing',
+  TAXES_FILED = 'taxes_filed',
+  CASE_ISSUES = 'case_issues'
+}
+
+// NEW STATUS SYSTEM (v2): Enhanced federal status
+export enum FederalStatusNew {
+  IN_PROCESS = 'in_process',
+  IN_VERIFICATION = 'in_verification',
+  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
+  VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  CHECK_IN_TRANSIT = 'check_in_transit',
+  ISSUES = 'issues',
+  TAXES_SENT = 'taxes_sent',
+  TAXES_COMPLETED = 'taxes_completed'
+}
+
+// NEW STATUS SYSTEM (v2): Enhanced state status
+export enum StateStatusNew {
+  IN_PROCESS = 'in_process',
+  IN_VERIFICATION = 'in_verification',
+  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
+  VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  CHECK_IN_TRANSIT = 'check_in_transit',
+  ISSUES = 'issues',
+  TAXES_SENT = 'taxes_sent',
+  TAXES_COMPLETED = 'taxes_completed'
+}
+
+// NEW STATUS SYSTEM (v2): Alarm types
+export type AlarmLevel = 'warning' | 'critical';
+export type AlarmType = 'possible_verification_federal' | 'possible_verification_state' | 'verification_timeout' | 'letter_sent_timeout';
+export type AlarmResolution = 'active' | 'acknowledged' | 'resolved' | 'auto_resolved';
+
+export interface StatusAlarm {
+  type: AlarmType;
+  level: AlarmLevel;
+  track: 'federal' | 'state';
+  message: string;
+  daysSinceStatusChange: number;
+  threshold: number;
+}
+
+// Alarm Dashboard (for admin alarms page)
+export interface AlarmDashboardItem {
+  taxCaseId: string;
+  clientName: string;
+  clientEmail: string;
+  alarms: StatusAlarm[];
+  highestLevel: AlarmLevel | null;
+  federalStatusNew: string | null;
+  stateStatusNew: string | null;
+  federalStatusNewChangedAt: string | null;
+  stateStatusNewChangedAt: string | null;
+  hasCustomThresholds: boolean;
+}
+
+export interface AlarmDashboardResponse {
+  items: AlarmDashboardItem[];
+  totalWithAlarms: number;
+  totalCritical: number;
+  totalWarning: number;
+}
+
+// Alarm History
+export interface AlarmHistoryItem {
+  id: string;
+  taxCaseId: string;
+  clientName: string;
+  alarmType: AlarmType;
+  alarmLevel: AlarmLevel;
+  track: string;
+  message: string;
+  thresholdDays: number;
+  actualDays: number;
+  statusAtTrigger: string;
+  statusChangedAt: string;
+  resolution: AlarmResolution;
+  resolvedAt: string | null;
+  resolvedByName: string | null;
+  resolvedNote: string | null;
+  autoResolveReason: string | null;
+  triggeredAt: string;
+}
+
+// Alarm Thresholds
+export interface AlarmThresholds {
+  federalInProcessDays: number;
+  stateInProcessDays: number;
+  verificationTimeoutDays: number;
+  letterSentTimeoutDays: number;
+  disableFederalAlarms: boolean;
+  disableStateAlarms: boolean;
+}
+
+export interface ThresholdsResponse {
+  taxCaseId: string;
+  clientName: string;
+  thresholds: AlarmThresholds;
+  isCustom: boolean;
+  reason: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface SetThresholdsRequest {
+  federalInProcessDays?: number | null;
+  stateInProcessDays?: number | null;
+  verificationTimeoutDays?: number | null;
+  letterSentTimeoutDays?: number | null;
+  disableFederalAlarms?: boolean;
+  disableStateAlarms?: boolean;
+  reason?: string;
+}
+
+// Default alarm thresholds (match backend)
+export const DEFAULT_ALARM_THRESHOLDS = {
+  POSSIBLE_VERIFICATION_FEDERAL: 25,
+  POSSIBLE_VERIFICATION_STATE: 50,
+  VERIFICATION_TIMEOUT: 63,
+  LETTER_SENT_TIMEOUT: 63,
+};
 
 export enum DocumentType {
   W2 = 'w2',
@@ -82,12 +193,28 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  referralCode?: string;
 }
 
 export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+  hasProfile: boolean;
+}
+
+export interface RegisterResponse {
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+  };
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  hasProfile: boolean;
 }
 
 export interface RefreshTokenRequest {
@@ -103,6 +230,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  profilePictureUrl?: string;
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
@@ -135,6 +263,12 @@ export interface ClientProfile {
   employerName?: string;
   turbotaxEmail?: string;
   turbotaxPassword?: string;
+  // IRS account credentials (admin-only view)
+  irsUsername?: string;
+  irsPassword?: string;
+  // State account credentials (admin-only view)
+  stateUsername?: string;
+  statePassword?: string;
   profileComplete: boolean;
   isDraft: boolean;
   createdAt: string;
@@ -165,20 +299,44 @@ export interface TaxCase {
   id: string;
   clientProfileId: string;
   taxYear: number;
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
+  // Phase indicator - separates pre-filing and post-filing
+  taxesFiled?: boolean;
+  taxesFiledAt?: string;
+  // NEW: Pre-filing status (used when taxesFiled = false)
+  preFilingStatus?: PreFilingStatus;
+  // Federal/State status (used when taxesFiled = true)
   federalStatus?: TaxStatus;
   stateStatus?: TaxStatus;
   estimatedRefund?: number;
-  actualRefund?: number;
-  refundDepositDate?: string;
-  // Separate federal/state tracking
+  // Computed fields (for backward compatibility - derived from federal/state)
+  actualRefund?: number; // federalActualRefund + stateActualRefund
+  refundDepositDate?: string; // federalDepositDate || stateDepositDate
+  // Separate federal/state tracking (SOURCE OF TRUTH)
   federalEstimatedDate?: string;
   stateEstimatedDate?: string;
   federalActualRefund?: number;
   stateActualRefund?: number;
   federalDepositDate?: string;
   stateDepositDate?: string;
+  // NEW: Federal status tracking
+  federalLastComment?: string;
+  federalStatusChangedAt?: string;
+  federalLastReviewedAt?: string;
+  // NEW: State status tracking
+  stateLastComment?: string;
+  stateStatusChangedAt?: string;
+  stateLastReviewedAt?: string;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus;
+  caseStatusChangedAt?: string;
+  federalStatusNew?: FederalStatusNew;
+  federalStatusNewChangedAt?: string;
+  stateStatusNew?: StateStatusNew;
+  stateStatusNewChangedAt?: string;
+  // Alarms
+  alarms?: StatusAlarm[];
+  hasAlarm?: boolean;
+  hasCriticalAlarm?: boolean;
   // Year-specific employment and banking
   workState?: string;
   employerName?: string;
@@ -226,6 +384,7 @@ export interface Ticket {
   userId: string;
   subject: string;
   status: TicketStatus;
+  unreadCount?: number;
   createdAt: string;
   updatedAt: string;
   messages?: TicketMessage[];
@@ -236,6 +395,7 @@ export interface TicketMessage {
   ticketId: string;
   senderId: string;
   message: string;
+  isRead?: boolean;
   createdAt: string;
   sender?: User;
 }
@@ -258,10 +418,40 @@ export interface Notification {
   title: string;
   message: string;
   isRead: boolean;
+  isArchived: boolean;
   createdAt: string;
 }
 
 // ============= ADMIN =============
+
+// Type-safe client status filter values for admin dashboard
+export type ClientStatusFilter =
+  | 'all'
+  | 'group_pending'
+  | 'group_in_review'
+  | 'group_completed'
+  | 'group_needs_attention'
+  | 'ready_to_present'
+  | 'incomplete';
+
+// Advanced filters for admin clients listing
+export interface AdvancedFilters {
+  hasProblem?: boolean | null;
+  federalStatus?: FederalStatusNew | null;
+  stateStatus?: StateStatusNew | null;
+  caseStatus?: CaseStatus | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+}
+
+export interface ClientCredentials {
+  turbotaxEmail: string | null;
+  turbotaxPassword: string | null;
+  irsUsername: string | null;
+  irsPassword: string | null;
+  stateUsername: string | null;
+  statePassword: string | null;
+}
 
 export interface AdminClientListItem {
   id: string;
@@ -271,8 +461,33 @@ export interface AdminClientListItem {
     firstName: string;
     lastName: string;
   };
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
+  // SSN (masked)
+  ssn?: string | null;
+  // Phase-based status fields (OLD SYSTEM - kept for backward compatibility)
+  taxesFiled?: boolean;
+  taxesFiledAt?: string | null;
+  preFilingStatus?: PreFilingStatus;
+  federalStatus?: TaxStatus;
+  stateStatus?: TaxStatus;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus | null;
+  caseStatusChangedAt?: string | null;
+  federalStatusNew?: FederalStatusNew | null;
+  federalStatusNewChangedAt?: string | null;
+  stateStatusNew?: StateStatusNew | null;
+  stateStatusNewChangedAt?: string | null;
+  // Alarms
+  alarms?: StatusAlarm[];
+  hasAlarm?: boolean;
+  hasCriticalAlarm?: boolean;
+  // Status tracking
+  federalLastComment?: string | null;
+  stateLastComment?: string | null;
+  federalActualRefund?: number | null;
+  stateActualRefund?: number | null;
+  lastReviewDate?: string | null;
+  // Account credentials (admin use only)
+  credentials?: ClientCredentials;
   paymentReceived: boolean;
   profileComplete: boolean;
   isDraft: boolean;
@@ -308,9 +523,50 @@ export interface StatusHistory {
 }
 
 export interface UpdateStatusRequest {
-  internalStatus: InternalStatus;
-  clientStatus: ClientStatus;
+  taxesFiled?: boolean;
+  taxesFiledAt?: string;
+  preFilingStatus?: PreFilingStatus;
+  federalStatus?: TaxStatus;
+  stateStatus?: TaxStatus;
   comment?: string;
+  federalComment?: string;
+  stateComment?: string;
+  federalEstimatedDate?: string;
+  federalActualRefund?: number;
+  federalDepositDate?: string;
+  stateEstimatedDate?: string;
+  stateActualRefund?: number;
+  stateDepositDate?: string;
+  // NEW STATUS SYSTEM (v2)
+  caseStatus?: CaseStatus;
+  federalStatusNew?: FederalStatusNew;
+  stateStatusNew?: StateStatusNew;
+  // Force transition override
+  forceTransition?: boolean;
+  overrideReason?: string;
+}
+
+// ============= STATUS TRANSITIONS =============
+
+export interface StatusTransitionInfo {
+  current: string | null;
+  validTransitions: string[];
+}
+
+export interface ValidTransitionsResponse {
+  taxCaseId: string;
+  caseStatus: StatusTransitionInfo;
+  federalStatusNew: StatusTransitionInfo;
+  stateStatusNew: StatusTransitionInfo;
+}
+
+export interface InvalidTransitionError {
+  code: 'INVALID_STATUS_TRANSITION';
+  statusType: 'case' | 'federal' | 'state';
+  currentStatus: string | null;
+  attemptedStatus: string;
+  allowedTransitions: string[];
+  message: string;
 }
 
 // ============= CALCULATOR =============

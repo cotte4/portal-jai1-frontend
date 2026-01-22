@@ -31,14 +31,14 @@
     <!-- Client Info Header -->
     <div class="client-header">
       <div class="client-avatar-large">
-        {{ client.user.firstName.charAt(0) }}{{ client.user.lastName.charAt(0) }}
+        {{ client.user.firstName.charAt(0) || '?' }}{{ client.user.lastName.charAt(0) || '?' }}
       </div>
       <div class="client-info">
-        <h1>{{ client.user.firstName }} {{ client.user.lastName }}</h1>
+        <h1>{{ client.user.firstName || 'Sin nombre' }} {{ client.user.lastName || '' }}</h1>
         <div class="client-meta">
           <span class="meta-item">
             <span class="meta-icon">📧</span>
-            {{ client.user.email }}
+            {{ client.user.email || 'Sin email' }}
           </span>
           <span class="meta-item" *ngIf="client.user.phone">
             <span class="meta-icon">📱</span>
@@ -50,56 +50,26 @@
           </span>
         </div>
       </div>
+      <!-- Status display - use Phase-Based Status Section below for changes -->
       <div class="status-control">
-        <label for="internalStatus">Estado Interno</label>
-        <select id="internalStatus" [(ngModel)]="selectedInternalStatus">
-          <option *ngFor="let status of internalStatusOptions" [value]="status">
-            {{ getInternalStatusLabel(status) }}
-          </option>
-        </select>
-        <label for="clientStatus">Estado Cliente</label>
-        <select id="clientStatus" [(ngModel)]="selectedClientStatus">
-          <option *ngFor="let status of clientStatusOptions" [value]="status">
-            {{ getClientStatusLabel(status) }}
-          </option>
-        </select>
-        <input type="text" [(ngModel)]="statusComment" placeholder="Comentario (opcional)">
-        <button class="btn-update-status" (click)="updateStatus()" [disabled]="isSaving">
-          {{ isSaving ? 'Guardando...' : 'Actualizar Estado' }}
-        </button>
+        <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
+        <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
+        <span class="status-info" *ngIf="selectedFederalStatus">Fed: {{ getTaxStatusLabel(selectedFederalStatus) }}</span>
+        <span class="status-info" *ngIf="selectedStateStatus">Est: {{ getTaxStatusLabel(selectedStateStatus) }}</span>
       </div>
     </div>
 
-    <!-- Step Control Section -->
-    <section class="step-control-section" *ngIf="client.taxCases && client.taxCases.length > 0">
-      <div class="step-control-header">
-        <h3>Control de Pasos</h3>
-        <div class="step-control-actions">
+    <!-- Actions Section (Problem + Notify) -->
+    <section class="actions-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="actions-header">
+        <h3>Acciones</h3>
+        <div class="actions-buttons">
           <button class="btn-problem" [class.has-problem]="hasProblem" (click)="openProblemModal()">
             <span *ngIf="hasProblem" class="problem-indicator"></span>
             {{ hasProblem ? 'Ver Problema' : 'Marcar Problema' }}
           </button>
           <button class="btn-notify" (click)="openNotifyModal()">
             Enviar Notificacion
-          </button>
-        </div>
-      </div>
-      <div class="step-progress">
-        <div class="step-track">
-          <div class="step-track-fill" [style.width.%]="((currentStep - 1) / 4) * 100"></div>
-        </div>
-        <div class="step-buttons">
-          <button
-            *ngFor="let label of stepLabels; let i = index"
-            class="step-button"
-            [class.active]="currentStep === i + 1"
-            [class.completed]="currentStep > i + 1"
-            [class.has-problem]="hasProblem && client.taxCases[0].problemStep === i + 1"
-            (click)="setStep(i + 1)"
-            [disabled]="isSaving"
-          >
-            <span class="step-number">{{ i + 1 }}</span>
-            <span class="step-label">{{ label }}</span>
           </button>
         </div>
       </div>
@@ -110,13 +80,97 @@
           <p *ngIf="problemDescription">{{ problemDescription }}</p>
         </div>
         <button class="btn-resolve" (click)="resolveProblem()" [disabled]="isSaving">
-          Resolver
+          {{ isSaving ? 'Resolviendo...' : 'Resolver' }}
         </button>
+      </div>
+      <!-- NEW: Alarms Banner -->
+      <div class="alarms-banner" *ngIf="taxCaseAlarms.length > 0">
+        <div class="alarms-header">
+          <span class="alarm-icon" [class.critical]="hasCriticalAlarm">⚠️</span>
+          <strong>{{ taxCaseAlarms.length }} Alerta{{ taxCaseAlarms.length > 1 ? 's' : '' }}</strong>
+        </div>
+        <div class="alarms-list">
+          <div class="alarm-item" *ngFor="let alarm of taxCaseAlarms; trackBy: trackByIndex"
+               [class]="getAlarmLevelClass(alarm.level)">
+            <span class="alarm-track">{{ alarm.track === 'federal' ? '🦅 Fed' : '🗽 Est' }}</span>
+            <span class="alarm-message">{{ alarm.message }}</span>
+            <span class="alarm-days">{{ alarm.daysSinceStatusChange }} días</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Federal/State Tracking Section -->
-    <section class="federal-state-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+    <!-- Phase-Based Status Section -->
+    <section class="phase-status-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">📊</span>
+          <h2>Estado del Caso</h2>
+        </div>
+        <div class="phase-indicator" [class.filed]="taxesFiled">
+          <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
+          <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
+        </div>
+      </div>
+
+      <!-- Pre-Filing Phase UI -->
+      <div class="pre-filing-section" *ngIf="!taxesFiled">
+        <div class="pre-filing-card">
+          <div class="pre-filing-header">
+            <span class="pre-filing-icon">📝</span>
+            <h3>Estado Pre-Presentacion</h3>
+            <span class="status-badge-large" [class]="'status-' + selectedPreFilingStatus">
+              {{ getPreFilingStatusLabel(selectedPreFilingStatus) }}
+            </span>
+          </div>
+          <div class="pre-filing-body">
+            <div class="pre-filing-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedPreFilingStatus">
+                <option *ngFor="let status of preFilingStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getPreFilingStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="pre-filing-field">
+              <label>Comentario (opcional)</label>
+              <input type="text" [(ngModel)]="preFilingComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-update-prefiling" (click)="updatePreFilingStatus()" [disabled]="isSavingPreFiling">
+              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mark-filed-card">
+          <div class="mark-filed-header">
+            <span class="mark-filed-icon">✅</span>
+            <h3>Marcar como Presentado</h3>
+          </div>
+          <div class="mark-filed-body">
+            <p class="mark-filed-description">
+              Cuando los taxes hayan sido presentados al IRS, marque esta casilla e ingrese la fecha.
+            </p>
+            <div class="mark-filed-field">
+              <label>Fecha de Presentacion</label>
+              <input type="date" [(ngModel)]="taxesFiledAt">
+            </div>
+            <button class="btn-mark-filed" (click)="markTaxesAsFiled()" [disabled]="isMarkingFiled || !taxesFiledAt">
+              {{ isMarkingFiled ? 'Procesando...' : 'Marcar Taxes como Presentados' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filed Date Display (when already filed) -->
+      <div class="filed-info" *ngIf="taxesFiled && taxesFiledAt">
+        <span class="filed-icon">📅</span>
+        <span class="filed-text">Presentado el {{ taxesFiledAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </section>
+
+    <!-- Federal/State Tracking Section (only show when taxesFiled) -->
+    <section class="federal-state-section" *ngIf="client.taxCases && client.taxCases.length > 0 && taxesFiled">
       <div class="section-header">
         <div class="section-title">
           <span class="section-icon">🏛️</span>
@@ -139,7 +193,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedFederalStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getTaxStatusLabel(status) }}
                 </option>
               </select>
@@ -156,7 +210,11 @@
               <label>Fecha Deposito</label>
               <input type="date" [(ngModel)]="federalDepositDate">
             </div>
-            <button class="btn-track-update" (click)="updateFederalStatus()" [disabled]="isSavingFederalState">
+            <div class="track-field full-width">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederalState">
               {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
           </div>
@@ -176,7 +234,7 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedStateStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions" [ngValue]="status">
+                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getTaxStatusLabel(status) }}
                 </option>
               </select>
@@ -193,8 +251,108 @@
               <label>Fecha Deposito</label>
               <input type="date" [(ngModel)]="stateDepositDate">
             </div>
-            <button class="btn-track-update" (click)="updateStateStatus()" [disabled]="isSavingFederalState">
+            <div class="track-field full-width">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingFederalState">
               {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEW STATUS SYSTEM (v2) Section -->
+    <section class="new-status-section" *ngIf="client.taxCases && client.taxCases.length > 0 && taxesFiled">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">🆕</span>
+          <h2>Sistema de Estados v2 (Nuevo)</h2>
+        </div>
+        <span class="section-badge beta">BETA</span>
+      </div>
+
+      <div class="new-status-grid">
+        <!-- Case Status -->
+        <div class="status-card case-status-card">
+          <div class="status-card-header">
+            <span class="status-icon">📊</span>
+            <h3>Estado del Caso</h3>
+            <span class="status-badge-large" [class]="'status-' + (selectedCaseStatus || 'pending')">
+              {{ getCaseStatusLabel(selectedCaseStatus) }}
+            </span>
+          </div>
+          <div class="status-card-body">
+            <div class="status-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedCaseStatus">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getCaseStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <button class="btn-status-update" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
+              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Federal Status New -->
+        <div class="status-card federal-new-card">
+          <div class="status-card-header">
+            <span class="status-icon">🦅</span>
+            <h3>Federal (v2)</h3>
+            <span class="status-badge-large" [class]="'status-' + (selectedFederalStatusNew || 'pending')">
+              {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}
+            </span>
+          </div>
+          <div class="status-card-body">
+            <div class="status-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedFederalStatusNew">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getFederalStatusNewLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="status-field">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-status-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederalState">
+              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal v2' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- State Status New -->
+        <div class="status-card state-new-card">
+          <div class="status-card-header">
+            <span class="status-icon">🗽</span>
+            <h3>Estatal (v2)</h3>
+            <span class="status-badge-large" [class]="'status-' + (selectedStateStatusNew || 'pending')">
+              {{ getStateStatusNewLabel(selectedStateStatusNew) }}
+            </span>
+          </div>
+          <div class="status-card-body">
+            <div class="status-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedStateStatusNew">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getStateStatusNewLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <div class="status-field">
+              <label>Comentario</label>
+              <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
+            </div>
+            <button class="btn-status-update" (click)="updateStateStatusNew()" [disabled]="isSavingFederalState">
+              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal v2' }}
             </button>
           </div>
         </div>
@@ -241,7 +399,7 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Nombre Completo</span>
-                  <span class="info-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+                  <span class="info-value">{{ client.user.firstName || '' }} {{ client.user.lastName || '' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">SSN</span>
@@ -315,21 +473,117 @@
               </div>
             </div>
 
+            <!-- Client Accounts (Credentials) -->
+            <div class="form-group-preview accounts-section">
+              <h3>
+                <span class="section-icon-small">🔐</span>
+                Cuentas del Cliente
+              </h3>
+              <div class="accounts-grid">
+                <!-- TurboTax -->
+                <div class="account-card turbotax-card">
+                  <div class="account-header">
+                    <span class="account-icon">📊</span>
+                    <span class="account-name">TurboTax</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.turbotaxEmail || client.profile.turbotaxPassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Email</span>
+                      <span class="credential-value" [class.masked]="!showTurbotaxCredentials">
+                        {{ showTurbotaxCredentials ? (client.profile.turbotaxEmail || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showTurbotaxCredentials">
+                        {{ showTurbotaxCredentials ? (client.profile.turbotaxPassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleTurbotaxCredentials()">
+                      {{ showTurbotaxCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.turbotaxEmail && !client.profile.turbotaxPassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+
+                <!-- IRS -->
+                <div class="account-card irs-card">
+                  <div class="account-header">
+                    <span class="account-icon">🏛️</span>
+                    <span class="account-name">IRS</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.irsUsername || client.profile.irsPassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Usuario</span>
+                      <span class="credential-value" [class.masked]="!showIrsCredentials">
+                        {{ showIrsCredentials ? (client.profile.irsUsername || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showIrsCredentials">
+                        {{ showIrsCredentials ? (client.profile.irsPassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleIrsCredentials()">
+                      {{ showIrsCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.irsUsername && !client.profile.irsPassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+
+                <!-- State -->
+                <div class="account-card state-card">
+                  <div class="account-header">
+                    <span class="account-icon">🗽</span>
+                    <span class="account-name">Estado</span>
+                  </div>
+                  <div class="account-credentials" *ngIf="client.profile.stateUsername || client.profile.statePassword">
+                    <div class="credential-row">
+                      <span class="credential-label">Usuario</span>
+                      <span class="credential-value" [class.masked]="!showStateCredentials">
+                        {{ showStateCredentials ? (client.profile.stateUsername || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <div class="credential-row">
+                      <span class="credential-label">Password</span>
+                      <span class="credential-value" [class.masked]="!showStateCredentials">
+                        {{ showStateCredentials ? (client.profile.statePassword || 'No configurado') : '********' }}
+                      </span>
+                    </div>
+                    <button class="btn-show-credentials" (click)="toggleStateCredentials()">
+                      {{ showStateCredentials ? 'Ocultar' : 'Mostrar' }}
+                    </button>
+                  </div>
+                  <div class="account-empty" *ngIf="!client.profile.stateUsername && !client.profile.statePassword">
+                    <span class="empty-text">No configurado</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-edit-credentials" (click)="openCredentialsModal()">
+                Editar Credenciales
+              </button>
+            </div>
+
             <!-- Tax Case Info -->
             <div class="form-group-preview" *ngIf="client.taxCases && client.taxCases.length > 0">
               <h3>Caso Fiscal</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Ano Fiscal</span>
-                  <span class="info-value">{{ client.taxCases[0].taxYear }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.taxYear || 'No disponible' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Reembolso Estimado</span>
-                  <span class="info-value">{{ client.taxCases[0].estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Pago Recibido</span>
-                  <span class="info-value">{{ client.taxCases[0].paymentReceived ? 'Si' : 'No' }}</span>
+                  <span class="info-value">{{ client.taxCases[0]?.paymentReceived ? 'Si' : 'No' }}</span>
                 </div>
               </div>
             </div>
@@ -346,12 +600,32 @@
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📁</span>
-              <h2>Documentos ({{ client.documents?.length || 0 }})</h2>
+              <h2>Documentos ({{ client.documents.length || 0 }})</h2>
             </div>
           </div>
 
-          <div class="documents-list" *ngIf="client.documents && client.documents.length > 0">
-            <div class="document-card" *ngFor="let doc of client.documents">
+          <!-- Document Type Tabs -->
+          <div class="document-tabs" *ngIf="client.documents && client.documents.length > 0">
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'all'"
+                    (click)="selectDocumentTab('all')">
+              Todos <span class="tab-count">{{ getDocumentCountByType('all') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'w2'"
+                    (click)="selectDocumentTab('w2')">
+              W2 <span class="tab-count">{{ getDocumentCountByType('w2') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'payment_proof'"
+                    (click)="selectDocumentTab('payment_proof')">
+              Comprobantes <span class="tab-count">{{ getDocumentCountByType('payment_proof') }}</span>
+            </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'other'"
+                    (click)="selectDocumentTab('other')">
+              Otros <span class="tab-count">{{ getDocumentCountByType('other') }}</span>
+            </button>
+          </div>
+
+          <div class="documents-list" *ngIf="filteredDocuments.length > 0">
+            <div class="document-card" *ngFor="let doc of filteredDocuments; trackBy: trackById">
               <div class="doc-icon">{{ getFileIcon(doc.mimeType) }}</div>
               <div class="doc-info">
                 <div class="doc-name">{{ doc.fileName }}</div>
@@ -370,6 +644,11 @@
             <span class="empty-icon">📁</span>
             <p>No hay documentos subidos todavia</p>
           </div>
+
+          <div class="empty-docs" *ngIf="client.documents && client.documents.length > 0 && filteredDocuments.length === 0">
+            <span class="empty-icon">📁</span>
+            <p>No hay documentos de este tipo</p>
+          </div>
         </section>
 
         <!-- Status History -->
@@ -382,7 +661,7 @@
           </div>
 
           <div class="status-history-timeline">
-            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index">
+            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index; trackBy: trackById">
               <div class="history-marker">
                 <div class="marker-dot" [class.first]="i === 0"></div>
                 <div class="marker-line" *ngIf="i < client.statusHistory.length - 1"></div>
@@ -391,13 +670,13 @@
                 <div class="history-header">
                   <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                   <span class="history-admin" *ngIf="history.changedBy">
-                    por {{ history.changedBy.firstName }} {{ history.changedBy.lastName }}
+                    por {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
                   </span>
                 </div>
                 <div class="history-change">
-                  <span class="status-badge old">{{ history.previousStatus || 'Nuevo' }}</span>
+                  <span class="status-badge old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
                   <span class="arrow">→</span>
-                  <span class="status-badge new">{{ history.newStatus }}</span>
+                  <span class="status-badge new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
                 </div>
                 <div class="history-comment" *ngIf="history.comment">
                   "{{ history.comment }}"
@@ -420,7 +699,7 @@
 
           <div class="tickets-list" *ngIf="tickets.length > 0">
             <div class="ticket-card"
-                 *ngFor="let ticket of tickets"
+                 *ngFor="let ticket of tickets; trackBy: trackById"
                  [class.selected]="selectedTicketId === ticket.id"
                  (click)="selectTicket(ticket.id)">
               <div class="ticket-subject">{{ ticket.subject }}</div>
@@ -432,7 +711,7 @@
           <div class="messages-container" *ngIf="selectedTicket">
             <div class="messages-list">
               <div class="message-item"
-                   *ngFor="let msg of selectedTicket.messages"
+                   *ngFor="let msg of selectedTicket.messages; trackBy: trackById"
                    [class.admin-message]="msg.sender?.role === 'admin'"
                    [class.client-message]="msg.sender?.role !== 'admin'">
                 <div class="message-header">
@@ -487,7 +766,7 @@
           <label>Tipo de Problema</label>
           <select [(ngModel)]="selectedProblemType">
             <option [ngValue]="null" disabled>Seleccione un tipo...</option>
-            <option *ngFor="let type of problemTypeOptions" [ngValue]="type">
+            <option *ngFor="let type of problemTypeOptions; trackBy: trackByIndex" [ngValue]="type">
               {{ getProblemTypeLabel(type) }}
             </option>
           </select>
@@ -505,10 +784,6 @@
           <div class="info-row">
             <span class="info-label">Tipo:</span>
             <span class="info-value">{{ getProblemTypeLabel(selectedProblemType) }}</span>
-          </div>
-          <div class="info-row" *ngIf="client?.taxCases?.[0]?.problemStep">
-            <span class="info-label">Paso afectado:</span>
-            <span class="info-value">{{ stepLabels[(client?.taxCases?.[0]?.problemStep || 1) - 1] }}</span>
           </div>
         </div>
       </div>
@@ -573,6 +848,193 @@
           [disabled]="isSaving || !notifyTitle.trim() || !notifyMessage.trim()"
         >
           {{ isSaving ? 'Enviando...' : 'Enviar Notificacion' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Update Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showStatusConfirmModal" (click)="closeStatusConfirmModal()">
+    <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Cambio de Estado</h3>
+        <button class="modal-close" (click)="closeStatusConfirmModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">Use los controles de estado Federal/Estatal en la seccion "Estado del Caso" para actualizar el estado.</p>
+
+        <div class="status-change-preview">
+          <p>Este modal ya no se utiliza. Los estados se actualizan directamente desde los controles Federal y Estatal.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeStatusConfirmModal()">Cancelar</button>
+        <button
+          class="btn-save"
+          (click)="confirmStatusUpdate()"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? 'Actualizando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credentials Edit Modal -->
+  <div class="modal-overlay" *ngIf="showCredentialsModal" (click)="closeCredentialsModal()">
+    <div class="modal-content modal-credentials" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Credenciales del Cliente</h3>
+        <button class="modal-close" (click)="closeCredentialsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- TurboTax -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">📊</span> TurboTax</h4>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="text" [(ngModel)]="editTurbotaxEmail" placeholder="Email de TurboTax">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editTurbotaxPassword" placeholder="Password de TurboTax">
+          </div>
+        </div>
+
+        <!-- IRS -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">🏛️</span> IRS</h4>
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" [(ngModel)]="editIrsUsername" placeholder="Usuario del IRS">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editIrsPassword" placeholder="Password del IRS">
+          </div>
+        </div>
+
+        <!-- State -->
+        <div class="credentials-group">
+          <h4><span class="group-icon">🗽</span> Estado</h4>
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" [(ngModel)]="editStateUsername" placeholder="Usuario del Estado">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" [(ngModel)]="editStatePassword" placeholder="Password del Estado">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeCredentialsModal()">Cancelar</button>
+        <button
+          class="btn-save"
+          (click)="saveCredentials()"
+          [disabled]="isSavingCredentials"
+        >
+          {{ isSavingCredentials ? 'Guardando...' : 'Guardar Credenciales' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mark Paid Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showMarkPaidConfirm" (click)="cancelMarkPaid()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Pago Recibido</h3>
+        <button class="modal-close" (click)="cancelMarkPaid()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Estas seguro de marcar el pago como recibido?</p>
+        <p class="confirm-warning">Esta accion registrara que el cliente ha pagado la comision.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelMarkPaid()">Cancelar</button>
+        <button class="btn-confirm-action" (click)="confirmMarkPaid()" [disabled]="isMarkingPaid">
+          {{ isMarkingPaid ? 'Procesando...' : 'Confirmar Pago' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mark Filed Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showMarkFiledConfirm" (click)="cancelMarkFiled()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Presentacion de Taxes</h3>
+        <button class="modal-close" (click)="cancelMarkFiled()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Estas seguro de marcar los taxes como presentados?</p>
+        <p class="confirm-warning">Esta accion cambiara el estado del caso a "Taxes Presentados" con fecha {{ taxesFiledAt | date:'dd/MM/yyyy' }}.</p>
+        <p class="confirm-info">Los estados Federal y Estatal se estableceran como "Presentado".</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelMarkFiled()">Cancelar</button>
+        <button class="btn-confirm-action filed" (click)="confirmMarkFiled()" [disabled]="isMarkingFiled">
+          {{ isMarkingFiled ? 'Procesando...' : 'Confirmar Presentacion' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Override Modal -->
+  <div class="modal-overlay" *ngIf="showOverrideModal" (click)="closeOverrideModal()">
+    <div class="modal-content override-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header override-header">
+        <h3>Transicion de Estado No Permitida</h3>
+        <button class="modal-close" (click)="closeOverrideModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="override-warning-banner">
+          <span class="warning-icon">!</span>
+          <p>{{ overrideError?.message }}</p>
+        </div>
+
+        <div class="override-details" *ngIf="overrideError">
+          <div class="detail-row">
+            <span class="detail-label">Estado actual:</span>
+            <span class="detail-value current">{{ overrideError.currentStatus || 'Sin estado' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Estado intentado:</span>
+            <span class="detail-value attempted">{{ overrideError.attemptedStatus }}</span>
+          </div>
+          <div class="detail-row" *ngIf="overrideError.allowedTransitions.length > 0">
+            <span class="detail-label">Transiciones permitidas:</span>
+            <div class="allowed-transitions">
+              <span class="allowed-status" *ngFor="let status of overrideError.allowedTransitions">{{ status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="override-form">
+          <p class="override-instruction">Para forzar esta transicion, proporcione una razon (minimo 10 caracteres):</p>
+          <div class="form-group">
+            <label>Razon del Override</label>
+            <textarea
+              [(ngModel)]="overrideReason"
+              placeholder="Explique por que es necesario forzar esta transicion de estado..."
+              rows="4"
+              [class.invalid]="overrideReason.length > 0 && overrideReason.length < 10"
+            ></textarea>
+            <span class="char-count" [class.invalid]="overrideReason.length > 0 && overrideReason.length < 10">
+              {{ overrideReason.length }}/10 caracteres minimos
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeOverrideModal()">Cancelar</button>
+        <button
+          class="btn-override"
+          (click)="confirmOverride()"
+          [disabled]="overrideReason.length < 10"
+        >
+          Forzar Transicion
         </button>
       </div>
     </div>

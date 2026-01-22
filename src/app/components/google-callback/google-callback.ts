@@ -1,8 +1,22 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { UserRole } from '../../core/models';
+import { environment } from '../../../environments/environment';
+
+interface GoogleExchangeResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    hasProfile: boolean;
+  };
+}
 
 @Component({
   selector: 'app-google-callback',
@@ -42,61 +56,58 @@ export class GoogleCallback implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private http = inject(HttpClient);
 
   ngOnInit() {
-    console.log('[GoogleCallback] Component initialized');
-    console.log('[GoogleCallback] Current URL:', window.location.href);
-
     this.route.queryParams.subscribe(params => {
-      console.log('[GoogleCallback] Query params received:', Object.keys(params));
-
-      const accessToken = params['access_token'];
-      const refreshToken = params['refresh_token'];
-      const userJson = params['user'];
+      const code = params['code'];
       const error = params['error'];
 
-      console.log('[GoogleCallback] Has access_token:', !!accessToken);
-      console.log('[GoogleCallback] Has refresh_token:', !!refreshToken);
-      console.log('[GoogleCallback] Has user:', !!userJson);
-      console.log('[GoogleCallback] Has error:', !!error);
-
       if (error) {
-        console.error('[GoogleCallback] Error from backend:', error);
         this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
         return;
       }
 
-      if (accessToken && refreshToken && userJson) {
-        try {
-          const user = JSON.parse(userJson);
-          console.log('[GoogleCallback] User parsed successfully:', user.email, user.role);
+      if (code) {
+        this.exchangeCodeForTokens(code);
+        return;
+      }
 
-          // Use AuthService to properly handle the auth response
-          // This updates both storage AND the BehaviorSubject
-          this.authService.handleGoogleAuth({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            user: user
-          });
+      // No valid params - redirect to login
+      this.router.navigate(['/login']);
+    });
+  }
 
-          console.log('[GoogleCallback] Auth handled, redirecting...');
+  private exchangeCodeForTokens(code: string): void {
+    this.http.post<GoogleExchangeResponse>(`${environment.apiUrl}/auth/google/exchange`, { code })
+      .subscribe({
+        next: (response) => {
+          // Clear caches to ensure fresh data on login
+          localStorage.removeItem('jai1_dashboard_cache');
+          localStorage.removeItem('jai1_cached_profile');
+          localStorage.removeItem('jai1_calculator_result');
 
-          // Redirect based on role
-          if (user.role === UserRole.ADMIN) {
-            console.log('[GoogleCallback] Redirecting to admin dashboard');
+          // Store tokens (Google OAuth defaults to remember)
+          localStorage.setItem('access_token', response.access_token);
+          localStorage.setItem('refresh_token', response.refresh_token);
+
+          // Store user data via auth service
+          this.authService.handleGoogleAuthCallback(response.user, response.user.hasProfile);
+
+          const user = this.authService.currentUser;
+
+          // Redirect based on role and profile status
+          if (user?.role === UserRole.ADMIN) {
             this.router.navigate(['/admin/dashboard']);
-          } else {
-            console.log('[GoogleCallback] Redirecting to client dashboard');
+          } else if (response.user.hasProfile) {
             this.router.navigate(['/dashboard']);
+          } else {
+            this.router.navigate(['/onboarding']);
           }
-        } catch (e) {
-          console.error('[GoogleCallback] Error parsing Google auth response:', e);
+        },
+        error: () => {
           this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
         }
-      } else {
-        console.warn('[GoogleCallback] Missing required params, redirecting to login');
-        this.router.navigate(['/login']);
-      }
-    });
+      });
   }
 }

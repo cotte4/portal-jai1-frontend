@@ -68,9 +68,13 @@
           class="ticket-item"
           *ngFor="let ticket of tickets"
           [class.active]="activeTicket?.id === ticket.id"
+          [class.has-unread]="hasUnread(ticket)"
           (click)="selectTicket(ticket)"
         >
-          <div class="ticket-subject">{{ ticket.subject }}</div>
+          <div class="ticket-header">
+            <div class="ticket-subject">{{ ticket.subject }}</div>
+            <span class="unread-badge" *ngIf="hasUnread(ticket)">{{ ticket.unreadCount }}</span>
+          </div>
           <div class="ticket-meta">
             <span class="ticket-status" [ngClass]="getStatusClass(ticket.status)">
               {{ getStatusLabel(ticket.status) }}
@@ -175,4 +179,5 @@
       <p>Nuestro equipo generalmente responde en un plazo de 24-48 horas habiles.</p>
     </div>
   </div>
+
 </div>

@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter, skip, finalize } from 'rxjs';
+import { filter, skip, finalize, catchError, of, interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
@@ -14,13 +15,13 @@ import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models
   templateUrl: './user-messages.html',
   styleUrl: './user-messages.css'
 })
-export class UserMessages implements OnInit, OnDestroy {
+export class UserMessages implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
-  private subscriptions = new Subscription();
+  private destroyRef = inject(DestroyRef);
 
   userEmail: string = '';
   userId: string = '';
@@ -38,9 +39,25 @@ export class UserMessages implements OnInit, OnDestroy {
   newTicketSubject: string = '';
   newTicketMessage: string = '';
 
-  private isLoadingInProgress: boolean = false;
+  // For delete confirmation
+  showDeleteConfirm: boolean = false;
+  ticketToDelete: Ticket | null = null;
+  isDeleting: boolean = false;
 
-  ngOnInit() {
+  private isLoadingInProgress: boolean = false;
+  private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    // Register cleanup for safety timeout when component is destroyed
+    this.destroyRef.onDestroy(() => {
+      if (this.safetyTimeoutId) {
+        clearTimeout(this.safetyTimeoutId);
+        this.safetyTimeoutId = null;
+      }
+    });
+  }
+
+  ngOnInit(): void {
     const user = this.authService.currentUser;
     const isAuth = this.authService.isAuthenticated;
 
@@ -52,142 +69,325 @@ export class UserMessages implements OnInit, OnDestroy {
     if (user) {
       this.userEmail = user.email;
       this.userId = user.id;
+      // We have user info - show UI shell immediately
+      this.hasLoaded = true;
+      this.cdr.detectChanges();
     }
 
-    // Load initial data
+    // Load initial data (will update in background)
     this.loadTickets();
 
-    // Auto-refresh on navigation
-    this.subscriptions.add(
-      this.router.events.pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        filter(event => event.urlAfterRedirects.includes('/messages')),
-        skip(1)
-      ).subscribe(() => {
-        if (this.hasLoaded) {
-          this.loadTickets();
-        }
-      })
-    );
+    // Auto-refresh on navigation - using takeUntilDestroyed for automatic cleanup
+    this.router.events.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      filter(event => event.urlAfterRedirects.includes('/messages')),
+      skip(1)
+    ).subscribe(() => {
+      if (this.hasLoaded) {
+        this.loadTickets();
+      }
+    });
 
-    // Allow other components to trigger refresh
-    this.subscriptions.add(
-      this.dataRefreshService.onRefresh('/messages').subscribe(() => {
-        if (this.hasLoaded) {
-          this.loadTickets();
-        }
-      })
-    );
+    // Allow other components to trigger refresh - using takeUntilDestroyed for automatic cleanup
+    this.dataRefreshService.onRefresh('/messages').pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      if (this.hasLoaded) {
+        this.loadTickets();
+      }
+    });
+
+    // Auto-polling every 60 seconds for new messages
+    // This is a simpler alternative to WebSocket - see PRD for reasoning
+    interval(60000).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      if (this.hasLoaded && !this.isLoadingInProgress) {
+        this.refreshActiveTicket();
+      }
+    });
   }
 
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+  /**
+   * Silently refresh the active ticket to check for new messages
+   * Does not show loading spinner to avoid UI disruption
+   */
+  private refreshActiveTicket(): void {
+    if (!this.activeTicket) return;
+
+    this.ticketService.getTicket(this.activeTicket.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe({
+      next: (ticket) => {
+        if (ticket && ticket.messages) {
+          const hadNewMessages = ticket.messages.length > this.messages.length;
+          this.messages = ticket.messages;
+          this.activeTicket = ticket;
+
+          // Only scroll if there are new messages
+          if (hadNewMessages) {
+            this.scrollToBottom();
+          }
+          this.cdr.detectChanges();
+        }
+      }
+    });
   }
 
-  loadTickets() {
+  loadTickets(): void {
     if (this.isLoadingInProgress) return;
     this.isLoadingInProgress = true;
     this.isLoading = true;
     this.errorMessage = '';
 
     this.ticketService.getTickets().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError((error: Error) => {
+        this.errorMessage = 'Error al cargar los tickets: ' + (error?.message || 'Error desconocido');
+        this.isLoading = false;
+        console.error('Error loading tickets:', error);
+        return of([] as Ticket[]);
+      }),
       finalize(() => {
         this.hasLoaded = true;
         this.isLoadingInProgress = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (tickets) => {
-        this.tickets = tickets || [];
+      next: (tickets: Ticket[]) => {
+        this.tickets = tickets ?? [];
         // Auto-select the most recent open ticket or first ticket
         if (this.tickets.length > 0) {
-          const openTicket = this.tickets.find(t => t.status !== TicketStatus.CLOSED) || this.tickets[0];
+          const openTicket = this.tickets.find(t => t.status !== TicketStatus.CLOSED) ?? this.tickets[0];
           this.selectTicket(openTicket);
         } else {
           this.isLoading = false;
         }
-      },
-      error: (error) => {
-        this.errorMessage = 'Error al cargar los tickets: ' + (error?.message || 'Unknown');
-        this.isLoading = false;
+      }
+    });
+
+    // Safety timeout - ensure content shows after 5 seconds
+    // Clear any existing timeout before setting a new one
+    if (this.safetyTimeoutId) {
+      clearTimeout(this.safetyTimeoutId);
+    }
+    this.safetyTimeoutId = setTimeout(() => {
+      if (!this.hasLoaded) {
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+        console.warn('UserMessages: Safety timeout triggered - data load exceeded 5 seconds');
+      }
+      this.safetyTimeoutId = null;
+    }, 5000);
+  }
+
+  selectTicket(ticket: Ticket): void {
+    this.activeTicket = ticket;
+    this.loadMessages(ticket.id);
+    // Mark messages as read when opening a ticket
+    this.markAsRead(ticket.id);
+  }
+
+  /**
+   * Mark all messages in the ticket as read
+   */
+  private markAsRead(ticketId: string): void {
+    this.ticketService.markMessagesAsRead(ticketId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe({
+      next: () => {
+        // Update unread count in the ticket list
+        const ticketIndex = this.tickets.findIndex(t => t.id === ticketId);
+        if (ticketIndex !== -1) {
+          this.tickets[ticketIndex] = { ...this.tickets[ticketIndex], unreadCount: 0 };
+        }
+        if (this.activeTicket?.id === ticketId) {
+          this.activeTicket = { ...this.activeTicket, unreadCount: 0 };
+        }
+        this.cdr.detectChanges();
       }
     });
   }
 
-  selectTicket(ticket: Ticket) {
-    this.activeTicket = ticket;
-    this.loadMessages(ticket.id);
-  }
+  loadMessages(ticketId: string): void {
+    if (!ticketId) {
+      console.error('loadMessages called with invalid ticketId');
+      return;
+    }
 
-  loadMessages(ticketId: string) {
     this.isLoading = true;
+    this.errorMessage = '';
 
     this.ticketService.getTicket(ticketId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError((error: Error) => {
+        this.errorMessage = 'Error al cargar los mensajes';
+        console.error('Error loading messages:', error);
+        return of(null);
+      }),
       finalize(() => {
         this.isLoading = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (ticket) => {
+      next: (ticket: Ticket | null) => {
         if (ticket) {
           this.activeTicket = ticket;
-          this.messages = ticket.messages || [];
+          this.messages = ticket.messages ?? [];
         }
         this.scrollToBottom();
-      },
-      error: () => {
-        this.errorMessage = 'Error al cargar los mensajes';
       }
     });
   }
 
-  sendMessage() {
-    if (!this.newMessage.trim() || !this.activeTicket || this.isSending) return;
+  sendMessage(): void {
+    const trimmedMessage = this.newMessage.trim();
+    if (!trimmedMessage || !this.activeTicket || this.isSending) return;
 
     this.isSending = true;
-    this.ticketService.addMessage(this.activeTicket.id, { message: this.newMessage }).subscribe({
-      next: (updatedTicket) => {
-        this.messages = updatedTicket.messages || [];
-        this.newMessage = '';
-        this.isSending = false;
-        this.scrollToBottom();
-      },
-      error: (error) => {
+    this.errorMessage = '';
+
+    this.ticketService.addMessage(this.activeTicket.id, { message: trimmedMessage }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError((error: Error) => {
         this.errorMessage = 'Error al enviar el mensaje';
-        this.isSending = false;
         console.error('Error sending message:', error);
+        return of(null);
+      }),
+      finalize(() => {
+        this.isSending = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (updatedTicket: Ticket | null) => {
+        if (updatedTicket) {
+          this.messages = updatedTicket.messages ?? [];
+          this.newMessage = '';
+          this.scrollToBottom();
+        }
       }
     });
   }
 
-  createTicket() {
-    if (!this.newTicketSubject.trim() || !this.newTicketMessage.trim()) return;
+  createTicket(): void {
+    const trimmedSubject = this.newTicketSubject.trim();
+    const trimmedMessage = this.newTicketMessage.trim();
+
+    if (!trimmedSubject || !trimmedMessage) return;
 
     this.isSending = true;
+    this.errorMessage = '';
+
     this.ticketService.create({
-      subject: this.newTicketSubject,
-      message: this.newTicketMessage
-    }).subscribe({
-      next: (ticket) => {
-        this.tickets.unshift(ticket);
-        this.selectTicket(ticket);
-        this.showNewTicketForm = false;
-        this.newTicketSubject = '';
-        this.newTicketMessage = '';
-        this.isSending = false;
-      },
-      error: (error) => {
+      subject: trimmedSubject,
+      message: trimmedMessage
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError((error: Error) => {
         this.errorMessage = 'Error al crear el ticket';
-        this.isSending = false;
         console.error('Error creating ticket:', error);
+        return of(null);
+      }),
+      finalize(() => {
+        this.isSending = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (ticket: Ticket | null) => {
+        if (ticket) {
+          this.tickets.unshift(ticket);
+          this.selectTicket(ticket);
+          this.showNewTicketForm = false;
+          this.newTicketSubject = '';
+          this.newTicketMessage = '';
+        }
       }
     });
   }
 
-  cancelNewTicket() {
+  cancelNewTicket(): void {
     this.showNewTicketForm = false;
     this.newTicketSubject = '';
     this.newTicketMessage = '';
+    this.errorMessage = '';
+  }
+
+  /**
+   * Show delete confirmation dialog
+   */
+  confirmDeleteTicket(ticket: Ticket, event: Event): void {
+    event.stopPropagation();
+    this.ticketToDelete = ticket;
+    this.showDeleteConfirm = true;
+  }
+
+  /**
+   * Cancel delete confirmation
+   */
+  cancelDelete(): void {
+    this.showDeleteConfirm = false;
+    this.ticketToDelete = null;
+  }
+
+  /**
+   * Actually delete the ticket
+   */
+  deleteTicket(): void {
+    if (!this.ticketToDelete || this.isDeleting) return;
+
+    this.isDeleting = true;
+    this.errorMessage = '';
+
+    this.ticketService.deleteTicket(this.ticketToDelete.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError((error: Error) => {
+        this.errorMessage = 'Error al eliminar el ticket';
+        console.error('Error deleting ticket:', error);
+        return of(null);
+      }),
+      finalize(() => {
+        this.isDeleting = false;
+        this.showDeleteConfirm = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (response) => {
+        if (response) {
+          // Remove the ticket from the list
+          const deletedId = this.ticketToDelete?.id;
+          this.tickets = this.tickets.filter(t => t.id !== deletedId);
+
+          // If the deleted ticket was active, clear it
+          if (this.activeTicket?.id === deletedId) {
+            this.activeTicket = null;
+            this.messages = [];
+            // Select next ticket if available
+            if (this.tickets.length > 0) {
+              this.selectTicket(this.tickets[0]);
+            }
+          }
+
+          this.ticketToDelete = null;
+        }
+      }
+    });
+  }
+
+  /**
+   * Get total unread count across all tickets
+   */
+  getTotalUnreadCount(): number {
+    return this.tickets.reduce((sum, t) => sum + (t.unreadCount || 0), 0);
+  }
+
+  /**
+   * Check if ticket has unread messages
+   */
+  hasUnread(ticket: Ticket): boolean {
+    return (ticket.unreadCount || 0) > 0;
   }
 
   isFromAdmin(message: TicketMessage): boolean {
@@ -199,37 +399,54 @@ export class UserMessages implements OnInit, OnDestroy {
   }
 
   formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('es-AR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return '';
+    }
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const today = new Date();
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const today = new Date();
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hoy';
+      if (date.toDateString() === today.toDateString()) {
+        return 'Hoy';
+      }
+
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (date.toDateString() === yesterday.toDateString()) {
+        return 'Ayer';
+      }
+
+      return date.toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'short'
+      });
+    } catch {
+      return '';
     }
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) {
-      return 'Ayer';
-    }
-
-    return date.toLocaleDateString('es-AR', {
-      day: 'numeric',
-      month: 'short'
-    });
   }
 
   shouldShowDateSeparator(index: number): boolean {
     if (index === 0) return true;
-    const currentDate = new Date(this.messages[index].createdAt).toDateString();
-    const previousDate = new Date(this.messages[index - 1].createdAt).toDateString();
+    if (index < 0 || index >= this.messages.length) return false;
+
+    const currentMessage = this.messages[index];
+    const previousMessage = this.messages[index - 1];
+
+    if (!currentMessage?.createdAt || !previousMessage?.createdAt) return false;
+
+    const currentDate = new Date(currentMessage.createdAt).toDateString();
+    const previousDate = new Date(previousMessage.createdAt).toDateString();
     return currentDate !== previousDate;
   }
 
@@ -239,7 +456,7 @@ export class UserMessages implements OnInit, OnDestroy {
       [TicketStatus.IN_PROGRESS]: 'En progreso',
       [TicketStatus.CLOSED]: 'Cerrado'
     };
-    return labels[status] || status;
+    return labels[status] ?? status;
   }
 
   getStatusClass(status: TicketStatus): string {
@@ -248,10 +465,10 @@ export class UserMessages implements OnInit, OnDestroy {
       [TicketStatus.IN_PROGRESS]: 'status-progress',
       [TicketStatus.CLOSED]: 'status-closed'
     };
-    return classes[status] || '';
+    return classes[status] ?? '';
   }
 
-  private scrollToBottom() {
+  private scrollToBottom(): void {
     setTimeout(() => {
       const messagesContainer = document.querySelector('.messages-list');
       if (messagesContainer) {
@@ -260,14 +477,16 @@ export class UserMessages implements OnInit, OnDestroy {
     }, 100);
   }
 
-  logout() {
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])
+  logout(): void {
+    this.authService.logout().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe({
+      next: () => this.router.navigate(['/login'])
     });
   }
 
-  goBack() {
+  goBack(): void {
     this.router.navigate(['/dashboard']);
   }
 }

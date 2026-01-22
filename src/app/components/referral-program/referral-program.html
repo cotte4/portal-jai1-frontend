@@ -35,8 +35,8 @@
               <span>🎁</span>
             </div>
           </div>
-          <h1>Compartí y ganá</h1>
-          <p>Cada vez que un amigo use tu código de referido, vos ganás recompensas en efectivo y él recibe $11 de descuento.</p>
+          <h1>Comparti y gana</h1>
+          <p>Cada vez que un amigo use tu codigo de referido, vos ganas descuentos en tus proximos taxes y el recibe $11 de descuento.</p>
         </div>
       }
 
@@ -48,8 +48,8 @@
               <span>🏆</span>
             </div>
           </div>
-          <h1>Desbloqueá niveles</h1>
-          <p>Mientras más referidos tengas, más ganás. Subí de nivel desde $15 hasta $750 + beneficios VIP exclusivos.</p>
+          <h1>Desbloquea niveles</h1>
+          <p>Mientras mas referidos tengas, mas descuento ganas. Subi de nivel desde 5% hasta 100% GRATIS en tu proxima declaracion.</p>
         </div>
       }
 
@@ -61,11 +61,11 @@
               <span>📤</span>
             </div>
           </div>
-          <h1>Así de fácil</h1>
+          <h1>Asi de facil</h1>
           <div class="onboarding-steps">
             <div class="onboarding-step-item">
               <span class="step-num">1</span>
-              <span>Compartí tu código único</span>
+              <span>Comparti tu codigo unico</span>
             </div>
             <div class="onboarding-step-item">
               <span class="step-num">2</span>
@@ -73,7 +73,7 @@
             </div>
             <div class="onboarding-step-item">
               <span class="step-num">3</span>
-              <span>Ambos ganan recompensas</span>
+              <span>Ambos ganan beneficios</span>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@
         @if (onboardingStep !== 'benefit1') {
           <button class="btn-back" (click)="previousOnboardingStep()">
             <span>←</span>
-            <span>Atrás</span>
+            <span>Atras</span>
           </button>
         } @else {
           <div></div>
@@ -131,6 +131,10 @@
       </div>
 
       <div class="header-right">
+        <button class="btn-leaderboard-header" (click)="goToLeaderboard()">
+          <span class="btn-icon">🏆</span>
+          <span class="btn-text">Arena</span>
+        </button>
         <button class="mode-toggle" (click)="goToTaxMode()">
           <span class="toggle-icon">📋</span>
           <span class="toggle-text">Modo Taxes</span>
@@ -159,16 +163,12 @@
       <div class="state-container">
         <div class="error-content">
           <div class="error-icon">⚠️</div>
-          <h2>Algo salió mal</h2>
+          <h2>Algo salio mal</h2>
           <p>{{ errorMessage }}</p>
           <div class="error-actions">
             <button class="btn-retry" (click)="refresh()" [disabled]="isRefreshing">
               <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
               <span>{{ isRefreshing ? 'Reintentando...' : 'Intentar de nuevo' }}</span>
-            </button>
-            <button class="btn-demo" (click)="skipToDemo()">
-              <span>🎮</span>
-              <span>Ver demo</span>
             </button>
           </div>
           <button class="btn-back-link" (click)="goToTaxMode()">
@@ -183,27 +183,27 @@
       <div class="state-container">
         <div class="not-eligible-content">
           <div class="not-eligible-icon">🔒</div>
-          <h2>¡Casi sos un JAIGENT!</h2>
-          <p>Para acceder al programa de referidos y empezar a ganar, primero necesitás completar y enviar tu declaración de taxes.</p>
+          <h2>Casi sos un JAIGENT!</h2>
+          <p>Para acceder al programa de referidos y empezar a ganar, primero necesitas completar y enviar tu declaracion de taxes.</p>
 
           <div class="benefits-preview">
             <h3>Lo que te espera:</h3>
             <div class="benefit-item">
               <span class="benefit-icon">🎁</span>
-              <span>Tu código único de referido</span>
+              <span>Tu codigo unico de referido</span>
             </div>
             <div class="benefit-item">
               <span class="benefit-icon">💵</span>
-              <span>Ganá hasta $750+ por referir amigos</span>
+              <span>Gana hasta 100% de descuento por referir amigos</span>
             </div>
             <div class="benefit-item">
               <span class="benefit-icon">🏆</span>
-              <span>Subí de nivel y desbloqueá recompensas</span>
+              <span>Subi de nivel y desbloquea recompensas</span>
             </div>
           </div>
 
           <button class="btn-cta" (click)="goToTaxForm()">
-            <span>Completar mi declaración</span>
+            <span>Completar mi declaracion</span>
             <span class="btn-arrow">→</span>
           </button>
         </div>
@@ -211,7 +211,7 @@
     }
 
     <!-- Dashboard State -->
-    @if (viewState === 'dashboard' && referralData) {
+    @if (viewState === 'dashboard' && codeData?.code) {
       <main class="referral-main">
 
         <!-- STATE 1: No Referrals Yet - Empty State -->
@@ -222,23 +222,23 @@
               <span class="badge-icon">🌟</span>
               <span class="badge-text">JAIGENT</span>
             </div>
-            <h1>¡Bienvenido al programa, {{ userFirstName }}!</h1>
-            <p>Compartí tu código con otros J1s y empezá a ganar recompensas increíbles.</p>
+            <h1>Bienvenido al programa, {{ userFirstName }}!</h1>
+            <p>Comparti tu codigo con otros J1s y empeza a ganar descuentos increibles.</p>
           </section>
 
           <!-- Prominent Code Card for Empty State -->
           <section class="code-section featured">
             <div class="code-card featured">
               <div class="code-header">
-                <span class="code-label">Tu código de referido</span>
+                <span class="code-label">Tu codigo de referido</span>
               </div>
 
               <div class="code-display" (click)="copyCode()">
-                <span class="code-text">{{ referralData.code }}</span>
+                <span class="code-text">{{ codeData!.code }}</span>
                 <div class="copy-indicator" [class.copied]="codeCopied">
                   @if (codeCopied) {
                     <span class="copy-icon">✓</span>
-                    <span>¡Copiado!</span>
+                    <span>Copiado!</span>
                   } @else {
                     <span class="copy-icon">📋</span>
                     <span>Copiar</span>
@@ -280,11 +280,11 @@
           <section class="empty-state-hero">
             <div class="empty-state-card">
               <div class="empty-icon-large">🎯</div>
-              <h2>Nadie ha usado tu código todavía</h2>
-              <p>¡Compartilo para empezar a ganar recompensas! Por cada amigo que use tu código, vos ganás y él también.</p>
+              <h2>Nadie ha usado tu codigo todavia</h2>
+              <p>Compartilo para empezar a ganar descuentos! Por cada amigo que use tu codigo, vos ganas y el tambien.</p>
               <div class="first-reward-preview">
-                <span class="preview-label">Tu primera recompensa:</span>
-                <span class="preview-value">$15 USD</span>
+                <span class="preview-label">Tu primer beneficio:</span>
+                <span class="preview-value">5% descuento</span>
               </div>
             </div>
           </section>
@@ -292,8 +292,8 @@
           <!-- Reward Tiers Preview -->
           <section class="tiers-section">
             <div class="section-header">
-              <h2>🏆 Niveles de Recompensa</h2>
-              <p>Mientras más referís, más ganás</p>
+              <h2>🏆 Niveles de Descuento</h2>
+              <p>Mientras mas referis, mas descuento ganas</p>
             </div>
 
             <div class="tiers-grid">
@@ -307,7 +307,7 @@
                     <span class="tier-requirement">{{ tier.referralsRequired }} referido{{ tier.referralsRequired > 1 ? 's' : '' }}</span>
                   </div>
                   @if (tier.tier === 1) {
-                    <span class="tier-badge next">Próximo</span>
+                    <span class="tier-badge next">Proximo</span>
                   } @else {
                     <span class="tier-badge locked">🔒</span>
                   }
@@ -325,7 +325,7 @@
               <span class="badge-icon">{{ currentTier?.icon || '🌟' }}</span>
               <span class="badge-text">{{ currentTier ? 'JAIGENT Nivel ' + currentTier.tier : 'JAIGENT' }}</span>
             </div>
-            <h1>¡Seguí así, {{ userFirstName }}!</h1>
+            <h1>Segui asi, {{ userFirstName }}!</h1>
           </section>
 
           <!-- Stats Grid - MAIN FOCUS -->
@@ -334,7 +334,7 @@
               <div class="stat-card referrals featured">
                 <div class="stat-icon">👥</div>
                 <div class="stat-content">
-                  <span class="stat-value">{{ referralData.referralCount }}</span>
+                  <span class="stat-value">{{ successfulReferralCount }}</span>
                   <span class="stat-label">Referidos exitosos</span>
                 </div>
               </div>
@@ -342,8 +342,8 @@
               <div class="stat-card earnings featured">
                 <div class="stat-icon">💰</div>
                 <div class="stat-content">
-                  <span class="stat-value">${{ referralData.totalEarnings }}</span>
-                  <span class="stat-label">Ganancias acumuladas</span>
+                  <span class="stat-value">{{ currentDiscountPercent }}%</span>
+                  <span class="stat-label">Descuento actual</span>
                 </div>
               </div>
             </div>
@@ -367,11 +367,11 @@
                   <div class="progress-bar">
                     <div class="progress-fill" [style.width.%]="progressToNextTier"></div>
                   </div>
-                  <span class="progress-text">{{ referralData.referralCount }}/{{ nextTier.referralsRequired }} referidos</span>
+                  <span class="progress-text">{{ successfulReferralCount }}/{{ nextTier.referralsRequired }} referidos</span>
                 </div>
 
                 <div class="progress-hint">
-                  <span>¡Te faltan solo <strong>{{ referralsToNextTier }}</strong> referidos para desbloquear {{ nextTier.reward }}!</span>
+                  <span>Te faltan solo <strong>{{ referralsToNextTier }}</strong> referidos para desbloquear {{ nextTier.reward }}!</span>
                 </div>
               </div>
             </section>
@@ -380,7 +380,7 @@
           <!-- Reward Tiers - MILESTONES -->
           <section class="tiers-section">
             <div class="section-header">
-              <h2>🏆 Niveles de Recompensa</h2>
+              <h2>🏆 Niveles de Descuento</h2>
               <p>Tu progreso hacia las mejores recompensas</p>
             </div>
 
@@ -408,13 +408,59 @@
             </div>
           </section>
 
+          <!-- Leaderboard Section -->
+          @if (leaderboard.length > 0) {
+            <section class="leaderboard-section">
+              <div class="section-header">
+                <div class="section-title-row">
+                  <h2>🏅 Top Referidores</h2>
+                  <button class="btn-view-leaderboard" (click)="goToLeaderboard()">
+                    <span>Ver Arena</span>
+                    <span class="arrow">→</span>
+                  </button>
+                </div>
+                <p>Los JAIGENTs mas activos de esta temporada</p>
+              </div>
+
+              <div class="leaderboard-list">
+                @for (entry of leaderboard.slice(0, 5); track entry.userId) {
+                  <div class="leaderboard-item" [class.current-user]="isCurrentUser(entry)">
+                    <div class="leaderboard-rank" [class.gold]="entry.rank === 1" [class.silver]="entry.rank === 2" [class.bronze]="entry.rank === 3">
+                      {{ getRankIcon(entry.rank) }}
+                    </div>
+                    <div class="leaderboard-info">
+                      <span class="leaderboard-name">
+                        {{ entry.displayName }}
+                        @if (isCurrentUser(entry)) {
+                          <span class="you-badge">(Tu)</span>
+                        }
+                      </span>
+                      <span class="leaderboard-tier">Nivel {{ entry.currentTier }}</span>
+                    </div>
+                    <div class="leaderboard-count">
+                      <span class="count-value">{{ entry.successfulReferrals }}</span>
+                      <span class="count-label">referidos</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- View Full Leaderboard Button -->
+              <button class="btn-full-leaderboard" (click)="goToLeaderboard()">
+                <span class="btn-icon">🏆</span>
+                <span class="btn-text">Ver Leaderboard Completo</span>
+                <span class="btn-arrow">→</span>
+              </button>
+            </section>
+          }
+
           <!-- Code Card - Compact for active users -->
           <section class="code-section compact">
             <div class="code-card compact">
               <div class="code-row">
                 <div class="code-info">
-                  <span class="code-label-sm">Tu código</span>
-                  <span class="code-text-sm">{{ referralData.code }}</span>
+                  <span class="code-label-sm">Tu codigo</span>
+                  <span class="code-text-sm">{{ codeData!.code }}</span>
                 </div>
                 <div class="code-actions-compact">
                   <button class="btn-copy-sm" (click)="copyCode()">
@@ -439,19 +485,17 @@
             </div>
 
             <div class="referrals-list">
-              @for (referral of referralData.referrals.slice().reverse().slice(0, 5); track referral.id) {
+              @for (referral of referrals.slice().reverse().slice(0, 5); track referral.id) {
                 <div class="referral-item">
-                  <div class="referral-avatar">{{ referral.name.charAt(0) }}</div>
+                  <div class="referral-avatar">{{ referral.referredUser.firstName.charAt(0) || '?' }}</div>
                   <div class="referral-info">
-                    <span class="referral-name">{{ referral.name }}</span>
-                    <span class="referral-date">{{ formatDate(referral.date) }}</span>
+                    <span class="referral-name">{{ referral.referredUser.firstName || 'Usuario' }} {{ referral.referredUser.lastName.charAt(0) || '' }}{{ referral.referredUser.lastName ? '.' : '' }}</span>
+                    <span class="referral-date">{{ formatDate(referral.createdAt) }}</span>
                   </div>
                   <div class="referral-status" [class]="referral.status">
-                    @if (referral.status === 'completed') {
-                      <span class="status-badge completed">✓ Completado</span>
-                    } @else {
-                      <span class="status-badge pending">⏳ Pendiente</span>
-                    }
+                    <span class="status-badge" [class]="referral.status">
+                      {{ getStatusLabel(referral.status) }}
+                    </span>
                   </div>
                 </div>
               }
@@ -462,7 +506,7 @@
         <!-- Footer -->
         <footer class="referral-footer">
           <div class="footer-content">
-            <span>¿Tenés dudas sobre el programa?</span>
+            <span>Tenes dudas sobre el programa?</span>
             <button class="btn-support" (click)="goToTaxMode()">
               <span>💬</span>
               <span>Contactar soporte</span>

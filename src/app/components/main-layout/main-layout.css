@@ -17,11 +17,13 @@
 /* ==================== SIDEBAR ==================== */
 .sidebar {
   width: 260px;
+  height: 100%;
   background: linear-gradient(180deg, #1D345D 0%, #152844 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   z-index: 200;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -30,6 +32,7 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -63,6 +66,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
+  min-height: 0; /* Allow flex item to shrink below content size */
 }
 
 .nav-link {
@@ -143,6 +148,7 @@
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0; /* Never compress footer - always visible */
 }
 
 .user-card {
@@ -188,6 +194,13 @@
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-avatar-sm .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-info {
@@ -395,20 +408,65 @@
   background: #e4e6e9;
 }
 
-.btn-mark-all {
-  width: 100%;
-  padding: 12px;
-  background: none;
-  border: none;
-  color: #B21B43;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+/* Notifications Actions Bar */
+.notifications-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
   border-bottom: 1px solid #eee;
+  background: #fafafa;
 }
 
-.btn-mark-all:hover {
-  background: #fef2f2;
+.btn-action {
+  flex: 1;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  color: #1D345D;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-action:hover {
+  background: #f0f2f5;
+  border-color: #ccc;
+}
+
+.btn-action.btn-delete-all {
+  color: #666;
+}
+
+.btn-action.btn-delete-all:hover {
+  background: #fff3f3;
+  border-color: #B21B43;
+  color: #B21B43;
+}
+
+/* Individual Delete Button */
+.btn-delete {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.notification-item:hover .btn-delete {
+  opacity: 1;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+  color: #B21B43;
 }
 
 .notifications-list {

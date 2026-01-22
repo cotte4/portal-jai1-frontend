@@ -32,6 +32,73 @@
   height: 100%;
 }
 
+/* ==================== PROBLEM ALERT BANNER ==================== */
+.problem-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 2px solid #ef4444;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: problemPulse 2s ease-in-out infinite;
+}
+
+@keyframes problemPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.problem-alert-banner:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.problem-alert-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.problem-alert-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.problem-alert-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #dc2626;
+}
+
+.problem-alert-text {
+  font-size: 14px;
+  color: #7f1d1d;
+  line-height: 1.4;
+}
+
+.problem-alert-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.problem-alert-btn:hover {
+  background: #dc2626;
+  transform: scale(1.02);
+}
+
 /* ==================== TOP SECTION ==================== */
 .top-section {
   display: grid;
@@ -280,147 +347,281 @@
   background: #152844;
 }
 
-/* ==================== IRS SECTION ==================== */
-.irs-section {
-  background: white;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+/* ==================== PROGRESS CARD COMPACT STATE ==================== */
+.progress-card.compact {
+  padding: 20px 28px;
+  transition: all 0.3s ease;
 }
 
-.irs-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.irs-title {
+.progress-complete {
   display: flex;
   align-items: center;
-  gap: 14px;
-}
-
-.irs-icon {
-  font-size: 32px;
-}
-
-.irs-title h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1D345D;
-}
-
-.irs-title p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.irs-badge {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.irs-badge.complete {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.irs-progress-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-
-.irs-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.irs-steps {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-.irs-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 16px 12px;
-  background: #f8fafc;
-  border-radius: 14px;
-  transition: all 0.2s;
-}
-
-.irs-step.done {
-  background: #ecfdf5;
-}
-
-.irs-step.active {
-  background: #eef2ff;
-  border: 2px solid #6366f1;
-}
-
-.step-indicator {
-  width: 40px;
-  height: 40px;
+.progress-complete-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #e5e7eb;
+  background: linear-gradient(135deg, #10b981, #059669);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.irs-step.done .step-indicator {
-  background: #10b981;
-}
-
-.irs-step.active .step-indicator {
-  background: #6366f1;
-}
-
-.step-number {
-  font-size: 16px;
-  font-weight: 700;
-  color: #9ca3af;
-}
-
-.step-check {
-  font-size: 18px;
+.complete-check {
+  font-size: 24px;
   color: white;
+  font-weight: 700;
 }
 
-.step-info {
+.progress-complete-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
 }
 
-.step-title {
+.progress-complete-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.progress-complete-subtitle {
   font-size: 14px;
-  font-weight: 600;
-  color: #1D345D;
-}
-
-.step-desc {
-  font-size: 12px;
   color: #6b7280;
 }
 
-.irs-step.done .step-title {
-  color: #065f46;
+.progress-complete-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ==================== IRS TRACKING CARD ==================== */
+.irs-tracking-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.irs-tracking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: #1D345D;
+}
+
+.irs-tracking-card.completed {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.irs-tracking-card.rejected {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  border-color: #ef4444;
+}
+
+.tracking-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.tracking-card-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.tracking-step-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.tracking-step-icon.active {
+  background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.tracking-step-icon.completed {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.tracking-step-icon.rejected {
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+.tracking-step-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tracking-step-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.step-counter {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.track-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.track-badge.federal {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1d4ed8;
+}
+
+.track-badge.estatal {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #b45309;
+}
+
+.track-badge.both {
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  color: #7c3aed;
+}
+
+.tracking-step-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.tracking-step-desc {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.irs-tracking-card.rejected .tracking-step-title {
+  color: #dc2626;
+}
+
+.irs-tracking-card.completed .tracking-step-title {
+  color: #059669;
+}
+
+.tracking-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.tracking-progress-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.circular-progress {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 3;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: url(#gradient) #6366f1;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.irs-tracking-card.completed .circle-progress {
+  stroke: #10b981;
+}
+
+.circle-progress.rejected {
+  stroke: #ef4444;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.irs-tracking-card.completed .progress-text {
+  color: #059669;
+}
+
+.irs-tracking-card.rejected .progress-text {
+  color: #dc2626;
+}
+
+.view-details {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1D345D;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.view-details .arrow {
+  transition: transform 0.2s ease;
+}
+
+.irs-tracking-card:hover .view-details .arrow {
+  transform: translateX(4px);
 }
 
 /* ==================== ACTIONS SECTION ==================== */
@@ -586,10 +787,6 @@
   .action-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .irs-steps {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 900px) {
@@ -609,11 +806,6 @@
     gap: var(--spacing-md);
   }
 
-  .irs-steps {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-
   .help-footer {
     flex-direction: column;
     text-align: center;
@@ -621,9 +813,73 @@
     padding: var(--card-padding);
   }
 
-  .refund-card, .progress-card, .irs-section {
+  .refund-card, .progress-card, .irs-tracking-card {
     padding: var(--card-padding);
     border-radius: var(--radius-lg);
+  }
+
+  /* IRS Tracking Card Mobile */
+  .tracking-card-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .tracking-card-left {
+    width: 100%;
+  }
+
+  .tracking-card-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .tracking-step-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+
+  .tracking-step-title {
+    font-size: var(--font-lg);
+  }
+
+  .tracking-step-desc {
+    font-size: var(--font-sm);
+  }
+
+  .tracking-progress-ring {
+    width: 60px;
+    height: 60px;
+  }
+
+  .progress-text {
+    font-size: var(--font-sm);
+  }
+
+  /* Compact progress card mobile */
+  .progress-card.compact {
+    padding: var(--card-padding);
+  }
+
+  .progress-complete-title {
+    font-size: var(--font-base);
+  }
+
+  .progress-complete-subtitle {
+    font-size: var(--font-sm);
+  }
+
+  .progress-complete-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .complete-check {
+    font-size: 20px;
   }
 
   .refund-amount {
@@ -669,22 +925,6 @@
   .section-title {
     font-size: var(--font-lg);
     margin-bottom: var(--spacing-md);
-  }
-
-  .irs-title h3 {
-    font-size: var(--font-lg);
-  }
-
-  .irs-title p {
-    font-size: var(--font-sm);
-  }
-
-  .step-title {
-    font-size: var(--font-sm);
-  }
-
-  .step-desc {
-    font-size: var(--font-xs);
   }
 
   .help-title {
@@ -740,25 +980,50 @@
     padding: 4px 10px;
   }
 
-  .irs-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-  }
-
-  .irs-badge {
-    font-size: var(--font-xs);
-    padding: 6px 12px;
-  }
-
-  .irs-step {
+  /* IRS Tracking Card Small Mobile */
+  .irs-tracking-card {
     padding: var(--spacing-md);
   }
 
-  .step-indicator {
-    width: 32px;
-    height: 32px;
-    margin-bottom: var(--spacing-sm);
+  .tracking-card-left {
+    gap: var(--spacing-sm);
+  }
+
+  .tracking-step-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+    border-radius: 12px;
+  }
+
+  .step-counter {
+    font-size: 10px;
+  }
+
+  .track-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .tracking-step-title {
+    font-size: var(--font-base);
+  }
+
+  .tracking-step-desc {
+    font-size: var(--font-xs);
+  }
+
+  .tracking-progress-ring {
+    width: 52px;
+    height: 52px;
+  }
+
+  .progress-text {
+    font-size: var(--font-xs);
+  }
+
+  .view-details {
+    font-size: var(--font-xs);
   }
 
   .card-icon {
@@ -774,5 +1039,32 @@
   .btn-help {
     width: 100%;
     padding: var(--spacing-md);
+  }
+
+  /* Compact progress card small mobile */
+  .progress-complete {
+    gap: var(--spacing-sm);
+  }
+
+  .progress-complete-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .complete-check {
+    font-size: 18px;
+  }
+
+  .progress-complete-title {
+    font-size: var(--font-sm);
+  }
+
+  .progress-complete-subtitle {
+    font-size: var(--font-xs);
+  }
+
+  .progress-complete-badge {
+    font-size: var(--font-xs);
+    padding: 6px 12px;
   }
 }

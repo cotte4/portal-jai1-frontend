@@ -38,24 +38,18 @@ export class ForgotPassword {
 
   private requestPasswordReset(): void {
     this.isLoading = true;
-    console.log('ForgotPassword - Starting request for:', this.email);
 
     this.authService.forgotPassword(this.email).subscribe({
-      next: (response) => {
-        console.log('ForgotPassword - Success:', response);
+      next: () => {
         this.isLoading = false;
         this.isSubmitted = true;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.log('ForgotPassword - Error:', error);
         this.isLoading = false;
         this.errorMessage = error?.error?.message || error?.message || 'Ocurrio un error. Intenta nuevamente.';
         this.cdr.detectChanges();
       },
-      complete: () => {
-        console.log('ForgotPassword - Observable completed');
-      }
     });
   }
 
