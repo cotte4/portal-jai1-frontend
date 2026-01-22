@@ -30,6 +30,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private apiSubscription: Subscription | null = null;
   private isLoadingInProgress = false;
   private activeIntervals: ReturnType<typeof setInterval>[] = [];
 
@@ -97,6 +98,9 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+    }
     // Clear any active intervals to prevent memory leaks
     this.clearAllIntervals();
   }
@@ -222,10 +226,10 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   handleFile(file: File) {
-    // Backend only accepts JPG/PNG (not PDF/WEBP)
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // Backend accepts JPG/PNG and PDF (PDF is converted to image on backend)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      alert('Solo archivos JPG y PNG son compatibles con el análisis automático. Por favor convierte tu W2 a uno de estos formatos.');
+      alert('Formatos aceptados: JPG, PNG, PDF. Por favor sube tu W2 en uno de estos formatos.');
       return;
     }
 
@@ -275,7 +279,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.activeIntervals.push(progressInterval);
 
     // Call real API with OCR
-    this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
+    this.apiSubscription = this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
       next: (response) => {
         clearInterval(progressInterval);
         this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
@@ -299,9 +303,11 @@ export class TaxCalculator implements OnInit, OnDestroy {
         let errorMsg = 'Error al procesar el documento.';
 
         if (error.status === 400) {
-          errorMsg = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG o PNG.';
+          errorMsg = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG, PNG o PDF.';
         } else if (error.status === 401) {
           errorMsg = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+        } else if (error.status === 408) {
+          errorMsg = 'El procesamiento tardó demasiado. Por favor, intentá de nuevo.';
         } else if (error.status === 413) {
           errorMsg = 'El archivo es demasiado grande. Intenta con una imagen más pequeña.';
         } else if (error.status === 500) {
@@ -402,6 +408,22 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.isSavingDocument = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
+  }
+
+  /**
+   * Cancel ongoing calculation and return to upload state
+   */
+  cancelCalculation() {
+    // Cancel API subscription
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+      this.apiSubscription = null;
+    }
+    // Clear all intervals
+    this.clearAllIntervals();
+    // Reset state
+    this.resetCalculator();
+    this.cdr.detectChanges();
   }
 
   getConfidenceLabel(): string {

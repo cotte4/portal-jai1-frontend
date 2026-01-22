@@ -106,7 +106,7 @@
           type="file"
           #fileInput
           hidden
-          accept=".jpg,.jpeg,.png"
+          accept=".jpg,.jpeg,.png,.pdf"
           (change)="onFileSelect($event)"
         >
         
@@ -127,6 +127,7 @@
         <div class="upload-formats">
           <span>JPG</span>
           <span>PNG</span>
+          <span>PDF</span>
         </div>
       </div>
     </div>
@@ -205,6 +206,10 @@
           <span>Generando estimado...</span>
         </div>
       </div>
+
+      <button class="cancel-button" (click)="cancelCalculation()">
+        Cancelar
+      </button>
     </div>
   </div>
 

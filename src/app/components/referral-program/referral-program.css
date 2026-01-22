@@ -1901,3 +1901,240 @@
     font-size: 18px;
   }
 }
+
+/* Footer Legal Section */
+.footer-legal {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-terms-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn-terms-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Terms & Conditions Modal */
+.terms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.terms-modal {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.terms-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.terms-modal-header h2 {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.terms-modal-close {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.terms-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: scale(1.05);
+}
+
+.terms-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.terms-modal-content h3 {
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 28px 0 12px;
+}
+
+.terms-modal-content h3:first-child {
+  margin-top: 0;
+}
+
+.terms-modal-content p {
+  margin: 0 0 16px;
+}
+
+.terms-modal-content ul {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.terms-modal-content li {
+  margin-bottom: 8px;
+}
+
+.terms-modal-content strong {
+  color: white;
+}
+
+.terms-modal-content em {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.terms-modal-content .terms-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+/* Custom scrollbar for terms content */
+.terms-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terms-modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.terms-modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.terms-modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.terms-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.btn-terms-close {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #B21B43 0%, #8b1533 100%);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(178, 27, 67, 0.3);
+}
+
+.btn-terms-close:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(178, 27, 67, 0.4);
+}
+
+/* Mobile responsive for modal */
+@media (max-width: 768px) {
+  .terms-modal-overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  .terms-modal {
+    max-height: 90vh;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .terms-modal-header {
+    padding: 20px 24px;
+  }
+
+  .terms-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .terms-modal-content {
+    padding: 24px;
+  }
+
+  .terms-modal-footer {
+    padding: 16px 24px 24px;
+  }
+
+  .btn-terms-close {
+    width: 100%;
+  }
+}

@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { StorageService } from '../../core/services/storage.service';
 import { UserRole } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -18,7 +19,9 @@ export class Login implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private storage = inject(StorageService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   email: string = '';
   password: string = '';
@@ -41,8 +44,12 @@ export class Login implements OnInit {
     this.route.queryParams.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(params => {
-      if (params['error'] === 'google_auth_failed') {
+      if (params['error'] === 'google_no_account') {
+        this.errorMessage = 'No encontramos una cuenta con este email. Por favor, registrate primero o iniciá sesión con otro método.';
+        this.cdr.detectChanges();
+      } else if (params['error'] === 'google_auth_failed') {
         this.errorMessage = 'Error al iniciar sesion con Google. Intenta nuevamente.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -81,14 +88,18 @@ export class Login implements OnInit {
         localStorage.removeItem('jai1_cached_profile');
         localStorage.removeItem('jai1_calculator_result'); // Clear old calculator data
 
-        // Check if user has a profile (from backend response)
-        // hasProfile means they've been through onboarding before
+        // Check if user should skip onboarding:
+        // 1. hasProfile from backend = user has completed tax form (profileComplete = true)
+        // 2. local onboarding flag = user has been through onboarding before (even without completing tax form)
+        // If EITHER is true, skip onboarding - they're not a first-time user
         const hasProfile = (response as any).hasProfile ?? (response as any).has_profile;
-        if (hasProfile) {
-          // User has profile - go to dashboard
+        const hasCompletedOnboarding = this.storage.isOnboardingCompleted();
+
+        if (hasProfile || hasCompletedOnboarding) {
+          // Existing user - go to dashboard
           this.router.navigate(['/dashboard']);
         } else {
-          // First time - show onboarding
+          // First time user - show onboarding
           this.router.navigate(['/onboarding']);
         }
       },
@@ -105,7 +116,8 @@ export class Login implements OnInit {
         }
 
         // Map common error messages to Spanish
-        const message = error.message || '';
+        // Use error.error?.message for NestJS HttpErrorResponse structure
+        const message = error.error?.message || error.message || '';
         if (message.includes('Invalid credentials') || message.includes('credentials')) {
           this.errorMessage = 'Email o contraseña incorrectos';
         } else if (message.includes('deactivated')) {
@@ -115,6 +127,7 @@ export class Login implements OnInit {
         } else {
           this.errorMessage = message || 'Credenciales inválidas';
         }
+        this.cdr.detectChanges();
       }
     });
   }

@@ -57,18 +57,23 @@
         </div>
       </div>
 
-      <!-- Estimated Refund Card -->
-      <div class="summary-card refund-summary">
-        <div class="card-icon-bg green">
-          <span>💵</span>
+      <!-- Estimated Refund Card (only show if no final refund exists) -->
+      @if (!actualRefund) {
+        <div class="summary-card refund-summary" [class.clickable]="!estimatedRefund" (click)="!estimatedRefund && navigateTo('/tax-calculator')">
+          <div class="card-icon-bg green">
+            <span>💵</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Reembolso Estimado</span>
+            @if (estimatedRefund) {
+              <span class="card-value">${{ estimatedRefund.toLocaleString() }} USD</span>
+            } @else {
+              <span class="card-value no-estimate">Aun no calculaste tu reembolso</span>
+              <button class="btn-calculate" (click)="navigateTo('/tax-calculator'); $event.stopPropagation()">Calcular ahora</button>
+            }
+          </div>
         </div>
-        <div class="card-content">
-          <span class="card-label">Reembolso Estimado</span>
-          <span class="card-value">
-            {{ estimatedRefund ? ('$' + estimatedRefund.toLocaleString()) : 'Por calcular' }}
-          </span>
-        </div>
-      </div>
+      }
 
       <!-- Actual Refund Card (if available) -->
       @if (actualRefund) {
@@ -131,6 +136,19 @@
           </div>
         }
       </div>
+
+      <!-- In-Progress Message when preparing declaration -->
+      @if (isPreparingDeclaration) {
+        <div class="preparing-message">
+          <div class="preparing-icon">
+            <span class="clock-spinner"></span>
+          </div>
+          <div class="preparing-content">
+            <span class="preparing-title">Estamos trabajando en tu caso</span>
+            <span class="preparing-text">Estamos revisando tu informacion y preparando tu declaracion. Te avisaremos cuando haya novedades.</span>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- BRANCH SPLIT VISUAL -->

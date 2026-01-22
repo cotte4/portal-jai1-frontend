@@ -52,7 +52,7 @@
         <p class="member-since">{{ formatMemberSince() }}</p>
         
         @if (dni) {
-          <p class="user-dni">DNI: {{ maskDNI(dni) }}</p>
+          <p class="user-ssn">SSN: {{ maskSSN(dni) }}</p>
         }
         
         <div class="verification-badge" [class.verified]="isVerified">

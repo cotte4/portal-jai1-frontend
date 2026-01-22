@@ -107,7 +107,7 @@ export class Register {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error al registrar. Intenta nuevamente.';
+        this.errorMessage = error.error?.message || error.message || 'Error al registrar. Intenta nuevamente.';
         this.cdr.detectChanges();
       }
     });

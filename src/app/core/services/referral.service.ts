@@ -22,6 +22,7 @@ export interface ReferralRecord {
 }
 
 export interface DiscountInfo {
+  totalReferrals: number;
   successfulReferrals: number;
   pendingReferrals: number;
   currentDiscountPercent: number;
@@ -34,7 +35,7 @@ export interface LeaderboardEntry {
   userId: string;
   displayName: string;
   profilePicturePath: string | null;
-  successfulReferrals: number;
+  totalReferrals: number;
   currentTier: number;
 }
 
@@ -205,6 +206,7 @@ export class ReferralService {
     return this.http.get<DiscountInfo>(`${this.apiUrl}/referrals/my-discount`).pipe(
       tap(response => this.myDiscountSubject.next(response)),
       catchError(() => of({
+        totalReferrals: 0,
         successfulReferrals: 0,
         pendingReferrals: 0,
         currentDiscountPercent: 0,

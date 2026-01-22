@@ -148,6 +148,9 @@ export const DEFAULT_ALARM_THRESHOLDS = {
   LETTER_SENT_TIMEOUT: 63,
 };
 
+// Payment method for refund
+export type PaymentMethod = 'bank_deposit' | 'check';
+
 export enum DocumentType {
   W2 = 'w2',
   PAYMENT_PROOF = 'payment_proof',
@@ -290,7 +293,10 @@ export interface CompleteProfileRequest {
   employerName: string;
   turbotaxEmail?: string;
   turbotaxPassword?: string;
+  phone?: string;
   isDraft: boolean;
+  // Payment method for refund: 'bank_deposit' (default) or 'check'
+  paymentMethod?: PaymentMethod;
 }
 
 // ============= TAX CASE =============
@@ -343,6 +349,8 @@ export interface TaxCase {
   bankName?: string;
   bankRoutingNumber?: string;
   bankAccountNumber?: string;
+  // Payment method for refund
+  paymentMethod?: PaymentMethod;
   paymentReceived: boolean;
   commissionPaid: boolean;
   statusUpdatedAt: string;

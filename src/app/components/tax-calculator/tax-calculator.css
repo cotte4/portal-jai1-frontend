@@ -404,6 +404,26 @@
   color: white;
 }
 
+/* Cancel Button during calculation */
+.cancel-button {
+  margin-top: 24px;
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #475569;
+}
+
 /* ============================================
    RESULT STATE
    ============================================ */

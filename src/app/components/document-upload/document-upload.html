@@ -34,6 +34,127 @@
   </div>
 </div>
 
+<!-- Help Tips Modal -->
+<div class="popup-overlay" *ngIf="showHelpModal" (click)="closeHelpModal()">
+  <div class="popup-card help-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeHelpModal()">x</button>
+    <div class="popup-icon help-icon">?</div>
+    <h2>Consejos para subir documentos</h2>
+
+    <div class="help-content">
+      <div class="help-section">
+        <div class="help-section-header">
+          <span class="help-section-icon">📁</span>
+          <h3>Formatos aceptados</h3>
+        </div>
+        <p>JPG, PNG y PDF</p>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-header">
+          <span class="help-section-icon">💾</span>
+          <h3>Tamano maximo</h3>
+        </div>
+        <p>25 MB por archivo</p>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-header">
+          <span class="help-section-icon">📸</span>
+          <h3>Calidad del documento</h3>
+        </div>
+        <ul>
+          <li>El documento debe ser legible y completo</li>
+          <li>Evita fotos borrosas o cortadas</li>
+          <li>Asegurate que se vea toda la informacion</li>
+        </ul>
+      </div>
+
+      <div class="help-section highlight-section">
+        <div class="help-section-header">
+          <span class="help-section-icon">📋</span>
+          <h3>Multiples W2</h3>
+        </div>
+        <p class="highlight-text">Si tenes mas de un W2, podes subir todos desde el boton "W2". Se guardaran todos correctamente.</p>
+      </div>
+    </div>
+
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closeHelpModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Instructions Modal -->
+<div class="popup-overlay" *ngIf="showPaymentInstructions" (click)="closePaymentInstructions()">
+  <div class="popup-card payment-instructions-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closePaymentInstructions()">×</button>
+    <div class="popup-icon payment-icon">💳</div>
+    <h2>Instrucciones de Pago</h2>
+
+    <div class="payment-details">
+      <div class="payment-row">
+        <span class="payment-label">Monto:</span>
+        <span class="payment-value highlight">$30 USD</span>
+      </div>
+      <div class="payment-row">
+        <span class="payment-label">Concepto:</span>
+        <span class="payment-value">Pago inicial de compromiso / reserva del servicio</span>
+      </div>
+    </div>
+
+    <div class="payment-methods-section">
+      <h3>Medios de pago disponibles</h3>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">💸</span>
+          <span class="method-name">Zelle</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Email:</strong> pagos&#64;jai1taxes.com</p>
+          <p><strong>Nombre:</strong> JAI1 Tax Services LLC</p>
+        </div>
+      </div>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">🅿️</span>
+          <span class="method-name">PayPal</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Email:</strong> paypal&#64;jai1taxes.com</p>
+        </div>
+      </div>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">🌐</span>
+          <span class="method-name">Western Union / MoneyGram</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Nombre:</strong> JAI1 Tax Services</p>
+          <p><strong>Ciudad:</strong> Miami, FL</p>
+          <p class="note">Contacta soporte para mas detalles</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-reminder">
+      <span class="reminder-icon">📸</span>
+      <p><strong>Que subir:</strong> Screenshot o comprobante del pago realizado</p>
+    </div>
+
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closePaymentInstructions()">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Initial Loading Screen -->
 <div class="initial-loading" *ngIf="!hasLoaded">
   <div class="loading-spinner"></div>
@@ -88,10 +209,16 @@
       ← Volver al resumen
     </button>
 
-    <!-- Page Title -->
-    <div class="page-title">
-      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
-      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+    <!-- Page Title with Help Button -->
+    <div class="page-title-row">
+      <div class="page-title">
+        <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+        <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+      </div>
+      <button class="btn-help" (click)="openHelpModal()" title="Consejos para subir documentos">
+        <span class="help-icon-btn">?</span>
+        <span class="help-text">Ayuda</span>
+      </button>
     </div>
 
   <!-- Messages -->
@@ -115,6 +242,30 @@
       <span class="tab-icon">{{ type.value === 'w2' ? '📋' : type.value === 'payment_proof' ? '💳' : '📎' }}</span>
       <span class="tab-label">{{ type.label }}</span>
       <span class="tab-check" *ngIf="uploadedTypes.has(type.value)">✓</span>
+    </button>
+  </div>
+
+  <!-- W2 Multiple Upload Hint -->
+  <div class="w2-hint" *ngIf="selectedType === 'w2'">
+    <span class="w2-hint-icon">i</span>
+    <span class="w2-hint-text">Si tenes mas de un W2, podes subir todos aca. Se guardaran todos correctamente.</span>
+  </div>
+
+  <!-- Payment Instructions Info Card (visible when payment_proof tab is selected) -->
+  <div class="payment-info-card" *ngIf="isPaymentProofSelected">
+    <div class="payment-info-header">
+      <span class="payment-info-icon">💵</span>
+      <div class="payment-info-title">
+        <h3>Pago Inicial Requerido</h3>
+        <p class="payment-amount">$30 USD</p>
+      </div>
+    </div>
+    <p class="payment-info-description">
+      Antes de subir tu comprobante, realiza el pago inicial de <strong>$30 USD</strong> como reserva del servicio.
+    </p>
+    <button class="btn-payment-instructions" (click)="openPaymentInstructions()">
+      <span>Ver instrucciones de pago</span>
+      <span class="btn-arrow">→</span>
     </button>
   </div>
 

@@ -50,6 +50,9 @@ export class DocumentUpload implements OnInit, OnDestroy {
   // Toggle to show upload view even when all docs are complete
   showUploadView: boolean = false;
 
+  // Help tips modal
+  showHelpModal: boolean = false;
+
   // Selected document type for upload
   selectedType: DocumentType = DocumentType.W2;
   documentTypes = [
@@ -57,6 +60,22 @@ export class DocumentUpload implements OnInit, OnDestroy {
     { value: DocumentType.PAYMENT_PROOF, label: 'Comprobante de Pago' },
     { value: DocumentType.OTHER, label: 'Otro' }
   ];
+
+  // Payment Instructions Modal
+  showPaymentInstructions: boolean = false;
+
+  // Check if payment proof tab is selected
+  get isPaymentProofSelected(): boolean {
+    return this.selectedType === DocumentType.PAYMENT_PROOF;
+  }
+
+  openPaymentInstructions() {
+    this.showPaymentInstructions = true;
+  }
+
+  closePaymentInstructions() {
+    this.showPaymentInstructions = false;
+  }
 
   ngOnInit() {
     this.loadDocuments();
@@ -316,5 +335,14 @@ export class DocumentUpload implements OnInit, OnDestroy {
   closeW2Popup() {
     this.showW2Popup = false;
     this.lastUploadedW2 = null;
+  }
+
+  // Help modal actions
+  openHelpModal() {
+    this.showHelpModal = true;
+  }
+
+  closeHelpModal() {
+    this.showHelpModal = false;
   }
 }

@@ -334,8 +334,8 @@
               <div class="stat-card referrals featured">
                 <div class="stat-icon">👥</div>
                 <div class="stat-content">
-                  <span class="stat-value">{{ successfulReferralCount }}</span>
-                  <span class="stat-label">Referidos exitosos</span>
+                  <span class="stat-value">{{ totalReferralCount }}</span>
+                  <span class="stat-label">Referidos</span>
                 </div>
               </div>
 
@@ -367,7 +367,7 @@
                   <div class="progress-bar">
                     <div class="progress-fill" [style.width.%]="progressToNextTier"></div>
                   </div>
-                  <span class="progress-text">{{ successfulReferralCount }}/{{ nextTier.referralsRequired }} referidos</span>
+                  <span class="progress-text">{{ totalReferralCount }}/{{ nextTier.referralsRequired }} referidos</span>
                 </div>
 
                 <div class="progress-hint">
@@ -438,7 +438,7 @@
                       <span class="leaderboard-tier">Nivel {{ entry.currentTier }}</span>
                     </div>
                     <div class="leaderboard-count">
-                      <span class="count-value">{{ entry.successfulReferrals }}</span>
+                      <span class="count-value">{{ entry.totalReferrals }}</span>
                       <span class="count-label">referidos</span>
                     </div>
                   </div>
@@ -512,8 +512,33 @@
               <span>Contactar soporte</span>
             </button>
           </div>
+          <div class="footer-legal">
+            <button class="btn-terms-link" (click)="openTermsModal()">
+              Terminos y condiciones
+            </button>
+          </div>
         </footer>
       </main>
+    }
+
+    <!-- Terms & Conditions Modal -->
+    @if (showTermsModal) {
+      <div class="terms-modal-overlay" (click)="onTermsModalBackdropClick($event)">
+        <div class="terms-modal">
+          <div class="terms-modal-header">
+            <h2>{{ termsTitle }}</h2>
+            <button class="terms-modal-close" (click)="closeTermsModal()">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="terms-modal-content" [innerHTML]="termsContent"></div>
+          <div class="terms-modal-footer">
+            <button class="btn-terms-close" (click)="closeTermsModal()">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
     }
   </div>
 }

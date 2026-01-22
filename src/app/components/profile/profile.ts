@@ -295,6 +295,14 @@ export class Profile implements OnInit, OnDestroy {
             };
           }
 
+          // Load TurboTax credentials (masked from API)
+          if (profileAny.turbotaxEmail !== undefined) {
+            this.turbotaxEmail = profileAny.turbotaxEmail || '';
+          }
+          if (profileAny.turbotaxPassword !== undefined) {
+            this.turbotaxPassword = profileAny.turbotaxPassword || '';
+          }
+
           // Cache profile data for faster loads on refresh
           this.cacheProfileData();
         }
@@ -715,7 +723,7 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  maskDNI(dni: string): string {
+  maskSSN(dni: string): string {
     if (!dni || dni.length < 4) return 'No especificado';
     return '••••••' + dni.slice(-4);
   }

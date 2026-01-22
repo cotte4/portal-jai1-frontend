@@ -391,6 +391,59 @@
   color: #64748b;
 }
 
+/* Calculating Skip Button */
+.calculating-skip {
+  margin-top: 24px;
+  opacity: 0.8;
+}
+
+.calculating-skip:hover {
+  opacity: 1;
+}
+
+/* Error State */
+.error-container {
+  padding: 24px 0;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.error-icon-container {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #fef2f2, #fff1f2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-icon {
+  width: 40px;
+  height: 40px;
+  color: #B21B43;
+}
+
+.error-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 10px 0;
+}
+
+.error-message {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* Result */
 .result-container {
   padding: 24px 0;

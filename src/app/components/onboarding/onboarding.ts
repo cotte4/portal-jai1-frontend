@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
 import { DocumentService } from '../../core/services/document.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DocumentType } from '../../core/models';
@@ -30,6 +31,7 @@ export class Onboarding implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private storage = inject(StorageService);
   private documentService = inject(DocumentService);
+  private profileService = inject(ProfileService);
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
   private cdr = inject(ChangeDetectorRef);
@@ -39,6 +41,7 @@ export class Onboarding implements OnInit, OnDestroy {
   private resultTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private uploadSubscription: Subscription | null = null;
   private apiSubscription: Subscription | null = null;
+  private onboardingSubscription: Subscription | null = null;
 
   // State
   currentStep: OnboardingStep = 'welcome';
@@ -104,6 +107,9 @@ export class Onboarding implements OnInit, OnDestroy {
     if (this.apiSubscription) {
       this.apiSubscription.unsubscribe();
     }
+    if (this.onboardingSubscription) {
+      this.onboardingSubscription.unsubscribe();
+    }
   }
 
   // Navigation
@@ -139,8 +145,7 @@ export class Onboarding implements OnInit, OnDestroy {
 
   // Warning actions
   exploreApp() {
-    this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+    this.completeOnboardingAndNavigate();
   }
 
   // Calculator methods
@@ -175,10 +180,10 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   handleFile(file: File) {
-    // Only accept JPG/PNG for OCR analysis
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // Accept JPG/PNG and PDF for OCR analysis (PDF is converted on backend)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      alert('Solo archivos JPG y PNG son compatibles. Por favor convierte tu W2 a uno de estos formatos.');
+      alert('Formatos aceptados: JPG, PNG, PDF. Por favor sube tu W2 en uno de estos formatos.');
       return;
     }
 
@@ -224,12 +229,27 @@ export class Onboarding implements OnInit, OnDestroy {
         }, 600);
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (error: any) => {
         if (this.progressIntervalId) {
           clearInterval(this.progressIntervalId);
           this.progressIntervalId = null;
         }
-        this.errorMessage = 'Error al analizar el documento. Intenta con otra imagen.';
+
+        // Provide specific error messages based on error type
+        if (error.status === 408) {
+          this.errorMessage = 'El procesamiento tardó demasiado. Por favor, intentá de nuevo o continuá sin calcular.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG o PNG.';
+        } else if (error.status === 401) {
+          this.errorMessage = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+        } else if (error.status === 500) {
+          this.errorMessage = 'Error del servidor. Por favor, intentá de nuevo en unos minutos.';
+        } else if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else {
+          this.errorMessage = 'Hubo un problema al procesar tu documento. Por favor, intentá de nuevo o continuá sin calcular.';
+        }
+
         this.calculatorState = 'error';
         this.cdr.detectChanges();
       }
@@ -244,8 +264,22 @@ export class Onboarding implements OnInit, OnDestroy {
 
   skipCalculator() {
     // Allow user to skip calculator and go directly to dashboard
-    this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+    this.completeOnboardingAndNavigate();
+  }
+
+  cancelAndSkip() {
+    // Cancel ongoing calculation and skip to dashboard
+    if (this.progressIntervalId) {
+      clearInterval(this.progressIntervalId);
+      this.progressIntervalId = null;
+    }
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+      this.apiSubscription = null;
+    }
+    this.calculatorState = 'upload';
+    this.calculationProgress = 0;
+    this.skipCalculator();
   }
 
   showResult() {
@@ -269,8 +303,31 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   goToDashboard() {
+    this.completeOnboardingAndNavigate();
+  }
+
+  /**
+   * Mark onboarding as complete in both localStorage (for immediate UI) and backend (for persistence).
+   * This ensures the user doesn't see onboarding again on subsequent logins (including Google OAuth).
+   */
+  private completeOnboardingAndNavigate() {
+    // Set localStorage immediately for fast UI response
     this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+
+    // Call backend to persist the onboarding complete status
+    // This ensures Google login users don't see onboarding again
+    this.onboardingSubscription = this.profileService.markOnboardingComplete().subscribe({
+      next: () => {
+        // Success - navigate to dashboard
+        this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        // Even if API fails, navigate to dashboard (localStorage is set)
+        // User might see onboarding again on next Google login, but UX is preserved for now
+        console.warn('Failed to mark onboarding complete in backend');
+        this.router.navigate(['/dashboard']);
+      }
+    });
   }
 
   formatCurrency(amount: number): string {

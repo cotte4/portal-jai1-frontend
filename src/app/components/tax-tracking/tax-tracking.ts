@@ -531,6 +531,18 @@ export class TaxTracking implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Returns true when client has completed their info but taxes haven't been filed yet.
+   * This is the "Preparando declaracion" / "Informacion recibida" state.
+   */
+  get isPreparingDeclaration(): boolean {
+    const profile = this.profileData?.profile;
+    const taxCase = this.profileData?.taxCase;
+
+    // Profile is complete and taxes haven't been filed yet
+    return profile?.profileComplete === true && taxCase?.taxesFiled !== true;
+  }
+
   navigateTo(route: string) {
     this.router.navigate([route]);
   }

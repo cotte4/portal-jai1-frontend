@@ -678,6 +678,30 @@
   gap: 16px;
 }
 
+/* Address Warning */
+.address-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff8e6;
+  border: 1px solid #ffd666;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.address-warning .warning-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.address-warning .warning-text {
+  font-size: 13px;
+  color: #7a5e00;
+  line-height: 1.5;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1025,5 +1049,515 @@
 
   .step-line {
     display: none;
+  }
+}
+
+/* =============================================
+   SEARCHABLE DROPDOWN STYLES
+   ============================================= */
+
+.searchable-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 50px;
+}
+
+.dropdown-trigger:hover {
+  border-color: #d0d0d0;
+}
+
+.dropdown-trigger.has-value {
+  border-color: #1D345D;
+  background: #fafbfc;
+}
+
+.dropdown-trigger .selected-value {
+  color: #1D345D;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.dropdown-trigger .placeholder {
+  color: #aaa;
+  font-size: 15px;
+}
+
+.dropdown-arrow {
+  color: #666;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.searchable-dropdown:has(.dropdown-panel) .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-search {
+  position: relative;
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-search input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.dropdown-search input:focus {
+  outline: none;
+  border-color: #1D345D;
+  box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
+}
+
+.dropdown-search input::placeholder {
+  color: #aaa;
+}
+
+.dropdown-search .search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-options {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.15s ease;
+}
+
+.dropdown-option:hover {
+  background: #f5f7fa;
+}
+
+.dropdown-option.selected {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+  color: #1D345D;
+  font-weight: 500;
+}
+
+.dropdown-option .check-icon {
+  color: #10b981;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.dropdown-option.otro-option {
+  border-top: 1px solid #f0f0f0;
+  margin-top: 4px;
+  padding-top: 16px;
+  color: #666;
+  font-style: italic;
+}
+
+.dropdown-option .otro-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  margin-right: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  font-style: normal;
+}
+
+.dropdown-empty {
+  padding: 20px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Custom bank name input */
+.custom-bank-input {
+  margin-top: 12px;
+  animation: slideDown 0.2s ease;
+}
+
+.custom-bank-input input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #ff9a5c;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: #fff8f0;
+}
+
+.custom-bank-input input:focus {
+  outline: none;
+  border-color: #ff7b36;
+  box-shadow: 0 0 0 4px rgba(255, 123, 54, 0.15);
+}
+
+.custom-bank-input input::placeholder {
+  color: #cc7a4a;
+}
+
+/* Scrollbar styling for dropdown */
+.dropdown-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-options::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dropdown-panel {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 20px 20px 0 0;
+    max-height: 70vh;
+  }
+
+  .dropdown-options {
+    max-height: calc(70vh - 80px);
+  }
+
+  .dropdown-search {
+    padding: 16px;
+  }
+
+  .dropdown-search input {
+    padding: 14px 12px 14px 40px;
+    font-size: 16px;
+  }
+
+  .dropdown-option {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+}
+
+/* =============================================
+   PAYMENT METHOD (CHECK OPTION) STYLES
+   ============================================= */
+
+/* Bank fields container when disabled */
+.bank-fields.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.bank-fields.disabled .dropdown-trigger {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.bank-fields.disabled input {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Disabled dropdown trigger */
+.dropdown-trigger.disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Payment method option container */
+.payment-method-option {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Checkbox label styling */
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+/* Custom checkbox */
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  position: relative;
+  transition: all 0.2s ease;
+  margin-top: 1px;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+  background: #1D345D;
+  border-color: #1D345D;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label:hover .checkbox-custom {
+  border-color: #9ca3af;
+}
+
+.checkbox-text {
+  line-height: 1.5;
+}
+
+/* Warning message */
+.payment-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+.warning-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  background: #f59e0b;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 1px;
+}
+
+.warning-text {
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .payment-method-option {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .checkbox-label {
+    font-size: 13px;
+  }
+
+  .payment-warning {
+    padding: 10px 12px;
+  }
+
+  .warning-text {
+    font-size: 12px;
+  }
+}
+
+/* =============================================
+   PHONE INPUT WITH COUNTRY CODE STYLES
+   ============================================= */
+
+/* Field description text */
+.field-description {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* Phone input wrapper */
+.phone-input-wrapper {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.phone-input-wrapper:focus-within {
+  border-color: #1D345D;
+  box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
+}
+
+.phone-input-wrapper.has-error {
+  border-color: #ef4444;
+}
+
+.phone-input-wrapper.has-error:focus-within {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Country code select */
+.country-code-select {
+  padding: 14px 12px;
+  border: none;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #1D345D;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  min-width: 190px;
+  border-right: 1px solid #e8e8e8;
+}
+
+.country-code-select:focus {
+  outline: none;
+  background-color: #f1f5f9;
+}
+
+.country-code-select option {
+  padding: 8px;
+}
+
+/* Phone number input */
+.phone-number-input {
+  flex: 1;
+  padding: 14px 16px;
+  border: none;
+  font-size: 15px;
+  font-family: inherit;
+  color: #1D345D;
+  background: white;
+  min-width: 0;
+}
+
+.phone-number-input:focus {
+  outline: none;
+}
+
+.phone-number-input::placeholder {
+  color: #aaa;
+}
+
+/* Field error message */
+.field-error {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* Mobile adjustments for phone input */
+@media (max-width: 480px) {
+  .phone-input-wrapper {
+    flex-direction: column;
+  }
+
+  .country-code-select {
+    border-right: none;
+    border-bottom: 1px solid #e8e8e8;
+    width: 100%;
+    min-width: unset;
+    padding: 12px 12px;
+  }
+
+  .phone-number-input {
+    padding: 12px 16px;
+  }
+
+  .field-description {
+    font-size: 12px;
   }
 }

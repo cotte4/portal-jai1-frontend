@@ -12,6 +12,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { REFERRAL_TERMS_TITLE, REFERRAL_TERMS_CONTENT } from './referral-terms-content';
 
 type ViewState = 'loading' | 'not-eligible' | 'dashboard' | 'error';
 type OnboardingStep = 'benefit1' | 'benefit2' | 'benefit3';
@@ -57,6 +58,11 @@ export class ReferralProgram implements OnInit, OnDestroy {
   isRefreshing = false;
   errorMessage = '';
   hasLoaded = false;
+
+  // Terms & Conditions Modal
+  showTermsModal = false;
+  termsTitle = REFERRAL_TERMS_TITLE;
+  termsContent = REFERRAL_TERMS_CONTENT;
 
   // User info
   userName = '';
@@ -124,6 +130,7 @@ export class ReferralProgram implements OnInit, OnDestroy {
   checkOnboardingStatus() {
     const completed = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
     this.showOnboarding = !completed;
+    this.cdr.detectChanges();
   }
 
   nextOnboardingStep() {
@@ -134,6 +141,7 @@ export class ReferralProgram implements OnInit, OnDestroy {
     } else {
       this.completeOnboarding();
     }
+    this.cdr.detectChanges();
   }
 
   previousOnboardingStep() {
@@ -142,11 +150,13 @@ export class ReferralProgram implements OnInit, OnDestroy {
     } else if (this.onboardingStep === 'benefit2') {
       this.onboardingStep = 'benefit1';
     }
+    this.cdr.detectChanges();
   }
 
   completeOnboarding() {
     localStorage.setItem(REFERRAL_ONBOARDING_KEY, 'true');
     this.showOnboarding = false;
+    this.cdr.detectChanges();
   }
 
   skipOnboarding() {
@@ -163,6 +173,12 @@ export class ReferralProgram implements OnInit, OnDestroy {
     return this.referrals.length > 0;
   }
 
+  // Total referrals used for discount, progress, and tier calculations
+  get totalReferralCount(): number {
+    return this.discountInfo?.totalReferrals || 0;
+  }
+
+  // Kept for backwards compatibility - actual successful referrals
   get successfulReferralCount(): number {
     return this.discountInfo?.successfulReferrals || 0;
   }
@@ -243,22 +259,22 @@ export class ReferralProgram implements OnInit, OnDestroy {
     this.showShareOptions = false;
   }
 
-  // Stats getters
+  // Stats getters - all use totalReferralCount for calculations
   get currentTier(): RewardTier | null {
-    return this.referralService.getCurrentTier(this.successfulReferralCount);
+    return this.referralService.getCurrentTier(this.totalReferralCount);
   }
 
   get nextTier(): RewardTier | null {
-    return this.referralService.getNextTier(this.successfulReferralCount);
+    return this.referralService.getNextTier(this.totalReferralCount);
   }
 
   get progressToNextTier(): number {
-    return this.referralService.getProgressToNextTier(this.successfulReferralCount);
+    return this.referralService.getProgressToNextTier(this.totalReferralCount);
   }
 
   get referralsToNextTier(): number {
     if (!this.nextTier) return 0;
-    return this.nextTier.referralsRequired - this.successfulReferralCount;
+    return this.nextTier.referralsRequired - this.totalReferralCount;
   }
 
   get currentDiscountPercent(): number {
@@ -280,7 +296,7 @@ export class ReferralProgram implements OnInit, OnDestroy {
   }
 
   isTierUnlocked(tier: RewardTier): boolean {
-    return this.successfulReferralCount >= tier.referralsRequired;
+    return this.totalReferralCount >= tier.referralsRequired;
   }
 
   isTierCurrent(tier: RewardTier): boolean {
@@ -301,5 +317,22 @@ export class ReferralProgram implements OnInit, OnDestroy {
     if (rank === 2) return '2';
     if (rank === 3) return '3';
     return rank.toString();
+  }
+
+  // Terms & Conditions Modal methods
+  openTermsModal() {
+    this.showTermsModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeTermsModal() {
+    this.showTermsModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onTermsModalBackdropClick(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('terms-modal-overlay')) {
+      this.closeTermsModal();
+    }
   }
 }
