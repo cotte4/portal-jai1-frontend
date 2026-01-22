@@ -132,10 +132,7 @@ export class Dashboard implements OnInit, OnDestroy {
     forkJoin({
       profile: this.profileService.getProfile().pipe(
         timeout(8000),
-        catchError(error => {
-          console.warn('Profile load error or timeout:', error);
-          return of(null);
-        })
+        catchError(() => of(null))
       ),
       documents: this.documentService.getDocuments().pipe(
         timeout(8000),
@@ -181,7 +178,6 @@ export class Dashboard implements OnInit, OnDestroy {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
-        console.log('Dashboard: Safety timeout triggered');
       }
       this.safetyTimeoutId = null;
     }, 5000);
@@ -554,8 +550,7 @@ export class Dashboard implements OnInit, OnDestroy {
         this.calculatorResult = cacheData.calculatorResult;
       }
       return true; // Cache was successfully loaded
-    } catch (e) {
-      console.warn('Failed to load dashboard cache:', e);
+    } catch {
       return false;
     }
   }
@@ -574,8 +569,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
     try {
       localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn('Failed to cache dashboard data:', e);
+    } catch {
+      // Silently ignore cache write failures
     }
   }
 

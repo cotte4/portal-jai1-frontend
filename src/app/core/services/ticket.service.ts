@@ -65,7 +65,6 @@ export class TicketService {
           if (!RETRY_CONFIG.shouldRetry(error)) {
             throw error;
           }
-          console.warn(`Retrying create ticket (attempt ${retryCount})`);
           return timer(RETRY_CONFIG.delay * retryCount);
         }
       }),
@@ -93,7 +92,6 @@ export class TicketService {
           if (!RETRY_CONFIG.shouldRetry(error)) {
             throw error;
           }
-          console.warn(`Retrying get tickets (attempt ${retryCount})`);
           return timer(RETRY_CONFIG.delay * retryCount);
         }
       }),
@@ -116,7 +114,6 @@ export class TicketService {
           if (!RETRY_CONFIG.shouldRetry(error)) {
             throw error;
           }
-          console.warn(`Retrying get ticket ${ticketId} (attempt ${retryCount})`);
           return timer(RETRY_CONFIG.delay * retryCount);
         }
       }),
@@ -145,7 +142,6 @@ export class TicketService {
           if (!RETRY_CONFIG.shouldRetry(error)) {
             throw error;
           }
-          console.warn(`Retrying add message to ticket ${ticketId} (attempt ${retryCount})`);
           return timer(RETRY_CONFIG.delay * retryCount);
         }
       }),
@@ -242,12 +238,6 @@ export class TicketService {
       // Use server error message if available
       userMessage = error.error?.message || `Error al ${action}.`;
     }
-
-    console.error(`TicketService error (${action}):`, {
-      status: error.status,
-      message: error.message,
-      url: error.url
-    });
 
     return throwError(() => new TicketServiceError(userMessage, error.status, error));
   }

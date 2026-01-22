@@ -163,9 +163,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al marcar como leída');
-        console.error('Mark as read error:', error);
       }
     });
   }
@@ -175,9 +174,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al marcar todas como leídas');
-        console.error('Mark all as read error:', error);
       }
     });
   }
@@ -188,9 +186,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al archivar notificación');
-        console.error('Archive notification error:', error);
       }
     });
   }
@@ -200,9 +197,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         this.toastService.success('Notificaciones leídas archivadas');
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al archivar notificaciones');
-        console.error('Archive all read error:', error);
       }
     });
   }
@@ -213,9 +209,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al eliminar notificación');
-        console.error('Delete notification error:', error);
       }
     });
   }
@@ -225,9 +220,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         this.toastService.success('Notificaciones leídas eliminadas');
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al eliminar notificaciones');
-        console.error('Delete all read error:', error);
       }
     });
   }

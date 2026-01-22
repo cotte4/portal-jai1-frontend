@@ -7,6 +7,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProfileResponse, Address } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 import { timeout, catchError, filter, retry, take } from 'rxjs/operators';
 import { of, Subscription, timer } from 'rxjs';
 
@@ -122,7 +123,6 @@ export class Profile implements OnInit, OnDestroy {
       this.subscriptions.add(
         timer(500).subscribe(() => {
           if (this.isLoading && !this.hasLoadedOnce) {
-            console.log('Profile: Fallback timer triggered, loading profile');
             this.loadProfile();
           }
         })
@@ -255,10 +255,9 @@ export class Profile implements OnInit, OnDestroy {
 
     // Try to fetch profile data with retry logic
     this.profileService.getProfile().pipe(
-      timeout(8000), // 8 second timeout
+      timeout(APP_CONSTANTS.API_TIMEOUT_MS),
       retry({ count: 2, delay: 1000 }), // Retry up to 2 times with 1s delay
       catchError((error) => {
-        console.error('Profile: Failed to load after retries', error);
         // Show toast only if it's not a 401 (auth redirect will handle that)
         if (error?.status !== 401) {
           this.toastService.error('Error al cargar el perfil. Intenta recargar la página.');
@@ -345,7 +344,7 @@ export class Profile implements OnInit, OnDestroy {
       }
     });
 
-    // Safety timeout - stop loading states after 8 seconds
+    // Safety timeout - stop loading states after configured timeout
     // Clear any existing timeout before setting a new one
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
@@ -357,11 +356,10 @@ export class Profile implements OnInit, OnDestroy {
         if (this.userName || this.userEmail) {
           this.hasLoadedOnce = true;
         }
-        console.log('Profile: Safety timeout triggered');
         this.cdr.detectChanges();
       }
       this.safetyTimeoutId = null;
-    }, 8000);
+    }, APP_CONSTANTS.SAFETY_TIMEOUT_MS);
   }
 
   private cacheProfileData(): void {
@@ -489,8 +487,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cacheProfileData();
             this.toastService.success('Foto de perfil eliminada');
           },
-          error: (err) => {
-            console.error('Failed to delete profile picture:', err);
+          error: () => {
             this.toastService.error('Error al eliminar la foto');
           }
         })
@@ -541,7 +538,6 @@ export class Profile implements OnInit, OnDestroy {
     // Safety timeout - if no response after 10s, apply changes optimistically
     const safetyTimeout = setTimeout(() => {
       if (this.isSaving) {
-        console.log('Safety timeout: applying changes optimistically');
         this.applyChangesLocally(saveData);
         this.toastService.success('¡Cambios guardados!');
         this.cdr.detectChanges(); // Trigger change detection after timeout
@@ -592,7 +588,6 @@ export class Profile implements OnInit, OnDestroy {
         },
         error: (error) => {
           clearTimeout(safetyTimeout);
-          console.error('Save error:', error);
           this.isSaving = false;
           this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
           this.cdr.detectChanges();
@@ -655,8 +650,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil eliminada');
           },
-          error: (err) => {
-            console.error('Failed to delete profile picture:', err);
+          error: () => {
             this.toastService.error('Error al eliminar la foto');
             this.resetPendingPictureState();
           }
@@ -679,8 +673,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil actualizada');
           },
-          error: (err) => {
-            console.error('Failed to upload profile picture:', err);
+          error: () => {
             this.toastService.error('Error al subir la foto');
             this.resetPendingPictureState();
           }
@@ -891,7 +884,6 @@ export class Profile implements OnInit, OnDestroy {
         error: (error) => {
           this.isSavingSensitive = false;
           this.pendingSensitiveData = null;
-          console.error('Sensitive profile update error:', error);
           this.toastService.error(error?.message || 'Error al actualizar. Intenta de nuevo.');
           this.cdr.detectChanges();
         }

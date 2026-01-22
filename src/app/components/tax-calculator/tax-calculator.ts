@@ -9,6 +9,7 @@ import { CalculatorResultService, CalculatorResult } from '../../core/services/c
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { DocumentType, OcrConfidence, Document } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
 type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'already-calculated';
 
@@ -64,7 +65,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
           // This prevents recalculation when navigating back
           const existingResult = this.calculatorResultService.getResult();
           if (existingResult) {
-            console.log('=== CALCULATOR: Ignoring W2 upload event - already have result ===');
             return false;
           }
           return true;
@@ -169,7 +169,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
           // Show already-calculated state - user cannot recalculate
           this.state = 'already-calculated';
-          console.log('=== CALCULATOR: Existing estimate found in backend ===', estimate);
           return;
         }
 
@@ -223,24 +222,16 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   handleFile(file: File) {
-    console.log('=== CALCULATOR: File received ===', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-
     // Backend only accepts JPG/PNG (not PDF/WEBP)
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(file.type)) {
-      console.warn('=== CALCULATOR: Invalid file type ===', file.type);
       alert('Solo archivos JPG y PNG son compatibles con el análisis automático. Por favor convierte tu W2 a uno de estos formatos.');
       return;
     }
 
     // Validate file size (max 25MB)
-    const maxSize = 25 * 1024 * 1024;
+    const maxSize = APP_CONSTANTS.MAX_FILE_SIZE_BYTES;
     if (file.size > maxSize) {
-      console.warn('=== CALCULATOR: File too large ===', file.size);
       alert('El archivo es demasiado grande (máximo 25MB).');
       return;
     }
@@ -252,11 +243,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   startCalculation() {
-    console.log('=== CALCULATOR: Starting calculation ===');
-    console.log('File from component:', this.uploadedFile?.name);
-    console.log('File from service:', this.calculatorApiService.getCurrentFile()?.name);
-    console.log('Is from documents:', this.isFromDocuments);
-
     this.state = 'calculating';
     this.calculationProgress = 0;
     this.errorMessage = '';
@@ -266,18 +252,14 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
     // If no file available, return to upload state (don't run demo mode automatically)
     if (!fileToProcess) {
-      console.warn('=== CALCULATOR: No file found, returning to upload state ===');
       this.state = 'upload';
       this.errorMessage = 'Por favor sube un documento W2 para calcular tu reembolso.';
       this.cdr.detectChanges();
       return;
     }
 
-    console.log('=== CALCULATOR: File found, calling API for real OCR analysis ===', fileToProcess.name);
-
     // Validate file before API call
     if (fileToProcess.size === 0) {
-      console.error('=== CALCULATOR: File has no content (size = 0) ===');
       this.errorMessage = 'El archivo está vacío. Por favor sube un W2 válido.';
       this.state = 'upload';
       return;
@@ -298,7 +280,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
         clearInterval(progressInterval);
         this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         this.calculationProgress = 100;
-        console.log('=== CALCULATOR: API response received ===', response);
 
         this.box2Federal = response.box2Federal;
         this.box17State = response.box17State;
@@ -313,9 +294,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
       error: (error) => {
         clearInterval(progressInterval);
         this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
-        console.error('=== CALCULATOR: API ERROR ===', error);
-        console.error('Error status:', error.status);
-        console.error('Error details:', error.error);
 
         // Provide specific error messages based on error type
         let errorMsg = 'Error al procesar el documento.';
@@ -340,8 +318,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   runMockCalculation() {
-    console.log('=== CALCULATOR: DEMO MODE - Generating random values (NOT using API) ===');
-
     // Demo mode with simulated progress (track interval for cleanup)
     this.ngZone.runOutsideAngular(() => {
       const progressInterval = setInterval(() => {
@@ -357,12 +333,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
             this.box17State = Math.floor(Math.random() * 500) + 200;
             this.estimatedRefund = this.box2Federal + this.box17State;
             this.ocrConfidence = 'high';
-
-            console.log('=== CALCULATOR: DEMO results (random) ===', {
-              box2Federal: this.box2Federal,
-              box17State: this.box17State,
-              total: this.estimatedRefund
-            });
 
             setTimeout(() => {
               this.showResult();
@@ -398,12 +368,10 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private autoSaveW2() {
     if (!this.uploadedFile) return;
 
-    console.log('=== CALCULATOR: Auto-saving W2 to documents ===');
     this.isSavingDocument = true;
 
     this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-      next: (response) => {
-        console.log('=== CALCULATOR: W2 auto-saved successfully ===', response);
+      next: () => {
         this.isSavingDocument = false;
         this.documentSaved = true;
 
@@ -412,8 +380,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('=== CALCULATOR: Failed to auto-save W2 ===', error);
+      error: () => {
         this.isSavingDocument = false;
         // Don't show error to user - they can still use calculator results
         // They can manually upload later in documents section
@@ -423,7 +390,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   resetCalculator() {
-    console.log('=== CALCULATOR: Resetting calculator ===');
     this.state = 'upload';
     this.uploadedFile = null;
     this.calculatorApiService.clearCurrentFile(); // Clear service file reference

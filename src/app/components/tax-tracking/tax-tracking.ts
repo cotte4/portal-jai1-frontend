@@ -135,7 +135,6 @@ export class TaxTracking implements OnInit, OnDestroy {
         this.hasLoaded = true;
         this.isLoading = false;
         this.cdr.detectChanges();
-        console.log('TaxTracking: Safety timeout triggered');
       }
       this.safetyTimeoutId = null;
     }, 5000);
@@ -200,7 +199,8 @@ export class TaxTracking implements OnInit, OnDestroy {
   }
 
   private onTaxesFiled() {
-    console.log('Taxes filed - declaration submitted to IRS');
+    // Taxes have been filed - declaration submitted to IRS
+    // This hook can be used for analytics or other side effects in the future
   }
 
   private checkFederalStatusChange(newStatus?: TaxStatus): void {

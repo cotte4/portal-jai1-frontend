@@ -67,6 +67,12 @@ export class Register {
       return;
     }
 
+    // Password strength validation
+    if (!this.isPasswordStrong()) {
+      this.errorMessage = 'La contrasena debe contener al menos una mayuscula, una minuscula, un numero y un caracter especial (@$!%*?&)';
+      return;
+    }
+
     // Password match validation
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'Las contrasenas no coinciden';
@@ -169,4 +175,24 @@ export class Register {
     // The backend handles both login and registration automatically
     window.location.href = `${environment.apiUrl}/auth/google`;
   }
+
+  // Password strength validation helper
+  isPasswordStrong(): boolean {
+    const value = this.password;
+    if (!value) return false;
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumeric = /[0-9]/.test(value);
+    const hasSpecialChar = /[@$!%*?&]/.test(value);
+
+    return hasUpperCase && hasLowerCase && hasNumeric && hasSpecialChar;
+  }
+
+  // Individual password requirement checks for UI feedback
+  get hasMinLength(): boolean { return this.password.length >= 8; }
+  get hasUpperCase(): boolean { return /[A-Z]/.test(this.password); }
+  get hasLowerCase(): boolean { return /[a-z]/.test(this.password); }
+  get hasNumber(): boolean { return /[0-9]/.test(this.password); }
+  get hasSpecialChar(): boolean { return /[@$!%*?&]/.test(this.password); }
 }

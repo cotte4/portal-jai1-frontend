@@ -237,7 +237,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading clients:', error);
         this.errorCode = error?.status ? `HTTP ${error.status}` : 'NETWORK_ERROR';
 
         // Provide more helpful error messages based on status code
@@ -289,8 +288,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingStats = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading season stats:', error);
+      error: () => {
         this.isLoadingStats = false;
         this.cdr.detectChanges();
       }
@@ -317,8 +315,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingMore = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading more clients:', error);
+      error: () => {
         this.errorMessage = 'Error al cargar mas clientes';
         this.isLoadingMore = false;
         this.cdr.detectChanges();
@@ -565,8 +562,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
     if (!value) return;
     navigator.clipboard.writeText(value).then(() => {
       // Optional: show a brief notification
-    }).catch(err => {
-      console.error('Failed to copy:', err);
+    }).catch(() => {
+      // Clipboard operation failed silently
     });
   }
 
@@ -973,7 +970,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error checking missing documents:', error);
         this.errorMessage = error?.error?.message || 'Error al verificar documentos faltantes';
         this.isCheckingMissingDocs = false;
         this.cdr.detectChanges();
@@ -997,8 +993,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingCronStatus = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading cron status:', error);
+      error: () => {
         this.isLoadingCronStatus = false;
         this.cdr.detectChanges();
       }
@@ -1018,7 +1013,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error toggling cron:', error);
         this.errorMessage = error?.error?.message || 'Error al cambiar estado del cron';
         this.isTogglingCron = false;
         this.cdr.detectChanges();

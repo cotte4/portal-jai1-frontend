@@ -147,7 +147,6 @@ export class UserMessages implements OnInit {
       catchError((error: Error) => {
         this.errorMessage = 'Error al cargar los tickets: ' + (error?.message || 'Error desconocido');
         this.isLoading = false;
-        console.error('Error loading tickets:', error);
         return of([] as Ticket[]);
       }),
       finalize(() => {
@@ -177,7 +176,6 @@ export class UserMessages implements OnInit {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
-        console.warn('UserMessages: Safety timeout triggered - data load exceeded 5 seconds');
       }
       this.safetyTimeoutId = null;
     }, 5000);
@@ -214,7 +212,6 @@ export class UserMessages implements OnInit {
 
   loadMessages(ticketId: string): void {
     if (!ticketId) {
-      console.error('loadMessages called with invalid ticketId');
       return;
     }
 
@@ -223,9 +220,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.getTicket(ticketId).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al cargar los mensajes';
-        console.error('Error loading messages:', error);
         return of(null);
       }),
       finalize(() => {
@@ -252,9 +248,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.addMessage(this.activeTicket.id, { message: trimmedMessage }).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al enviar el mensaje';
-        console.error('Error sending message:', error);
         return of(null);
       }),
       finalize(() => {
@@ -286,9 +281,8 @@ export class UserMessages implements OnInit {
       message: trimmedMessage
     }).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al crear el ticket';
-        console.error('Error creating ticket:', error);
         return of(null);
       }),
       finalize(() => {
@@ -343,9 +337,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.deleteTicket(this.ticketToDelete.id).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al eliminar el ticket';
-        console.error('Error deleting ticket:', error);
         return of(null);
       }),
       finalize(() => {

@@ -950,3 +950,46 @@
   font-size: 13px;
   color: #dc2626;
 }
+
+/* ==================== PASSWORD REQUIREMENTS ==================== */
+.password-requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  background: #f8f9fb;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.password-requirements .requirement {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 4px 8px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.password-requirements .requirement.met {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+@media (max-width: 540px) {
+  .password-requirements {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .password-requirements .requirement {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+}

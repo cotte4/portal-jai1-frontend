@@ -8,6 +8,7 @@ import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Document, DocumentType } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
 @Component({
   selector: 'app-document-upload',
@@ -137,8 +138,8 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.successMessage = '';
 
     // Allowed file types
-    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-    const maxSize = 25 * 1024 * 1024; // 25MB (matching backend)
+    const allowedTypes = APP_CONSTANTS.SUPPORTED_DOCUMENT_TYPES;
+    const maxSize = APP_CONSTANTS.MAX_FILE_SIZE_BYTES;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];

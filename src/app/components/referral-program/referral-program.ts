@@ -111,8 +111,7 @@ export class ReferralProgram implements OnInit, OnDestroy {
         }
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Failed to load referral data:', err);
+      error: () => {
         this.errorMessage = 'No se pudo cargar el programa de referidos. Intenta de nuevo.';
         this.viewState = 'error';
         this.hasLoaded = true;

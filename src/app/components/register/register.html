@@ -185,23 +185,42 @@
           <label for="password">Contraseña</label>
           <div class="input-wrapper">
             <span class="input-icon">🔐</span>
-            <input 
+            <input
               [type]="showPassword ? 'text' : 'password'"
-              id="password" 
+              id="password"
               [(ngModel)]="password"
               name="password"
               placeholder="Mínimo 8 caracteres"
               required
               autocomplete="new-password"
             >
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="toggle-visibility"
               (click)="togglePassword()"
             >
               {{ showPassword ? '🙈' : '👁️' }}
             </button>
           </div>
+          @if (password) {
+            <div class="password-requirements">
+              <span class="requirement" [class.met]="hasMinLength">
+                {{ hasMinLength ? '✓' : '○' }} 8+ caracteres
+              </span>
+              <span class="requirement" [class.met]="hasUpperCase">
+                {{ hasUpperCase ? '✓' : '○' }} Mayúscula
+              </span>
+              <span class="requirement" [class.met]="hasLowerCase">
+                {{ hasLowerCase ? '✓' : '○' }} Minúscula
+              </span>
+              <span class="requirement" [class.met]="hasNumber">
+                {{ hasNumber ? '✓' : '○' }} Número
+              </span>
+              <span class="requirement" [class.met]="hasSpecialChar">
+                {{ hasSpecialChar ? '✓' : '○' }} Especial (@$!%*?&)
+              </span>
+            </div>
+          }
         </div>
 
         <!-- Confirm Password -->

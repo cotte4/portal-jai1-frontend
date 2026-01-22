@@ -243,9 +243,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.validStateStatusTransitions = transitions.stateStatusNew.validTransitions;
         this.cdr.markForCheck();
       },
-      error: (error) => {
+      error: () => {
         // Don't show error - transitions are optional enhancement
-        console.warn('Could not load valid transitions:', error);
       }
     });
   }
@@ -265,7 +264,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       error: (error) => {
         this.ticketErrorMessage = getErrorMessage(error, 'Error al cargar los tickets');
         this.isLoadingTickets = false;
-        console.error('Error loading tickets:', error);
         this.cdr.markForCheck();
       }
     });
@@ -369,7 +367,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       error: (error) => {
         this.ticketErrorMessage = getErrorMessage(error, 'Error al enviar el mensaje');
         this.isSendingMessage = false;
-        console.error('Error sending message:', error);
         this.cdr.markForCheck();
       }
     });

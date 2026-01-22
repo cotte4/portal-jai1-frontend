@@ -224,12 +224,11 @@ export class Onboarding implements OnInit, OnDestroy {
         }, 600);
         this.cdr.detectChanges();
       },
-      error: (error) => {
+      error: () => {
         if (this.progressIntervalId) {
           clearInterval(this.progressIntervalId);
           this.progressIntervalId = null;
         }
-        console.error('Calculator API error:', error);
         this.errorMessage = 'Error al analizar el documento. Intenta con otra imagen.';
         this.calculatorState = 'error';
         this.cdr.detectChanges();
@@ -265,10 +264,7 @@ export class Onboarding implements OnInit, OnDestroy {
 
     // Save W2 document
     if (this.uploadedFile) {
-      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-        next: () => console.log('W2 saved successfully'),
-        error: (err) => console.error('Error saving W2:', err)
-      });
+      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe();
     }
   }
 
