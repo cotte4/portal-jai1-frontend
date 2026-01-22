@@ -97,13 +97,14 @@ export class Register {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Registro exitoso! Redirigiendo...';
+        this.successMessage = 'Registro exitoso! Revisa tu email para verificar tu cuenta.';
         this.cdr.detectChanges();
 
-        // Redirect to onboarding for first-time users
+        // Store email for verification page and redirect
+        sessionStorage.setItem('pendingVerificationEmail', this.email);
         setTimeout(() => {
-          this.router.navigate(['/onboarding']);
-        }, 1000);
+          this.router.navigate(['/verify-email-sent']);
+        }, 1500);
       },
       error: (error) => {
         this.isLoading = false;
