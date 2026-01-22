@@ -1,0 +1,178 @@
+<!-- Initial Loading Screen -->
+<div class="initial-loading" *ngIf="!hasLoaded">
+  <div class="loading-spinner"></div>
+  <p>Cargando mensajes...</p>
+</div>
+
+<div class="messages-content" *ngIf="hasLoaded">
+  <!-- Title Section -->
+  <div class="messages-title-section">
+    <div class="title-icon">💬</div>
+    <div class="title-content">
+      <h1>Mensajes con Soporte</h1>
+      <p>Comunicacion directa con nuestro equipo de asistencia fiscal</p>
+    </div>
+    <div class="title-actions">
+      <button class="btn-refresh" (click)="loadTickets()" [disabled]="isLoading">
+        <span>{{ isLoading ? '⏳' : '🔄' }}</span>
+      </button>
+      <button class="btn-new-ticket" (click)="showNewTicketForm = true" *ngIf="!showNewTicketForm">
+        <span>+ Nuevo mensaje</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <span>{{ errorMessage }}</span>
+    <button (click)="errorMessage = ''">×</button>
+  </div>
+
+  <!-- New Ticket Form -->
+  <div class="new-ticket-form" *ngIf="showNewTicketForm">
+    <h3>Nueva consulta</h3>
+    <div class="form-group">
+      <label>Asunto</label>
+      <input
+        type="text"
+        [(ngModel)]="newTicketSubject"
+        placeholder="Ej: Consulta sobre mi W2"
+      />
+    </div>
+    <div class="form-group">
+      <label>Mensaje</label>
+      <textarea
+        [(ngModel)]="newTicketMessage"
+        placeholder="Escribi tu consulta..."
+        rows="4"
+      ></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" (click)="cancelNewTicket()">Cancelar</button>
+      <button
+        class="btn-submit"
+        (click)="createTicket()"
+        [disabled]="!newTicketSubject.trim() || !newTicketMessage.trim() || isSending"
+      >
+        {{ isSending ? 'Enviando...' : 'Enviar consulta' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tickets List (sidebar) -->
+  <div class="chat-layout" *ngIf="!showNewTicketForm">
+    <div class="tickets-sidebar" *ngIf="tickets.length > 1">
+      <h3>Conversaciones</h3>
+      <div class="tickets-list">
+        <div
+          class="ticket-item"
+          *ngFor="let ticket of tickets"
+          [class.active]="activeTicket?.id === ticket.id"
+          (click)="selectTicket(ticket)"
+        >
+          <div class="ticket-subject">{{ ticket.subject }}</div>
+          <div class="ticket-meta">
+            <span class="ticket-status" [ngClass]="getStatusClass(ticket.status)">
+              {{ getStatusLabel(ticket.status) }}
+            </span>
+            <span class="ticket-date">{{ formatDate(ticket.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" [class.full-width]="tickets.length <= 1">
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Cargando mensajes...</p>
+      </div>
+
+      <!-- Messages List -->
+      <div class="messages-list" *ngIf="!isLoading && messages.length > 0">
+        <ng-container *ngFor="let message of messages; let i = index">
+          <!-- Date Separator -->
+          <div class="date-separator" *ngIf="shouldShowDateSeparator(i)">
+            <span>{{ formatDate(message.createdAt) }}</span>
+          </div>
+
+          <!-- Message Bubble -->
+          <div
+            class="message-wrapper"
+            [class.admin]="isFromAdmin(message)"
+            [class.client]="!isFromAdmin(message)"
+          >
+            <div class="message-bubble">
+              <div class="message-sender" *ngIf="isFromAdmin(message)">
+                <span class="sender-avatar">🛡️</span>
+                <span class="sender-name">Soporte JAI1</span>
+              </div>
+              <p class="message-text">{{ message.message }}</p>
+              <span class="message-time">{{ formatTime(message.createdAt) }}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && tickets.length === 0">
+        <div class="empty-icon">💬</div>
+        <h3>Sin mensajes aun</h3>
+        <p>Envia tu primera consulta a nuestro equipo de soporte</p>
+        <button class="btn-start" (click)="showNewTicketForm = true">
+          Iniciar conversacion
+        </button>
+      </div>
+
+      <!-- No Active Ticket Selected -->
+      <div class="empty-state" *ngIf="!isLoading && tickets.length > 0 && !activeTicket">
+        <div class="empty-icon">👈</div>
+        <h3>Selecciona una conversacion</h3>
+        <p>Elige un ticket del panel izquierdo para ver los mensajes</p>
+      </div>
+
+      <!-- Active Ticket but No Messages -->
+      <div class="empty-state" *ngIf="!isLoading && activeTicket && messages.length === 0">
+        <div class="empty-icon">💬</div>
+        <h3>Sin mensajes en este ticket</h3>
+        <p>Enviá el primer mensaje para iniciar la conversación</p>
+      </div>
+
+      <!-- Message Input -->
+      <div class="message-input-section" *ngIf="activeTicket && activeTicket.status !== 'closed'">
+        <div class="input-container">
+          <textarea
+            [(ngModel)]="newMessage"
+            placeholder="Escribi tu mensaje..."
+            rows="1"
+            (keydown.enter)="$event.preventDefault(); sendMessage()"
+            [disabled]="isSending"
+          ></textarea>
+          <button
+            class="btn-send"
+            (click)="sendMessage()"
+            [disabled]="!newMessage.trim() || isSending"
+          >
+            <span class="send-icon">➤</span>
+          </button>
+        </div>
+        <p class="input-hint">Presiona Enter para enviar</p>
+      </div>
+
+      <!-- Closed Ticket Notice -->
+      <div class="closed-notice" *ngIf="activeTicket && activeTicket.status === 'closed'">
+        <span>Este ticket esta cerrado. Crea uno nuevo para continuar la conversacion.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Card -->
+  <div class="info-card">
+    <div class="info-icon">ℹ️</div>
+    <div class="info-content">
+      <h4>Tiempo de respuesta</h4>
+      <p>Nuestro equipo generalmente responde en un plazo de 24-48 horas habiles.</p>
+    </div>
+  </div>
+</div>

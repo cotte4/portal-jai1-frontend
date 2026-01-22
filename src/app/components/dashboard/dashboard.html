@@ -1,0 +1,234 @@
+<!-- Loading Screen -->
+@if (!hasLoaded) {
+  <div class="dashboard-loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando tu dashboard...</p>
+  </div>
+}
+
+<!-- Dashboard Content -->
+@if (hasLoaded) {
+<div class="dashboard-content">
+  <!-- Top Section: Two Cards Side by Side -->
+  <div class="top-section">
+    <!-- Left Card: Reembolso Estimado -->
+    <div class="refund-card">
+      <div class="refund-header">
+        <span class="refund-icon">💰</span>
+        <span class="refund-label">Reembolso Estimado</span>
+      </div>
+      
+      @if (hasCalculatorResult) {
+        <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
+        <div class="refund-calculated">
+          <span class="check-icon">✓</span>
+          Calculado con tu W2
+        </div>
+        <button class="btn-recalculate" (click)="navigateTo('/tax-calculator')">
+          Recalcular →
+        </button>
+      } @else {
+        <div class="refund-not-calculated">
+          <span class="question-icon">🧮</span>
+          <span>Aún no calculado</span>
+        </div>
+        <button class="btn-calculate-cta" (click)="navigateTo('/tax-calculator')">
+          <span>Calcular mi reembolso</span>
+          <span class="arrow">→</span>
+        </button>
+      }
+    </div>
+
+    <!-- Right Card: User Progress -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-title">
+          <span class="progress-icon">📋</span>
+          <span>Tu Progreso</span>
+        </div>
+        <div class="progress-badge" [class.complete]="userProgressComplete">
+          {{ userProgressComplete ? 'Completado' : userProgressPercent + '%' }}
+        </div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="userProgressPercent"></div>
+        </div>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item" [class.done]="isProfileComplete">
+          <span class="item-check">{{ isProfileComplete ? '✓' : '○' }}</span>
+          <span class="item-text">Datos de perfil</span>
+          @if (!isProfileComplete) {
+            <button class="item-action" (click)="navigateTo('/tax-form')">Completar</button>
+          }
+        </div>
+        <div class="checklist-item" [class.done]="isFormSent">
+          <span class="item-check">{{ isFormSent ? '✓' : '○' }}</span>
+          <span class="item-text">Formulario enviado</span>
+          @if (!isFormSent && isProfileComplete) {
+            <button class="item-action" (click)="navigateTo('/tax-form')">Enviar</button>
+          }
+        </div>
+        <div class="checklist-item" [class.done]="hasW2Document">
+          <span class="item-check">{{ hasW2Document ? '✓' : '○' }}</span>
+          <span class="item-text">Documento W2</span>
+          @if (!hasW2Document) {
+            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
+          }
+        </div>
+        <div class="checklist-item" [class.done]="hasPaymentProof">
+          <span class="item-check">{{ hasPaymentProof ? '✓' : '○' }}</span>
+          <span class="item-text">Comprobante de pago</span>
+          @if (!hasPaymentProof) {
+            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IRS Progress Section -->
+  @if (showIRSProgress) {
+    <div class="irs-section">
+      <div class="irs-header">
+        <div class="irs-title">
+          <span class="irs-icon">🏛️</span>
+          <div>
+            <h3>Estado con el IRS</h3>
+            <p>Seguimiento de tu declaración</p>
+          </div>
+        </div>
+        <div class="irs-badge" [class.complete]="isRefundDeposited">
+          {{ isRefundDeposited ? '✓ Depositado' : irsProgressPercent + '%' }}
+        </div>
+      </div>
+
+      <div class="irs-progress-bar">
+        <div class="irs-progress-fill" [style.width.%]="irsProgressPercent"></div>
+      </div>
+
+      <div class="irs-steps">
+        <div class="irs-step" [class.done]="isSentToIRS" [class.active]="!isSentToIRS && userProgressComplete">
+          <div class="step-indicator">
+            @if (isSentToIRS) {
+              <span class="step-check">✓</span>
+            } @else {
+              <span class="step-number">1</span>
+            }
+          </div>
+          <div class="step-info">
+            <span class="step-title">Enviado al IRS</span>
+            <span class="step-desc">{{ isSentToIRS ? 'Tu declaración fue enviada' : 'Pendiente de envío' }}</span>
+          </div>
+        </div>
+
+        <div class="irs-step" [class.done]="isAcceptedByIRS">
+          <div class="step-indicator">
+            @if (isAcceptedByIRS) {
+              <span class="step-check">✓</span>
+            } @else {
+              <span class="step-number">2</span>
+            }
+          </div>
+          <div class="step-info">
+            <span class="step-title">Aceptado</span>
+            <span class="step-desc">{{ isAcceptedByIRS ? 'Declaración aprobada' : 'En revisión' }}</span>
+          </div>
+        </div>
+
+        <div class="irs-step" [class.done]="estimatedReturnDate">
+          <div class="step-indicator">
+            @if (estimatedReturnDate) {
+              <span class="step-check">✓</span>
+            } @else {
+              <span class="step-number">3</span>
+            }
+          </div>
+          <div class="step-info">
+            <span class="step-title">Fecha estimada</span>
+            <span class="step-desc">{{ estimatedReturnDate || 'Por confirmar' }}</span>
+          </div>
+        </div>
+
+        <div class="irs-step" [class.done]="isRefundDeposited">
+          <div class="step-indicator">
+            @if (isRefundDeposited) {
+              <span class="step-check">✓</span>
+            } @else {
+              <span class="step-number">4</span>
+            }
+          </div>
+          <div class="step-info">
+            <span class="step-title">Depositado</span>
+            <span class="step-desc">{{ isRefundDeposited ? '¡Dinero en tu cuenta!' : 'Esperando depósito' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Quick Actions -->
+  <div class="actions-section">
+    <h2 class="section-title">Acciones rápidas</h2>
+    
+    <div class="action-cards-grid">
+      <!-- Calculator Card -->
+      <div class="action-card" (click)="navigateTo('/tax-calculator')">
+        <div class="card-top">
+          <div class="card-icon purple">🧮</div>
+          <span class="card-badge new">NUEVO</span>
+        </div>
+        <h3 class="card-title">Calculadora</h3>
+        <p class="card-desc">Calcula tu reembolso estimado con tu W2</p>
+        <span class="card-action">Calcular →</span>
+      </div>
+
+      <!-- Tax Form Card -->
+      <div class="action-card" (click)="navigateTo('/tax-form')">
+        <div class="card-top">
+          <div class="card-icon blue">📋</div>
+          @if (!isFormSent) {
+            <span class="card-badge important">IMPORTANTE</span>
+          }
+        </div>
+        <h3 class="card-title">Mi Declaración</h3>
+        <p class="card-desc">Completá tu información personal y tributaria</p>
+        <span class="card-action">{{ isFormSent ? 'Ver formulario' : 'Completar' }} →</span>
+      </div>
+
+      <!-- Upload Documents Card -->
+      <div class="action-card" (click)="navigateTo('/documents')">
+        <div class="card-top">
+          <div class="card-icon orange">📁</div>
+        </div>
+        <h3 class="card-title">Documentos</h3>
+        <p class="card-desc">Cargá tus documentos fiscales (W-2, recibos)</p>
+        <span class="card-action">{{ hasW2Document ? 'Ver documentos' : 'Subir archivos' }} →</span>
+      </div>
+
+      <!-- Chatbot Card -->
+      <div class="action-card" (click)="navigateTo('/chatbot')">
+        <div class="card-top">
+          <div class="card-icon green">🤖</div>
+        </div>
+        <h3 class="card-title">Asistente Virtual</h3>
+        <p class="card-desc">Resolvé tus dudas con nuestro chatbot</p>
+        <span class="card-action">Iniciar chat →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Footer -->
+  <div class="help-footer">
+    <div class="help-icon">💬</div>
+    <div class="help-text">
+      <span class="help-title">¿Necesitas ayuda?</span>
+      <span class="help-desc">Nuestro equipo está listo para asistirte</span>
+    </div>
+    <button class="btn-help" (click)="navigateTo('/messages')">Contactar soporte</button>
+  </div>
+</div>
+}

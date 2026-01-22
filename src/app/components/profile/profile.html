@@ -1,0 +1,234 @@
+<div class="profile-page">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loader"></div>
+      <span>Cargando perfil...</span>
+    </div>
+  } @else {
+    <!-- Member Card -->
+    <div class="member-card">
+      <div class="card-header">
+        <div class="header-pattern"></div>
+        <div class="member-badge">
+          <span>🏆</span>
+          <span>Miembro JAI1</span>
+        </div>
+        
+        <!-- Profile Picture -->
+        <div class="profile-picture-container">
+          <div class="profile-picture" (click)="triggerFileInput()">
+            @if (profilePicture) {
+              <img [src]="profilePicture" alt="Foto de perfil" />
+            } @else {
+              <div class="avatar-placeholder">
+                <span class="avatar-initials">{{ userInitials }}</span>
+              </div>
+            }
+            <div class="picture-overlay">
+              <span class="camera-icon">📷</span>
+            </div>
+          </div>
+          <input 
+            type="file" 
+            id="profilePictureInput" 
+            accept="image/*" 
+            (change)="onFileSelected($event)"
+            hidden
+          />
+          @if (profilePicture) {
+            <button class="btn-remove-picture" (click)="removeProfilePicture(); $event.stopPropagation()">✕</button>
+          }
+        </div>
+      </div>
+
+      <div class="card-body">
+        <h1 class="user-name">{{ userName || 'Usuario' }}</h1>
+        <p class="member-since">{{ formatMemberSince() }}</p>
+        
+        @if (dni) {
+          <p class="user-dni">DNI: {{ maskDNI(dni) }}</p>
+        }
+        
+        <div class="verification-badge" [class.verified]="isVerified">
+          @if (isVerified) {
+            <span class="badge-icon">✓</span>
+            <span>Identidad validada</span>
+          } @else {
+            <span class="badge-icon">⏳</span>
+            <span>Completá tu perfil</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    @if (errorMessage) {
+      <div class="alert error">
+        <span>⚠️</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+    @if (successMessage) {
+      <div class="alert success">
+        <span>✓</span>
+        <span>{{ successMessage }}</span>
+      </div>
+    }
+
+    <!-- Personal Data Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <h2>Mis datos personales</h2>
+        <button class="btn-edit" (click)="toggleEdit()">
+          @if (isEditing) {
+            <span>Cancelar</span>
+          } @else {
+            <span>✏️ Editar</span>
+          }
+        </button>
+      </div>
+
+      @if (isEditing) {
+        <!-- Edit Mode -->
+        <div class="edit-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" [(ngModel)]="editForm.firstName" placeholder="Tu nombre" />
+            </div>
+            <div class="form-group">
+              <label>Apellido</label>
+              <input type="text" [(ngModel)]="editForm.lastName" placeholder="Tu apellido" />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Teléfono / Celular</label>
+            <input type="tel" [(ngModel)]="editForm.phone" placeholder="+54 9 XXX XXX XXXX" />
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de nacimiento</label>
+            <input type="date" [(ngModel)]="editForm.dateOfBirth" />
+          </div>
+
+          <button class="btn-save" (click)="saveChanges()" [disabled]="isSaving">
+            @if (isSaving) {
+              <span class="spinner"></span>
+              <span>Guardando...</span>
+            } @else {
+              <span>Guardar cambios</span>
+            }
+          </button>
+        </div>
+      } @else {
+        <!-- View Mode -->
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label">Correo electrónico</span>
+            <span class="info-value">{{ userEmail }}</span>
+          </div>
+        </div>
+        
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label">Celular</span>
+            <span class="info-value">{{ userPhone || 'No especificado' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Address Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <h2>Domicilio actual</h2>
+      </div>
+
+      @if (isEditing) {
+        <!-- Edit Address -->
+        <div class="edit-form">
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y número" />
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ciudad</label>
+              <input type="text" [(ngModel)]="editForm.city" placeholder="Ciudad" />
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <input type="text" [(ngModel)]="editForm.state" placeholder="Estado" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Código postal</label>
+            <input type="text" [(ngModel)]="editForm.zip" placeholder="ZIP Code" />
+          </div>
+        </div>
+      } @else {
+        <div class="info-card address-card">
+          @if (address.street) {
+            <div class="address-icon">📍</div>
+            <div class="address-content">
+              <span class="address-street">{{ address.street }}</span>
+              <span class="address-location">{{ address.city }}, {{ address.state }}, Estados Unidos</span>
+              @if (address.zip) {
+                <span class="address-zip">ZIP: {{ address.zip }}</span>
+              }
+            </div>
+          } @else {
+            <div class="empty-address">
+              <span class="empty-icon">🏠</span>
+              <span>No has agregado tu domicilio</span>
+              <button class="btn-add-address" (click)="toggleEdit()">Agregar dirección</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Account Info Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <h2>Mi cuenta</h2>
+      </div>
+
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">Fecha de nacimiento</span>
+          <span class="info-value">{{ formatDate(dateOfBirth) }}</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">Estado de verificación</span>
+          <span class="info-value status" [class.verified]="isVerified">
+            {{ isVerified ? 'Verificado ✓' : 'Pendiente' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-btn" (click)="goBack()">
+        <span class="action-icon">🏠</span>
+        <span>Ir al Inicio</span>
+      </button>
+      <button class="action-btn" routerLink="/tax-form">
+        <span class="action-icon">📝</span>
+        <span>Mi Declaración</span>
+      </button>
+      <button class="action-btn" routerLink="/documents">
+        <span class="action-icon">📁</span>
+        <span>Documentos</span>
+      </button>
+    </div>
+  }
+</div>

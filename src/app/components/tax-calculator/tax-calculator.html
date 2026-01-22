@@ -1,0 +1,293 @@
+<div class="calculator-container">
+  <!-- Background decoration -->
+  <div class="bg-decoration">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="calculator-card" *ngIf="state === 'loading'">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Cargando calculadora...</p>
+    </div>
+  </div>
+
+  <!-- Already Calculated State (LOCKED - user cannot recalculate) -->
+  <div class="calculator-card already-calculated-card" *ngIf="state === 'already-calculated'">
+    <div class="result-content">
+      <div class="already-calculated-icon">
+        <div class="check-circle">✓</div>
+      </div>
+
+      <h2 class="result-title">Tu Reembolso Estimado</h2>
+
+      <div class="result-amount">
+        <span class="currency">$</span>
+        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+        <span class="cents">.00</span>
+      </div>
+
+      <!-- Breakdown Section (if data available) -->
+      <div class="result-breakdown" *ngIf="box2Federal > 0 || box17State > 0">
+        <div class="breakdown-item">
+          <span class="breakdown-label">Federal (Box 2)</span>
+          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+        </div>
+        <div class="breakdown-divider">+</div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Estatal (Box 17)</span>
+          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+        </div>
+      </div>
+
+      <!-- Status badges -->
+      <div class="status-badges">
+        <div class="status-badge success">
+          <span class="badge-icon">✓</span>
+          <span>W2 Procesado</span>
+        </div>
+        <div class="status-badge success">
+          <span class="badge-icon">✓</span>
+          <span>Sincronizado</span>
+        </div>
+      </div>
+
+      <p class="result-subtitle">
+        Este cálculo está guardado y sincronizado en todos tus dispositivos.
+        Continúa con tu declaración para recibir tu dinero.
+      </p>
+
+      <div class="result-highlights">
+        <div class="highlight">
+          <span class="highlight-icon">🔒</span>
+          <span>Solo puedes calcular una vez por año fiscal</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">📱</span>
+          <span>Disponible en todos tus dispositivos</span>
+        </div>
+      </div>
+
+      <button class="cta-button" (click)="startProcess()">
+        <span>Continuar con mi declaración</span>
+        <span class="cta-arrow">→</span>
+      </button>
+
+      <!-- Info note instead of recalculate button -->
+      <p class="info-note">
+        ¿Necesitas corregir tu W2? <a href="/messages">Contacta soporte</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Upload State -->
+  <div class="calculator-card" *ngIf="state === 'upload'">
+    <div class="card-header">
+      <div class="header-icon">📄</div>
+      <h1>Calculadora de Reembolso</h1>
+      <p>Descubre cuánto podrías recibir de tu tax return en segundos</p>
+    </div>
+
+    <div class="upload-section">
+      <h2>Sube tu formulario W2</h2>
+      <p class="upload-hint">Tu W2 contiene toda la información que necesitamos para calcular tu reembolso estimado</p>
+
+      <div 
+        class="upload-zone"
+        [class.dragging]="isDragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+      >
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept=".jpg,.jpeg,.png"
+          (change)="onFileSelect($event)"
+        >
+        
+        <div class="upload-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        
+        <div class="upload-text">
+          <span class="upload-main">Arrastra tu W2 aquí</span>
+          <span class="upload-or">o</span>
+          <span class="upload-browse">haz clic para seleccionar</span>
+        </div>
+        
+        <div class="upload-formats">
+          <span>JPG</span>
+          <span>PNG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <span class="error-icon">⚠️</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div class="security-note">
+      <span class="security-icon">🔒</span>
+      <span>Tu información está protegida con encriptación de nivel bancario</span>
+    </div>
+
+    <div class="demo-section">
+      <span class="demo-text">¿No tienes tu W2 a mano?</span>
+      <button class="demo-button" (click)="runDemo()">Ver demostración →</button>
+    </div>
+  </div>
+
+  <!-- Calculating State -->
+  <div class="calculator-card calculating-card" *ngIf="state === 'calculating'">
+    <div class="calculating-content">
+      <div class="calculating-animation">
+        <div class="calc-ring"></div>
+        <div class="calc-ring calc-ring-2"></div>
+        <div class="calc-ring calc-ring-3"></div>
+        <div class="calc-icon">💰</div>
+      </div>
+
+      <!-- Mode Indicator Badge -->
+      <div class="mode-badge" *ngIf="uploadedFile" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(29, 52, 93, 0.1); border-radius: 20px; margin-bottom: 12px; font-size: 14px; color: #1D345D;">
+        <span style="font-size: 16px;">🤖</span>
+        <span style="font-weight: 600;">Análisis con IA</span>
+      </div>
+      <div class="mode-badge" *ngIf="!uploadedFile" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255, 152, 0, 0.1); border-radius: 20px; margin-bottom: 12px; font-size: 14px; color: #ff9800;">
+        <span style="font-size: 16px;">🎭</span>
+        <span style="font-weight: 600;">Modo Demostración</span>
+      </div>
+
+      <h2 class="calculating-title">
+        <span *ngIf="uploadedFile">Analizando tu W2 con inteligencia artificial...</span>
+        <span *ngIf="!uploadedFile">Generando resultados de demostración...</span>
+      </h2>
+
+      <!-- File name indicator -->
+      <p class="file-name-indicator" *ngIf="uploadedFile" style="color: #666; font-size: 14px; margin-top: 8px;">
+        📄 {{ uploadedFile.name }}
+      </p>
+
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="calculationProgress"></div>
+        </div>
+        <span class="progress-text">{{ calculationProgress | number:'1.0-0' }}%</span>
+      </div>
+
+      <div class="calculating-steps">
+        <div class="step" [class.active]="calculationProgress >= 0">
+          <span class="step-icon">✓</span>
+          <span *ngIf="uploadedFile">Analizando documento...</span>
+          <span *ngIf="!uploadedFile">Iniciando demostración...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 35">
+          <span class="step-icon">✓</span>
+          <span *ngIf="uploadedFile">Extrayendo información fiscal...</span>
+          <span *ngIf="!uploadedFile">Generando datos de ejemplo...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 70">
+          <span class="step-icon">✓</span>
+          <span>Calculando deducciones...</span>
+        </div>
+        <div class="step" [class.active]="calculationProgress >= 95">
+          <span class="step-icon">✓</span>
+          <span>Generando estimado...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result State -->
+  <div class="calculator-card result-card" *ngIf="state === 'result'">
+    <div class="result-celebration">
+      <div class="confetti confetti-1">🎉</div>
+      <div class="confetti confetti-2">✨</div>
+      <div class="confetti confetti-3">💵</div>
+      <div class="confetti confetti-4">🎊</div>
+      <div class="confetti confetti-5">⭐</div>
+    </div>
+
+    <div class="result-content">
+      <div class="result-badge">¡Excelentes noticias!</div>
+      
+      <h2 class="result-title">Tu reembolso estimado es de</h2>
+      
+      <div class="result-amount">
+        <span class="currency">$</span>
+        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+        <span class="cents">.00</span>
+      </div>
+
+      <p class="result-subtitle">
+        Basado en la información de tu W2, podrías recibir este monto de regreso del IRS
+      </p>
+
+      <!-- Breakdown Section -->
+      <div class="result-breakdown">
+        <div class="breakdown-item">
+          <span class="breakdown-label">Federal (Box 2)</span>
+          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+        </div>
+        <div class="breakdown-divider">+</div>
+        <div class="breakdown-item">
+          <span class="breakdown-label">Estatal (Box 17)</span>
+          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+        </div>
+      </div>
+
+      <!-- Confidence Badge -->
+      <div class="confidence-badge" [class]="getConfidenceClass()">
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'high'">✓</span>
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'medium'">○</span>
+        <span class="confidence-icon" *ngIf="ocrConfidence === 'low'">!</span>
+        <span>{{ getConfidenceLabel() }}</span>
+      </div>
+
+      <div class="result-highlights">
+        <div class="highlight">
+          <span class="highlight-icon">⚡</span>
+          <span>Proceso 100% online</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">📅</span>
+          <span>Recibe tu dinero en 2-3 semanas</span>
+        </div>
+        <div class="highlight">
+          <span class="highlight-icon">💳</span>
+          <span>Depósito directo a tu cuenta</span>
+        </div>
+      </div>
+
+      <button class="cta-button" (click)="startProcess()">
+        <span>¡Quiero mi reembolso!</span>
+        <span class="cta-arrow">→</span>
+      </button>
+
+      <button class="reset-button" (click)="resetCalculator()">
+        Calcular con otro documento
+      </button>
+
+      <!-- Document auto-save indicator -->
+      <div class="saved-indicator saving" *ngIf="isSavingDocument && uploadedFile">
+        <span class="saved-icon spinning">⏳</span>
+        <span>Guardando W2 automáticamente...</span>
+      </div>
+      <div class="saved-indicator" *ngIf="documentSaved && !isSavingDocument">
+        <span class="saved-icon">✓</span>
+        <span>W2 guardado en tus documentos</span>
+      </div>
+    </div>
+  </div>
+</div>
+

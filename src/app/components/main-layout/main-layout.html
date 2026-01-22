@@ -1,0 +1,134 @@
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="logo" (click)="navigateWithRefresh('/dashboard')" style="cursor: pointer;">
+        <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="sidebar-logo">
+      </div>
+      <button class="btn-close-sidebar" (click)="sidebarOpen = false">✕</button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick('/dashboard')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Inicio</span>
+      </a>
+      <a class="nav-link" routerLink="/tax-form" routerLinkActive="active" (click)="onNavClick('/tax-form')">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Mi Declaración</span>
+      </a>
+      <a class="nav-link" routerLink="/documents" routerLinkActive="active" (click)="onNavClick('/documents')">
+        <span class="nav-icon">📁</span>
+        <span class="nav-text">Mis Documentos</span>
+      </a>
+      <a class="nav-link" routerLink="/tax-calculator" routerLinkActive="active" (click)="onNavClick('/tax-calculator')">
+        <span class="nav-icon">🧮</span>
+        <span class="nav-text">Calculadora</span>
+      </a>
+      <a class="nav-link" routerLink="/tax-tracking" routerLinkActive="active" (click)="onNavClick('/tax-tracking')">
+        <span class="nav-icon">📍</span>
+        <span class="nav-text">Seguimiento</span>
+      </a>
+      <a class="nav-link" routerLink="/chatbot" routerLinkActive="active" (click)="onNavClick('/chatbot')">
+        <span class="nav-icon">🤖</span>
+        <span class="nav-text">Asistente</span>
+      </a>
+      <a class="nav-link" routerLink="/messages" routerLinkActive="active" (click)="onNavClick('/messages')">
+        <span class="nav-icon">💬</span>
+        <span class="nav-text">Soporte</span>
+      </a>
+
+      <!-- Referral Program - Special Link -->
+      <div class="nav-divider"></div>
+      <a class="nav-link referral-link" routerLink="/referral-program" (click)="closeSidebar()">
+        <span class="nav-icon">🎁</span>
+        <span class="nav-text">Programa de Referidos</span>
+        <span class="nav-badge new">NUEVO</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <a class="user-card" routerLink="/profile" (click)="closeSidebar()">
+        <div class="user-avatar-sm">{{ userInitials }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ userName || 'Usuario' }}</span>
+          <span class="user-email">{{ userEmail }}</span>
+        </div>
+        <span class="user-card-arrow">›</span>
+      </a>
+      <button class="btn-logout" (click)="logout()">
+        <span>🚪</span>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  @if (sidebarOpen) {
+    <div class="sidebar-overlay" (click)="sidebarOpen = false"></div>
+  }
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="btn-menu" (click)="sidebarOpen = true">☰</button>
+      
+      <div class="welcome-text">
+        Bienvenido, <strong>{{ userName || 'Usuario' }}</strong> 👋
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-notifications" (click)="toggleNotificationsPanel()">
+          <span class="notif-icon">🔔</span>
+          @if (unreadNotifications > 0) {
+            <span class="notif-badge">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
+          }
+        </button>
+      </div>
+    </header>
+
+    <!-- Notifications Panel -->
+    @if (showNotificationsPanel) {
+      <div class="notifications-overlay" (click)="showNotificationsPanel = false"></div>
+      <div class="notifications-panel">
+        <div class="notifications-header">
+          <h3>Notificaciones</h3>
+          <button class="btn-close-notif" (click)="showNotificationsPanel = false">✕</button>
+        </div>
+        @if (unreadNotifications > 0) {
+          <button class="btn-mark-all" (click)="markAllAsRead()">Marcar todas como leídas</button>
+        }
+        <div class="notifications-list">
+          @for (notification of notifications; track notification.id) {
+            <div class="notification-item" [class.unread]="!notification.isRead" (click)="markAsRead(notification)">
+              <span class="notification-type-icon">{{ getNotificationIcon(notification.type) }}</span>
+              <div class="notification-content">
+                <span class="notification-title">{{ notification.title }}</span>
+                <span class="notification-message">{{ notification.message }}</span>
+                <span class="notification-time">{{ formatNotificationDate(notification.createdAt) }}</span>
+              </div>
+            </div>
+          } @empty {
+            <div class="no-notifications">
+              <span>📭</span>
+              <span>No tienes notificaciones</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Page Content (Router Outlet) -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
+<app-toast></app-toast>
+

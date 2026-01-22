@@ -1,0 +1,76 @@
+<div class="chatbot-content">
+  <!-- Hero Section -->
+  <div class="chatbot-hero">
+    <div class="hero-icon">🤖</div>
+    <h1>Asistente Virtual Ip1</h1>
+    <p class="hero-subtitle">Tu asistente especializado en devolución de impuestos para estudiantes J-1</p>
+  </div>
+
+  <!-- Features Grid -->
+  <div class="features-grid">
+    <div class="feature-card" (click)="openChat()">
+      <div class="feature-icon">📄</div>
+      <h3>Documentos</h3>
+      <p>Consultá qué documentos necesitás para tu declaración</p>
+    </div>
+    <div class="feature-card" (click)="openChat()">
+      <div class="feature-icon">⏱️</div>
+      <h3>Tiempos</h3>
+      <p>Conocé cuánto tiempo tarda el proceso de reembolso</p>
+    </div>
+    <div class="feature-card" (click)="openChat()">
+      <div class="feature-icon">💰</div>
+      <h3>Costos</h3>
+      <p>Información sobre tarifas y comisiones del servicio</p>
+    </div>
+    <div class="feature-card" (click)="openChat()">
+      <div class="feature-icon">📋</div>
+      <h3>Proceso</h3>
+      <p>Entendé paso a paso cómo funciona todo</p>
+    </div>
+  </div>
+
+  <!-- Chat CTA -->
+  <div class="chat-instruction">
+    <button class="instruction-bubble" (click)="openChat()">
+      <span class="bubble-arrow">💬</span>
+      <h3>¡Empezá a chatear!</h3>
+      <p>Hacé clic aquí para iniciar una conversación con <strong>Ip1</strong></p>
+    </button>
+  </div>
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <div class="help-divider">
+      <span>¿Necesitás ayuda humana?</span>
+    </div>
+    <button class="btn-support" (click)="contactSupport()">
+      <span class="support-icon">👤</span>
+      <span>Contactar equipo de soporte</span>
+    </button>
+  </div>
+</div>
+
+<!-- Chatbot Modal -->
+@if (isChatOpen) {
+  <div class="chat-modal-overlay" (click)="closeChat()">
+    <div class="chat-modal" (click)="$event.stopPropagation()">
+      <div class="chat-modal-header">
+        <div class="chat-modal-title">
+          <span class="chat-modal-icon">🤖</span>
+          <span>Chat con Ip1</span>
+        </div>
+        <button class="chat-modal-close" (click)="closeChat()">✕</button>
+      </div>
+      <div class="chat-modal-body">
+        <iframe 
+          [src]="chatbotUrl"
+          width="100%" 
+          height="100%" 
+          frameborder="0" 
+          allow="microphone">
+        </iframe>
+      </div>
+    </div>
+  </div>
+}

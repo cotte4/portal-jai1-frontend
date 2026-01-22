@@ -1,0 +1,214 @@
+<!-- Document Confirmation Popup -->
+<div class="popup-overlay" *ngIf="showConfirmPopup" (click)="cancelUpload()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <div class="popup-icon">📄</div>
+    <h2>Confirmar documento</h2>
+    <p>¿Estás seguro que este es tu documento <strong>{{ getSelectedTypeLabel() }}</strong>?</p>
+    <p class="file-name-preview" *ngIf="pendingFile">{{ pendingFile.name }}</p>
+    <p class="warning-message">⚠️ No podrás eliminar este documento luego de subirlo.</p>
+    <div class="popup-actions">
+      <button class="btn-popup-secondary" (click)="cancelUpload()">
+        No, cancelar
+      </button>
+      <button class="btn-popup-primary" (click)="confirmUpload()">
+        Sí, subir documento
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- W2 Calculator Popup -->
+<div class="popup-overlay" *ngIf="showW2Popup" (click)="closeW2Popup()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <div class="popup-icon">🧮</div>
+    <h2>¡W2 detectado!</h2>
+    <p>¿Querés calcular tu posible devolución ahora mismo con este documento?</p>
+    <div class="popup-actions">
+      <button class="btn-popup-secondary" (click)="closeW2Popup()">
+        Ahora no
+      </button>
+      <button class="btn-popup-primary" (click)="goToCalculator()">
+        ¡Sí, calcular! 🚀
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Initial Loading Screen -->
+<div class="initial-loading" *ngIf="!hasLoaded">
+  <div class="loading-spinner"></div>
+  <p>Cargando tus documentos...</p>
+</div>
+
+<div class="upload-content" *ngIf="hasLoaded">
+  <!-- Success Screen when all required docs uploaded -->
+  <div class="success-screen" *ngIf="allRequiredDocsUploaded && !showUploadView">
+    <div class="success-card">
+      <div class="success-icon-big">🎉</div>
+      <h1>¡Documentos Completos!</h1>
+      <p class="success-subtitle">Has subido todos los documentos necesarios</p>
+
+      <div class="success-checklist">
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Documento W2</span>
+        </div>
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Comprobante de Pago</span>
+        </div>
+      </div>
+
+      <p class="success-message">Tu documentación está lista para ser procesada. Nuestro equipo revisará todo y te notificaremos cualquier novedad.</p>
+
+      <div class="success-actions">
+        <button class="btn-primary-action" (click)="goToDashboard()">
+          <span>Ver mi Progreso</span>
+          <span>→</span>
+        </button>
+        <button class="btn-secondary-action" (click)="goToTaxForm()">
+          Completar mi Declaración
+        </button>
+      </div>
+    </div>
+
+    <!-- Link to view uploaded documents -->
+    <div class="view-docs-section">
+      <p class="view-docs-text">{{ uploadedFiles.length }} documentos cargados</p>
+      <button class="btn-view-docs" (click)="showUploadView = true">
+        Ver mis documentos
+      </button>
+    </div>
+  </div>
+
+  <!-- Regular upload view -->
+  <div *ngIf="!allRequiredDocsUploaded || showUploadView">
+    <!-- Back to success button when viewing docs after completion -->
+    <button class="btn-back-to-success" *ngIf="allRequiredDocsUploaded && showUploadView" (click)="showUploadView = false">
+      ← Volver al resumen
+    </button>
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+    </div>
+
+  <!-- Messages -->
+  <div class="message success-message" *ngIf="successMessage">
+    <span class="message-icon">✓</span>
+    {{ successMessage }}
+  </div>
+  <div class="message error-message" *ngIf="errorMessage">
+    <span class="message-icon">⚠</span>
+    {{ errorMessage }}
+  </div>
+
+ <!-- Document Type Tabs -->
+  <div class="document-type-tabs">
+    <button
+      *ngFor="let type of documentTypes"
+      class="doc-tab"
+      [class.active]="selectedType === type.value"
+      [class.uploaded]="uploadedTypes.has(type.value)"
+      (click)="selectedType = type.value">
+      <span class="tab-icon">{{ type.value === 'w2' ? '📋' : type.value === 'payment_proof' ? '💳' : '📎' }}</span>
+      <span class="tab-label">{{ type.label }}</span>
+      <span class="tab-check" *ngIf="uploadedTypes.has(type.value)">✓</span>
+    </button>
+  </div>
+
+  <!-- Upload Zone -->
+  <div
+    class="upload-zone"
+    [class.drag-over]="dragOver"
+    [class.uploading]="isUploading"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <div class="upload-icon-wrapper">
+      <span class="upload-icon">{{ isUploading ? '⏳' : '📤' }}</span>
+    </div>
+    <h2>{{ isUploading ? 'Subiendo archivo...' : 'Arrastra y suelta tus archivos aqui' }}</h2>
+    <p class="upload-or" *ngIf="!isUploading">o</p>
+    <label for="fileInput" class="btn-browse" *ngIf="!isUploading">
+      <span>Seleccionar archivos</span>
+    </label>
+    <input
+      type="file"
+      id="fileInput"
+      (change)="onFileSelected($event)"
+      accept=".pdf,.png,.jpg,.jpeg"
+      multiple
+      hidden
+      [disabled]="isUploading"
+    >
+    <div class="upload-info">
+      <div class="info-item">
+        <span class="info-icon">📄</span>
+        <span>PDF, PNG, JPG</span>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">💾</span>
+        <span>Maximo 25MB por archivo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando documentos...</p>
+  </div>
+
+  <!-- Uploaded Files Section -->
+  <div class="files-section" *ngIf="uploadedFiles.length > 0 && !isLoading">
+    <div class="section-header">
+      <h2>Documentos cargados</h2>
+      <span class="file-count">{{ uploadedFiles.length }} archivo<span *ngIf="uploadedFiles.length !== 1">s</span></span>
+    </div>
+
+    <div class="files-list">
+      <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+        <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
+        <div class="file-details">
+          <div class="file-name">{{ file.fileName }}</div>
+          <div class="file-meta">
+            <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
+            <span class="file-separator">|</span>
+            <span class="file-date">{{ file.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="file-separator">|</span>
+            <span class="file-type">{{ getDocumentTypeLabel(file.type) }}</span>
+            <span *ngIf="file.isReviewed" class="reviewed-badge">Revisado</span>
+          </div>
+        </div>
+        <button class="btn-download" (click)="downloadFile(file)" title="Descargar">
+          <span>⬇️</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="uploadedFiles.length === 0 && !isLoading">
+    <div class="empty-icon">📁</div>
+    <h3>No hay documentos cargados todavia</h3>
+    <p>Comienza subiendo tus primeros archivos usando el area de arriba</p>
+  </div>
+
+  <!-- Tips Section -->
+  <div class="tips-card">
+    <div class="tips-header">
+      <span class="tips-icon">💡</span>
+      <h3>Consejos para subir documentos</h3>
+    </div>
+    <ul class="tips-list">
+      <li>Asegurate de que los documentos sean legibles y esten completos</li>
+      <li>Nombra tus archivos de forma clara (ej: "W2-2024.pdf")</li>
+      <li>Si tienes dudas sobre que documentos necesitas, contactanos</li>
+      <li>Puedes subir multiples archivos a la vez</li>
+    </ul>
+  </div>
+  </div><!-- End of regular upload view -->
+</div>
