@@ -99,7 +99,387 @@
   transform: scale(1.02);
 }
 
-/* ==================== TOP SECTION ==================== */
+/* ==================== WELCOME HEADER ==================== */
+.welcome-header {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  border-radius: 20px;
+  padding: 28px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.welcome-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.welcome-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-icon {
+  font-size: 20px;
+}
+
+.badge-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ==================== BENTO GRID ==================== */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.bento-card {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Attention state - blinking animation */
+.bento-card.attention {
+  border-color: #1D345D;
+  animation: attention-pulse 2s ease-in-out infinite;
+}
+
+@keyframes attention-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 52, 93, 0.4);
+    border-color: #1D345D;
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(29, 52, 93, 0);
+    border-color: #B21B43;
+  }
+}
+
+/* Completed state */
+.bento-card.completed {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.bento-card.completed:hover {
+  transform: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.bento-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+  justify-content: center;
+}
+
+.step-number {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bento-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bento-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 8px 0;
+}
+
+.bento-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.bento-btn {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.bento-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 52, 93, 0.3);
+}
+
+.bento-btn .btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.bento-btn:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Completed overlay */
+.completed-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.completed-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.completed-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* ==================== REFUND SECTION ==================== */
+.refund-section {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* ==================== PROGRESS SECTION (Zeigarnik Effect) ==================== */
+.progress-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.progress-section .progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progress-section .progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.progress-section .progress-percent {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.progress-bar-container {
+  position: relative;
+}
+
+.progress-bar-track {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-steps-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.progress-step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.progress-step-dot.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transform: scale(1.1);
+}
+
+.progress-step-dot.active {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  animation: pulse-dot 2s ease-in-out infinite;
+  transform: scale(1.15);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 52, 93, 0.4), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(29, 52, 93, 0), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.dot-check {
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Progress Section Complete State */
+.progress-section.complete {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 2px solid #10b981;
+}
+
+.progress-complete-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.progress-complete-check {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.progress-complete-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.progress-complete-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.progress-complete-subtitle {
+  font-size: 13px;
+  color: #047857;
+}
+
+.progress-complete-pill {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* ==================== TOP SECTION (LEGACY - keeping for compatibility) ==================== */
 .top-section {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
@@ -787,11 +1167,37 @@
   .action-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bento-grid .bento-card:last-child {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 900px) {
   .top-section {
     grid-template-columns: 1fr;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bento-grid .bento-card:last-child {
+    grid-column: span 1;
+  }
+
+  .welcome-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .welcome-title {
+    font-size: 20px;
   }
 }
 
@@ -799,6 +1205,56 @@
   .dashboard-content {
     padding: var(--page-padding);
     gap: var(--spacing-lg);
+  }
+
+  /* Progress Section Mobile */
+  .progress-section {
+    padding: 16px 20px;
+  }
+
+  .progress-section .progress-title {
+    font-size: 14px;
+  }
+
+  .progress-section .progress-percent {
+    font-size: 13px;
+  }
+
+  .progress-bar-track {
+    height: 10px;
+  }
+
+  .progress-step-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dot-check {
+    font-size: 12px;
+  }
+
+  /* Progress Complete Mobile */
+  .progress-complete-row {
+    gap: 12px;
+  }
+
+  .progress-complete-check {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .progress-complete-title {
+    font-size: 14px;
+  }
+
+  .progress-complete-subtitle {
+    font-size: 12px;
+  }
+
+  .progress-complete-pill {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .action-cards-grid {
@@ -811,6 +1267,53 @@
     text-align: center;
     gap: var(--spacing-md);
     padding: var(--card-padding);
+  }
+
+  /* Bento Grid Mobile */
+  .bento-card {
+    padding: var(--card-padding);
+    min-height: 220px;
+  }
+
+  .bento-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .bento-title {
+    font-size: 16px;
+  }
+
+  .bento-desc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .bento-btn {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .completed-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+
+  .completed-text {
+    font-size: 18px;
+  }
+
+  .welcome-header {
+    padding: 20px 24px;
+  }
+
+  .welcome-title {
+    font-size: 18px;
+  }
+
+  .welcome-subtitle {
+    font-size: 13px;
   }
 
   .refund-card, .progress-card, .irs-tracking-card {
@@ -945,6 +1448,122 @@
 
   .top-section {
     gap: var(--spacing-md);
+  }
+
+  /* Progress Section Small Mobile */
+  .progress-section {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .progress-section .progress-header {
+    margin-bottom: 12px;
+  }
+
+  .progress-section .progress-title {
+    font-size: 13px;
+  }
+
+  .progress-section .progress-percent {
+    font-size: 12px;
+  }
+
+  .progress-bar-track {
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .progress-bar-fill {
+    border-radius: 4px;
+  }
+
+  .progress-steps-indicators {
+    margin-top: 10px;
+  }
+
+  .progress-step-dot {
+    width: 22px;
+    height: 22px;
+    border-width: 2px;
+  }
+
+  .dot-check {
+    font-size: 11px;
+  }
+
+  /* Bento Grid Small Mobile */
+  .bento-grid {
+    gap: var(--spacing-md);
+  }
+
+  .bento-card {
+    padding: var(--spacing-lg);
+    min-height: 200px;
+    border-radius: 16px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    top: 12px;
+    left: 12px;
+  }
+
+  .bento-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .bento-title {
+    font-size: 15px;
+  }
+
+  .bento-desc {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .bento-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .completed-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .completed-text {
+    font-size: 16px;
+  }
+
+  .welcome-header {
+    padding: var(--spacing-md);
+    border-radius: 16px;
+  }
+
+  .welcome-title {
+    font-size: 16px;
+  }
+
+  .welcome-subtitle {
+    font-size: 12px;
+  }
+
+  .welcome-badge {
+    padding: 8px 14px;
+  }
+
+  .badge-icon {
+    font-size: 16px;
+  }
+
+  .badge-text {
+    font-size: 12px;
   }
 
   .refund-card {

@@ -21,24 +21,20 @@
     </div>
   }
 
-  <!-- Top Section: Two Cards Side by Side -->
-  <div class="top-section">
-    <!-- Left Card: Reembolso Estimado -->
+  <!-- Refund Card - Row 1 (Top priority) -->
+  <div class="refund-section">
     <div class="refund-card">
       <div class="refund-header">
         <span class="refund-icon">💰</span>
         <span class="refund-label">Reembolso Estimado</span>
       </div>
-      
+
       @if (hasCalculatorResult) {
         <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
         <div class="refund-calculated">
           <span class="check-icon">✓</span>
           Calculado con tu W2
         </div>
-        <button class="btn-recalculate" (click)="navigateTo('/tax-calculator')">
-          Recalcular →
-        </button>
       } @else {
         <div class="refund-not-calculated">
           <span class="question-icon">📄</span>
@@ -50,72 +46,119 @@
         </button>
       }
     </div>
-
-    <!-- Right Card: User Progress -->
-    <div class="progress-card" [class.compact]="userProgressComplete">
-      @if (userProgressComplete) {
-        <!-- Compact Completed State -->
-        <div class="progress-complete">
-          <div class="progress-complete-icon">
-            <span class="complete-check">✓</span>
-          </div>
-          <div class="progress-complete-content">
-            <span class="progress-complete-title">Preparacion completa</span>
-            <span class="progress-complete-subtitle">Todos los pasos completados</span>
-          </div>
-          <div class="progress-complete-badge">100%</div>
-        </div>
-      } @else {
-        <!-- Expanded Progress State -->
-        <div class="progress-header">
-          <div class="progress-title">
-            <span class="progress-icon">📋</span>
-            <span>Tu Progreso</span>
-          </div>
-          <div class="progress-badge">
-            {{ userProgressPercent }}%
-          </div>
-        </div>
-
-        <div class="progress-bar-container">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="userProgressPercent"></div>
-          </div>
-        </div>
-
-        <div class="checklist">
-          <div class="checklist-item" [class.done]="isProfileComplete">
-            <span class="item-check">{{ isProfileComplete ? '✓' : '○' }}</span>
-            <span class="item-text">Datos de perfil</span>
-            @if (!isProfileComplete) {
-              <button class="item-action" (click)="navigateTo('/tax-form')">Completar</button>
-            }
-          </div>
-          <div class="checklist-item" [class.done]="isFormSent">
-            <span class="item-check">{{ isFormSent ? '✓' : '○' }}</span>
-            <span class="item-text">Formulario enviado</span>
-            @if (!isFormSent && isProfileComplete) {
-              <button class="item-action" (click)="navigateTo('/tax-form')">Enviar</button>
-            }
-          </div>
-          <div class="checklist-item" [class.done]="hasW2Document">
-            <span class="item-check">{{ hasW2Document ? '✓' : '○' }}</span>
-            <span class="item-text">Documento W2</span>
-            @if (!hasW2Document) {
-              <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-            }
-          </div>
-          <div class="checklist-item" [class.done]="hasPaymentProof">
-            <span class="item-check">{{ hasPaymentProof ? '✓' : '○' }}</span>
-            <span class="item-text">Comprobante de pago</span>
-            @if (!hasPaymentProof) {
-              <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-            }
-          </div>
-        </div>
-      }
-    </div>
   </div>
+
+  <!-- Progress Bar - Row 2 -->
+  @if (!allStepsComplete) {
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-title">Tu progreso</span>
+        <span class="progress-percent">{{ stepsCompletedCount }}/3 completados</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" [style.width.%]="(stepsCompletedCount / 3) * 100"></div>
+        </div>
+        <div class="progress-steps-indicators">
+          <div class="progress-step-dot" [class.completed]="isStep1Complete" [class.active]="!isStep1Complete">
+            @if (isStep1Complete) { <span class="dot-check">✓</span> }
+          </div>
+          <div class="progress-step-dot" [class.completed]="isStep2Complete" [class.active]="isStep1Complete && !isStep2Complete">
+            @if (isStep2Complete) { <span class="dot-check">✓</span> }
+          </div>
+          <div class="progress-step-dot" [class.completed]="isStep3Complete" [class.active]="isStep1Complete && isStep2Complete && !isStep3Complete">
+            @if (isStep3Complete) { <span class="dot-check">✓</span> }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- All Steps Complete - Success State -->
+    <div class="progress-section complete">
+      <div class="progress-complete-row">
+        <div class="progress-complete-check">✓</div>
+        <div class="progress-complete-text">
+          <span class="progress-complete-title">Preparación completa</span>
+          <span class="progress-complete-subtitle">Todos los pasos completados correctamente</span>
+        </div>
+        <div class="progress-complete-pill">100%</div>
+      </div>
+    </div>
+  }
+
+  <!-- Bento Grid: Steps Section - Row 3 (only show if not all steps complete) -->
+  @if (!allStepsComplete) {
+    <div class="bento-grid">
+      <!-- Step 1: Completá tu declaración -->
+      <div class="bento-card"
+           [class.completed]="isStep1Complete"
+           [class.attention]="!isStep1Complete && !isStep2Complete && !isStep3Complete">
+        <div class="bento-card-content">
+          @if (isStep1Complete) {
+            <div class="completed-overlay">
+              <div class="completed-icon">✓</div>
+              <span class="completed-text">¡Completado!</span>
+            </div>
+          } @else {
+            <div class="step-number">1</div>
+            <div class="bento-icon">📝</div>
+            <h3 class="bento-title">Completá tu declaración</h3>
+            <p class="bento-desc">Llená el formulario con tus datos personales y tributarios</p>
+            <button class="bento-btn" (click)="navigateTo('/tax-form')">
+              Completar declaración
+              <span class="btn-arrow">→</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Step 2: Subí tu documento W2 -->
+      <div class="bento-card"
+           [class.completed]="isStep2Complete"
+           [class.attention]="isStep1Complete && !isStep2Complete && !isStep3Complete">
+        <div class="bento-card-content">
+          @if (isStep2Complete) {
+            <div class="completed-overlay">
+              <div class="completed-icon">✓</div>
+              <span class="completed-text">¡Completado!</span>
+            </div>
+          } @else {
+            <div class="step-number">2</div>
+            <div class="bento-icon">📄</div>
+            <h3 class="bento-title">Subí tu documento W2</h3>
+            <p class="bento-desc">Cargá tu formulario W2 para calcular tu reembolso</p>
+            <button class="bento-btn" (click)="navigateTo('/documents')">
+              Ir a mis documentos
+              <span class="btn-arrow">→</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Step 3: Subí tu comprobante de pago -->
+      <div class="bento-card"
+           [class.completed]="isStep3Complete"
+           [class.attention]="isStep1Complete && isStep2Complete && !isStep3Complete">
+        <div class="bento-card-content">
+          @if (isStep3Complete) {
+            <div class="completed-overlay">
+              <div class="completed-icon">✓</div>
+              <span class="completed-text">¡Completado!</span>
+            </div>
+          } @else {
+            <div class="step-number">3</div>
+            <div class="bento-icon">💳</div>
+            <h3 class="bento-title">Subí tu comprobante de pago</h3>
+            <p class="bento-desc">Adjuntá el comprobante del pago inicial</p>
+            <button class="bento-btn" (click)="navigateTo('/documents')">
+              Ir a mis documentos
+              <span class="btn-arrow">→</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- IRS Tracking Card - Shows current step from seguimiento system -->
   @if (showIRSProgress) {
@@ -168,57 +211,6 @@
       </div>
     </div>
   }
-
-  <!-- Quick Actions -->
-  <div class="actions-section">
-    <h2 class="section-title">Acciones rápidas</h2>
-    
-    <div class="action-cards-grid">
-      <!-- Calculator Card -->
-      <div class="action-card" (click)="navigateTo('/tax-calculator')">
-        <div class="card-top">
-          <div class="card-icon purple">🧮</div>
-          <span class="card-badge new">NUEVO</span>
-        </div>
-        <h3 class="card-title">Calculadora</h3>
-        <p class="card-desc">Calcula tu reembolso estimado con tu W2</p>
-        <span class="card-action">Calcular →</span>
-      </div>
-
-      <!-- Tax Form Card -->
-      <div class="action-card" (click)="navigateTo('/tax-form')">
-        <div class="card-top">
-          <div class="card-icon blue">📋</div>
-          @if (!isFormSent) {
-            <span class="card-badge important">IMPORTANTE</span>
-          }
-        </div>
-        <h3 class="card-title">Mi Declaración</h3>
-        <p class="card-desc">Completá tu información personal y tributaria</p>
-        <span class="card-action">{{ isFormSent ? 'Ver formulario' : 'Completar' }} →</span>
-      </div>
-
-      <!-- Upload Documents Card -->
-      <div class="action-card" (click)="navigateTo('/documents')">
-        <div class="card-top">
-          <div class="card-icon orange">📁</div>
-        </div>
-        <h3 class="card-title">Documentos</h3>
-        <p class="card-desc">Cargá tus documentos fiscales (W-2, recibos)</p>
-        <span class="card-action">{{ hasW2Document ? 'Ver documentos' : 'Subir archivos' }} →</span>
-      </div>
-
-      <!-- Chatbot Card -->
-      <div class="action-card" (click)="navigateTo('/chatbot')">
-        <div class="card-top">
-          <div class="card-icon green">🤖</div>
-        </div>
-        <h3 class="card-title">Asistente Virtual</h3>
-        <p class="card-desc">Resolvé tus dudas con nuestro chatbot</p>
-        <span class="card-action">Iniciar chat →</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Help Footer -->
   <div class="help-footer">
