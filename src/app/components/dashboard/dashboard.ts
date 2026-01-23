@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ElementRef, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, forkJoin, finalize, of } from 'rxjs';
@@ -9,6 +9,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import {
   ProfileResponse,
   Document,
@@ -54,7 +55,7 @@ interface DashboardCacheData {
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Dashboard implements OnInit, OnDestroy {
+export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
@@ -63,7 +64,13 @@ export class Dashboard implements OnInit, OnDestroy {
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private animationService = inject(AnimationService);
   private subscriptions = new Subscription();
+
+  @ViewChild('welcomeSection') welcomeSection!: ElementRef<HTMLElement>;
+  @ViewChild('refundValue') refundValue!: ElementRef<HTMLElement>;
+  @ViewChildren('bentoCard') bentoCards!: QueryList<ElementRef<HTMLElement>>;
+  private hasAnimated: boolean = false;
 
   profileData: ProfileResponse | null = null;
   documents: Document[] = [];
@@ -103,13 +110,55 @@ export class Dashboard implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Trigger entrance animations after data loads
+    this.runEntranceAnimations();
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     // Clear safety timeout to prevent memory leaks and errors after component destroy
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
     }
+  }
+
+  private runEntranceAnimations() {
+    if (this.hasAnimated) return;
+
+    // Wait for hasLoaded to be true, then animate
+    const checkAndAnimate = () => {
+      if (!this.hasLoaded) {
+        setTimeout(checkAndAnimate, 100);
+        return;
+      }
+
+      this.hasAnimated = true;
+
+      // Animate welcome section
+      if (this.welcomeSection?.nativeElement) {
+        this.animationService.slideIn(this.welcomeSection.nativeElement, 'up', { delay: 0.1 });
+      }
+
+      // Stagger animate bento cards
+      if (this.bentoCards?.length) {
+        const cards = this.bentoCards.map(c => c.nativeElement);
+        this.animationService.staggerIn(cards, { direction: 'up', stagger: 0.08, delay: 0.2 });
+      }
+
+      // Animate refund counter if available
+      if (this.refundValue?.nativeElement && this.calculatorResult?.estimatedRefund) {
+        this.animationService.counterUp(
+          this.refundValue.nativeElement,
+          this.calculatorResult.estimatedRefund,
+          { prefix: '$', decimals: 0, duration: 1 }
+        );
+      }
+    };
+
+    checkAndAnimate();
   }
 
   loadData() {

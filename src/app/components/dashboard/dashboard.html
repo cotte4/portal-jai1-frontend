@@ -22,7 +22,7 @@
   }
 
   <!-- Refund Card - Row 1 (Top priority) -->
-  <div class="refund-section">
+  <div class="refund-section" #welcomeSection>
     <div class="refund-card">
       <div class="refund-header">
         <span class="refund-icon">💰</span>
@@ -30,7 +30,7 @@
       </div>
 
       @if (hasCalculatorResult) {
-        <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
+        <div class="refund-amount" #refundValue>{{ estimatedRefundDisplay }}</div>
         <div class="refund-calculated">
           <span class="check-icon">✓</span>
           Calculado con tu W2
@@ -90,7 +90,7 @@
   @if (!allStepsComplete) {
     <div class="bento-grid">
       <!-- Step 1: Completá tu declaración -->
-      <div class="bento-card"
+      <div class="bento-card" #bentoCard
            [class.completed]="isStep1Complete"
            [class.attention]="!isStep1Complete && !isStep2Complete && !isStep3Complete">
         <div class="bento-card-content">
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Step 2: Subí tu documento W2 -->
-      <div class="bento-card"
+      <div class="bento-card" #bentoCard
            [class.completed]="isStep2Complete"
            [class.attention]="isStep1Complete && !isStep2Complete && !isStep3Complete">
         <div class="bento-card-content">
@@ -136,7 +136,7 @@
       </div>
 
       <!-- Step 3: Subí tu comprobante de pago -->
-      <div class="bento-card"
+      <div class="bento-card" #bentoCard
            [class.completed]="isStep3Complete"
            [class.attention]="isStep1Complete && isStep2Complete && !isStep3Complete">
         <div class="bento-card-content">
