@@ -164,7 +164,7 @@
     </div>
   } @else {
     <!-- SHARED STEPS (Steps 1-2) -->
-    <div class="shared-timeline">
+    <div class="shared-timeline" #sharedTrack>
       <div class="timeline-section-title">
         <span class="section-icon">📄</span>
         <span>Etapa Inicial</span>
@@ -227,7 +227,7 @@
     <!-- DUAL TRACK - Federal & Estatal Side by Side -->
     <div class="dual-track">
       <!-- FEDERAL TRACK (Left) -->
-      <div class="track federal-track">
+      <div class="track federal-track" #federalTrack>
         <div class="track-header federal">
           <span class="track-icon">🦅</span>
           <h2>Federal</h2>
@@ -285,7 +285,7 @@
       </div>
 
       <!-- ESTATAL TRACK (Right) -->
-      <div class="track estatal-track">
+      <div class="track estatal-track" #stateTrack>
         <div class="track-header estatal">
           <span class="track-icon">🗽</span>
           <h2>Estatal</h2>

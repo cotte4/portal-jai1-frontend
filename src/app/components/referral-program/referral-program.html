@@ -291,7 +291,7 @@
         <!-- STATE 1: No Referrals Yet - Empty State -->
         @if (!hasReferrals) {
           <!-- Welcome Section -->
-          <section class="welcome-section">
+          <section class="welcome-section" #welcomeCard>
             <div class="welcome-badge">
               <span class="badge-icon">🌟</span>
               <span class="badge-text">JAIGENT</span>
@@ -302,7 +302,7 @@
 
           <!-- Prominent Code Card for Empty State -->
           <section class="code-section featured">
-            <div class="code-card featured">
+            <div class="code-card featured" #codeCard>
               <div class="code-header">
                 <span class="code-label">Tu codigo de referido</span>
               </div>
@@ -372,7 +372,7 @@
 
             <div class="tiers-grid">
               @for (tier of rewardTiers; track tier.tier) {
-                <div class="tier-card"
+                <div class="tier-card" #tierCard
                      [class.next]="tier.tier === 1">
                   <div class="tier-icon">{{ tier.icon }}</div>
                   <div class="tier-content">
@@ -405,7 +405,7 @@
           <!-- Stats Grid - MAIN FOCUS -->
           <section class="stats-section primary">
             <div class="stats-grid large">
-              <div class="stat-card referrals featured">
+              <div class="stat-card referrals featured" #statCard>
                 <div class="stat-icon">👥</div>
                 <div class="stat-content">
                   <span class="stat-value">{{ totalReferralCount }}</span>
@@ -413,7 +413,7 @@
                 </div>
               </div>
 
-              <div class="stat-card earnings featured">
+              <div class="stat-card earnings featured" #statCard>
                 <div class="stat-icon">💰</div>
                 <div class="stat-content">
                   <span class="stat-value">{{ currentDiscountPercent }}%</span>

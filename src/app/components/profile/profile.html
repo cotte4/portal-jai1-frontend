@@ -54,7 +54,7 @@
     </div>
   } @else {
     <!-- Member Card -->
-    <div class="member-card">
+    <div class="member-card" #memberCard>
       <div class="card-header">
         <div class="header-pattern"></div>
         <div class="member-badge">
@@ -129,7 +129,7 @@
     }
 
     <!-- Personal Data Section -->
-    <div class="info-section">
+    <div class="info-section" #infoSection>
       <div class="section-header">
         <h2>Mis datos personales</h2>
         <button class="btn-edit" (click)="toggleEdit()">
@@ -202,7 +202,7 @@
     </div>
 
     <!-- Address Section -->
-    <div class="info-section">
+    <div class="info-section" #infoSection>
       <div class="section-header">
         <h2>Domicilio actual</h2>
       </div>

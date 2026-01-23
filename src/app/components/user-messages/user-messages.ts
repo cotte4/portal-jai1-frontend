@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, DestroyRef, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models';
 
 @Component({
@@ -15,13 +16,20 @@ import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models
   templateUrl: './user-messages.html',
   styleUrl: './user-messages.css'
 })
-export class UserMessages implements OnInit {
+export class UserMessages implements OnInit, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('ticketsList') ticketsList!: ElementRef<HTMLElement>;
+  @ViewChild('messagesPanel') messagesPanel!: ElementRef<HTMLElement>;
+  @ViewChildren('ticketItem') ticketItems!: QueryList<ElementRef<HTMLElement>>;
 
   userEmail: string = '';
   userId: string = '';
@@ -54,7 +62,33 @@ export class UserMessages implements OnInit {
         clearTimeout(this.safetyTimeoutId);
         this.safetyTimeoutId = null;
       }
+      this.animationService.killAnimations();
     });
+  }
+
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate tickets list panel
+    if (this.ticketsList?.nativeElement) {
+      this.animationService.slideIn(this.ticketsList.nativeElement, 'left', { delay: 0.1 });
+    }
+
+    // Animate messages panel
+    if (this.messagesPanel?.nativeElement) {
+      this.animationService.slideIn(this.messagesPanel.nativeElement, 'right', { delay: 0.2 });
+    }
+
+    // Stagger animate ticket items
+    if (this.ticketItems?.length) {
+      const items = this.ticketItems.map(t => t.nativeElement);
+      this.animationService.staggerIn(items, { direction: 'left', stagger: 0.06, delay: 0.3 });
+    }
   }
 
   ngOnInit(): void {
@@ -164,6 +198,9 @@ export class UserMessages implements OnInit {
         } else {
           this.isLoading = false;
         }
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       }
     });
 

@@ -213,6 +213,7 @@
   <!-- Upload Zone -->
   <div
     class="upload-zone"
+    #uploadZone
     [class.drag-over]="dragOver"
     [class.uploading]="isUploading"
     (dragover)="onDragOver($event)"
@@ -290,7 +291,7 @@
     </div>
 
     <div class="files-list">
-      <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+      <div class="file-card" #fileCard *ngFor="let file of uploadedFiles; let i = index">
         <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
         <div class="file-details">
           <div class="file-name">{{ file.fileName }}</div>

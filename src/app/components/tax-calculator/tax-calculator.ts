@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize, forkJoin, of } from 'rxjs';
@@ -9,6 +9,7 @@ import { CalculatorResultService, CalculatorResult } from '../../core/services/c
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ConfettiService } from '../../core/services/confetti.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { DocumentType, OcrConfidence, Document } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
@@ -21,7 +22,7 @@ type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'alread
   styleUrl: './tax-calculator.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TaxCalculator implements OnInit, OnDestroy {
+export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private documentService = inject(DocumentService);
@@ -30,11 +31,17 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
   private confettiService = inject(ConfettiService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private apiSubscription: Subscription | null = null;
   private isLoadingInProgress = false;
   private activeIntervals: ReturnType<typeof setInterval>[] = [];
+
+  // Animation references
+  @ViewChild('resultCard') resultCard!: ElementRef<HTMLElement>;
+  @ViewChild('refundAmount') refundAmount!: ElementRef<HTMLElement>;
+  @ViewChild('uploadCard') uploadCard!: ElementRef<HTMLElement>;
 
   state: CalculatorState = 'loading';
   existingW2: Document | null = null;
@@ -98,8 +105,18 @@ export class TaxCalculator implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animate upload card on initial load
+    setTimeout(() => {
+      if (this.uploadCard?.nativeElement && this.state === 'upload') {
+        this.animationService.scaleIn(this.uploadCard.nativeElement, { delay: 0.1 });
+      }
+    }, 100);
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     if (this.apiSubscription) {
       this.apiSubscription.unsubscribe();
     }
@@ -354,6 +371,21 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   showResult() {
     this.state = 'result';
+    this.cdr.detectChanges();
+
+    // Animate the result card and refund amount
+    setTimeout(() => {
+      if (this.resultCard?.nativeElement) {
+        this.animationService.scaleIn(this.resultCard.nativeElement, { delay: 0 });
+      }
+      if (this.refundAmount?.nativeElement) {
+        this.animationService.counterUp(
+          this.refundAmount.nativeElement,
+          this.estimatedRefund,
+          { prefix: '$', duration: 1.5 }
+        );
+      }
+    }, 100);
 
     // Celebrate the result with money rain!
     setTimeout(() => this.confettiService.moneyRain(), 300);
@@ -369,7 +401,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
     if (this.uploadedFile && !this.isFromDocuments && !this.documentSaved) {
       this.autoSaveW2();
     }
-    this.cdr.detectChanges();
   }
 
   /**
