@@ -32,13 +32,6 @@
   height: 100%;
 }
 
-/* ==================== TOP SECTION ==================== */
-.top-section {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 20px;
-}
-
 /* ==================== REFUND CARD ==================== */
 .refund-card {
   background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
@@ -154,381 +147,404 @@
   transform: translateX(4px);
 }
 
-/* ==================== PROGRESS CARD ==================== */
-.progress-card {
+/* ==================== STEPS SECTION ==================== */
+.steps-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* ==================== STEP CARD ==================== */
+.step-card {
   background: white;
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.progress-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1D345D;
-}
-
-.progress-icon {
-  font-size: 24px;
-}
-
-.progress-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.progress-badge.complete {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.progress-bar-container {
-  margin-bottom: 24px;
-}
-
-.progress-bar {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #1D345D 0%, #B21B43 100%);
-  border-radius: 5px;
-  transition: width 0.5s ease;
-}
-
-/* Checklist */
-.checklist {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.checklist-item {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  transition: all 0.2s;
+  text-align: center;
 }
 
-.checklist-item.done {
-  background: #ecfdf5;
+.step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
-.item-check {
-  width: 24px;
-  height: 24px;
+/* Attention Animation for Step 1 */
+.step-card.attention {
+  border-color: #B21B43;
+  animation: attention-pulse 2s ease-in-out infinite;
+}
+
+.step-card.attention::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 24px;
+  border: 2px solid #B21B43;
+  animation: attention-ring 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes attention-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(178, 27, 67, 0.4), 0 4px 20px rgba(178, 27, 67, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(178, 27, 67, 0), 0 8px 32px rgba(178, 27, 67, 0.25);
+  }
+}
+
+@keyframes attention-ring {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.02);
+  }
+}
+
+/* Completed Step Card */
+.step-card.completed {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.step-card.completed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+}
+
+/* Step Number Badge */
+.step-number-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  background: #1D345D;
+  color: white;
   border-radius: 50%;
-  background: #e5e7eb;
-  color: #9ca3af;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 600;
-  flex-shrink: 0;
+  font-weight: 700;
 }
 
-.checklist-item.done .item-check {
+.step-number-badge.completed {
   background: #10b981;
-  color: white;
 }
 
-.item-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+.step-number-badge .checkmark {
+  font-size: 16px;
 }
 
-.checklist-item.done .item-text {
+/* Step Icon */
+.step-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+/* Step Title */
+.step-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 8px 0;
+}
+
+.step-card.completed .step-title {
   color: #065f46;
 }
 
-.item-action {
+/* Step Description */
+.step-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+  flex: 1;
+}
+
+.step-card.completed .step-description {
+  color: #047857;
+}
+
+/* Step Button */
+.step-button {
   background: #1D345D;
   color: white;
   border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
 }
 
-.item-action:hover {
+.step-button:hover {
   background: #152844;
+  transform: translateY(-2px);
 }
 
-/* ==================== IRS SECTION ==================== */
-.irs-section {
+.step-button.completed {
+  background: #10b981;
+  cursor: default;
+}
+
+.step-button.completed:hover {
+  transform: none;
+  background: #10b981;
+}
+
+/* ==================== COMPLETION BANNER ==================== */
+.completion-banner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 20px;
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+  animation: banner-entrance 0.5s ease-out;
+}
+
+@keyframes banner-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.completion-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  animation: icon-bounce 0.6s ease-out 0.2s both;
+}
+
+@keyframes icon-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.completion-content {
+  flex: 1;
+}
+
+.completion-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+
+.completion-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.completion-badge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* ==================== IRS SUMMARY CARD (Modern) ==================== */
+.irs-summary-card {
   background: white;
   border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 24px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
-.irs-header {
+.irs-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-color: #1D345D;
+}
+
+.irs-summary-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 20px;
 }
 
-.irs-title {
+.irs-summary-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
 }
 
-.irs-icon {
-  font-size: 32px;
+.irs-summary-icon {
+  font-size: 28px;
+  line-height: 1;
 }
 
-.irs-title h3 {
+.irs-summary-title h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: #1D345D;
 }
 
-.irs-title p {
+.irs-summary-title p {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7280;
 }
 
-.irs-badge {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: white;
-  padding: 8px 16px;
+.irs-summary-badge {
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.irs-badge.complete {
-  background: linear-gradient(135deg, #10b981, #059669);
+.irs-summary-badge.processing {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
 }
 
-.irs-progress-bar {
-  height: 8px;
+.irs-summary-badge.complete {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+}
+
+/* Tracks Summary */
+.irs-tracks-summary {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.track-summary {
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.track-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.track-emoji {
+  font-size: 20px;
+}
+
+.track-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1D345D;
+  flex: 1;
+}
+
+.track-percent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.track-mini-bar {
+  height: 6px;
   background: #e5e7eb;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
-.irs-progress-fill {
+.track-mini-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
 
-.irs-steps {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+.track-mini-fill.federal {
+  background: linear-gradient(90deg, #1D345D 0%, #3b5998 100%);
 }
 
-.irs-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 16px 12px;
-  background: #f8fafc;
-  border-radius: 14px;
-  transition: all 0.2s;
+.track-mini-fill.estatal {
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
 }
 
-.irs-step.done {
-  background: #ecfdf5;
+.track-status-text {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
-.irs-step.active {
-  background: #eef2ff;
-  border: 2px solid #6366f1;
-}
-
-.step-indicator {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.tracks-divider {
+  width: 1px;
   background: #e5e7eb;
+  margin: 8px 0;
+}
+
+/* Summary Footer */
+.irs-summary-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
 }
 
-.irs-step.done .step-indicator {
-  background: #10b981;
-}
-
-.irs-step.active .step-indicator {
-  background: #6366f1;
-}
-
-.step-number {
-  font-size: 16px;
-  font-weight: 700;
-  color: #9ca3af;
-}
-
-.step-check {
-  font-size: 18px;
-  color: white;
-}
-
-.step-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.step-title {
+.view-details {
   font-size: 14px;
   font-weight: 600;
   color: #1D345D;
 }
 
-.step-desc {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.irs-step.done .step-title {
-  color: #065f46;
-}
-
-/* ==================== ACTIONS SECTION ==================== */
-.actions-section {
-  flex: 1;
-}
-
-.section-title {
-  font-size: 18px;
-  color: #1D345D;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.action-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.action-card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-}
-
-.action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  border-color: #1D345D;
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.card-icon.purple {
-  background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
-}
-
-.card-icon.blue {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-}
-
-.card-icon.orange {
-  background: linear-gradient(135deg, #fed7aa, #fdba74);
-}
-
-.card-icon.green {
-  background: linear-gradient(135deg, #bbf7d0, #86efac);
-}
-
-.card-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.card-badge.important {
-  background: #B21B43;
-  color: white;
-}
-
-.card-badge.new {
-  background: #059669;
-  color: white;
-}
-
-.card-title {
+.arrow-icon {
   font-size: 16px;
-  font-weight: 600;
   color: #1D345D;
-  margin-bottom: 6px;
+  transition: transform 0.2s;
 }
 
-.card-desc {
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.4;
-  flex: 1;
-  margin-bottom: 12px;
-}
-
-.card-action {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1D345D;
+.irs-summary-card:hover .arrow-icon {
+  transform: translateX(4px);
 }
 
 /* ==================== HELP FOOTER ==================== */
@@ -540,6 +556,7 @@
   background: linear-gradient(135deg, #f8f9fb, #eef0f4);
   border-radius: 16px;
   border: 1px dashed #d1d5db;
+  margin-top: auto;
 }
 
 .help-icon {
@@ -582,197 +599,200 @@
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 1200px) {
-  .action-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 1024px) {
+  .steps-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .step-card {
+    flex-direction: row;
+    text-align: left;
+    padding: 20px 24px;
+    gap: 20px;
+  }
+
+  .step-card.attention::before {
+    border-radius: 22px;
+  }
+
+  .step-number-badge {
+    position: relative;
+    top: auto;
+    left: auto;
+    flex-shrink: 0;
+  }
+
+  .step-icon {
+    font-size: 36px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-size: 16px;
+  }
+
+  .step-description {
+    font-size: 13px;
+    margin-bottom: 0;
+  }
+
+  .step-button {
+    width: auto;
+    flex-shrink: 0;
   }
 
   .irs-steps {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .top-section {
-    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-content {
-    padding: var(--page-padding);
-    gap: var(--spacing-lg);
+    padding: 16px;
+    gap: 16px;
   }
 
-  .action-cards-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+  .refund-card {
+    padding: 20px;
+    border-radius: 16px;
   }
 
-  .irs-steps {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+  .refund-amount {
+    font-size: 32px;
+  }
+
+  .step-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 12px;
+  }
+
+  .step-number-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .step-icon {
+    font-size: 40px;
+    margin-top: 8px;
+  }
+
+  .step-button {
+    width: 100%;
+  }
+
+  .completion-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+    gap: 16px;
+  }
+
+  .completion-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+
+  .completion-title {
+    font-size: 20px;
+  }
+
+  .completion-subtitle {
+    font-size: 14px;
+  }
+
+  /* IRS Summary Card Mobile */
+  .irs-summary-card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .irs-tracks-summary {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tracks-divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+  }
+
+  .track-summary {
+    padding: 14px;
   }
 
   .help-footer {
     flex-direction: column;
     text-align: center;
-    gap: var(--spacing-md);
-    padding: var(--card-padding);
+    gap: 12px;
+    padding: 20px;
   }
 
-  .refund-card, .progress-card, .irs-section {
-    padding: var(--card-padding);
-    border-radius: var(--radius-lg);
-  }
-
-  .refund-amount {
-    font-size: var(--font-2xl);
-  }
-
-  .refund-label {
-    font-size: var(--font-sm);
-  }
-
-  .progress-title {
-    font-size: var(--font-lg);
-  }
-
-  .checklist-item {
-    flex-wrap: wrap;
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .item-text {
-    font-size: var(--font-sm);
-  }
-
-  .item-action {
+  .btn-help {
     width: 100%;
-    margin-top: var(--spacing-sm);
-    text-align: center;
-  }
-
-  .action-card {
-    padding: var(--card-padding);
-    border-radius: var(--radius-md);
-  }
-
-  .card-title {
-    font-size: var(--font-base);
-  }
-
-  .card-desc {
-    font-size: var(--font-sm);
-  }
-
-  .section-title {
-    font-size: var(--font-lg);
-    margin-bottom: var(--spacing-md);
-  }
-
-  .irs-title h3 {
-    font-size: var(--font-lg);
-  }
-
-  .irs-title p {
-    font-size: var(--font-sm);
-  }
-
-  .step-title {
-    font-size: var(--font-sm);
-  }
-
-  .step-desc {
-    font-size: var(--font-xs);
-  }
-
-  .help-title {
-    font-size: var(--font-base);
-  }
-
-  .help-desc {
-    font-size: var(--font-sm);
   }
 }
 
-/* ==================== SMALL MOBILE ==================== */
 @media (max-width: 480px) {
   .dashboard-content {
-    padding: var(--page-padding);
-    gap: var(--spacing-md);
-  }
-
-  .top-section {
-    gap: var(--spacing-md);
+    padding: 12px;
+    gap: 12px;
   }
 
   .refund-card {
-    padding: var(--card-padding);
+    padding: 16px;
   }
 
   .refund-amount {
-    font-size: 26px;
-    margin-bottom: var(--spacing-xs);
+    font-size: 28px;
   }
 
-  .refund-header {
-    margin-bottom: var(--spacing-sm);
+  .step-card {
+    padding: 20px 16px;
   }
 
-  .refund-calculated {
-    margin-bottom: var(--spacing-md);
+  .step-title {
+    font-size: 15px;
   }
 
-  .btn-recalculate, .btn-calculate-cta {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-sm);
+  .step-description {
+    font-size: 12px;
   }
 
-  .progress-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
+  .step-button {
+    padding: 10px 20px;
+    font-size: 13px;
   }
 
-  .progress-badge {
-    font-size: var(--font-xs);
-    padding: 4px 10px;
+  .completion-banner {
+    padding: 20px 16px;
+  }
+
+  .completion-title {
+    font-size: 18px;
+  }
+
+  .completion-badge {
+    padding: 8px 16px;
+    font-size: 14px;
   }
 
   .irs-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-sm);
+    gap: 12px;
   }
 
-  .irs-badge {
-    font-size: var(--font-xs);
-    padding: 6px 12px;
-  }
-
-  .irs-step {
-    padding: var(--spacing-md);
-  }
-
-  .step-indicator {
-    width: 32px;
-    height: 32px;
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .card-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .help-icon {
-    font-size: 28px;
-  }
-
-  .btn-help {
-    width: 100%;
-    padding: var(--spacing-md);
+  .help-footer {
+    padding: 16px;
   }
 }

@@ -9,217 +9,178 @@
 <!-- Dashboard Content -->
 @if (hasLoaded) {
 <div class="dashboard-content">
-  <!-- Top Section: Two Cards Side by Side -->
-  <div class="top-section">
-    <!-- Left Card: Reembolso Estimado -->
-    <div class="refund-card">
-      <div class="refund-header">
-        <span class="refund-icon">💰</span>
-        <span class="refund-label">Reembolso Estimado</span>
-      </div>
-      
-      @if (hasCalculatorResult) {
-        <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
-        <div class="refund-calculated">
-          <span class="check-icon">✓</span>
-          Calculado con tu W2
-        </div>
-        <button class="btn-recalculate" (click)="navigateTo('/tax-calculator')">
-          Recalcular →
-        </button>
-      } @else {
-        <div class="refund-not-calculated">
-          <span class="question-icon">🧮</span>
-          <span>Aún no calculado</span>
-        </div>
-        <button class="btn-calculate-cta" (click)="navigateTo('/tax-calculator')">
-          <span>Calcular mi reembolso</span>
-          <span class="arrow">→</span>
-        </button>
-      }
+  <!-- Refund Card -->
+  <div class="refund-card">
+    <div class="refund-header">
+      <span class="refund-icon">💰</span>
+      <span class="refund-label">Reembolso Estimado</span>
     </div>
 
-    <!-- Right Card: User Progress -->
-    <div class="progress-card">
-      <div class="progress-header">
-        <div class="progress-title">
-          <span class="progress-icon">📋</span>
-          <span>Tu Progreso</span>
-        </div>
-        <div class="progress-badge" [class.complete]="userProgressComplete">
-          {{ userProgressComplete ? 'Completado' : userProgressPercent + '%' }}
-        </div>
+    @if (hasCalculatorResult) {
+      <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
+      <div class="refund-calculated">
+        <span class="check-icon">✓</span>
+        Calculado con tu W2
       </div>
-
-      <div class="progress-bar-container">
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="userProgressPercent"></div>
-        </div>
+      <button class="btn-recalculate" (click)="navigateTo('/tax-calculator')">
+        Recalcular →
+      </button>
+    } @else {
+      <div class="refund-not-calculated">
+        <span class="question-icon">🧮</span>
+        <span>Aún no calculado</span>
       </div>
-
-      <div class="checklist">
-        <div class="checklist-item" [class.done]="isProfileComplete">
-          <span class="item-check">{{ isProfileComplete ? '✓' : '○' }}</span>
-          <span class="item-text">Datos de perfil</span>
-          @if (!isProfileComplete) {
-            <button class="item-action" (click)="navigateTo('/tax-form')">Completar</button>
-          }
-        </div>
-        <div class="checklist-item" [class.done]="isFormSent">
-          <span class="item-check">{{ isFormSent ? '✓' : '○' }}</span>
-          <span class="item-text">Formulario enviado</span>
-          @if (!isFormSent && isProfileComplete) {
-            <button class="item-action" (click)="navigateTo('/tax-form')">Enviar</button>
-          }
-        </div>
-        <div class="checklist-item" [class.done]="hasW2Document">
-          <span class="item-check">{{ hasW2Document ? '✓' : '○' }}</span>
-          <span class="item-text">Documento W2</span>
-          @if (!hasW2Document) {
-            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-          }
-        </div>
-        <div class="checklist-item" [class.done]="hasPaymentProof">
-          <span class="item-check">{{ hasPaymentProof ? '✓' : '○' }}</span>
-          <span class="item-text">Comprobante de pago</span>
-          @if (!hasPaymentProof) {
-            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-          }
-        </div>
-      </div>
-    </div>
+      <button class="btn-calculate-cta" (click)="navigateTo('/tax-calculator')">
+        <span>Calcular mi reembolso</span>
+        <span class="arrow">→</span>
+      </button>
+    }
   </div>
 
-  <!-- IRS Progress Section -->
-  @if (showIRSProgress) {
-    <div class="irs-section">
-      <div class="irs-header">
-        <div class="irs-title">
-          <span class="irs-icon">🏛️</span>
-          <div>
-            <h3>Estado con el IRS</h3>
-            <p>Seguimiento de tu declaración</p>
-          </div>
+  <!-- Steps Section -->
+  @if (!allStepsCompleted) {
+    <div class="steps-section">
+      <!-- Step 1: Completá tu declaración -->
+      <div class="step-card"
+           [class.completed]="isStep1Complete"
+           [class.attention]="!isStep1Complete"
+           (click)="navigateTo('/tax-form')">
+        <div class="step-number-badge" [class.completed]="isStep1Complete">
+          @if (isStep1Complete) {
+            <span class="checkmark">✓</span>
+          } @else {
+            1
+          }
         </div>
-        <div class="irs-badge" [class.complete]="isRefundDeposited">
-          {{ isRefundDeposited ? '✓ Depositado' : irsProgressPercent + '%' }}
-        </div>
+        <div class="step-icon">📝</div>
+        <h3 class="step-title">Completá tu declaración</h3>
+        <p class="step-description">Llená el formulario con tus datos personales y tributarios</p>
+        <button class="step-button" [class.completed]="isStep1Complete">
+          @if (isStep1Complete) {
+            Completado ✓
+          } @else {
+            Completar declaración →
+          }
+        </button>
       </div>
 
-      <div class="irs-progress-bar">
-        <div class="irs-progress-fill" [style.width.%]="irsProgressPercent"></div>
+      <!-- Step 2: Subí tu documento W2 -->
+      <div class="step-card"
+           [class.completed]="isStep2Complete"
+           (click)="navigateTo('/documents')">
+        <div class="step-number-badge" [class.completed]="isStep2Complete">
+          @if (isStep2Complete) {
+            <span class="checkmark">✓</span>
+          } @else {
+            2
+          }
+        </div>
+        <div class="step-icon">📄</div>
+        <h3 class="step-title">Subí tu documento W2</h3>
+        <p class="step-description">Cargá tu formulario W2 para calcular tu reembolso</p>
+        <button class="step-button" [class.completed]="isStep2Complete">
+          @if (isStep2Complete) {
+            Completado ✓
+          } @else {
+            Ir a mis documentos →
+          }
+        </button>
       </div>
 
-      <div class="irs-steps">
-        <div class="irs-step" [class.done]="isSentToIRS" [class.active]="!isSentToIRS && userProgressComplete">
-          <div class="step-indicator">
-            @if (isSentToIRS) {
-              <span class="step-check">✓</span>
-            } @else {
-              <span class="step-number">1</span>
-            }
-          </div>
-          <div class="step-info">
-            <span class="step-title">Enviado al IRS</span>
-            <span class="step-desc">{{ isSentToIRS ? 'Tu declaración fue enviada' : 'Pendiente de envío' }}</span>
-          </div>
+      <!-- Step 3: Subí tu comprobante de pago -->
+      <div class="step-card"
+           [class.completed]="isStep3Complete"
+           (click)="navigateTo('/documents')">
+        <div class="step-number-badge" [class.completed]="isStep3Complete">
+          @if (isStep3Complete) {
+            <span class="checkmark">✓</span>
+          } @else {
+            3
+          }
         </div>
-
-        <div class="irs-step" [class.done]="isAcceptedByIRS">
-          <div class="step-indicator">
-            @if (isAcceptedByIRS) {
-              <span class="step-check">✓</span>
-            } @else {
-              <span class="step-number">2</span>
-            }
-          </div>
-          <div class="step-info">
-            <span class="step-title">Aceptado</span>
-            <span class="step-desc">{{ isAcceptedByIRS ? 'Declaración aprobada' : 'En revisión' }}</span>
-          </div>
-        </div>
-
-        <div class="irs-step" [class.done]="estimatedReturnDate">
-          <div class="step-indicator">
-            @if (estimatedReturnDate) {
-              <span class="step-check">✓</span>
-            } @else {
-              <span class="step-number">3</span>
-            }
-          </div>
-          <div class="step-info">
-            <span class="step-title">Fecha estimada</span>
-            <span class="step-desc">{{ estimatedReturnDate || 'Por confirmar' }}</span>
-          </div>
-        </div>
-
-        <div class="irs-step" [class.done]="isRefundDeposited">
-          <div class="step-indicator">
-            @if (isRefundDeposited) {
-              <span class="step-check">✓</span>
-            } @else {
-              <span class="step-number">4</span>
-            }
-          </div>
-          <div class="step-info">
-            <span class="step-title">Depositado</span>
-            <span class="step-desc">{{ isRefundDeposited ? '¡Dinero en tu cuenta!' : 'Esperando depósito' }}</span>
-          </div>
-        </div>
+        <div class="step-icon">💳</div>
+        <h3 class="step-title">Subí tu comprobante de pago</h3>
+        <p class="step-description">Adjuntá el comprobante del pago inicial</p>
+        <button class="step-button" [class.completed]="isStep3Complete">
+          @if (isStep3Complete) {
+            Completado ✓
+          } @else {
+            Ir a mis documentos →
+          }
+        </button>
       </div>
     </div>
   }
 
-  <!-- Quick Actions -->
-  <div class="actions-section">
-    <h2 class="section-title">Acciones rápidas</h2>
-    
-    <div class="action-cards-grid">
-      <!-- Calculator Card -->
-      <div class="action-card" (click)="navigateTo('/tax-calculator')">
-        <div class="card-top">
-          <div class="card-icon purple">🧮</div>
-          <span class="card-badge new">NUEVO</span>
-        </div>
-        <h3 class="card-title">Calculadora</h3>
-        <p class="card-desc">Calcula tu reembolso estimado con tu W2</p>
-        <span class="card-action">Calcular →</span>
+  <!-- All Steps Completed Banner -->
+  @if (allStepsCompleted) {
+    <div class="completion-banner">
+      <div class="completion-icon">✓</div>
+      <div class="completion-content">
+        <h2 class="completion-title">Preparación completada</h2>
+        <p class="completion-subtitle">Todos los pasos completados</p>
       </div>
-
-      <!-- Tax Form Card -->
-      <div class="action-card" (click)="navigateTo('/tax-form')">
-        <div class="card-top">
-          <div class="card-icon blue">📋</div>
-          @if (!isFormSent) {
-            <span class="card-badge important">IMPORTANTE</span>
-          }
-        </div>
-        <h3 class="card-title">Mi Declaración</h3>
-        <p class="card-desc">Completá tu información personal y tributaria</p>
-        <span class="card-action">{{ isFormSent ? 'Ver formulario' : 'Completar' }} →</span>
-      </div>
-
-      <!-- Upload Documents Card -->
-      <div class="action-card" (click)="navigateTo('/documents')">
-        <div class="card-top">
-          <div class="card-icon orange">📁</div>
-        </div>
-        <h3 class="card-title">Documentos</h3>
-        <p class="card-desc">Cargá tus documentos fiscales (W-2, recibos)</p>
-        <span class="card-action">{{ hasW2Document ? 'Ver documentos' : 'Subir archivos' }} →</span>
-      </div>
-
-      <!-- Chatbot Card -->
-      <div class="action-card" (click)="navigateTo('/chatbot')">
-        <div class="card-top">
-          <div class="card-icon green">🤖</div>
-        </div>
-        <h3 class="card-title">Asistente Virtual</h3>
-        <p class="card-desc">Resolvé tus dudas con nuestro chatbot</p>
-        <span class="card-action">Iniciar chat →</span>
-      </div>
+      <div class="completion-badge">100%</div>
     </div>
-  </div>
+
+    <!-- IRS Status Summary - Modern compact view -->
+    @if (showIRSProgress) {
+      <div class="irs-summary-card" (click)="navigateTo('/tax-tracking')">
+        <div class="irs-summary-header">
+          <div class="irs-summary-title">
+            <span class="irs-summary-icon">🏛️</span>
+            <div>
+              <h3>Estado con el IRS</h3>
+              <p>{{ getCurrentStatusMessage() }}</p>
+            </div>
+          </div>
+          <div class="irs-summary-badge" [class.complete]="isRefundDeposited" [class.processing]="!isRefundDeposited">
+            @if (isRefundDeposited) {
+              ✓ Completado
+            } @else {
+              En proceso
+            }
+          </div>
+        </div>
+
+        <div class="irs-tracks-summary">
+          <!-- Federal Summary -->
+          <div class="track-summary">
+            <div class="track-summary-header">
+              <span class="track-emoji">🦅</span>
+              <span class="track-name">Federal</span>
+              <span class="track-percent">{{ getFederalPercent() }}%</span>
+            </div>
+            <div class="track-mini-bar">
+              <div class="track-mini-fill federal" [style.width.%]="getFederalPercent()"></div>
+            </div>
+            <span class="track-status-text">{{ getFederalStatusText() }}</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="tracks-divider"></div>
+
+          <!-- Estatal Summary -->
+          <div class="track-summary">
+            <div class="track-summary-header">
+              <span class="track-emoji">🗽</span>
+              <span class="track-name">Estatal</span>
+              <span class="track-percent">{{ getEstatalPercent() }}%</span>
+            </div>
+            <div class="track-mini-bar">
+              <div class="track-mini-fill estatal" [style.width.%]="getEstatalPercent()"></div>
+            </div>
+            <span class="track-status-text">{{ getEstatalStatusText() }}</span>
+          </div>
+        </div>
+
+        <div class="irs-summary-footer">
+          <span class="view-details">Ver seguimiento completo</span>
+          <span class="arrow-icon">→</span>
+        </div>
+      </div>
+    }
+  }
 
   <!-- Help Footer -->
   <div class="help-footer">
