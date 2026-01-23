@@ -99,11 +99,336 @@
   transform: scale(1.02);
 }
 
-/* ==================== TOP SECTION ==================== */
-.top-section {
+/* ==================== BENTO GRID ==================== */
+.bento-grid {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.bento-card {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Attention state - blinking animation */
+.bento-card.attention {
+  border-color: #1D345D;
+  animation: attention-pulse 2s ease-in-out infinite;
+}
+
+@keyframes attention-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 52, 93, 0.4);
+    border-color: #1D345D;
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(29, 52, 93, 0);
+    border-color: #B21B43;
+  }
+}
+
+/* Completed state */
+.bento-card.completed {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.bento-card.completed:hover {
+  transform: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.bento-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+  justify-content: center;
+}
+
+.step-number {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bento-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bento-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 8px 0;
+}
+
+.bento-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.bento-btn {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.bento-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 52, 93, 0.3);
+}
+
+.bento-btn .btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.bento-btn:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Completed overlay */
+.completed-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.completed-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.completed-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* ==================== REFUND SECTION ==================== */
+.refund-section {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* ==================== PROGRESS SECTION (Zeigarnik Effect) ==================== */
+.progress-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.progress-section .progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progress-section .progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.progress-section .progress-percent {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.progress-bar-container {
+  position: relative;
+}
+
+.progress-bar-track {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-steps-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.progress-step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.progress-step-dot.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transform: scale(1.1);
+}
+
+.progress-step-dot.active {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  animation: pulse-dot 2s ease-in-out infinite;
+  transform: scale(1.15);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 52, 93, 0.4), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(29, 52, 93, 0), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.dot-check {
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Progress Section Complete State */
+.progress-section.complete {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 2px solid #10b981;
+}
+
+.progress-complete-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.progress-complete-check {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.progress-complete-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.progress-complete-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.progress-complete-subtitle {
+  font-size: 13px;
+  color: #047857;
+}
+
+.progress-complete-pill {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 /* ==================== REFUND CARD ==================== */
@@ -160,23 +485,6 @@
   font-size: 11px;
 }
 
-.btn-recalculate {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: auto;
-}
-
-.btn-recalculate:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
 .refund-not-calculated {
   display: flex;
   align-items: center;
@@ -219,190 +527,6 @@
 
 .btn-calculate-cta:hover .arrow {
   transform: translateX(4px);
-}
-
-/* ==================== PROGRESS CARD ==================== */
-.progress-card {
-  background: white;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.progress-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1D345D;
-}
-
-.progress-icon {
-  font-size: 24px;
-}
-
-.progress-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.progress-badge.complete {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.progress-bar-container {
-  margin-bottom: 24px;
-}
-
-.progress-bar {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #1D345D 0%, #B21B43 100%);
-  border-radius: 5px;
-  transition: width 0.5s ease;
-}
-
-/* Checklist */
-.checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.checklist-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  transition: all 0.2s;
-}
-
-.checklist-item.done {
-  background: #ecfdf5;
-}
-
-.item-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.checklist-item.done .item-check {
-  background: #10b981;
-  color: white;
-}
-
-.item-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.checklist-item.done .item-text {
-  color: #065f46;
-}
-
-.item-action {
-  background: #1D345D;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.item-action:hover {
-  background: #152844;
-}
-
-/* ==================== PROGRESS CARD COMPACT STATE ==================== */
-.progress-card.compact {
-  padding: 20px 28px;
-  transition: all 0.3s ease;
-}
-
-.progress-complete {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.progress-complete-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.complete-check {
-  font-size: 24px;
-  color: white;
-  font-weight: 700;
-}
-
-.progress-complete-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.progress-complete-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #065f46;
-}
-
-.progress-complete-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.progress-complete-badge {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
 }
 
 /* ==================== IRS TRACKING CARD ==================== */
@@ -624,114 +748,6 @@
   transform: translateX(4px);
 }
 
-/* ==================== ACTIONS SECTION ==================== */
-.actions-section {
-  flex: 1;
-}
-
-.section-title {
-  font-size: 18px;
-  color: #1D345D;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.action-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.action-card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-}
-
-.action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  border-color: #1D345D;
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.card-icon.purple {
-  background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
-}
-
-.card-icon.blue {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-}
-
-.card-icon.orange {
-  background: linear-gradient(135deg, #fed7aa, #fdba74);
-}
-
-.card-icon.green {
-  background: linear-gradient(135deg, #bbf7d0, #86efac);
-}
-
-.card-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.card-badge.important {
-  background: #B21B43;
-  color: white;
-}
-
-.card-badge.new {
-  background: #059669;
-  color: white;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1D345D;
-  margin-bottom: 6px;
-}
-
-.card-desc {
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.4;
-  flex: 1;
-  margin-bottom: 12px;
-}
-
-.card-action {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1D345D;
-}
-
 /* ==================== HELP FOOTER ==================== */
 .help-footer {
   display: flex;
@@ -784,14 +800,22 @@
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1200px) {
-  .action-cards-grid {
+  .bento-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bento-grid .bento-card:last-child {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 900px) {
-  .top-section {
+  .bento-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bento-grid .bento-card:last-child {
+    grid-column: span 1;
   }
 }
 
@@ -801,9 +825,54 @@
     gap: var(--spacing-lg);
   }
 
-  .action-cards-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+  /* Progress Section Mobile */
+  .progress-section {
+    padding: 16px 20px;
+  }
+
+  .progress-section .progress-title {
+    font-size: 14px;
+  }
+
+  .progress-section .progress-percent {
+    font-size: 13px;
+  }
+
+  .progress-bar-track {
+    height: 10px;
+  }
+
+  .progress-step-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dot-check {
+    font-size: 12px;
+  }
+
+  /* Progress Complete Mobile */
+  .progress-complete-row {
+    gap: 12px;
+  }
+
+  .progress-complete-check {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .progress-complete-title {
+    font-size: 14px;
+  }
+
+  .progress-complete-subtitle {
+    font-size: 12px;
+  }
+
+  .progress-complete-pill {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .help-footer {
@@ -813,7 +882,42 @@
     padding: var(--card-padding);
   }
 
-  .refund-card, .progress-card, .irs-tracking-card {
+  /* Bento Grid Mobile */
+  .bento-card {
+    padding: var(--card-padding);
+    min-height: 220px;
+  }
+
+  .bento-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .bento-title {
+    font-size: 16px;
+  }
+
+  .bento-desc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .bento-btn {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .completed-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+  }
+
+  .completed-text {
+    font-size: 18px;
+  }
+
+  .refund-card, .irs-tracking-card {
     padding: var(--card-padding);
     border-radius: var(--radius-lg);
   }
@@ -860,71 +964,12 @@
     font-size: var(--font-sm);
   }
 
-  /* Compact progress card mobile */
-  .progress-card.compact {
-    padding: var(--card-padding);
-  }
-
-  .progress-complete-title {
-    font-size: var(--font-base);
-  }
-
-  .progress-complete-subtitle {
-    font-size: var(--font-sm);
-  }
-
-  .progress-complete-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .complete-check {
-    font-size: 20px;
-  }
-
   .refund-amount {
     font-size: var(--font-2xl);
   }
 
   .refund-label {
     font-size: var(--font-sm);
-  }
-
-  .progress-title {
-    font-size: var(--font-lg);
-  }
-
-  .checklist-item {
-    flex-wrap: wrap;
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .item-text {
-    font-size: var(--font-sm);
-  }
-
-  .item-action {
-    width: 100%;
-    margin-top: var(--spacing-sm);
-    text-align: center;
-  }
-
-  .action-card {
-    padding: var(--card-padding);
-    border-radius: var(--radius-md);
-  }
-
-  .card-title {
-    font-size: var(--font-base);
-  }
-
-  .card-desc {
-    font-size: var(--font-sm);
-  }
-
-  .section-title {
-    font-size: var(--font-lg);
-    margin-bottom: var(--spacing-md);
   }
 
   .help-title {
@@ -943,8 +988,95 @@
     gap: var(--spacing-md);
   }
 
-  .top-section {
+  /* Progress Section Small Mobile */
+  .progress-section {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .progress-section .progress-header {
+    margin-bottom: 12px;
+  }
+
+  .progress-section .progress-title {
+    font-size: 13px;
+  }
+
+  .progress-section .progress-percent {
+    font-size: 12px;
+  }
+
+  .progress-bar-track {
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .progress-bar-fill {
+    border-radius: 4px;
+  }
+
+  .progress-steps-indicators {
+    margin-top: 10px;
+  }
+
+  .progress-step-dot {
+    width: 22px;
+    height: 22px;
+    border-width: 2px;
+  }
+
+  .dot-check {
+    font-size: 11px;
+  }
+
+  /* Bento Grid Small Mobile */
+  .bento-grid {
     gap: var(--spacing-md);
+  }
+
+  .bento-card {
+    padding: var(--spacing-lg);
+    min-height: 200px;
+    border-radius: 16px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    top: 12px;
+    left: 12px;
+  }
+
+  .bento-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .bento-title {
+    font-size: 15px;
+  }
+
+  .bento-desc {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .bento-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .completed-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .completed-text {
+    font-size: 16px;
   }
 
   .refund-card {
@@ -964,20 +1096,9 @@
     margin-bottom: var(--spacing-md);
   }
 
-  .btn-recalculate, .btn-calculate-cta {
+  .btn-calculate-cta {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-sm);
-  }
-
-  .progress-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-  }
-
-  .progress-badge {
-    font-size: var(--font-xs);
-    padding: 4px 10px;
   }
 
   /* IRS Tracking Card Small Mobile */
@@ -1026,12 +1147,6 @@
     font-size: var(--font-xs);
   }
 
-  .card-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
   .help-icon {
     font-size: 28px;
   }
@@ -1039,32 +1154,5 @@
   .btn-help {
     width: 100%;
     padding: var(--spacing-md);
-  }
-
-  /* Compact progress card small mobile */
-  .progress-complete {
-    gap: var(--spacing-sm);
-  }
-
-  .progress-complete-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .complete-check {
-    font-size: 18px;
-  }
-
-  .progress-complete-title {
-    font-size: var(--font-sm);
-  }
-
-  .progress-complete-subtitle {
-    font-size: var(--font-xs);
-  }
-
-  .progress-complete-badge {
-    font-size: var(--font-xs);
-    padding: 6px 12px;
   }
 }
