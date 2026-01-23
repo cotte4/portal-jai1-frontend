@@ -305,6 +305,34 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     return count;
   }
 
+  // ============ BENTO GRID STEP STATES ============
+  get isStep1Complete(): boolean {
+    // Step 1 complete = form is filled and sent
+    return this.isFormSent;
+  }
+
+  get isStep2Complete(): boolean {
+    // Step 2 complete = W2 document uploaded
+    return this.hasW2Document;
+  }
+
+  get isStep3Complete(): boolean {
+    // Step 3 complete = Payment proof uploaded
+    return this.hasPaymentProof;
+  }
+
+  get allStepsComplete(): boolean {
+    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete;
+  }
+
+  get stepsCompletedCount(): number {
+    let count = 0;
+    if (this.isStep1Complete) count++;
+    if (this.isStep2Complete) count++;
+    if (this.isStep3Complete) count++;
+    return count;
+  }
+
   // ============ IRS PROGRESS ============
   get taxCase() {
     return this.profileData?.taxCase;
