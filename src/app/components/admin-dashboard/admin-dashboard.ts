@@ -403,15 +403,54 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadSeasonStats();
   }
 
-  // DEPRECATED: Legacy method kept for backward compatibility in templates
-  // V2 status system uses caseStatus, federalStatusNew, stateStatusNew
-  getStatusLabel(status: any): string {
-    return status || 'Sin Asignar';
+  // V2 status label mapping
+  getStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'Sin Asignar';
+
+    const labels: Record<string, string> = {
+      // FederalStatusNew / StateStatusNew
+      'in_process': 'En Proceso',
+      'in_verification': 'En Verificación',
+      'verification_in_progress': 'Verif. en Progreso',
+      'verification_letter_sent': 'Carta Enviada',
+      'deposit_pending': 'Depósito Pendiente',
+      'check_in_transit': 'Cheque en Camino',
+      'issues': 'Problemas',
+      'taxes_sent': 'Reembolso Enviado',
+      'taxes_completed': 'Completado',
+      // CaseStatus
+      'awaiting_form': 'Esperando Form',
+      'awaiting_docs': 'Esperando Docs',
+      'preparing': 'Preparando',
+      'taxes_filed': 'Presentados',
+      'case_issues': 'Con Problemas',
+    };
+
+    return labels[status] || status;
   }
 
-  // DEPRECATED: Legacy method kept for backward compatibility in templates
-  getStatusClass(status: any): string {
-    return 'status-pending';
+  // V2 status CSS class mapping
+  getStatusClass(status: string | null | undefined): string {
+    if (!status) return 'status-pending';
+
+    const classes: Record<string, string> = {
+      'in_process': 'status-in-progress',
+      'in_verification': 'status-in-progress',
+      'verification_in_progress': 'status-in-progress',
+      'verification_letter_sent': 'status-warning',
+      'deposit_pending': 'status-approved',
+      'check_in_transit': 'status-approved',
+      'issues': 'status-rejected',
+      'taxes_sent': 'status-approved',
+      'taxes_completed': 'status-completed',
+      'awaiting_form': 'status-pending',
+      'awaiting_docs': 'status-pending',
+      'preparing': 'status-in-progress',
+      'taxes_filed': 'status-approved',
+      'case_issues': 'status-rejected',
+    };
+
+    return classes[status] || 'status-pending';
   }
 
   getInitials(firstName: string | undefined, lastName: string | undefined): string {
