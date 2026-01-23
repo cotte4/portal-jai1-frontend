@@ -1,0 +1,19 @@
+<div class="chat-widget-container">
+  <!-- Tooltip -->
+  @if (showTooltip) {
+    <div class="widget-tooltip" (click)="hideTooltip()">
+      <span>Necesitas ayuda? Preguntame!</span>
+      <button class="tooltip-close" aria-label="Cerrar">×</button>
+    </div>
+  }
+
+  <!-- Widget Button -->
+  <button
+    class="chat-widget-button"
+    (click)="openChat()"
+    aria-label="Abrir asistente virtual"
+  >
+    <img src="assets/images/jai1-logo.svg" alt="JAI1 Assistant" class="widget-logo" />
+    <div class="widget-pulse"></div>
+  </button>
+</div>

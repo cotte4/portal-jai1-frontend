@@ -1,0 +1,139 @@
+.chat-widget-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* Tooltip */
+.widget-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: tooltipIn 0.3s ease-out;
+  cursor: pointer;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.widget-tooltip span {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tooltip-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tooltip-close:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Widget Button */
+.chat-widget-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(29, 52, 93, 0.4);
+  transition: all 0.3s ease;
+  overflow: visible;
+}
+
+.chat-widget-button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(29, 52, 93, 0.5);
+}
+
+.chat-widget-button:active {
+  transform: scale(0.98);
+}
+
+.widget-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  z-index: 2;
+}
+
+/* Pulse Animation */
+.widget-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(29, 52, 93, 0.4);
+  animation: pulse 2s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chat-widget-container {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .chat-widget-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .widget-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .widget-tooltip {
+    display: none;
+  }
+}
