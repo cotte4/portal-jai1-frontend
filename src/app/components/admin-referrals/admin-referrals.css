@@ -558,7 +558,7 @@
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1023px) {
   .table-header {
     display: none;
   }
@@ -599,7 +599,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-content {
     flex-direction: column;
     gap: 16px;

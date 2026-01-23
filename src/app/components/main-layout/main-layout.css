@@ -68,6 +68,13 @@
   gap: 4px;
   overflow-y: auto;
   min-height: 0; /* Allow flex item to shrink below content size */
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .nav-link {
@@ -568,8 +575,8 @@
   background: #f5f7fa;
 }
 
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 768px) {
+/* ==================== TABLET (768px - 1023px) ==================== */
+@media (max-width: 1023px) {
   .sidebar {
     position: fixed;
     left: -280px;
@@ -596,7 +603,10 @@
   .btn-menu {
     display: block;
   }
+}
 
+/* ==================== MOBILE (481px - 767px) ==================== */
+@media (max-width: 767px) {
   .topbar {
     padding: var(--spacing-md) var(--page-padding);
     gap: var(--spacing-sm);

@@ -4,6 +4,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ConfettiService } from '../../core/services/confetti.service';
 import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 import {
@@ -39,6 +40,7 @@ export class TaxTracking implements OnInit, OnDestroy {
   private profileService = inject(ProfileService);
   private notificationService = inject(NotificationService);
   private dataRefreshService = inject(DataRefreshService);
+  private confettiService = inject(ConfettiService);
   private cdr = inject(ChangeDetectorRef);
 
   profileData: ProfileResponse | null = null;
@@ -246,6 +248,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         'Tu reembolso federal ha sido depositado en tu cuenta.',
         NotificationType.STATUS_CHANGE
       );
+      // Celebrate the deposit with fireworks!
+      setTimeout(() => this.confettiService.fireworks(), 500);
     }
   }
 
@@ -271,6 +275,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         'Tu reembolso estatal ha sido depositado en tu cuenta.',
         NotificationType.STATUS_CHANGE
       );
+      // Celebrate the deposit with money rain!
+      setTimeout(() => this.confettiService.moneyRain(), 500);
     }
   }
 

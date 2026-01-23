@@ -8,6 +8,7 @@ import { W2SharedService } from '../../core/services/w2-shared.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ConfettiService } from '../../core/services/confetti.service';
 import { DocumentType, OcrConfidence, Document } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
@@ -28,6 +29,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
+  private confettiService = inject(ConfettiService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private apiSubscription: Subscription | null = null;
@@ -352,6 +354,9 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   showResult() {
     this.state = 'result';
+
+    // Celebrate the result with money rain!
+    setTimeout(() => this.confettiService.moneyRain(), 300);
 
     // Save the calculator result
     this.calculatorResultService.saveResult(

@@ -940,7 +940,7 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .alarms-page {
     padding: 16px;
   }

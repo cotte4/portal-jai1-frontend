@@ -90,11 +90,77 @@
     </div>
   }
 
-  <!-- Loading State -->
+  <!-- Skeleton Loading State -->
   @if (isLoading) {
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Cargando tu estado...</p>
+    <div class="tracking-skeleton">
+      <!-- Skeleton: Section Title -->
+      <div class="skeleton-section">
+        <div class="skeleton-row" style="margin-bottom: 20px;">
+          <div class="skeleton skeleton-circle" style="width: 32px; height: 32px;"></div>
+          <div class="skeleton skeleton-title" style="width: 120px; height: 20px;"></div>
+        </div>
+        <!-- Skeleton: Steps -->
+        <div class="skeleton-steps">
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-title" style="width: 160px; height: 18px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 220px; height: 14px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-title" style="width: 140px; height: 18px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 200px; height: 14px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton: Federal/State Tracks -->
+      <div class="skeleton-tracks">
+        <div class="skeleton-track">
+          <div class="skeleton-row" style="margin-bottom: 16px;">
+            <div class="skeleton skeleton-circle" style="width: 28px; height: 28px;"></div>
+            <div class="skeleton skeleton-title" style="width: 100px; height: 18px;"></div>
+          </div>
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-text" style="width: 120px; height: 16px; margin-bottom: 6px;"></div>
+              <div class="skeleton skeleton-text" style="width: 160px; height: 12px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-text" style="width: 140px; height: 16px; margin-bottom: 6px;"></div>
+              <div class="skeleton skeleton-text" style="width: 180px; height: 12px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="skeleton-track">
+          <div class="skeleton-row" style="margin-bottom: 16px;">
+            <div class="skeleton skeleton-circle" style="width: 28px; height: 28px;"></div>
+            <div class="skeleton skeleton-title" style="width: 80px; height: 18px;"></div>
+          </div>
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-text" style="width: 130px; height: 16px; margin-bottom: 6px;"></div>
+              <div class="skeleton skeleton-text" style="width: 170px; height: 12px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-step">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
+            <div class="skeleton-step-content">
+              <div class="skeleton skeleton-text" style="width: 110px; height: 16px; margin-bottom: 6px;"></div>
+              <div class="skeleton skeleton-text" style="width: 150px; height: 12px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   } @else {
     <!-- SHARED STEPS (Steps 1-2) -->

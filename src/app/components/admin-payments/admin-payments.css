@@ -595,7 +595,7 @@
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1023px) {
   .summary-cards {
     grid-template-columns: 1fr;
   }
@@ -605,7 +605,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-content {
     flex-direction: column;
     gap: 16px;

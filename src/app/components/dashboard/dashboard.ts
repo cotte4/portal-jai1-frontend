@@ -10,6 +10,7 @@ import { CalculatorResultService, CalculatorResult } from '../../core/services/c
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { AnimationService } from '../../core/services/animation.service';
+import { ConfettiService } from '../../core/services/confetti.service';
 import {
   ProfileResponse,
   Document,
@@ -65,6 +66,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
   private animationService = inject(AnimationService);
+  private confettiService = inject(ConfettiService);
   private subscriptions = new Subscription();
 
   @ViewChild('welcomeSection') welcomeSection!: ElementRef<HTMLElement>;
@@ -205,6 +207,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: (results) => {
+        // Track previous state for confetti logic
+        const wasAllComplete = this.allStepsComplete;
+
         if (results.profile) {
           this.profileData = results.profile;
         }
@@ -221,6 +226,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
         // Cache dashboard data for faster loads on refresh
         this.cacheDashboardData();
+
+        // Trigger confetti when all steps become complete (first time only per session)
+        this.checkAndTriggerConfetti(wasAllComplete);
       }
     });
 
@@ -655,6 +663,47 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   // ============ NAVIGATION ============
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  // ============ CONFETTI CELEBRATIONS ============
+  private checkAndTriggerConfetti(wasAllComplete: boolean): void {
+    // Check if all steps JUST became complete (transition from incomplete to complete)
+    // Only show confetti once ever, persisted in localStorage
+    if (this.allStepsComplete && !wasAllComplete && !this.hasShownCompletionConfetti()) {
+      this.markCompletionConfettiShown();
+      // Delay slightly to let the UI update first
+      setTimeout(() => {
+        this.confettiService.bigCelebration();
+      }, 500);
+    }
+
+    // Check if refund was just deposited
+    if (this.isRefundDeposited && !this.hasShownDepositConfetti()) {
+      this.markDepositConfettiShown();
+      setTimeout(() => {
+        this.confettiService.fireworks();
+      }, 300);
+    }
+  }
+
+  private hasShownCompletionConfetti(): boolean {
+    const key = `jai1_completion_confetti_${this.authService.currentUser?.id}`;
+    return localStorage.getItem(key) === 'true';
+  }
+
+  private markCompletionConfettiShown(): void {
+    const key = `jai1_completion_confetti_${this.authService.currentUser?.id}`;
+    localStorage.setItem(key, 'true');
+  }
+
+  private hasShownDepositConfetti(): boolean {
+    const key = `jai1_deposit_confetti_${this.authService.currentUser?.id}`;
+    return localStorage.getItem(key) === 'true';
+  }
+
+  private markDepositConfettiShown(): void {
+    const key = `jai1_deposit_confetti_${this.authService.currentUser?.id}`;
+    localStorage.setItem(key, 'true');
   }
 
   // ============ CACHING ============

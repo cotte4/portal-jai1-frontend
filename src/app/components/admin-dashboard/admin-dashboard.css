@@ -910,13 +910,15 @@
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+/* Tablet (768px - 1023px): 2 columns */
+@media (max-width: 1023px) {
   .season-stats {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+/* Mobile (<768px) */
+@media (max-width: 767px) {
   .season-stats { grid-template-columns: 1fr; }
   .season-stat-card { padding: 20px; }
   .season-stat-value { font-size: 24px; }

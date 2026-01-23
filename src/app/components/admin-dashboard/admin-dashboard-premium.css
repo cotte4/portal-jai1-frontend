@@ -534,7 +534,7 @@ JAI1 Tax Portal - Refined Apple-Inspired Design System
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .season-stats,
   .stats-grid {
     grid-template-columns: 1fr;

@@ -159,7 +159,7 @@
 /* ==================== RESPONSIVE STYLES ==================== */
 
 /* Tablet (max-width: 768px) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .login-card {
     padding: 32px 24px;
     max-width: 100%;
