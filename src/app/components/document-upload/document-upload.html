@@ -34,59 +34,6 @@
   </div>
 </div>
 
-<!-- Help Tips Modal -->
-<div class="popup-overlay" *ngIf="showHelpModal" (click)="closeHelpModal()">
-  <div class="popup-card help-modal" (click)="$event.stopPropagation()">
-    <button class="modal-close-btn" (click)="closeHelpModal()">x</button>
-    <div class="popup-icon help-icon">?</div>
-    <h2>Consejos para subir documentos</h2>
-
-    <div class="help-content">
-      <div class="help-section">
-        <div class="help-section-header">
-          <span class="help-section-icon">📁</span>
-          <h3>Formatos aceptados</h3>
-        </div>
-        <p>JPG, PNG y PDF</p>
-      </div>
-
-      <div class="help-section">
-        <div class="help-section-header">
-          <span class="help-section-icon">💾</span>
-          <h3>Tamano maximo</h3>
-        </div>
-        <p>25 MB por archivo</p>
-      </div>
-
-      <div class="help-section">
-        <div class="help-section-header">
-          <span class="help-section-icon">📸</span>
-          <h3>Calidad del documento</h3>
-        </div>
-        <ul>
-          <li>El documento debe ser legible y completo</li>
-          <li>Evita fotos borrosas o cortadas</li>
-          <li>Asegurate que se vea toda la informacion</li>
-        </ul>
-      </div>
-
-      <div class="help-section highlight-section">
-        <div class="help-section-header">
-          <span class="help-section-icon">📋</span>
-          <h3>Multiples W2</h3>
-        </div>
-        <p class="highlight-text">Si tenes mas de un W2, podes subir todos desde el boton "W2". Se guardaran todos correctamente.</p>
-      </div>
-    </div>
-
-    <div class="popup-actions">
-      <button class="btn-popup-primary" (click)="closeHelpModal()">
-        Entendido
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Payment Instructions Modal -->
 <div class="popup-overlay" *ngIf="showPaymentInstructions" (click)="closePaymentInstructions()">
   <div class="popup-card payment-instructions-modal" (click)="$event.stopPropagation()">
@@ -209,16 +156,10 @@
       ← Volver al resumen
     </button>
 
-    <!-- Page Title with Help Button -->
-    <div class="page-title-row">
-      <div class="page-title">
-        <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
-        <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
-      </div>
-      <button class="btn-help" (click)="openHelpModal()" title="Consejos para subir documentos">
-        <span class="help-icon-btn">?</span>
-        <span class="help-text">Ayuda</span>
-      </button>
+    <!-- Page Title -->
+    <div class="page-title">
+      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
     </div>
 
   <!-- Messages -->

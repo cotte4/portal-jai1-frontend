@@ -58,6 +58,7 @@ export class Onboarding implements OnInit, OnDestroy {
   box17State = 0;
   ocrConfidence = '';
   errorMessage = '';
+  isCompletingOnboarding = false;
 
   // Benefits content
   benefits: Benefit[] = [
@@ -283,7 +284,15 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   showResult() {
+    console.log('=== ONBOARDING: Showing result ===', {
+      estimatedRefund: this.estimatedRefund,
+      box2Federal: this.box2Federal,
+      box17State: this.box17State,
+      ocrConfidence: this.ocrConfidence
+    });
+
     this.calculatorState = 'result';
+    this.cdr.detectChanges(); // Trigger change detection for OnPush strategy
 
     // Save result to localStorage and backend with full breakdown data
     this.calculatorResultService.saveResult(
@@ -298,45 +307,72 @@ export class Onboarding implements OnInit, OnDestroy {
 
     // Save W2 document
     if (this.uploadedFile) {
-      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe();
+      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
+        next: () => console.log('=== ONBOARDING: W2 uploaded successfully ==='),
+        error: (err) => console.error('=== ONBOARDING: W2 upload failed ===', err)
+      });
     }
   }
 
   goToDashboard() {
+    console.log('=== ONBOARDING: User clicked "Ir al Dashboard" ===');
     this.completeOnboardingAndNavigate();
   }
 
   /**
    * Mark onboarding as complete in both localStorage (for immediate UI) and backend (for persistence).
    * This ensures the user doesn't see onboarding again on subsequent logins (including Google OAuth).
+   * Also syncs the estimated refund from calculator to the TaxCase in the database.
    */
   private completeOnboardingAndNavigate() {
+    // Prevent double-clicks
+    if (this.isCompletingOnboarding) {
+      console.log('=== ONBOARDING: Already completing, ignoring duplicate click ===');
+      return;
+    }
+
+    console.log('=== ONBOARDING: Starting completion flow ===');
+    this.isCompletingOnboarding = true;
+    this.cdr.detectChanges();
+
     // Set localStorage immediately for fast UI response
     this.storage.setOnboardingCompleted();
+    console.log('=== ONBOARDING: localStorage marked as complete ===');
 
     // Call backend to persist the onboarding complete status
     // This ensures Google login users don't see onboarding again
+    // IMPORTANT: Backend will also sync estimated refund from W2Estimate to TaxCase
     this.onboardingSubscription = this.profileService.markOnboardingComplete().subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('=== ONBOARDING: Backend marked complete successfully ===', response);
         // Success - navigate to dashboard
-        this.router.navigate(['/dashboard']);
+        this.ngZone.run(() => {
+          console.log('=== ONBOARDING: Navigating to /dashboard ===');
+          this.router.navigate(['/dashboard']);
+        });
       },
-      error: () => {
+      error: (error) => {
         // Even if API fails, navigate to dashboard (localStorage is set)
         // User might see onboarding again on next Google login, but UX is preserved for now
-        console.warn('Failed to mark onboarding complete in backend');
-        this.router.navigate(['/dashboard']);
+        console.error('=== ONBOARDING: Failed to mark complete in backend ===', error);
+        this.isCompletingOnboarding = false;
+        this.ngZone.run(() => {
+          console.log('=== ONBOARDING: Navigating to /dashboard (despite error) ===');
+          this.router.navigate(['/dashboard']);
+        });
       }
     });
   }
 
   formatCurrency(amount: number): string {
+    // Handle null/undefined/NaN
+    const validAmount = amount || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(validAmount);
   }
 
   get currentBenefit(): Benefit {

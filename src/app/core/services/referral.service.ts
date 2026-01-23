@@ -243,6 +243,27 @@ export class ReferralService {
     });
   }
 
+  /**
+   * Mark referral onboarding as complete
+   */
+  markReferralOnboardingComplete(): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/referrals/mark-onboarding-complete`,
+      {}
+    );
+  }
+
+  /**
+   * Get referral onboarding status
+   */
+  getReferralOnboardingStatus(): Observable<{ completed: boolean }> {
+    return this.http.get<{ completed: boolean }>(
+      `${this.apiUrl}/referrals/onboarding-status`
+    ).pipe(
+      catchError(() => of({ completed: false }))
+    );
+  }
+
   // === HELPER METHODS ===
 
   /**

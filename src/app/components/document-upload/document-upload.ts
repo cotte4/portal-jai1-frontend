@@ -7,6 +7,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
+import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { Document, DocumentType } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
@@ -23,6 +24,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
+  private calculatorResultService = inject(CalculatorResultService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -49,9 +51,6 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
   // Toggle to show upload view even when all docs are complete
   showUploadView: boolean = false;
-
-  // Help tips modal
-  showHelpModal: boolean = false;
 
   // Selected document type for upload
   selectedType: DocumentType = DocumentType.W2;
@@ -219,10 +218,19 @@ export class DocumentUpload implements OnInit, OnDestroy {
         // Mark this document type as uploaded (for green checkmark)
         this.uploadedTypes.add(this.selectedType);
 
-        // If it's a W2, show the calculator popup
+        // If it's a W2, only show calculator popup if user doesn't have an existing estimate
         if (this.selectedType === DocumentType.W2) {
-          this.lastUploadedW2 = response.document;
-          this.showW2Popup = true;
+          const existingResult = this.calculatorResultService.getResult();
+          const hasValidEstimate = existingResult && existingResult.estimatedRefund > 0;
+
+          if (!hasValidEstimate) {
+            // No estimate or estimate is 0 - offer to calculate
+            this.lastUploadedW2 = response.document;
+            this.showW2Popup = true;
+          } else {
+            // User already has an estimate - just upload the document, don't ask
+            // Keep existing estimatedRefund value
+          }
         }
         this.cdr.detectChanges();
       },
@@ -335,14 +343,5 @@ export class DocumentUpload implements OnInit, OnDestroy {
   closeW2Popup() {
     this.showW2Popup = false;
     this.lastUploadedW2 = null;
-  }
-
-  // Help modal actions
-  openHelpModal() {
-    this.showHelpModal = true;
-  }
-
-  closeHelpModal() {
-    this.showHelpModal = false;
   }
 }

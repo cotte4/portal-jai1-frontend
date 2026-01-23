@@ -27,7 +27,7 @@
         Omitir
       </button>
 
-      <!-- Step 1: Share & Earn -->
+      <!-- Step 1: What is the referral program and how it works -->
       @if (onboardingStep === 'benefit1') {
         <div class="onboarding-content">
           <div class="onboarding-icon-wrapper">
@@ -35,45 +35,69 @@
               <span>🎁</span>
             </div>
           </div>
-          <h1>Comparti y gana</h1>
-          <p>Cada vez que un amigo use tu codigo de referido, vos ganas descuentos en tus proximos taxes y el recibe $11 de descuento.</p>
-        </div>
-      }
-
-      <!-- Step 2: Unlock Levels -->
-      @if (onboardingStep === 'benefit2') {
-        <div class="onboarding-content">
-          <div class="onboarding-icon-wrapper">
-            <div class="onboarding-icon">
-              <span>🏆</span>
+          <h1>Que es el programa de referidos?</h1>
+          <p>Es una forma de ganar descuentos compartiendo JAI1 con tus amigos. Cada vez que alguien se registra con tu codigo y completa sus taxes, ambos ganan beneficios reales.</p>
+          <div class="onboarding-steps">
+            <div class="onboarding-step-item">
+              <span class="step-num">💵</span>
+              <span>Tu amigo recibe $11 de descuento</span>
+            </div>
+            <div class="onboarding-step-item">
+              <span class="step-num">📈</span>
+              <span>Vos subis de nivel y ganas mas descuento</span>
             </div>
           </div>
-          <h1>Desbloquea niveles</h1>
-          <p>Mientras mas referidos tengas, mas descuento ganas. Subi de nivel desde 5% hasta 100% GRATIS en tu proxima declaracion.</p>
         </div>
       }
 
-      <!-- Step 3: How it works -->
-      @if (onboardingStep === 'benefit3') {
+      <!-- Step 2: How to share your code -->
+      @if (onboardingStep === 'benefit2') {
         <div class="onboarding-content">
           <div class="onboarding-icon-wrapper">
             <div class="onboarding-icon">
               <span>📤</span>
             </div>
           </div>
-          <h1>Asi de facil</h1>
+          <h1>Como compartir tu codigo</h1>
           <div class="onboarding-steps">
             <div class="onboarding-step-item">
               <span class="step-num">1</span>
-              <span>Comparti tu codigo unico</span>
+              <span>Obtene tu codigo unico en el portal</span>
             </div>
             <div class="onboarding-step-item">
               <span class="step-num">2</span>
-              <span>Tu amigo lo usa al registrarse</span>
+              <span>Comparti por WhatsApp, email o redes</span>
             </div>
             <div class="onboarding-step-item">
               <span class="step-num">3</span>
-              <span>Ambos ganan beneficios</span>
+              <span>Tu amigo lo usa al registrarse</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step 3: What benefits you get (discounts, levels) -->
+      @if (onboardingStep === 'benefit3') {
+        <div class="onboarding-content">
+          <div class="onboarding-icon-wrapper">
+            <div class="onboarding-icon">
+              <span>🏆</span>
+            </div>
+          </div>
+          <h1>Tus beneficios y niveles</h1>
+          <p>Mientras mas referidos tengas, mas descuento obtenes en tu proxima comision:</p>
+          <div class="onboarding-steps">
+            <div class="onboarding-step-item">
+              <span class="step-num">1</span>
+              <span>1 referido: 5% descuento</span>
+            </div>
+            <div class="onboarding-step-item">
+              <span class="step-num">3</span>
+              <span>3 referidos: 20% descuento</span>
+            </div>
+            <div class="onboarding-step-item">
+              <span class="step-num">7</span>
+              <span>7 referidos: 100% GRATIS!</span>
             </div>
           </div>
         </div>

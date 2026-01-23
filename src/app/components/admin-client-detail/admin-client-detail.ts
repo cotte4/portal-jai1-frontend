@@ -53,6 +53,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   isSaving: boolean = false;
   isMarkingPaid: boolean = false;
   isDeleting: boolean = false;
+  isSavingFederal: boolean = false;
+  isSavingState: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -101,7 +103,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   stateActualRefund: number | null = null;
   federalDepositDate: string = '';
   stateDepositDate: string = '';
-  isSavingFederalState: boolean = false;
 
   // Problem tracking
   showProblemModal: boolean = false;
@@ -589,7 +590,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   // Status history label transformation
   getHistoryStatusLabel(status: string | null | undefined): string {
-    if (!status) return 'Nuevo';
+    if (!status) return 'Estado Inicial';
 
     // Check if it's a step change
     if (status.startsWith('step:')) {
@@ -597,7 +598,50 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       return `Paso ${step}`;
     }
 
-    // Internal status labels
+    // Check if status contains composite data (e.g., "taxesFiled: false, preFiling: awaiting_documents")
+    if (status.includes(':') || status.includes(',')) {
+      return this.parseCompositeStatus(status);
+    }
+
+    // NEW STATUS SYSTEM (v2) - Case Status
+    const caseStatusLabels: Record<string, string> = {
+      awaiting_form: 'Esperando Formulario',
+      awaiting_docs: 'Esperando Documentos',
+      preparing: 'Preparando Declaración',
+      taxes_filed: 'Taxes Presentados',
+      case_issues: 'Problemas en el Caso'
+    };
+
+    // NEW STATUS SYSTEM (v2) - Federal/State Status
+    const federalStateLabels: Record<string, string> = {
+      in_process: 'En Proceso',
+      in_verification: 'En Verificación',
+      verification_in_progress: 'Verificación en Progreso',
+      verification_letter_sent: 'Carta de Verificación Enviada',
+      check_in_transit: 'Cheque en Camino',
+      issues: 'Problemas',
+      taxes_sent: 'Reembolso Enviado',
+      taxes_completed: 'Completado'
+    };
+
+    // Pre-filing status labels
+    const preFilingLabels: Record<string, string> = {
+      awaiting_registration: 'Esperando Registro',
+      awaiting_documents: 'Esperando Documentos',
+      documentation_complete: 'Documentación Completa'
+    };
+
+    // Old tax status labels
+    const taxStatusLabels: Record<string, string> = {
+      filed: 'Presentado',
+      pending: 'Pendiente',
+      processing: 'En Proceso',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      deposited: 'Depositado'
+    };
+
+    // Internal status labels (legacy)
     const internalLabels: Record<string, string> = {
       revision_de_registro: 'Revisión de Registro',
       esperando_datos: 'Esperando Datos',
@@ -611,7 +655,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       proceso_finalizado: 'Proceso Finalizado'
     };
 
-    // Client status labels
+    // Client status labels (legacy)
     const clientLabels: Record<string, string> = {
       esperando_datos: 'Esperando Datos',
       cuenta_en_revision: 'Cuenta en Revisión',
@@ -623,11 +667,74 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       taxes_finalizados: 'Taxes Finalizados'
     };
 
-    return internalLabels[status] || clientLabels[status] || status;
+    // Try all label mappings
+    return caseStatusLabels[status] ||
+           federalStateLabels[status] ||
+           preFilingLabels[status] ||
+           taxStatusLabels[status] ||
+           internalLabels[status] ||
+           clientLabels[status] ||
+           this.formatStatusCode(status);
+  }
+
+  // Parse composite status strings (e.g., "taxesFiled: false, preFiling: awaiting_documents")
+  private parseCompositeStatus(status: string): string {
+    const parts: string[] = [];
+
+    // Split by comma or semicolon
+    const segments = status.split(/[,;]/).map(s => s.trim());
+
+    for (const segment of segments) {
+      // Check if it's a key-value pair
+      if (segment.includes(':')) {
+        const [key, value] = segment.split(':').map(s => s.trim());
+        const formattedValue = this.formatStatusValue(key, value);
+        if (formattedValue) {
+          parts.push(formattedValue);
+        }
+      } else {
+        // Just a value, format it
+        parts.push(this.getHistoryStatusLabel(segment));
+      }
+    }
+
+    return parts.length > 0 ? parts.join(' • ') : status;
+  }
+
+  // Format individual status values
+  private formatStatusValue(key: string, value: string): string {
+    const fieldLabels: Record<string, string> = {
+      taxesFiled: 'Taxes Presentados',
+      preFiling: 'Pre-Presentación',
+      preFilingStatus: 'Pre-Presentación',
+      caseStatus: 'Estado del Caso',
+      federalStatus: 'Federal',
+      stateStatus: 'Estatal',
+      federalStatusNew: 'Federal',
+      stateStatusNew: 'Estatal'
+    };
+
+    const fieldLabel = fieldLabels[key] || key;
+    const valueLabel = this.getHistoryStatusLabel(value);
+
+    // Handle boolean values
+    if (value === 'true') return fieldLabel;
+    if (value === 'false') return `${fieldLabel}: No`;
+
+    return `${fieldLabel}: ${valueLabel}`;
+  }
+
+  // Format raw status codes to readable form
+  private formatStatusCode(code: string): string {
+    // Replace underscores with spaces and capitalize each word
+    return code
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   updateFederalStatus() {
-    this.isSavingFederalState = true;
+    this.isSavingFederal = true;
     const updateData: any = {};
 
     if (this.selectedFederalStatus) {
@@ -645,19 +752,19 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.toastService.success('Estado Federal actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
       }
     });
   }
 
   updateStateStatus() {
-    this.isSavingFederalState = true;
+    this.isSavingState = true;
     const updateData: any = {};
 
     if (this.selectedStateStatus) {
@@ -675,12 +782,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.toastService.success('Estado Estatal actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
       }
     });
@@ -848,7 +955,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   // Updated federal status with comment
   updateFederalStatusWithComment() {
-    this.isSavingFederalState = true;
+    this.isSavingFederal = true;
     const updateData: any = {};
 
     if (this.selectedFederalStatus) {
@@ -869,13 +976,13 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.federalComment = '';
         this.toastService.success('Estado Federal actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
       }
     });
@@ -883,7 +990,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   // Updated state status with comment
   updateStateStatusWithComment() {
-    this.isSavingFederalState = true;
+    this.isSavingState = true;
     const updateData: any = {};
 
     if (this.selectedStateStatus) {
@@ -904,13 +1011,13 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.stateComment = '';
         this.toastService.success('Estado Estatal actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
       }
     });
@@ -991,6 +1098,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.federalComment = this.federalComment;
     }
 
+    console.log('[FRONTEND] updateFederalStatusNew - Sending update:', {
+      selectedFederalStatusNew: this.selectedFederalStatusNew,
+      updateData: JSON.stringify(updateData)
+    });
+
     this.executeFederalStatusUpdate(updateData);
   }
 
@@ -1012,6 +1124,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.stateComment) {
       updateData.stateComment = this.stateComment;
     }
+
+    console.log('[FRONTEND] updateStateStatusNew - Sending update:', {
+      selectedStateStatusNew: this.selectedStateStatusNew,
+      updateData: JSON.stringify(updateData)
+    });
 
     this.executeStateStatusUpdate(updateData);
   }
@@ -1166,16 +1283,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   private executeFederalStatusUpdate(updateData: UpdateStatusRequest) {
-    this.isSavingFederalState = true;
+    this.isSavingFederal = true;
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.federalComment = '';
         this.toastService.success('Estado Federal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         if (!this.handleStatusUpdateError(error, 'federal', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
         }
@@ -1184,16 +1301,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   private executeStateStatusUpdate(updateData: UpdateStatusRequest) {
-    this.isSavingFederalState = true;
+    this.isSavingState = true;
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.stateComment = '';
         this.toastService.success('Estado Estatal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         if (!this.handleStatusUpdateError(error, 'state', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
         }

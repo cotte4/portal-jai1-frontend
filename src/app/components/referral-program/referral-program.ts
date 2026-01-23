@@ -11,7 +11,7 @@ import {
 } from '../../core/services/referral.service';
 import { AuthService } from '../../core/services/auth.service';
 import { forkJoin, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { REFERRAL_TERMS_TITLE, REFERRAL_TERMS_CONTENT } from './referral-terms-content';
 
 type ViewState = 'loading' | 'not-eligible' | 'dashboard' | 'error';
@@ -100,14 +100,17 @@ export class ReferralProgram implements OnInit, OnDestroy {
       discount: this.referralService.getMyDiscount(),
       leaderboard: this.referralService.getLeaderboard(10)
     }).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+      })
     ).subscribe({
       next: (data) => {
         this.codeData = data.code;
         this.referrals = data.referrals;
         this.discountInfo = data.discount;
         this.leaderboard = data.leaderboard;
-        this.hasLoaded = true;
 
         // Determine view state based on code eligibility
         if (data.code.code) {
@@ -120,7 +123,6 @@ export class ReferralProgram implements OnInit, OnDestroy {
       error: () => {
         this.errorMessage = 'No se pudo cargar el programa de referidos. Intenta de nuevo.';
         this.viewState = 'error';
-        this.hasLoaded = true;
         this.cdr.detectChanges();
       }
     });
@@ -128,9 +130,30 @@ export class ReferralProgram implements OnInit, OnDestroy {
 
   // Onboarding methods
   checkOnboardingStatus() {
-    const completed = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
-    this.showOnboarding = !completed;
-    this.cdr.detectChanges();
+    // Check backend for onboarding status
+    this.referralService.getReferralOnboardingStatus().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        // If backend says completed, don't show onboarding
+        if (response.completed) {
+          this.showOnboarding = false;
+          // Also set localStorage for consistency
+          localStorage.setItem(REFERRAL_ONBOARDING_KEY, 'true');
+        } else {
+          // Check localStorage as fallback (for offline scenarios)
+          const localCompleted = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
+          this.showOnboarding = !localCompleted;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // On error, fallback to localStorage check
+        const localCompleted = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
+        this.showOnboarding = !localCompleted;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   nextOnboardingStep() {
@@ -154,9 +177,23 @@ export class ReferralProgram implements OnInit, OnDestroy {
   }
 
   completeOnboarding() {
+    // Set localStorage immediately for fast UI response
     localStorage.setItem(REFERRAL_ONBOARDING_KEY, 'true');
     this.showOnboarding = false;
     this.cdr.detectChanges();
+
+    // Save to backend for persistence across devices and logins
+    this.referralService.markReferralOnboardingComplete().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        console.log('Referral onboarding marked as complete in backend');
+      },
+      error: (error) => {
+        console.error('Failed to mark referral onboarding complete in backend:', error);
+        // Don't show error to user - localStorage is set, so they won't see it again this session
+      }
+    });
   }
 
   skipOnboarding() {

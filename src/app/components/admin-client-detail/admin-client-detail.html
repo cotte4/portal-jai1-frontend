@@ -214,8 +214,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal' }}
+            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederal">
+              {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
           </div>
         </div>
@@ -255,8 +255,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal' }}
+            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingState">
+              {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal' }}
             </button>
           </div>
         </div>
@@ -322,8 +322,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-status-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal v2' }}
+            <button class="btn-status-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederal">
+              {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal v2' }}
             </button>
           </div>
         </div>
@@ -351,8 +351,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-status-update" (click)="updateStateStatusNew()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal v2' }}
+            <button class="btn-status-update" (click)="updateStateStatusNew()" [disabled]="isSavingState">
+              {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal v2' }}
             </button>
           </div>
         </div>
@@ -656,7 +656,7 @@
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📜</span>
-              <h2>Historial de Estados</h2>
+              <h2>Historial de Estados ({{ client.statusHistory.length }})</h2>
             </div>
           </div>
 
@@ -668,18 +668,23 @@
               </div>
               <div class="history-content">
                 <div class="history-header">
-                  <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="history-date">
+                    <span class="date-icon">📅</span>
+                    {{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
                   <span class="history-admin" *ngIf="history.changedBy">
-                    por {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
+                    <span class="admin-icon">👤</span>
+                    {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
                   </span>
                 </div>
                 <div class="history-change">
-                  <span class="status-badge old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
-                  <span class="arrow">→</span>
-                  <span class="status-badge new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
+                  <span class="status-badge-history old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
+                  <span class="arrow-icon">→</span>
+                  <span class="status-badge-history new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
                 </div>
                 <div class="history-comment" *ngIf="history.comment">
-                  "{{ history.comment }}"
+                  <span class="comment-icon">💬</span>
+                  <span class="comment-text">"{{ history.comment }}"</span>
                 </div>
               </div>
             </div>

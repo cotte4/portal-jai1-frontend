@@ -19,6 +19,14 @@ import {
   FederalStatusNew,
   StateStatusNew
 } from '../../core/models';
+import {
+  isFederalApproved,
+  isFederalDeposited,
+  isFederalRejected,
+  isStateApproved,
+  isStateDeposited,
+  isStateRejected
+} from '../../core/utils/status-display-mapper';
 
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 
@@ -245,8 +253,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isAcceptedByIRS(): boolean {
     if (!this.taxCase) return false;
-    return this.taxCase.federalStatus === TaxStatus.APPROVED ||
-           this.taxCase.federalStatus === TaxStatus.DEPOSITED;
+    // Check NEW status system first, fallback to OLD
+    const federalStatus = this.taxCase.federalStatusNew || this.taxCase.federalStatus;
+    return isFederalApproved(federalStatus);
   }
 
   get estimatedReturnDate(): string | null {
@@ -272,8 +281,10 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isRefundDeposited(): boolean {
     if (!this.taxCase) return false;
-    return this.taxCase.federalStatus === TaxStatus.DEPOSITED ||
-           this.taxCase.stateStatus === TaxStatus.DEPOSITED;
+    // Check NEW status system first, fallback to OLD
+    const federalStatus = this.taxCase.federalStatusNew || this.taxCase.federalStatus;
+    const stateStatus = this.taxCase.stateStatusNew || this.taxCase.stateStatus;
+    return isFederalDeposited(federalStatus) || isStateDeposited(stateStatus);
   }
 
   get irsProgressPercent(): number {
@@ -297,8 +308,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
     const taxesFiled = taxCase?.taxesFiled || false;
     const preFilingStatus = taxCase?.preFilingStatus;
-    const federalStatus = taxCase?.federalStatus;
-    const stateStatus = taxCase?.stateStatus;
+    // Prioritize NEW status system, fallback to OLD
+    const federalStatus = taxCase?.federalStatusNew || taxCase?.federalStatus;
+    const stateStatus = taxCase?.stateStatusNew || taxCase?.stateStatus;
     const profileComplete = profile?.profileComplete || false;
 
     // Total of 8 steps: 2 shared + 3 federal + 3 estatal
@@ -347,7 +359,7 @@ export class Dashboard implements OnInit, OnDestroy {
     // Determine most relevant step based on status
 
     // Check for rejections first
-    if (federalStatus === TaxStatus.REJECTED) {
+    if (isFederalRejected(federalStatus)) {
       return {
         stepNumber: 3,
         totalSteps: 8,
@@ -359,7 +371,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (stateStatus === TaxStatus.REJECTED) {
+    if (isStateRejected(stateStatus)) {
       return {
         stepNumber: 3,
         totalSteps: 8,
@@ -372,7 +384,7 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check if both are deposited (completed)
-    if (federalStatus === TaxStatus.DEPOSITED && stateStatus === TaxStatus.DEPOSITED) {
+    if (isFederalDeposited(federalStatus) && isStateDeposited(stateStatus)) {
       return {
         stepNumber: 8,
         totalSteps: 8,
@@ -385,9 +397,9 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check individual deposit status
-    if (federalStatus === TaxStatus.DEPOSITED) {
+    if (isFederalDeposited(federalStatus)) {
       // Federal done, check state
-      if (stateStatus === TaxStatus.APPROVED) {
+      if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
         return {
           stepNumber: 7,
           totalSteps: 8,
@@ -398,7 +410,7 @@ export class Dashboard implements OnInit, OnDestroy {
           status: 'active'
         };
       }
-      if (stateStatus === TaxStatus.PROCESSING || !stateStatus) {
+      if (!isStateApproved(stateStatus)) {
         return {
           stepNumber: 6,
           totalSteps: 8,
@@ -411,9 +423,9 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     }
 
-    if (stateStatus === TaxStatus.DEPOSITED) {
+    if (isStateDeposited(stateStatus)) {
       // State done, check federal
-      if (federalStatus === TaxStatus.APPROVED) {
+      if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
         return {
           stepNumber: 5,
           totalSteps: 8,
@@ -424,7 +436,7 @@ export class Dashboard implements OnInit, OnDestroy {
           status: 'active'
         };
       }
-      if (federalStatus === TaxStatus.PROCESSING || !federalStatus) {
+      if (!isFederalApproved(federalStatus)) {
         return {
           stepNumber: 4,
           totalSteps: 8,
@@ -438,7 +450,8 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check approved but not deposited
-    if (federalStatus === TaxStatus.APPROVED && stateStatus === TaxStatus.APPROVED) {
+    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus) &&
+        isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
       return {
         stepNumber: 6,
         totalSteps: 8,
@@ -450,7 +463,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (federalStatus === TaxStatus.APPROVED) {
+    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
       return {
         stepNumber: 5,
         totalSteps: 8,
@@ -462,7 +475,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (stateStatus === TaxStatus.APPROVED) {
+    if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
       return {
         stepNumber: 5,
         totalSteps: 8,
@@ -474,8 +487,11 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    // Default: waiting for IRS decisions
-    if (federalStatus === TaxStatus.PROCESSING || stateStatus === TaxStatus.PROCESSING) {
+    // Default: waiting for IRS decisions - active processing
+    const federalIsActive = federalStatus && !isFederalApproved(federalStatus) && !isFederalRejected(federalStatus);
+    const stateIsActive = stateStatus && !isStateApproved(stateStatus) && !isStateRejected(stateStatus);
+
+    if (federalIsActive || stateIsActive) {
       return {
         stepNumber: 3,
         totalSteps: 8,
