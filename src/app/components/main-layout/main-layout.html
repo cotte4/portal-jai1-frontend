@@ -132,6 +132,14 @@
               <span>No tienes notificaciones</span>
             </div>
           }
+          @if (hasMoreNotifications && notifications.length > 0) {
+            <button
+              class="btn-load-more"
+              (click)="loadMoreNotifications()"
+              [disabled]="loadingMoreNotifications">
+              {{ loadingMoreNotifications ? 'Cargando...' : 'Cargar más' }}
+            </button>
+          }
         </div>
       </div>
     }

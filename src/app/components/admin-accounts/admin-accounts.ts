@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../core/utils/error-handler';
+import { AdminService } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface ClientAccount {
   id: string;
@@ -35,6 +37,8 @@ interface AccountsResponse {
 export class AdminAccounts implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
+  private adminService = inject(AdminService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -51,9 +55,11 @@ export class AdminAccounts implements OnInit, OnDestroy {
   isLoadingMore: boolean = false;
   totalLoaded: number = 0;
 
-  // Individual field reveal tracking (security: no global toggle)
+  // Individual field reveal tracking (SECURITY: server-side reveal with audit logging)
+  revealedCredentials: Map<string, any> = new Map(); // clientId -> credentials object
   revealedFields: Set<string> = new Set();
   private revealTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private isRevealing: Map<string, boolean> = new Map(); // Track API calls in progress
 
   // Copy feedback
   copiedField: string | null = null;
@@ -64,10 +70,12 @@ export class AdminAccounts implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-    // Clear all reveal timers and revealed fields on component destroy (security)
+    // Clear all reveal timers and revealed credentials on component destroy (security)
     this.revealTimers.forEach(timer => clearTimeout(timer));
     this.revealTimers.clear();
     this.revealedFields.clear();
+    this.revealedCredentials.clear();
+    this.isRevealing.clear();
   }
 
   loadAccounts() {
@@ -113,10 +121,60 @@ export class AdminAccounts implements OnInit, OnDestroy {
     }
   }
 
-  // Reveal a specific field temporarily (auto-hides after 5 seconds)
+  // Reveal credentials for a client (SECURITY: calls backend API with audit logging)
   revealField(fieldId: string, event: Event) {
     event.stopPropagation(); // Prevent triggering copy
 
+    // Extract clientId from fieldId (format: clientId-field)
+    const clientId = fieldId.split('-')[0];
+
+    // If credentials already revealed for this client, just toggle the field visibility
+    if (this.revealedCredentials.has(clientId)) {
+      this.toggleFieldVisibility(fieldId);
+      return;
+    }
+
+    // Prevent duplicate API calls
+    if (this.isRevealing.get(clientId)) {
+      return;
+    }
+
+    // Call backend to reveal credentials (with audit logging)
+    this.isRevealing.set(clientId, true);
+
+    this.subscriptions.add(
+      this.adminService.getClientCredentials(clientId).subscribe({
+        next: (response) => {
+          // Store the unmasked credentials
+          this.revealedCredentials.set(clientId, response.credentials);
+          this.isRevealing.set(clientId, false);
+
+          // Show toast notification that access was logged (SECURITY: user awareness)
+          this.toastService.warning(
+            'Acceso a credenciales registrado en auditoria',
+            'Seguridad'
+          );
+
+          // Toggle the specific field visibility
+          this.toggleFieldVisibility(fieldId);
+
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error revealing credentials:', error);
+          this.isRevealing.set(clientId, false);
+          this.toastService.error(
+            'Error al revelar credenciales. Por favor intente de nuevo.',
+            'Error'
+          );
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  // Toggle visibility of a specific field (used after credentials are fetched)
+  private toggleFieldVisibility(fieldId: string) {
     // Clear existing timer if re-clicking
     const existingTimer = this.revealTimers.get(fieldId);
     if (existingTimer) {
@@ -144,14 +202,55 @@ export class AdminAccounts implements OnInit, OnDestroy {
   // Mask password with individual field reveal support
   maskPassword(value: string | null, fieldId: string): string {
     if (!value) return '---';
-    return this.isFieldRevealed(fieldId) ? value : '••••••••';
+
+    // Check if we have revealed credentials for this client
+    const clientId = fieldId.split('-')[0];
+    const field = fieldId.split('-').slice(1).join('-'); // Handle multi-part field names
+
+    if (this.isFieldRevealed(fieldId) && this.revealedCredentials.has(clientId)) {
+      // Map fieldId suffix to credential field name
+      const fieldMap: Record<string, string> = {
+        'ttPass': 'turbotaxPassword',
+        'irsPass': 'irsPassword',
+        'statePass': 'statePassword'
+      };
+
+      const credentialField = fieldMap[field];
+      if (credentialField) {
+        const credentials = this.revealedCredentials.get(clientId);
+        return credentials[credentialField] || '---';
+      }
+    }
+
+    return '••••••••';
   }
 
   async copyToClipboard(value: string | null, fieldId: string) {
     if (!value) return;
 
+    // For password fields, get the actual value from revealed credentials
+    const clientId = fieldId.split('-')[0];
+    const field = fieldId.split('-').slice(1).join('-');
+
+    let actualValue = value;
+
+    // If it's a password field and we have revealed credentials, use those
+    if (value === '••••••••' && this.revealedCredentials.has(clientId)) {
+      const fieldMap: Record<string, string> = {
+        'ttPass': 'turbotaxPassword',
+        'irsPass': 'irsPassword',
+        'statePass': 'statePassword'
+      };
+
+      const credentialField = fieldMap[field];
+      if (credentialField) {
+        const credentials = this.revealedCredentials.get(clientId);
+        actualValue = credentials[credentialField] || value;
+      }
+    }
+
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(actualValue);
       this.copiedField = fieldId;
       setTimeout(() => {
         this.copiedField = null;

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AdminClientListResponse,
@@ -133,7 +133,8 @@ export class AdminService {
     }
 
     return this.http.get<AdminClientListResponse>(`${this.apiUrl}/admin/clients`, { params }).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
+      shareReplay(1)
     );
   }
 
@@ -141,7 +142,8 @@ export class AdminService {
     return this.http.get<AdminClientDetail>(
       `${this.apiUrl}/admin/clients/${clientId}`
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -150,7 +152,8 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}`,
       data
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -159,7 +162,8 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}/status`,
       data
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -170,7 +174,8 @@ export class AdminService {
     return this.http.get<ValidTransitionsResponse>(
       `${this.apiUrl}/admin/clients/${clientId}/valid-transitions`
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -179,13 +184,15 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}/mark-paid`,
       {}
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
   deleteClient(clientId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/clients/${clientId}`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -232,26 +239,30 @@ export class AdminService {
       responseType: 'blob',
       params
     }).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
   getSeasonStats(): Observable<SeasonStats> {
     return this.http.get<SeasonStats>(`${this.apiUrl}/admin/stats/season`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
   getPaymentsSummary(): Observable<PaymentsSummaryResponse> {
     return this.http.get<PaymentsSummaryResponse>(`${this.apiUrl}/admin/payments`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
   // NEW STATUS SYSTEM (v2): Get clients with alarms (deprecated - use getAlarmDashboard)
   getClientsWithAlarms(): Observable<AlarmsResponse> {
     return this.http.get<AlarmsResponse>(`${this.apiUrl}/admin/alarms`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -262,7 +273,8 @@ export class AdminService {
    */
   getAlarmDashboard(): Observable<AlarmDashboardResponse> {
     return this.http.get<AlarmDashboardResponse>(`${this.apiUrl}/admin/alarms/dashboard`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -288,7 +300,8 @@ export class AdminService {
     if (filters?.toDate) params['toDate'] = filters.toDate;
 
     return this.http.get<AlarmHistoryItem[]>(`${this.apiUrl}/admin/alarms/history`, { params }).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -297,7 +310,8 @@ export class AdminService {
    */
   acknowledgeAlarm(alarmId: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/${alarmId}/acknowledge`, {}).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -306,7 +320,8 @@ export class AdminService {
    */
   resolveAlarm(alarmId: string, note?: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/${alarmId}/resolve`, { note }).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -315,7 +330,8 @@ export class AdminService {
    */
   getAlarmThresholds(taxCaseId: string): Observable<ThresholdsResponse> {
     return this.http.get<ThresholdsResponse>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -324,7 +340,8 @@ export class AdminService {
    */
   setAlarmThresholds(taxCaseId: string, thresholds: SetThresholdsRequest): Observable<ThresholdsResponse> {
     return this.http.patch<ThresholdsResponse>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`, thresholds).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -333,7 +350,8 @@ export class AdminService {
    */
   deleteAlarmThresholds(taxCaseId: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/admin/alarms/thresholds/${taxCaseId}`).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -342,7 +360,35 @@ export class AdminService {
    */
   syncAlarms(taxCaseId: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/admin/alarms/sync/${taxCaseId}`, {}).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
+  // ============= CLIENT CREDENTIALS (SECURE ACCESS) =============
+
+  /**
+   * Get unmasked credentials for a single client (SECURITY: audit logged)
+   * This reveals sensitive credentials and creates an audit trail
+   */
+  getClientCredentials(clientId: string): Observable<{
+    revealedAt: string;
+    revealedBy: string;
+    clientId: string;
+    clientName: string;
+    clientEmail: string;
+    credentials: {
+      turbotaxEmail: string | null;
+      turbotaxPassword: string | null;
+      irsUsername: string | null;
+      irsPassword: string | null;
+      stateUsername: string | null;
+      statePassword: string | null;
+    };
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/admin/clients/${clientId}/credentials`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -360,7 +406,8 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}/problem`,
       problemData
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -376,7 +423,8 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}/notify`,
       notifyData
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -397,7 +445,8 @@ export class AdminService {
       {},
       { params }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -409,7 +458,8 @@ export class AdminService {
       `${this.apiUrl}/admin/progress/send-missing-docs-notification`,
       { userId }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -420,7 +470,8 @@ export class AdminService {
     return this.http.get<{ enabled: boolean; lastUpdated: string | null }>(
       `${this.apiUrl}/admin/progress/cron/missing-docs/status`
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 
@@ -432,7 +483,8 @@ export class AdminService {
       `${this.apiUrl}/admin/progress/cron/missing-docs/status`,
       { enabled }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      shareReplay(1)
     );
   }
 

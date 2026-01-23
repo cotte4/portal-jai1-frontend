@@ -369,10 +369,10 @@
                 </span>
               </td>
 
-              <!-- 3. Tax Filing Date -->
+              <!-- 3. Tax Filing Date (derived from caseStatusChangedAt when TAXES_FILED) -->
               <td class="col-date">
-                <span *ngIf="client.taxesFiledAt">{{ client.taxesFiledAt | date:'dd/MM/yy' }}</span>
-                <span *ngIf="!client.taxesFiledAt" class="no-data">---</span>
+                <span *ngIf="client.caseStatus === 'taxes_filed' && client.caseStatusChangedAt">{{ client.caseStatusChangedAt | date:'dd/MM/yy' }}</span>
+                <span *ngIf="client.caseStatus !== 'taxes_filed' || !client.caseStatusChangedAt" class="no-data">---</span>
               </td>
 
               <!-- 4. Last Review Date -->
@@ -399,11 +399,11 @@
 
               <!-- 7. Federal Status -->
               <td class="col-status">
-                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.federalStatus)">
-                  {{ getTaxStatusLabel(client.federalStatus) }}
+                <span *ngIf="client.caseStatus === 'taxes_filed'" class="status-badge-mini" [ngClass]="getStatusClass(client.federalStatusNew)">
+                  {{ getStatusLabel(client.federalStatusNew) }}
                 </span>
-                <span *ngIf="!client.taxesFiled" class="status-badge-mini" [ngClass]="getPreFilingStatusClass(client.preFilingStatus)">
-                  {{ getPreFilingStatusLabel(client.preFilingStatus) }}
+                <span *ngIf="client.caseStatus !== 'taxes_filed'" class="status-badge-mini" [ngClass]="getStatusClass(client.caseStatus)">
+                  {{ getCaseStatusLabel(client.caseStatus) }}
                 </span>
               </td>
 
@@ -425,10 +425,10 @@
 
               <!-- 10. State Status -->
               <td class="col-status">
-                <span *ngIf="client.taxesFiled" class="status-badge-mini" [ngClass]="getTaxStatusClass(client.stateStatus)">
-                  {{ getTaxStatusLabel(client.stateStatus) }}
+                <span *ngIf="client.caseStatus === 'taxes_filed'" class="status-badge-mini" [ngClass]="getStatusClass(client.stateStatusNew)">
+                  {{ getStatusLabel(client.stateStatusNew) }}
                 </span>
-                <span *ngIf="!client.taxesFiled" class="no-data">---</span>
+                <span *ngIf="client.caseStatus !== 'taxes_filed'" class="no-data">---</span>
               </td>
 
               <!-- 11. Client Accounts Link -->

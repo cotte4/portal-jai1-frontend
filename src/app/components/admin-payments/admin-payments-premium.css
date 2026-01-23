@@ -1,0 +1,529 @@
+/*
+=================================================================
+ADMIN PAYMENTS - PREMIUM UI ENHANCEMENT
+JAI1 Tax Portal - Refined Financial Dashboard
+=================================================================
+*/
+
+/* ========== SUMMARY CARDS - FINANCIAL EMPHASIS ========== */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+  animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes staggerFadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  padding: 32px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(29, 52, 93, 0.03) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.summary-card:hover::before {
+  opacity: 1;
+}
+
+.summary-card.highlight {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 50%, #1D345D 100%);
+  border: none;
+  box-shadow:
+    0 8px 32px rgba(29, 52, 93, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.summary-card.highlight::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: shimmerGold 3s ease infinite;
+}
+
+@keyframes shimmerGold {
+  0% { background-position: -100% -100%; }
+  100% { background-position: 200% 200%; }
+}
+
+.summary-card.highlight:hover {
+  transform: translateY(-12px) scale(1.05);
+  box-shadow:
+    0 24px 64px rgba(29, 52, 93, 0.4),
+    0 0 0 1px rgba(255, 215, 79, 0.3);
+}
+
+.summary-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.summary-card:hover .summary-icon {
+  transform: rotate(-12deg) scale(1.15);
+}
+
+.summary-icon.taxes-icon {
+  background: linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%);
+  color: #1976d2;
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.2);
+}
+
+.summary-icon.commission-icon {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffd54f;
+  box-shadow: 0 8px 24px rgba(255, 215, 79, 0.3);
+  position: relative;
+}
+
+.summary-icon.commission-icon::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  padding: 2px;
+  background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+}
+
+.summary-icon.client-icon {
+  background: linear-gradient(135deg, #e8f5e9 0%, #81c784 100%);
+  color: #4caf50;
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+}
+
+.summary-value {
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.summary-card:hover .summary-value {
+  transform: scale(1.1);
+}
+
+.summary-card.highlight .summary-value {
+  background: linear-gradient(135deg, #ffffff 0%, #ffd54f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 8px rgba(255, 215, 79, 0.3);
+}
+
+.summary-label {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-top: 6px;
+}
+
+.summary-card.highlight .summary-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ========== PAYMENTS TABLE - FINANCIAL GRID ========== */
+.payments-table {
+  animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 200px repeat(8, 1fr);
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(to bottom, #f8f9fc 0%, #f1f3f7 100%);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 200px repeat(8, 1fr);
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 14px;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.table-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  border-radius: 14px 0 0 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.table-row:hover {
+  transform: translateX(8px) scale(1.01);
+  box-shadow:
+    0 8px 32px rgba(29, 52, 93, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-color: rgba(29, 52, 93, 0.1);
+}
+
+.table-row:hover::before {
+  opacity: 1;
+}
+
+.table-row:nth-child(even) {
+  background: #fafbfc;
+}
+
+.table-row:nth-child(even):hover {
+  background: white;
+}
+
+/* User Column with Avatar */
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow:
+    0 4px 12px rgba(178, 27, 67, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.table-row:hover .user-avatar {
+  transform: rotate(-8deg) scale(1.1);
+  box-shadow:
+    0 8px 24px rgba(178, 27, 67, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.user-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+
+.user-email {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Financial Amounts with Typography */
+.amount {
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: -0.3px;
+  transition: all 0.3s ease;
+}
+
+.table-row:hover .amount {
+  transform: scale(1.05);
+}
+
+.amount.total {
+  font-weight: 800;
+  font-size: 15px;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.amount.commission {
+  color: #B21B43;
+  font-weight: 700;
+}
+
+.amount.receives {
+  color: #4caf50;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* Status Badges - Refined */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table-row:hover .status-badge {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #fff4e5 0%, #ffe0b2 100%);
+  color: #e65100;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.status-deposited {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #0d47a1;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.status-paid {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  color: #1b5e20;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Totals Row - Premium Gold Accent */
+.table-totals {
+  display: grid;
+  grid-template-columns: 200px repeat(8, 1fr);
+  gap: 16px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 50%, #1D345D 100%);
+  border-radius: 16px;
+  align-items: center;
+  margin-top: 20px;
+  box-shadow:
+    0 8px 32px rgba(29, 52, 93, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.table-totals::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: slideShine 3s ease-in-out infinite;
+}
+
+@keyframes slideShine {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.totals-label {
+  font-weight: 900;
+  font-size: 15px;
+  color: white;
+  letter-spacing: 1.5px;
+}
+
+.table-totals .amount {
+  color: white;
+  font-weight: 700;
+}
+
+.table-totals .total-value {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.table-totals .total-value.highlight {
+  background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(255, 215, 79, 0.5);
+  font-size: 18px;
+}
+
+/* Load More Button - Premium */
+.btn-load-more {
+  min-height: 50px;
+  background: linear-gradient(135deg, rgba(29, 52, 93, 0.05) 0%, rgba(29, 52, 93, 0.08) 100%);
+  border: 2px solid rgba(29, 52, 93, 0.15);
+  color: #1D345D;
+  padding: 14px 36px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-load-more::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-load-more:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #1D345D;
+  box-shadow: 0 8px 24px rgba(29, 52, 93, 0.15);
+}
+
+.btn-load-more:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.btn-load-more:hover:not(:disabled) span {
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-load-more:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Export Button - Excel Green */
+.btn-export {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  box-shadow:
+    0 4px 16px rgba(76, 175, 80, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-export:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(76, 175, 80, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 1400px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header,
+  .table-row,
+  .table-totals {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+}

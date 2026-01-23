@@ -536,6 +536,31 @@
   font-size: 48px;
 }
 
+/* Load More Button */
+.btn-load-more {
+  width: calc(100% - 40px);
+  margin: 16px 20px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  color: #1D345D;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-load-more:hover:not(:disabled) {
+  background: #f0f2f5;
+  border-color: #1D345D;
+}
+
+.btn-load-more:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ==================== PAGE CONTENT ==================== */
 .page-content {
   flex: 1;

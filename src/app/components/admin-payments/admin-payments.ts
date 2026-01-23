@@ -37,8 +37,9 @@ interface PaymentsTotals {
 
 interface PaymentsSummaryResponse {
   clients: PaymentClient[];
+  nextCursor: string | null;
+  hasMore: boolean;
   totals: PaymentsTotals;
-  clientCount: number;
 }
 
 @Component({
@@ -66,8 +67,10 @@ export class AdminPayments implements OnInit, OnDestroy {
     totalCommission: 0,
     clientReceives: 0
   };
-  clientCount: number = 0;
+  nextCursor: string | null = null;
+  hasMore: boolean = false;
   isLoading: boolean = false;
+  isLoadingMore: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
   isExporting: boolean = false;
@@ -81,12 +84,13 @@ export class AdminPayments implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.subscriptions.add(
-      this.http.get<PaymentsSummaryResponse>(`${environment.apiUrl}/admin/payments`).subscribe({
+      this.http.get<PaymentsSummaryResponse>(`${environment.apiUrl}/admin/payments?limit=500`).subscribe({
         next: (response) => {
           this.clients = response.clients;
           this.filteredClients = this.clients;
           this.totals = response.totals;
-          this.clientCount = response.clientCount;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();
@@ -96,6 +100,33 @@ export class AdminPayments implements OnInit, OnDestroy {
           this.errorMessage = getErrorMessage(error, 'Error al cargar resumen de pagos');
           this.isLoading = false;
           this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  loadMorePayments() {
+    if (!this.hasMore || this.isLoadingMore || !this.nextCursor) return;
+
+    this.isLoadingMore = true;
+
+    this.subscriptions.add(
+      this.http.get<PaymentsSummaryResponse>(
+        `${environment.apiUrl}/admin/payments?cursor=${this.nextCursor}&limit=500`
+      ).subscribe({
+        next: (response) => {
+          this.clients = [...this.clients, ...response.clients];
+          this.filteredClients = this.searchQuery ? this.filteredClients : this.clients;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading more payments:', error);
+          this.errorMessage = getErrorMessage(error, 'Error al cargar mas pagos');
+          this.isLoadingMore = false;
           this.cdr.detectChanges();
         }
       })

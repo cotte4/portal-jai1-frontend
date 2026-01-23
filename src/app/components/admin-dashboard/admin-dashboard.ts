@@ -9,8 +9,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import {
   AdminClientListItem,
-  TaxStatus,
-  PreFilingStatus,
   CaseStatus,
   FederalStatusNew,
   StateStatusNew,
@@ -115,6 +113,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: FederalStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
     { value: FederalStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: FederalStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: FederalStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: FederalStatusNew.ISSUES, label: 'Problemas' },
     { value: FederalStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
     { value: FederalStatusNew.TAXES_COMPLETED, label: 'Completado' },
@@ -127,6 +126,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: StateStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
     { value: StateStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: StateStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: StateStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: StateStatusNew.ISSUES, label: 'Problemas' },
     { value: StateStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
     { value: StateStatusNew.TAXES_COMPLETED, label: 'Completado' },
@@ -331,23 +331,23 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.stats.completed = 0;
     this.stats.needsAttention = 0;
 
-    // Single pass through clients using new phase-based status system
+    // Single pass through clients using new phase-based status system (v2)
     for (const client of this.allClients) {
-      const taxesFiled = client.taxesFiled || false;
-      const federalStatus = client.federalStatus;
-      const stateStatus = client.stateStatus;
+      const taxesFiled = client.caseStatus === CaseStatus.TAXES_FILED;
+      const federalStatusNew = client.federalStatusNew;
+      const stateStatusNew = client.stateStatusNew;
 
       if (!taxesFiled) {
         // Pending: not yet filed
         this.stats.pending++;
-      } else if (federalStatus === TaxStatus.DEPOSITED || stateStatus === TaxStatus.DEPOSITED) {
-        // Completed: at least one deposited
+      } else if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED || stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
+        // Completed: at least one completed
         this.stats.completed++;
-      } else if (federalStatus === TaxStatus.REJECTED || stateStatus === TaxStatus.REJECTED) {
-        // Needs Attention: rejected
+      } else if (federalStatusNew === FederalStatusNew.ISSUES || stateStatusNew === StateStatusNew.ISSUES) {
+        // Needs Attention: has issues
         this.stats.needsAttention++;
       } else {
-        // In Review: filed but not yet deposited or rejected
+        // In Review: filed but not yet completed or with issues
         this.stats.inReview++;
       }
     }
@@ -404,7 +404,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   }
 
   // DEPRECATED: Legacy method kept for backward compatibility in templates
-  // New status system uses taxesFiled, federalStatus, stateStatus
+  // V2 status system uses caseStatus, federalStatusNew, stateStatusNew
   getStatusLabel(status: any): string {
     return status || 'Sin Asignar';
   }
@@ -489,58 +489,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
     });
   }
 
-  // ===== NEW STATUS SYSTEM METHODS =====
-
-  getPreFilingStatusLabel(status: PreFilingStatus | null | undefined): string {
-    if (!status) return 'Sin Estado';
-
-    const labels: Record<PreFilingStatus, string> = {
-      [PreFilingStatus.AWAITING_REGISTRATION]: 'Esperando Registro',
-      [PreFilingStatus.AWAITING_DOCUMENTS]: 'Esperando Docs',
-      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'Docs Completos'
-    };
-    return labels[status] || status;
-  }
-
-  getPreFilingStatusClass(status: PreFilingStatus | null | undefined): string {
-    if (!status) return 'status-new';
-
-    const classes: Record<PreFilingStatus, string> = {
-      [PreFilingStatus.AWAITING_REGISTRATION]: 'status-pending',
-      [PreFilingStatus.AWAITING_DOCUMENTS]: 'status-pending',
-      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'status-approved'
-    };
-    return classes[status] || 'status-pending';
-  }
-
-  getTaxStatusLabel(status: TaxStatus | null | undefined): string {
-    if (!status) return 'Sin Estado';
-
-    const labels: Record<TaxStatus, string> = {
-      [TaxStatus.FILED]: 'Presentado',
-      [TaxStatus.PENDING]: 'Pendiente',
-      [TaxStatus.PROCESSING]: 'Procesando',
-      [TaxStatus.APPROVED]: 'Aprobado',
-      [TaxStatus.REJECTED]: 'Rechazado',
-      [TaxStatus.DEPOSITED]: 'Depositado'
-    };
-    return labels[status] || status;
-  }
-
-  getTaxStatusClass(status: TaxStatus | null | undefined): string {
-    if (!status) return 'status-new';
-
-    const classes: Record<TaxStatus, string> = {
-      [TaxStatus.FILED]: 'status-in-review',
-      [TaxStatus.PENDING]: 'status-pending',
-      [TaxStatus.PROCESSING]: 'status-in-review',
-      [TaxStatus.APPROVED]: 'status-approved',
-      [TaxStatus.REJECTED]: 'status-needs-attention',
-      [TaxStatus.DEPOSITED]: 'status-completed'
-    };
-    return classes[status] || 'status-pending';
-  }
-
   // ===== CREDENTIALS MODAL =====
 
   openCredentialsModal(client: AdminClientListItem) {
@@ -612,6 +560,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
       [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas',
       [FederalStatusNew.TAXES_SENT]: 'Enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -627,6 +576,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
       [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [StateStatusNew.ISSUES]: 'Problemas',
       [StateStatusNew.TAXES_SENT]: 'Enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'

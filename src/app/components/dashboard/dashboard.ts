@@ -13,8 +13,6 @@ import {
   ProfileResponse,
   Document,
   DocumentType,
-  TaxStatus,
-  PreFilingStatus,
   CaseStatus,
   FederalStatusNew,
   StateStatusNew
@@ -247,15 +245,13 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isSentToIRS(): boolean {
     if (!this.taxCase) return false;
-    // Taxes are sent to IRS when taxesFiled = true
-    return this.taxCase.taxesFiled === true;
+    // Taxes are sent to IRS when caseStatus = TAXES_FILED
+    return this.taxCase.caseStatus === CaseStatus.TAXES_FILED;
   }
 
   get isAcceptedByIRS(): boolean {
     if (!this.taxCase) return false;
-    // Check NEW status system first, fallback to OLD
-    const federalStatus = this.taxCase.federalStatusNew || this.taxCase.federalStatus;
-    return isFederalApproved(federalStatus);
+    return isFederalApproved(this.taxCase.federalStatusNew);
   }
 
   get estimatedReturnDate(): string | null {
@@ -281,10 +277,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isRefundDeposited(): boolean {
     if (!this.taxCase) return false;
-    // Check NEW status system first, fallback to OLD
-    const federalStatus = this.taxCase.federalStatusNew || this.taxCase.federalStatus;
-    const stateStatus = this.taxCase.stateStatusNew || this.taxCase.stateStatus;
-    return isFederalDeposited(federalStatus) || isStateDeposited(stateStatus);
+    return isFederalDeposited(this.taxCase.federalStatusNew) || isStateDeposited(this.taxCase.stateStatusNew);
   }
 
   get irsProgressPercent(): number {
@@ -306,11 +299,10 @@ export class Dashboard implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
 
-    const taxesFiled = taxCase?.taxesFiled || false;
-    const preFilingStatus = taxCase?.preFilingStatus;
-    // Prioritize NEW status system, fallback to OLD
-    const federalStatus = taxCase?.federalStatusNew || taxCase?.federalStatus;
-    const stateStatus = taxCase?.stateStatusNew || taxCase?.stateStatus;
+    const caseStatus = taxCase?.caseStatus;
+    const taxesFiled = caseStatus === CaseStatus.TAXES_FILED;
+    const federalStatus = taxCase?.federalStatusNew;
+    const stateStatus = taxCase?.stateStatusNew;
     const profileComplete = profile?.profileComplete || false;
 
     // Total of 8 steps: 2 shared + 3 federal + 3 estatal
@@ -333,7 +325,7 @@ export class Dashboard implements OnInit, OnDestroy {
     const isSubmitted = taxesFiled === true;
 
     if (!isSubmitted) {
-      if (preFilingStatus === PreFilingStatus.DOCUMENTATION_COMPLETE) {
+      if (caseStatus === CaseStatus.PREPARING) {
         return {
           stepNumber: 2,
           totalSteps: 8,
@@ -621,6 +613,7 @@ export class Dashboard implements OnInit, OnDestroy {
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
       [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [FederalStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -641,6 +634,7 @@ export class Dashboard implements OnInit, OnDestroy {
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
       [StateStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [StateStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [StateStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -668,7 +662,7 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // If taxes are filed, show federal/state status
-    if (caseStatus === CaseStatus.TAXES_FILED || taxCase.taxesFiled) {
+    if (caseStatus === CaseStatus.TAXES_FILED) {
       // Prioritize showing the most advanced status
       if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED ||
           stateStatusNew === StateStatusNew.TAXES_COMPLETED) {

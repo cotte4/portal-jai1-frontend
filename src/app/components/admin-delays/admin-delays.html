@@ -18,8 +18,8 @@
   <!-- Stats Cards -->
   <div class="stats-row" *ngIf="hasLoaded && !errorMessage">
     <div class="stat-card">
-      <div class="stat-value">{{ clientCount }}</div>
-      <div class="stat-label">Clientes con Taxes Presentados</div>
+      <div class="stat-value">{{ clients.length }}</div>
+      <div class="stat-label">Clientes Cargados</div>
     </div>
     <div class="stat-card">
       <div class="stat-value">{{ avgFederalDelay }} dias</div>
@@ -145,6 +145,17 @@
       <div class="empty-icon">📊</div>
       <h3>{{ searchQuery ? 'No se encontraron resultados' : 'No hay datos de demoras' }}</h3>
       <p>{{ searchQuery ? 'Intenta con otro nombre' : 'Aun no hay clientes con taxes presentados' }}</p>
+    </div>
+
+    <!-- Load More Button -->
+    <div class="load-more-section" *ngIf="hasMore && filteredClients.length > 0">
+      <button
+        class="btn-load-more"
+        (click)="loadMoreDelays()"
+        [disabled]="isLoadingMore">
+        <span *ngIf="!isLoadingMore">Cargar Mas</span>
+        <span *ngIf="isLoadingMore">Cargando...</span>
+      </button>
     </div>
   </div>
 </div>

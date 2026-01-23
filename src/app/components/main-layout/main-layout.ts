@@ -25,6 +25,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private notificationSoundService = inject(NotificationSoundService);
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
+  private cdr = inject(ChangeDetectorRef);
   private chatbotScriptId = 'relevance-ai-chatbot';
   private subscriptions = new Subscription();
   private navTimeouts: ReturnType<typeof setTimeout>[] = [];
@@ -36,6 +37,7 @@ export class MainLayout implements OnInit, OnDestroy {
   showNotificationsPanel: boolean = false;
   unreadNotifications: number = 0;
   notifications: Notification[] = [];
+  loadingMoreNotifications = false;
 
   ngOnInit() {
     this.loadUserData();
@@ -56,6 +58,7 @@ export class MainLayout implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.notifications$.subscribe((notifications) => {
         this.notifications = notifications;
+        this.cdr.markForCheck();
       })
     );
 
@@ -63,6 +66,7 @@ export class MainLayout implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.unreadCount$.subscribe((count) => {
         this.unreadNotifications = count;
+        this.cdr.markForCheck();
       })
     );
 
@@ -224,6 +228,31 @@ export class MainLayout implements OnInit, OnDestroy {
         this.toastService.error('Error al eliminar notificaciones');
       }
     });
+  }
+
+  loadMoreNotifications() {
+    if (this.loadingMoreNotifications || !this.notificationService.hasMore) {
+      return;
+    }
+
+    this.loadingMoreNotifications = true;
+    this.cdr.markForCheck();
+
+    this.notificationService.loadMoreNotifications().subscribe({
+      next: () => {
+        this.loadingMoreNotifications = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingMoreNotifications = false;
+        this.cdr.markForCheck();
+        this.toastService.error('Error al cargar más notificaciones');
+      }
+    });
+  }
+
+  get hasMoreNotifications(): boolean {
+    return this.notificationService.hasMore;
   }
 
   getNotificationIcon(type: string | null | undefined): string {

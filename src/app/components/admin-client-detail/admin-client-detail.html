@@ -50,12 +50,12 @@
           </span>
         </div>
       </div>
-      <!-- Status display - use Phase-Based Status Section below for changes -->
+      <!-- Status display - use Status Section below for changes -->
       <div class="status-control">
         <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
         <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
-        <span class="status-info" *ngIf="selectedFederalStatus">Fed: {{ getTaxStatusLabel(selectedFederalStatus) }}</span>
-        <span class="status-info" *ngIf="selectedStateStatus">Est: {{ getTaxStatusLabel(selectedStateStatus) }}</span>
+        <span class="status-info" *ngIf="selectedFederalStatusNew">Fed: {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}</span>
+        <span class="status-info" *ngIf="selectedStateStatusNew">Est: {{ getStateStatusNewLabel(selectedStateStatusNew) }}</span>
       </div>
     </div>
 
@@ -118,25 +118,22 @@
         <div class="pre-filing-card">
           <div class="pre-filing-header">
             <span class="pre-filing-icon">📝</span>
-            <h3>Estado Pre-Presentacion</h3>
-            <span class="status-badge-large" [class]="'status-' + selectedPreFilingStatus">
-              {{ getPreFilingStatusLabel(selectedPreFilingStatus) }}
+            <h3>Estado del Caso</h3>
+            <span class="status-badge-large" [class]="'status-' + selectedCaseStatus">
+              {{ getCaseStatusLabel(selectedCaseStatus) }}
             </span>
           </div>
           <div class="pre-filing-body">
             <div class="pre-filing-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedPreFilingStatus">
-                <option *ngFor="let status of preFilingStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getPreFilingStatusLabel(status) }}
+              <select [(ngModel)]="selectedCaseStatus">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getCaseStatusLabel(status) }}
                 </option>
               </select>
             </div>
-            <div class="pre-filing-field">
-              <label>Comentario (opcional)</label>
-              <input type="text" [(ngModel)]="preFilingComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-update-prefiling" (click)="updatePreFilingStatus()" [disabled]="isSavingPreFiling">
+            <button class="btn-update-prefiling" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
               {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
             </button>
           </div>
@@ -179,22 +176,47 @@
       </div>
 
       <div class="federal-state-grid">
-        <!-- Federal Track -->
-        <div class="track-card federal-track">
+        <!-- Case Status -->
+        <div class="track-card case-status-card" style="grid-column: span 2;">
           <div class="track-header">
-            <span class="track-icon">🦅</span>
-            <h3>Federal</h3>
-            <span class="track-status" [class]="'status-' + (selectedFederalStatus || 'pending')">
-              {{ getTaxStatusLabel(selectedFederalStatus) }}
+            <span class="track-icon">📊</span>
+            <h3>Estado del Caso</h3>
+            <span class="track-status" [class]="'status-' + (selectedCaseStatus || 'pending')">
+              {{ getCaseStatusLabel(selectedCaseStatus) }}
             </span>
           </div>
           <div class="track-body">
             <div class="track-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedFederalStatus">
+              <select [(ngModel)]="selectedCaseStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getTaxStatusLabel(status) }}
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getCaseStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <button class="btn-track-update" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
+              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Federal Track -->
+        <div class="track-card federal-track">
+          <div class="track-header">
+            <span class="track-icon">🦅</span>
+            <h3>Federal</h3>
+            <span class="track-status" [class]="'status-' + (selectedFederalStatusNew || 'pending')">
+              {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}
+            </span>
+          </div>
+          <div class="track-body">
+            <div class="track-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedFederalStatusNew">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getFederalStatusNewLabel(status) }}
                 </option>
               </select>
             </div>
@@ -214,7 +236,7 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederal">
+            <button class="btn-track-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederal">
               {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
           </div>
@@ -225,17 +247,17 @@
           <div class="track-header">
             <span class="track-icon">🗽</span>
             <h3>Estatal</h3>
-            <span class="track-status" [class]="'status-' + (selectedStateStatus || 'pending')">
-              {{ getTaxStatusLabel(selectedStateStatus) }}
+            <span class="track-status" [class]="'status-' + (selectedStateStatusNew || 'pending')">
+              {{ getStateStatusNewLabel(selectedStateStatusNew) }}
             </span>
           </div>
           <div class="track-body">
             <div class="track-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedStateStatus">
+              <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getTaxStatusLabel(status) }}
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getStateStatusNewLabel(status) }}
                 </option>
               </select>
             </div>
@@ -255,104 +277,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingState">
+            <button class="btn-track-update" (click)="updateStateStatusNew()" [disabled]="isSavingState">
               {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NEW STATUS SYSTEM (v2) Section -->
-    <section class="new-status-section" *ngIf="client.taxCases && client.taxCases.length > 0 && taxesFiled">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="section-icon">🆕</span>
-          <h2>Sistema de Estados v2 (Nuevo)</h2>
-        </div>
-        <span class="section-badge beta">BETA</span>
-      </div>
-
-      <div class="new-status-grid">
-        <!-- Case Status -->
-        <div class="status-card case-status-card">
-          <div class="status-card-header">
-            <span class="status-icon">📊</span>
-            <h3>Estado del Caso</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedCaseStatus || 'pending')">
-              {{ getCaseStatusLabel(selectedCaseStatus) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedCaseStatus">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getCaseStatusLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <button class="btn-status-update" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
-              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Federal Status New -->
-        <div class="status-card federal-new-card">
-          <div class="status-card-header">
-            <span class="status-icon">🦅</span>
-            <h3>Federal (v2)</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedFederalStatusNew || 'pending')">
-              {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedFederalStatusNew">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getFederalStatusNewLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <div class="status-field">
-              <label>Comentario</label>
-              <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-status-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederal">
-              {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal v2' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- State Status New -->
-        <div class="status-card state-new-card">
-          <div class="status-card-header">
-            <span class="status-icon">🗽</span>
-            <h3>Estatal (v2)</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedStateStatusNew || 'pending')">
-              {{ getStateStatusNewLabel(selectedStateStatusNew) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedStateStatusNew">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getStateStatusNewLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <div class="status-field">
-              <label>Comentario</label>
-              <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-status-update" (click)="updateStateStatusNew()" [disabled]="isSavingState">
-              {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal v2' }}
             </button>
           </div>
         </div>

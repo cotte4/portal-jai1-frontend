@@ -4,7 +4,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
-import { ProfileResponse, TaxStatus, NotificationType, PreFilingStatus } from '../../core/models';
+import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 import {
   mapFederalStatusToDisplay,
@@ -48,10 +48,10 @@ export class TaxTracking implements OnInit, OnDestroy {
   isRefreshing = false;
 
   private subscriptions = new Subscription();
-  private previousPreFilingStatus?: PreFilingStatus;
+  private previousCaseStatus?: CaseStatus;
   private previousTaxesFiled?: boolean;
-  private previousFederalStatus?: any; // Can be TaxStatus or FederalStatusNew
-  private previousStateStatus?: any; // Can be TaxStatus or StateStatusNew
+  private previousFederalStatus?: FederalStatusNew; // V2 status only
+  private previousStateStatus?: StateStatusNew; // V2 status only
   private isLoadingInProgress = false;
   private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -125,11 +125,11 @@ export class TaxTracking implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           this.profileData = data;
-          this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
-          this.previousTaxesFiled = data.taxCase?.taxesFiled;
-          // Track the effective status (prioritize NEW system, fallback to OLD)
-          this.previousFederalStatus = data.taxCase?.federalStatusNew || data.taxCase?.federalStatus;
-          this.previousStateStatus = data.taxCase?.stateStatusNew || data.taxCase?.stateStatus;
+          this.previousCaseStatus = data.taxCase?.caseStatus;
+          this.previousTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
+          // Track v2 status fields only
+          this.previousFederalStatus = data.taxCase?.federalStatusNew;
+          this.previousStateStatus = data.taxCase?.stateStatusNew;
           this.buildSteps();
         }
       },
@@ -154,14 +154,15 @@ export class TaxTracking implements OnInit, OnDestroy {
   silentRefresh() {
     this.profileService.getProfile().subscribe({
       next: (data) => {
-        // Check for taxesFiled change (new filing)
-        if (this.previousTaxesFiled === false && data.taxCase?.taxesFiled === true) {
+        // Check for taxes filed change (new filing)
+        const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
+        if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
           this.onTaxesFiled();
         }
 
-        // Get effective status (prioritize NEW system, fallback to OLD)
-        const currentFederalStatus = data.taxCase?.federalStatusNew || data.taxCase?.federalStatus;
-        const currentStateStatus = data.taxCase?.stateStatusNew || data.taxCase?.stateStatus;
+        // Get v2 status fields only
+        const currentFederalStatus = data.taxCase?.federalStatusNew;
+        const currentStateStatus = data.taxCase?.stateStatusNew;
 
         // Check for Federal status changes
         this.checkFederalStatusChange(currentFederalStatus);
@@ -169,8 +170,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         // Check for State status changes
         this.checkStateStatusChange(currentStateStatus);
 
-        this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
-        this.previousTaxesFiled = data.taxCase?.taxesFiled;
+        this.previousCaseStatus = data.taxCase?.caseStatus;
+        this.previousTaxesFiled = currentTaxesFiled;
         this.previousFederalStatus = currentFederalStatus;
         this.previousStateStatus = currentStateStatus;
         this.profileData = data;
@@ -185,14 +186,15 @@ export class TaxTracking implements OnInit, OnDestroy {
     this.isRefreshing = true;
     this.profileService.getProfile().subscribe({
       next: (data) => {
-        // Check for taxesFiled change (new filing)
-        if (this.previousTaxesFiled === false && data.taxCase?.taxesFiled === true) {
+        // Check for taxes filed change (new filing)
+        const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
+        if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
           this.onTaxesFiled();
         }
 
-        // Get effective status (prioritize NEW system, fallback to OLD)
-        const currentFederalStatus = data.taxCase?.federalStatusNew || data.taxCase?.federalStatus;
-        const currentStateStatus = data.taxCase?.stateStatusNew || data.taxCase?.stateStatus;
+        // Get v2 status fields only
+        const currentFederalStatus = data.taxCase?.federalStatusNew;
+        const currentStateStatus = data.taxCase?.stateStatusNew;
 
         // Check for Federal status changes
         this.checkFederalStatusChange(currentFederalStatus);
@@ -200,8 +202,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         // Check for State status changes
         this.checkStateStatusChange(currentStateStatus);
 
-        this.previousPreFilingStatus = data.taxCase?.preFilingStatus;
-        this.previousTaxesFiled = data.taxCase?.taxesFiled;
+        this.previousCaseStatus = data.taxCase?.caseStatus;
+        this.previousTaxesFiled = currentTaxesFiled;
         this.previousFederalStatus = currentFederalStatus;
         this.previousStateStatus = currentStateStatus;
         this.profileData = data;
@@ -225,7 +227,7 @@ export class TaxTracking implements OnInit, OnDestroy {
   private checkFederalStatusChange(newStatus?: any): void {
     if (!this.previousFederalStatus || this.previousFederalStatus === newStatus) return;
 
-    // Handle both OLD system (TaxStatus) and NEW system (FederalStatusNew) values
+    // Handle V2 FederalStatusNew values
     if (isFederalApproved(newStatus) && !isFederalDeposited(newStatus)) {
       this.notificationService.emitLocalNotification(
         '¡Declaración Federal Aprobada!',
@@ -250,7 +252,7 @@ export class TaxTracking implements OnInit, OnDestroy {
   private checkStateStatusChange(newStatus?: any): void {
     if (!this.previousStateStatus || this.previousStateStatus === newStatus) return;
 
-    // Handle both OLD system (TaxStatus) and NEW system (StateStatusNew) values
+    // Handle V2 StateStatusNew values
     if (isStateApproved(newStatus) && !isStateDeposited(newStatus)) {
       this.notificationService.emitLocalNotification(
         '¡Declaración Estatal Aprobada!',
@@ -276,13 +278,12 @@ export class TaxTracking implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
 
-    const taxesFiled = taxCase?.taxesFiled || false;
-    const preFilingStatus = taxCase?.preFilingStatus;
+    const caseStatus = taxCase?.caseStatus;
+    const taxesFiled = caseStatus === CaseStatus.TAXES_FILED;
 
-    // PRIORITY: Read from NEW status system (v2) fields as primary source
-    // Fall back to OLD system for backward compatibility
-    const federalStatus = taxCase?.federalStatusNew || taxCase?.federalStatus;
-    const stateStatus = taxCase?.stateStatusNew || taxCase?.stateStatus;
+    // Read from v2 status fields only
+    const federalStatus = taxCase?.federalStatusNew;
+    const stateStatus = taxCase?.stateStatusNew;
 
     // SHARED STEPS (Steps 1-2)
     this.sharedSteps = [
@@ -291,7 +292,7 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Información Recibida',
         description: 'Recibimos tus datos y documentos',
         icon: '📋',
-        status: this.getStepStatusNew('received', taxesFiled, preFilingStatus, profile?.profileComplete),
+        status: this.getStepStatusNew('received', taxesFiled, caseStatus, profile?.profileComplete),
         date: profile?.updatedAt ? this.formatDate(profile.updatedAt) : undefined,
         detail: profile?.profileComplete ? 'Perfil completo' : 'Pendiente de completar'
       },
@@ -300,7 +301,7 @@ export class TaxTracking implements OnInit, OnDestroy {
         title: 'Presentado al IRS',
         description: 'Tu declaración fue enviada al IRS',
         icon: '🏛️',
-        status: this.getStepStatusNew('submitted', taxesFiled, preFilingStatus),
+        status: this.getStepStatusNew('submitted', taxesFiled, caseStatus),
         date: taxesFiled ? this.formatDate(taxCase?.statusUpdatedAt) : undefined,
         detail: taxesFiled ? 'Declaración enviada' : 'Esperando envío'
       }
@@ -370,7 +371,7 @@ export class TaxTracking implements OnInit, OnDestroy {
   }
 
   // ============ SHARED STEP HELPERS ============
-  private getStepStatusNew(step: string, taxesFiled: boolean, preFilingStatus?: PreFilingStatus, profileComplete?: boolean): TrackingStep['status'] {
+  private getStepStatusNew(step: string, taxesFiled: boolean, caseStatus?: CaseStatus, profileComplete?: boolean): TrackingStep['status'] {
     if (step === 'received') {
       if (profileComplete) return 'completed';
       return 'active';
@@ -378,7 +379,7 @@ export class TaxTracking implements OnInit, OnDestroy {
 
     if (step === 'submitted') {
       if (taxesFiled) return 'completed';
-      if (preFilingStatus === PreFilingStatus.DOCUMENTATION_COMPLETE) return 'active';
+      if (caseStatus === CaseStatus.PREPARING) return 'active';
       return 'pending';
     }
 
@@ -569,7 +570,7 @@ export class TaxTracking implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
 
     // Profile is complete and taxes haven't been filed yet
-    return profile?.profileComplete === true && taxCase?.taxesFiled !== true;
+    return profile?.profileComplete === true && taxCase?.caseStatus !== CaseStatus.TAXES_FILED;
   }
 
   navigateTo(route: string) {
