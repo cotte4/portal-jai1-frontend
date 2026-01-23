@@ -208,7 +208,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isFormSent(): boolean {
     // Form is sent if profile is complete and not a draft
-    return this.profileData?.profile?.profileComplete === true && 
+    return this.profileData?.profile?.profileComplete === true &&
            this.profileData?.profile?.isDraft === false;
   }
 
@@ -220,17 +220,36 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.documents.some(d => d.type === DocumentType.PAYMENT_PROOF);
   }
 
+  // ============ 3-STEP PROGRESS ============
+  get isStep1Complete(): boolean {
+    // Step 1: Complete declaration (form sent)
+    return this.isFormSent;
+  }
+
+  get isStep2Complete(): boolean {
+    // Step 2: Upload W2 document
+    return this.hasW2Document;
+  }
+
+  get isStep3Complete(): boolean {
+    // Step 3: Upload payment proof
+    return this.hasPaymentProof;
+  }
+
+  get allStepsCompleted(): boolean {
+    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete;
+  }
+
   get userProgressPercent(): number {
     let completed = 0;
-    if (this.isProfileComplete) completed++;
-    if (this.isFormSent) completed++;
-    if (this.hasW2Document) completed++;
-    if (this.hasPaymentProof) completed++;
-    return Math.round((completed / 4) * 100);
+    if (this.isStep1Complete) completed++;
+    if (this.isStep2Complete) completed++;
+    if (this.isStep3Complete) completed++;
+    return Math.round((completed / 3) * 100);
   }
 
   get userProgressComplete(): boolean {
-    return this.userProgressPercent === 100;
+    return this.allStepsCompleted;
   }
 
   // ============ BENTO GRID STEP STATES ============
@@ -544,6 +563,71 @@ export class Dashboard implements OnInit, OnDestroy {
   get isTrackingComplete(): boolean {
     return this.currentStepInfo.status === 'completed' &&
            this.currentStepInfo.stepNumber === 8;
+  }
+
+  // ============ IRS SUMMARY HELPERS ============
+  getCurrentStatusMessage(): string {
+    if (this.isRefundDeposited) {
+      return '¡Tu reembolso ha sido depositado!';
+    }
+    if (this.isAcceptedByIRS) {
+      return 'Tu declaración fue aprobada';
+    }
+    if (this.isSentToIRS) {
+      return 'Tu declaración está en proceso';
+    }
+    return 'Pendiente de enviar al IRS';
+  }
+
+  getFederalPercent(): number {
+    // No progress until submitted to IRS
+    if (!this.isSentToIRS) return 0;
+    if (!this.taxCase) return 0;
+
+    const status = this.taxCase.federalStatus;
+    // 3 federal steps: Decision, Estimate Date, Refund Sent
+    // Each completed step = 33%
+    if (status === TaxStatus.DEPOSITED) return 100;
+    if (status === TaxStatus.APPROVED) return 66;
+    if (status === TaxStatus.PROCESSING) return 33;
+    if (status === TaxStatus.REJECTED) return 33;
+    return 0;
+  }
+
+  getEstatalPercent(): number {
+    // No progress until submitted to IRS
+    if (!this.isSentToIRS) return 0;
+    if (!this.taxCase) return 0;
+
+    const status = this.taxCase.stateStatus;
+    // 3 estatal steps: Decision, Estimate Date, Refund Sent
+    if (status === TaxStatus.DEPOSITED) return 100;
+    if (status === TaxStatus.APPROVED) return 66;
+    if (status === TaxStatus.PROCESSING) return 33;
+    if (status === TaxStatus.REJECTED) return 33;
+    return 0;
+  }
+
+  getFederalStatusText(): string {
+    if (!this.isSentToIRS) return 'No enviado';
+    if (!this.taxCase) return 'Pendiente';
+    const status = this.taxCase.federalStatus;
+    if (status === TaxStatus.DEPOSITED) return 'Depositado';
+    if (status === TaxStatus.APPROVED) return 'Aprobado';
+    if (status === TaxStatus.PROCESSING) return 'En proceso';
+    if (status === TaxStatus.REJECTED) return 'Rechazado';
+    return 'Pendiente';
+  }
+
+  getEstatalStatusText(): string {
+    if (!this.isSentToIRS) return 'No enviado';
+    if (!this.taxCase) return 'Pendiente';
+    const status = this.taxCase.stateStatus;
+    if (status === TaxStatus.DEPOSITED) return 'Depositado';
+    if (status === TaxStatus.APPROVED) return 'Aprobado';
+    if (status === TaxStatus.PROCESSING) return 'En proceso';
+    if (status === TaxStatus.REJECTED) return 'Rechazado';
+    return 'Pendiente';
   }
 
   // ============ NAVIGATION ============
