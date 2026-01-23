@@ -220,38 +220,6 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.documents.some(d => d.type === DocumentType.PAYMENT_PROOF);
   }
 
-  // ============ 3-STEP PROGRESS ============
-  get isStep1Complete(): boolean {
-    // Step 1: Complete declaration (form sent)
-    return this.isFormSent;
-  }
-
-  get isStep2Complete(): boolean {
-    // Step 2: Upload W2 document
-    return this.hasW2Document;
-  }
-
-  get isStep3Complete(): boolean {
-    // Step 3: Upload payment proof
-    return this.hasPaymentProof;
-  }
-
-  get allStepsCompleted(): boolean {
-    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete;
-  }
-
-  get userProgressPercent(): number {
-    let completed = 0;
-    if (this.isStep1Complete) completed++;
-    if (this.isStep2Complete) completed++;
-    if (this.isStep3Complete) completed++;
-    return Math.round((completed / 3) * 100);
-  }
-
-  get userProgressComplete(): boolean {
-    return this.allStepsCompleted;
-  }
-
   // ============ BENTO GRID STEP STATES ============
   get isStep1Complete(): boolean {
     // Step 1 complete = form is filled and sent
@@ -584,13 +552,13 @@ export class Dashboard implements OnInit, OnDestroy {
     if (!this.isSentToIRS) return 0;
     if (!this.taxCase) return 0;
 
-    const status = this.taxCase.federalStatus;
-    // 3 federal steps: Decision, Estimate Date, Refund Sent
-    // Each completed step = 33%
-    if (status === TaxStatus.DEPOSITED) return 100;
-    if (status === TaxStatus.APPROVED) return 66;
-    if (status === TaxStatus.PROCESSING) return 33;
-    if (status === TaxStatus.REJECTED) return 33;
+    const status = this.taxCase.federalStatusNew;
+    // Progress based on federal status
+    if (status === FederalStatusNew.TAXES_COMPLETED) return 100;
+    if (status === FederalStatusNew.TAXES_SENT || status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === FederalStatusNew.IN_PROCESS) return 33;
+    if (status === FederalStatusNew.ISSUES) return 33;
     return 0;
   }
 
@@ -599,34 +567,39 @@ export class Dashboard implements OnInit, OnDestroy {
     if (!this.isSentToIRS) return 0;
     if (!this.taxCase) return 0;
 
-    const status = this.taxCase.stateStatus;
-    // 3 estatal steps: Decision, Estimate Date, Refund Sent
-    if (status === TaxStatus.DEPOSITED) return 100;
-    if (status === TaxStatus.APPROVED) return 66;
-    if (status === TaxStatus.PROCESSING) return 33;
-    if (status === TaxStatus.REJECTED) return 33;
+    const status = this.taxCase.stateStatusNew;
+    // Progress based on state status
+    if (status === StateStatusNew.TAXES_COMPLETED) return 100;
+    if (status === StateStatusNew.TAXES_SENT || status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === StateStatusNew.IN_PROCESS) return 33;
+    if (status === StateStatusNew.ISSUES) return 33;
     return 0;
   }
 
   getFederalStatusText(): string {
     if (!this.isSentToIRS) return 'No enviado';
     if (!this.taxCase) return 'Pendiente';
-    const status = this.taxCase.federalStatus;
-    if (status === TaxStatus.DEPOSITED) return 'Depositado';
-    if (status === TaxStatus.APPROVED) return 'Aprobado';
-    if (status === TaxStatus.PROCESSING) return 'En proceso';
-    if (status === TaxStatus.REJECTED) return 'Rechazado';
+    const status = this.taxCase.federalStatusNew;
+    if (status === FederalStatusNew.TAXES_COMPLETED) return 'Completado';
+    if (status === FederalStatusNew.TAXES_SENT) return 'Enviado';
+    if (status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === FederalStatusNew.IN_PROCESS) return 'En proceso';
+    if (status === FederalStatusNew.ISSUES) return 'Con problemas';
     return 'Pendiente';
   }
 
   getEstatalStatusText(): string {
     if (!this.isSentToIRS) return 'No enviado';
     if (!this.taxCase) return 'Pendiente';
-    const status = this.taxCase.stateStatus;
-    if (status === TaxStatus.DEPOSITED) return 'Depositado';
-    if (status === TaxStatus.APPROVED) return 'Aprobado';
-    if (status === TaxStatus.PROCESSING) return 'En proceso';
-    if (status === TaxStatus.REJECTED) return 'Rechazado';
+    const status = this.taxCase.stateStatusNew;
+    if (status === StateStatusNew.TAXES_COMPLETED) return 'Completado';
+    if (status === StateStatusNew.TAXES_SENT) return 'Enviado';
+    if (status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === StateStatusNew.IN_PROCESS) return 'En proceso';
+    if (status === StateStatusNew.ISSUES) return 'Con problemas';
     return 'Pendiente';
   }
 
