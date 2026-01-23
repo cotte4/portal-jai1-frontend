@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,21 +6,32 @@ import { Subscription, filter } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { HoverScaleDirective, CardAnimateDirective } from '../../shared/directives';
 import { AdminClientListItem, InternalStatus } from '../../core/models';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HoverScaleDirective, CardAnimateDirective],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
-export class AdminDashboard implements OnInit, OnDestroy {
+export class AdminDashboard implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+
+  @ViewChild('statsGrid') statsGrid!: ElementRef;
+  @ViewChild('searchBar') searchBar!: ElementRef;
+  @ViewChild('clientsSection') clientsSection!: ElementRef;
+  @ViewChildren('tableRow') tableRows!: QueryList<ElementRef>;
+  @ViewChildren('statValue') statValues!: QueryList<ElementRef>;
+
+  private animationsInitialized = false;
 
   allClients: AdminClientListItem[] = []; // Full list for stats
   clients: AdminClientListItem[] = [];
@@ -73,15 +84,82 @@ export class AdminDashboard implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Initialize entrance animations after view is ready
+    setTimeout(() => this.initEntranceAnimations(), 100);
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private initEntranceAnimations() {
+    if (this.animationsInitialized) return;
+    this.animationsInitialized = true;
+
+    // Animate stats cards with stagger
+    if (this.statsGrid?.nativeElement) {
+      const statCards = this.statsGrid.nativeElement.querySelectorAll('.stat-card');
+      this.animationService.staggerIn(statCards, {
+        direction: 'up',
+        stagger: 0.1,
+        distance: 30
+      });
+    }
+
+    // Animate search bar
+    if (this.searchBar?.nativeElement) {
+      this.animationService.slideIn(this.searchBar.nativeElement, 'up', {
+        delay: 0.3,
+        distance: 20
+      });
+    }
+
+    // Animate clients section
+    if (this.clientsSection?.nativeElement) {
+      this.animationService.fadeIn(this.clientsSection.nativeElement, {
+        delay: 0.4
+      });
+    }
+  }
+
+  private animateTableRows() {
+    // Animate table rows with stagger when data loads
+    setTimeout(() => {
+      if (this.tableRows && this.tableRows.length > 0) {
+        const rows = this.tableRows.map(r => r.nativeElement);
+        this.animationService.staggerIn(rows, {
+          direction: 'left',
+          stagger: 0.05,
+          distance: 20
+        });
+      }
+    }, 50);
+  }
+
+  private animateCounters() {
+    // Animate stat counters
+    setTimeout(() => {
+      if (this.statValues && this.statValues.length > 0) {
+        const values = [this.stats.total, this.stats.pending, this.stats.inReview, this.stats.completed, this.stats.needsAttention];
+        this.statValues.forEach((ref, index) => {
+          if (values[index] !== undefined) {
+            this.animationService.counterUp(ref.nativeElement, values[index], {
+              duration: 1,
+              decimals: 0
+            });
+          }
+        });
+      }
+    }, 100);
   }
 
   // Load all clients for both display and stats
   loadAllClients() {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     this.adminService.getClients(undefined, undefined, undefined, 100).subscribe({
       next: (response) => {
         this.allClients = response.clients;
@@ -90,6 +168,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.calculateStats();
         this.isLoading = false;
         this.cdr.detectChanges();
+        // Trigger animations after data loads
+        this.animateTableRows();
+        this.animateCounters();
       },
       error: (error) => {
         console.error('Error loading clients:', error);

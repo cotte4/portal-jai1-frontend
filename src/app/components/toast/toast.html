@@ -1,6 +1,6 @@
 <div class="toast-container">
   @for (toast of toasts; track toast.id) {
-    <div class="toast" [class]="'toast-' + toast.type" (click)="removeToast(toast.id)">
+    <div class="toast" [class]="'toast-' + toast.type" [attr.data-toast-id]="toast.id" (click)="dismissToast(toast.id)">
       <div class="toast-icon">{{ getIcon(toast.type) }}</div>
       <div class="toast-content">
         @if (toast.title) {
@@ -8,9 +8,14 @@
         }
         <div class="toast-message">{{ toast.message }}</div>
       </div>
-      <button class="toast-close" (click)="removeToast(toast.id); $event.stopPropagation()">
+      <button class="toast-close" appHoverScale (click)="dismissToast(toast.id); $event.stopPropagation()">
         ✕
       </button>
+      @if (toast.duration && toast.duration > 0) {
+        <div class="toast-progress">
+          <div class="toast-progress-bar"></div>
+        </div>
+      }
     </div>
   }
 </div>

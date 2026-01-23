@@ -544,6 +544,7 @@
   color: #1D345D;
   font-size: 14px;
   font-weight: 500;
+  opacity: 0; /* Initial state for GSAP animation */
 }
 
 .highlight-icon {
@@ -568,6 +569,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 8px 24px rgba(178, 27, 67, 0.3);
   margin-bottom: 16px;
+  opacity: 0; /* Initial state for GSAP animation */
 }
 
 .cta-button:hover {
@@ -817,6 +819,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  opacity: 0; /* Initial state for GSAP animation */
 }
 
 .breakdown-label {

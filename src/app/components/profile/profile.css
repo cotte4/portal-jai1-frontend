@@ -38,6 +38,8 @@
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .card-header {
@@ -221,18 +223,14 @@
   margin-bottom: 16px;
   font-size: 14px;
   font-weight: 500;
-  animation: slideIn 0.3s ease;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.alert.info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
 }
 
 .alert.error {
@@ -255,6 +253,8 @@
   margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden; /* Prevent horizontal overflow */
+  /* Initial state for GSAP stagger animation */
+  opacity: 0;
 }
 
 .section-header {
@@ -410,6 +410,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .form-row {
@@ -528,15 +530,10 @@
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s;
   text-decoration: none;
   color: #1D345D;
-}
-
-.action-btn:hover {
-  border-color: #1D345D;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.1);
+  /* Initial state for GSAP stagger animation */
+  opacity: 0;
 }
 
 .action-icon {

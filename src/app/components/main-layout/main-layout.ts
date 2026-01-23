@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ElementRef } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -6,22 +6,26 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { Notification } from '../../core/models';
 import { ToastComponent } from '../toast/toast';
+import { HoverScaleDirective } from '../../shared/directives';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, HoverScaleDirective],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css'
 })
-export class MainLayout implements OnInit, OnDestroy {
+export class MainLayout implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
+  private elementRef = inject(ElementRef);
   private chatbotScriptId = 'relevance-ai-chatbot';
   private subscriptions = new Subscription();
 
@@ -38,10 +42,28 @@ export class MainLayout implements OnInit, OnDestroy {
     this.loadChatbotScript();
   }
 
+  ngAfterViewInit() {
+    // Initial animations for nav links
+    this.animateNavLinks();
+  }
+
   ngOnDestroy() {
     this.removeChatbotScript();
     this.notificationService.stopPolling();
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private animateNavLinks() {
+    const navLinks = this.elementRef.nativeElement.querySelectorAll('.nav-link');
+    if (navLinks.length > 0) {
+      this.animationService.staggerIn(navLinks, {
+        direction: 'left',
+        stagger: 0.05,
+        delay: 0.1,
+        distance: 20
+      });
+    }
   }
 
   private setupNotifications() {
@@ -124,6 +146,35 @@ export class MainLayout implements OnInit, OnDestroy {
 
   toggleNotificationsPanel() {
     this.showNotificationsPanel = !this.showNotificationsPanel;
+
+    if (this.showNotificationsPanel) {
+      // Animate panel and items
+      setTimeout(() => {
+        const panel = this.elementRef.nativeElement.querySelector('.notifications-panel');
+        const overlay = this.elementRef.nativeElement.querySelector('.notifications-overlay');
+
+        if (overlay) {
+          this.animationService.fadeIn(overlay, { duration: 0.2 });
+        }
+
+        if (panel) {
+          this.animationService.slideIn(panel, 'left', {
+            duration: 0.25,
+            distance: 50
+          });
+
+          // Stagger notification items
+          const items = panel.querySelectorAll('.notification-item');
+          if (items.length > 0) {
+            this.animationService.staggerIn(items, {
+              direction: 'left',
+              stagger: 0.05,
+              delay: 0.15
+            });
+          }
+        }
+      });
+    }
   }
 
   markAsRead(notification: Notification) {
@@ -175,6 +226,23 @@ export class MainLayout implements OnInit, OnDestroy {
     if (diffHours < 24) return `Hace ${diffHours}h`;
     if (diffDays < 7) return `Hace ${diffDays}d`;
     return date.toLocaleDateString('es-ES');
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+
+    if (this.sidebarOpen) {
+      // Animate sidebar open on mobile
+      setTimeout(() => {
+        const sidebar = this.elementRef.nativeElement.querySelector('.sidebar');
+        if (sidebar && window.innerWidth <= 768) {
+          this.animationService.slideIn(sidebar, 'right', {
+            duration: 0.25,
+            distance: 280
+          });
+        }
+      });
+    }
   }
 
   closeSidebar() {

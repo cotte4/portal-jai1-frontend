@@ -1,29 +1,29 @@
 <div class="chatbot-content">
   <!-- Hero Section -->
   <div class="chatbot-hero">
-    <div class="hero-icon">🤖</div>
+    <div class="hero-icon" #heroIcon>🤖</div>
     <h1>Asistente Virtual Ip1</h1>
     <p class="hero-subtitle">Tu asistente especializado en devolución de impuestos para estudiantes J-1</p>
   </div>
 
   <!-- Features Grid -->
   <div class="features-grid">
-    <div class="feature-card" (click)="openChat()">
+    <div class="feature-card" appHoverScale="card" (click)="openChat()">
       <div class="feature-icon">📄</div>
       <h3>Documentos</h3>
       <p>Consultá qué documentos necesitás para tu declaración</p>
     </div>
-    <div class="feature-card" (click)="openChat()">
+    <div class="feature-card" appHoverScale="card" (click)="openChat()">
       <div class="feature-icon">⏱️</div>
       <h3>Tiempos</h3>
       <p>Conocé cuánto tiempo tarda el proceso de reembolso</p>
     </div>
-    <div class="feature-card" (click)="openChat()">
+    <div class="feature-card" appHoverScale="card" (click)="openChat()">
       <div class="feature-icon">💰</div>
       <h3>Costos</h3>
       <p>Información sobre tarifas y comisiones del servicio</p>
     </div>
-    <div class="feature-card" (click)="openChat()">
+    <div class="feature-card" appHoverScale="card" (click)="openChat()">
       <div class="feature-icon">📋</div>
       <h3>Proceso</h3>
       <p>Entendé paso a paso cómo funciona todo</p>
@@ -32,7 +32,7 @@
 
   <!-- Chat CTA -->
   <div class="chat-instruction">
-    <button class="instruction-bubble" (click)="openChat()">
+    <button class="instruction-bubble" appHoverScale (click)="openChat()">
       <span class="bubble-arrow">💬</span>
       <h3>¡Empezá a chatear!</h3>
       <p>Hacé clic aquí para iniciar una conversación con <strong>Ip1</strong></p>
@@ -44,7 +44,7 @@
     <div class="help-divider">
       <span>¿Necesitás ayuda humana?</span>
     </div>
-    <button class="btn-support" (click)="contactSupport()">
+    <button class="btn-support" appHoverScale (click)="contactSupport()">
       <span class="support-icon">👤</span>
       <span>Contactar equipo de soporte</span>
     </button>

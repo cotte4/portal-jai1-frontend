@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { UserRole } from '../../core/models';
 
 @Component({
@@ -9,7 +10,7 @@ import { UserRole } from '../../core/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="callback-container">
+    <div class="callback-container" #callbackContainer>
       <div class="spinner"></div>
       <p>Iniciando sesion con Google...</p>
     </div>
@@ -23,6 +24,7 @@ import { UserRole } from '../../core/models';
       height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
       color: #1D345D;
+      opacity: 0;
     }
     .spinner {
       width: 40px;
@@ -36,12 +38,20 @@ import { UserRole } from '../../core/models';
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    p {
+      font-size: 16px;
+      font-weight: 500;
+    }
   `]
 })
-export class GoogleCallback implements OnInit {
+export class GoogleCallback implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private animationService = inject(AnimationService);
+  private elementRef = inject(ElementRef);
+
+  @ViewChild('callbackContainer') callbackContainer!: ElementRef<HTMLElement>;
 
   ngOnInit() {
     console.log('[GoogleCallback] Component initialized');
@@ -98,5 +108,22 @@ export class GoogleCallback implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  ngAfterViewInit() {
+    this.initAnimations();
+  }
+
+  ngOnDestroy() {
+    this.animationService.killAnimations();
+  }
+
+  private initAnimations() {
+    // Fade in the callback container
+    if (this.callbackContainer?.nativeElement) {
+      this.animationService.fadeIn(this.callbackContainer.nativeElement, {
+        duration: 0.4
+      });
+    }
   }
 }

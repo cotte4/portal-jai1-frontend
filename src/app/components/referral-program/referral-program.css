@@ -15,54 +15,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: transitionFadeOut 0.8s ease-out forwards;
-}
-
-@keyframes transitionFadeOut {
-  0% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    pointer-events: none;
-  }
+  /* GSAP handles fade out animation */
 }
 
 .transition-content {
   text-align: center;
-  animation: transitionZoomIn 0.5s ease-out;
-}
-
-@keyframes transitionZoomIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 .transition-icon {
   font-size: 80px;
   margin-bottom: 24px;
-  animation: transitionBounce 0.6s ease-out;
-}
-
-@keyframes transitionBounce {
-  0% {
-    transform: scale(0);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+  opacity: 0; /* GSAP initial state */
+  transform: scale(0);
 }
 
 .transition-text {
@@ -70,19 +34,7 @@
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 1px;
-  opacity: 0;
-  animation: transitionTextIn 0.4s ease-out 0.2s forwards;
-}
-
-@keyframes transitionTextIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 0; /* GSAP initial state */
 }
 
 /* ==================== ONBOARDING OVERLAY ==================== */
@@ -116,7 +68,7 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.4;
+  opacity: 0.3; /* Initial state for GSAP pulse */
 }
 
 .onboarding-glow.glow-1 {
@@ -125,7 +77,7 @@
   background: #B21B43;
   top: -100px;
   right: -100px;
-  animation: glowPulse 4s ease-in-out infinite;
+  /* GSAP handles pulse animation */
 }
 
 .onboarding-glow.glow-2 {
@@ -134,12 +86,7 @@
   background: #6366f1;
   bottom: -50px;
   left: -50px;
-  animation: glowPulse 4s ease-in-out infinite 2s;
-}
-
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.1); }
+  /* GSAP handles pulse animation */
 }
 
 .onboarding-container {
@@ -164,6 +111,7 @@
   cursor: pointer;
   padding: 8px 20px;
   transition: all 0.2s;
+  opacity: 0; /* GSAP initial state */
 }
 
 .onboarding-skip:hover {
@@ -172,18 +120,7 @@
 }
 
 .onboarding-content {
-  animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 0; /* GSAP initial state */
 }
 
 .onboarding-icon-wrapper {
@@ -202,6 +139,8 @@
   margin: 0 auto;
   font-size: 56px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  opacity: 0; /* GSAP initial state */
+  transform: scale(0);
 }
 
 .onboarding-content h1 {
@@ -274,6 +213,8 @@
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   transition: all 0.3s ease;
+  opacity: 0; /* GSAP initial state */
+  transform: scale(0);
 }
 
 .dot.active {
@@ -288,6 +229,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .btn-back {
@@ -359,12 +301,7 @@
   height: 200%;
   background: radial-gradient(circle at 30% 20%, rgba(178, 27, 67, 0.15) 0%, transparent 50%),
               radial-gradient(circle at 70% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
-  animation: gradient-shift 20s ease-in-out infinite;
-}
-
-@keyframes gradient-shift {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-5%, 5%); }
+  /* GSAP handles gradient shift animation */
 }
 
 .bg-pattern {
@@ -378,17 +315,12 @@
   position: absolute;
   font-size: 48px;
   opacity: 0.1;
-  animation: float 15s ease-in-out infinite;
+  /* GSAP handles float animation */
 }
 
-.elem-1 { top: 10%; left: 5%; animation-delay: 0s; }
-.elem-2 { top: 60%; right: 10%; animation-delay: 5s; }
-.elem-3 { bottom: 20%; left: 15%; animation-delay: 10s; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(10deg); }
-}
+.elem-1 { top: 10%; left: 5%; }
+.elem-2 { top: 60%; right: 10%; }
+.elem-3 { bottom: 20%; left: 15%; }
 
 /* ==================== HEADER ==================== */
 .referral-header {
@@ -402,6 +334,7 @@
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0; /* GSAP initial state */
 }
 
 .header-left {
@@ -482,6 +415,7 @@
   animation: spin 0.8s linear infinite;
 }
 
+/* Keep spin for loading spinner - continuous animation */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -533,10 +467,6 @@
 .refresh-icon {
   font-size: 18px;
   display: inline-block;
-}
-
-.refresh-icon.spinning {
-  animation: spin 1s linear infinite;
 }
 
 /* Error State */
@@ -716,6 +646,7 @@
   border: 1px solid rgba(178, 27, 67, 0.3);
   border-radius: 50px;
   margin-bottom: 24px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .badge-icon { font-size: 20px; }
@@ -733,6 +664,7 @@
   font-weight: 800;
   margin: 0 0 16px;
   line-height: 1.2;
+  opacity: 0; /* GSAP initial state */
 }
 
 .welcome-section > p {
@@ -741,6 +673,7 @@
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+  opacity: 0; /* GSAP initial state */
 }
 
 /* ==================== CODE SECTION ==================== */
@@ -755,6 +688,7 @@
   border-radius: 28px;
   padding: 32px;
   position: relative;
+  opacity: 0; /* GSAP initial state */
 }
 
 .code-header {
@@ -791,6 +725,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 24px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .code-display:hover {
@@ -830,6 +765,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .btn-share-main {
@@ -873,12 +809,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  opacity: 0; /* GSAP initial state */
 }
 
 .share-option {
@@ -910,6 +841,7 @@
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
   border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 12px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .benefit-tag {
@@ -944,6 +876,7 @@
   align-items: center;
   gap: 20px;
   transition: all 0.3s ease;
+  opacity: 0; /* GSAP initial state */
 }
 
 .stat-card:hover {
@@ -993,6 +926,7 @@
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 24px;
   padding: 32px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .progress-header {
@@ -1040,6 +974,7 @@
   border-radius: 6px;
   transition: width 0.8s ease;
   position: relative;
+  width: 0; /* GSAP initial state */
 }
 
 .progress-fill::after {
@@ -1076,6 +1011,7 @@
 
 .section-header {
   margin-bottom: 24px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .section-header h2 {
@@ -1105,6 +1041,7 @@
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
+  opacity: 0; /* GSAP initial state */
 }
 
 .tier-card.unlocked {
@@ -1121,12 +1058,7 @@
 .tier-card.next {
   background: rgba(99, 102, 241, 0.1);
   border-color: rgba(99, 102, 241, 0.3);
-  animation: tier-pulse 2s ease-in-out infinite;
-}
-
-@keyframes tier-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.3); }
-  50% { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.2); }
+  /* GSAP handles tier-pulse animation */
 }
 
 .tier-icon {
@@ -1201,6 +1133,7 @@
   padding: 20px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background 0.2s;
+  opacity: 0; /* GSAP initial state */
 }
 
 .referral-item:last-child {
@@ -1352,6 +1285,7 @@
 .referral-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 32px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .footer-content {
@@ -1498,18 +1432,14 @@
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(178, 27, 67, 0.08) 100%);
   border: 2px dashed rgba(99, 102, 241, 0.3);
   border-radius: 28px;
+  opacity: 0; /* GSAP initial state */
 }
 
 .empty-icon-large {
   font-size: 72px;
   display: block;
   margin-bottom: 24px;
-  animation: bounce-soft 2s ease-in-out infinite;
-}
-
-@keyframes bounce-soft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  /* GSAP handles bounce-soft animation */
 }
 
 .empty-state-card h2 {

@@ -242,8 +242,26 @@
   margin-bottom: 16px;
 }
 
+/* Keep spinner animation - needed for loading state */
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* GSAP Animation Initial States */
+.animate-card {
+  opacity: 0;
+}
+
+.animate-search {
+  opacity: 0;
+}
+
+.animate-section {
+  opacity: 0;
+}
+
+.animate-row {
+  opacity: 0;
 }
 
 .loading-state p {

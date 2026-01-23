@@ -105,25 +105,25 @@
           <div class="form-row">
             <div class="form-group">
               <label>Nombre</label>
-              <input type="text" [(ngModel)]="editForm.firstName" placeholder="Tu nombre" />
+              <input type="text" [(ngModel)]="editForm.firstName" placeholder="Tu nombre" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
             </div>
             <div class="form-group">
               <label>Apellido</label>
-              <input type="text" [(ngModel)]="editForm.lastName" placeholder="Tu apellido" />
+              <input type="text" [(ngModel)]="editForm.lastName" placeholder="Tu apellido" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
             </div>
           </div>
-          
+
           <div class="form-group">
             <label>Teléfono / Celular</label>
-            <input type="tel" [(ngModel)]="editForm.phone" placeholder="+54 9 XXX XXX XXXX" />
+            <input type="tel" [(ngModel)]="editForm.phone" placeholder="+54 9 XXX XXX XXXX" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
           </div>
 
           <div class="form-group">
             <label>Fecha de nacimiento</label>
-            <input type="date" [(ngModel)]="editForm.dateOfBirth" />
+            <input type="date" [(ngModel)]="editForm.dateOfBirth" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
           </div>
 
-          <button class="btn-save" (click)="saveChanges()" [disabled]="isSaving">
+          <button class="btn-save" appHoverScale (click)="saveChanges()" [disabled]="isSaving">
             @if (isSaving) {
               <span class="spinner"></span>
               <span>Guardando...</span>
@@ -161,23 +161,23 @@
         <div class="edit-form">
           <div class="form-group">
             <label>Dirección</label>
-            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y número" />
+            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y número" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
           </div>
-          
+
           <div class="form-row">
             <div class="form-group">
               <label>Ciudad</label>
-              <input type="text" [(ngModel)]="editForm.city" placeholder="Ciudad" />
+              <input type="text" [(ngModel)]="editForm.city" placeholder="Ciudad" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
             </div>
             <div class="form-group">
               <label>Estado</label>
-              <input type="text" [(ngModel)]="editForm.state" placeholder="Estado" />
+              <input type="text" [(ngModel)]="editForm.state" placeholder="Estado" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
             </div>
           </div>
 
           <div class="form-group">
             <label>Código postal</label>
-            <input type="text" [(ngModel)]="editForm.zip" placeholder="ZIP Code" />
+            <input type="text" [(ngModel)]="editForm.zip" placeholder="ZIP Code" (focus)="animateFormInputFocus($event)" (blur)="animateFormInputBlur($event)" />
           </div>
         </div>
       } @else {
@@ -229,15 +229,15 @@
 
     <!-- Quick Actions -->
     <div class="quick-actions">
-      <button class="action-btn" (click)="goBack()">
+      <button class="action-btn" appHoverScale="card" (click)="goBack()">
         <span class="action-icon">🏠</span>
         <span>Ir al Inicio</span>
       </button>
-      <button class="action-btn" routerLink="/tax-form">
+      <button class="action-btn" appHoverScale="card" routerLink="/tax-form">
         <span class="action-icon">📝</span>
         <span>Mi Declaración</span>
       </button>
-      <button class="action-btn" routerLink="/documents">
+      <button class="action-btn" appHoverScale="card" routerLink="/documents">
         <span class="action-icon">📁</span>
         <span>Documentos</span>
       </button>

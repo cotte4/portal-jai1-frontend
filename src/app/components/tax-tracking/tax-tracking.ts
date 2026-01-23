@@ -1,11 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { ProfileResponse, ClientStatus, TaxStatus, NotificationType } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
+import { CardAnimateDirective, HoverScaleDirective } from '../../shared/directives';
 
 interface TrackingStep {
   id: string;
@@ -19,16 +21,19 @@ interface TrackingStep {
 
 @Component({
   selector: 'app-tax-tracking',
-  imports: [CommonModule],
+  imports: [CommonModule, CardAnimateDirective, HoverScaleDirective],
   templateUrl: './tax-tracking.html',
   styleUrl: './tax-tracking.css'
 })
-export class TaxTracking implements OnInit, OnDestroy {
+export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private notificationService = inject(NotificationService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
+  private elementRef = inject(ElementRef);
+  private animationsInitialized = false;
 
   profileData: ProfileResponse | null = null;
   isLoading = true;
@@ -81,8 +86,118 @@ export class TaxTracking implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered after data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  /**
+   * Initialize timeline animations
+   */
+  private initTimelineAnimations(): void {
+    if (this.animationsInitialized) return;
+
+    const nativeElement = this.elementRef.nativeElement;
+
+    // Animate header
+    const header = nativeElement.querySelector('.tracking-header');
+    if (header) {
+      this.animationService.slideIn(header as HTMLElement, 'up', { duration: 0.4 });
+    }
+
+    // Stagger animate summary cards
+    const summaryCards = nativeElement.querySelectorAll('.summary-card');
+    if (summaryCards.length > 0) {
+      this.animationService.staggerIn(summaryCards, {
+        direction: 'up',
+        stagger: 0.1,
+        delay: 0.2,
+        distance: 25
+      });
+    }
+
+    // Animate shared timeline
+    const sharedTimeline = nativeElement.querySelector('.shared-timeline');
+    if (sharedTimeline) {
+      this.animationService.slideIn(sharedTimeline as HTMLElement, 'up', { delay: 0.4 });
+    }
+
+    // Stagger animate shared steps
+    const sharedSteps = nativeElement.querySelectorAll('.shared-step');
+    if (sharedSteps.length > 0) {
+      this.animationService.staggerIn(sharedSteps, {
+        direction: 'left',
+        stagger: 0.15,
+        delay: 0.5,
+        distance: 30
+      });
+    }
+
+    // Animate branch split
+    const branchSplit = nativeElement.querySelector('.branch-split');
+    if (branchSplit) {
+      this.animationService.scaleIn(branchSplit as HTMLElement, { delay: 0.7, fromScale: 0.8 });
+    }
+
+    // Animate dual track containers
+    const tracks = nativeElement.querySelectorAll('.track');
+    if (tracks.length > 0) {
+      this.animationService.staggerIn(tracks, {
+        direction: 'up',
+        stagger: 0.2,
+        delay: 0.8,
+        distance: 40
+      });
+    }
+
+    // Stagger animate track steps (federal)
+    const federalSteps = nativeElement.querySelectorAll('.federal-track .track-step');
+    if (federalSteps.length > 0) {
+      this.animationService.staggerIn(federalSteps, {
+        direction: 'up',
+        stagger: 0.12,
+        delay: 1.0,
+        distance: 20
+      });
+    }
+
+    // Stagger animate track steps (estatal)
+    const estatalSteps = nativeElement.querySelectorAll('.estatal-track .track-step');
+    if (estatalSteps.length > 0) {
+      this.animationService.staggerIn(estatalSteps, {
+        direction: 'up',
+        stagger: 0.12,
+        delay: 1.1,
+        distance: 20
+      });
+    }
+
+    // Animate status icons with scale effect
+    const statusDots = nativeElement.querySelectorAll('.step-dot, .step-indicator');
+    statusDots.forEach((dot: Element, index: number) => {
+      this.animationService.scaleIn(dot as HTMLElement, {
+        delay: 1.2 + (index * 0.05),
+        fromScale: 0.5
+      });
+    });
+
+    // Animate help section
+    const helpSection = nativeElement.querySelector('.help-section');
+    if (helpSection) {
+      this.animationService.slideIn(helpSection as HTMLElement, 'up', { delay: 1.5 });
+    }
+
+    // Animate info note
+    const infoNote = nativeElement.querySelector('.info-note');
+    if (infoNote) {
+      this.animationService.fadeIn(infoNote as HTMLElement, { delay: 1.6 });
+    }
+
+    this.animationsInitialized = true;
   }
 
   loadTrackingData() {
@@ -98,6 +213,11 @@ export class TaxTracking implements OnInit, OnDestroy {
         this.isLoadingInProgress = false;
         this.lastRefresh = new Date();
         this.cdr.detectChanges();
+
+        // Initialize animations after data loads and view updates
+        setTimeout(() => {
+          this.initTimelineAnimations();
+        }, 100);
       })
     ).subscribe({
       next: (data) => {

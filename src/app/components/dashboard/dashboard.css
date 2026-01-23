@@ -32,252 +32,319 @@
   height: 100%;
 }
 
-/* ==================== TOP SECTION ==================== */
-.top-section {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 20px;
-}
-
-/* ==================== REFUND CARD ==================== */
-.refund-card {
+/* ==================== WELCOME SECTION ==================== */
+.welcome-section {
   background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
   border-radius: 20px;
-  padding: 28px;
+  padding: 28px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  opacity: 0; /* Initial state for GSAP */
+}
+
+.welcome-content {
+  flex: 1;
+}
+
+.welcome-title {
+  font-size: 24px;
+  font-weight: 700;
   color: white;
+  margin: 0 0 8px 0;
+}
+
+.welcome-subtitle {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.welcome-refund {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
 }
 
-.refund-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+.refund-label-small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.refund-icon {
-  font-size: 24px;
-}
-
-.refund-label {
-  font-size: 14px;
-  opacity: 0.8;
-  font-weight: 500;
-}
-
-.refund-amount {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 8px;
-  letter-spacing: -1px;
-}
-
-.refund-calculated {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  opacity: 0.8;
-  margin-bottom: 16px;
-}
-
-.check-icon {
-  width: 18px;
-  height: 18px;
-  background: #10b981;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-}
-
-.btn-recalculate {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: auto;
-}
-
-.btn-recalculate:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.refund-not-calculated {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  margin-bottom: 20px;
-  opacity: 0.9;
-}
-
-.question-icon {
+.refund-value {
   font-size: 32px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.5px;
 }
 
-.btn-calculate-cta {
+.btn-estimate {
   background: white;
   color: #1D345D;
   border: none;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: auto;
+  white-space: nowrap;
 }
 
-.btn-calculate-cta:hover {
+.btn-estimate:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-.btn-calculate-cta .arrow {
-  font-size: 18px;
-  transition: transform 0.2s;
-}
-
-.btn-calculate-cta:hover .arrow {
-  transform: translateX(4px);
-}
-
-/* ==================== PROGRESS CARD ==================== */
-.progress-card {
+/* ==================== STEPS CARD ==================== */
+.steps-card {
   background: white;
   border-radius: 20px;
-  padding: 28px;
+  padding: 32px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  opacity: 0; /* Initial state for GSAP */
 }
 
-.progress-header {
+.steps-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 24px;
 }
 
-.progress-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 18px;
+.steps-title-section {
+  flex: 1;
+}
+
+.steps-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 8px 0;
+}
+
+.steps-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.steps-progress {
+  flex-shrink: 0;
+}
+
+.progress-circle {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+
+.circular-progress {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 3;
+}
+
+.circle-fill {
+  fill: none;
+  stroke: #10b981;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.progress-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
   font-weight: 700;
   color: #1D345D;
 }
 
-.progress-icon {
-  font-size: 24px;
-}
-
-.progress-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.progress-badge.complete {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.progress-bar-container {
-  margin-bottom: 24px;
-}
-
-.progress-bar {
-  height: 10px;
+.progress-bar-horizontal {
+  height: 6px;
   background: #e5e7eb;
-  border-radius: 5px;
+  border-radius: 3px;
   overflow: hidden;
+  margin-bottom: 32px;
 }
 
-.progress-fill {
+.progress-fill-horizontal {
   height: 100%;
-  background: linear-gradient(90deg, #1D345D 0%, #B21B43 100%);
-  border-radius: 5px;
+  background: linear-gradient(90deg, #1D345D 0%, #10b981 100%);
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
 
-/* Checklist */
-.checklist {
+/* ==================== STEPS LIST ==================== */
+.steps-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
-.checklist-item {
+.step-item {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  transition: all 0.2s;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+  opacity: 0; /* Initial state for GSAP stagger */
 }
 
-.checklist-item.done {
-  background: #ecfdf5;
+.step-item.last {
+  border-bottom: none;
 }
 
-.item-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  color: #9ca3af;
+.step-number-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
   flex-shrink: 0;
 }
 
-.checklist-item.done .item-check {
-  background: #10b981;
+.step-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #9ca3af;
+  transition: all 0.3s;
+}
+
+.step-item.active .step-number {
+  background: linear-gradient(135deg, #1D345D, #2a4a7a);
+  color: white;
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
+}
+
+.step-item.done .step-number {
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
 }
 
-.item-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+.step-item.locked .step-number {
+  background: #f1f5f9;
+  color: #cbd5e1;
 }
 
-.checklist-item.done .item-text {
+.step-check-icon {
+  font-size: 20px;
+}
+
+.step-connector {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+  background: #e5e7eb;
+  margin-top: 8px;
+}
+
+.step-connector.done {
+  background: #10b981;
+}
+
+.step-item.last .step-connector {
+  display: none;
+}
+
+.step-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1D345D;
+  margin: 0 0 4px 0;
+}
+
+.step-item.done .step-name {
   color: #065f46;
 }
 
-.item-action {
-  background: #1D345D;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
+.step-item.locked .step-name {
+  color: #9ca3af;
+}
+
+.step-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.step-item.locked .step-description {
+  color: #cbd5e1;
+}
+
+.step-action {
+  flex-shrink: 0;
+}
+
+.btn-step-action {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  border: none;
+  white-space: nowrap;
 }
 
-.item-action:hover {
-  background: #152844;
+.btn-step-action.primary {
+  background: linear-gradient(135deg, #1D345D, #2a4a7a);
+  color: white;
+}
+
+.btn-step-action.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 52, 93, 0.3);
+}
+
+.step-status {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.step-status.done {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.step-status.locked {
+  background: #f8fafc;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 /* ==================== IRS SECTION ==================== */
@@ -286,6 +353,7 @@
   border-radius: 20px;
   padding: 28px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  opacity: 0; /* Initial state for GSAP */
 }
 
 .irs-header {
@@ -361,6 +429,7 @@
   background: #f8fafc;
   border-radius: 14px;
   transition: all 0.2s;
+  opacity: 0; /* Initial state for GSAP stagger */
 }
 
 .irs-step.done {
@@ -446,16 +515,15 @@
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s;
   border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  opacity: 0; /* Initial state for GSAP stagger */
 }
 
 .action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   border-color: #1D345D;
 }
 
@@ -540,6 +608,7 @@
   background: linear-gradient(135deg, #f8f9fb, #eef0f4);
   border-radius: 16px;
   border: 1px dashed #d1d5db;
+  opacity: 0; /* Initial state for GSAP */
 }
 
 .help-icon {
@@ -593,8 +662,35 @@
 }
 
 @media (max-width: 900px) {
-  .top-section {
-    grid-template-columns: 1fr;
+  .welcome-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .welcome-refund {
+    align-items: center;
+  }
+
+  .steps-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .step-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .step-action {
+    width: 100%;
+  }
+
+  .btn-step-action {
+    width: 100%;
+    text-align: center;
   }
 }
 
@@ -602,6 +698,65 @@
   .dashboard-content {
     padding: var(--page-padding);
     gap: var(--spacing-lg);
+  }
+
+  .welcome-section {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .welcome-title {
+    font-size: 20px;
+  }
+
+  .welcome-subtitle {
+    font-size: 14px;
+  }
+
+  .refund-value {
+    font-size: 26px;
+  }
+
+  .steps-card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .steps-title {
+    font-size: 18px;
+  }
+
+  .progress-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .progress-percent {
+    font-size: 14px;
+  }
+
+  .step-item {
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  .step-number {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+  }
+
+  .step-name {
+    font-size: 15px;
+  }
+
+  .step-description {
+    font-size: 12px;
+  }
+
+  .btn-step-action {
+    padding: 10px 18px;
+    font-size: 13px;
   }
 
   .action-cards-grid {
@@ -621,36 +776,9 @@
     padding: var(--card-padding);
   }
 
-  .refund-card, .progress-card, .irs-section {
+  .irs-section {
     padding: var(--card-padding);
     border-radius: var(--radius-lg);
-  }
-
-  .refund-amount {
-    font-size: var(--font-2xl);
-  }
-
-  .refund-label {
-    font-size: var(--font-sm);
-  }
-
-  .progress-title {
-    font-size: var(--font-lg);
-  }
-
-  .checklist-item {
-    flex-wrap: wrap;
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .item-text {
-    font-size: var(--font-sm);
-  }
-
-  .item-action {
-    width: 100%;
-    margin-top: var(--spacing-sm);
-    text-align: center;
   }
 
   .action-card {
@@ -679,11 +807,11 @@
     font-size: var(--font-sm);
   }
 
-  .step-title {
+  .irs-step .step-title {
     font-size: var(--font-sm);
   }
 
-  .step-desc {
+  .irs-step .step-desc {
     font-size: var(--font-xs);
   }
 
@@ -703,41 +831,88 @@
     gap: var(--spacing-md);
   }
 
-  .top-section {
-    gap: var(--spacing-md);
+  .welcome-section {
+    padding: 16px;
   }
 
-  .refund-card {
-    padding: var(--card-padding);
+  .welcome-title {
+    font-size: 18px;
   }
 
-  .refund-amount {
-    font-size: 26px;
-    margin-bottom: var(--spacing-xs);
+  .welcome-subtitle {
+    font-size: 13px;
   }
 
-  .refund-header {
-    margin-bottom: var(--spacing-sm);
+  .refund-value {
+    font-size: 22px;
   }
 
-  .refund-calculated {
-    margin-bottom: var(--spacing-md);
+  .btn-estimate {
+    padding: 10px 16px;
+    font-size: 13px;
   }
 
-  .btn-recalculate, .btn-calculate-cta {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-sm);
+  .steps-card {
+    padding: 16px;
   }
 
-  .progress-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
+  .steps-header {
+    gap: 16px;
+    margin-bottom: 16px;
   }
 
-  .progress-badge {
-    font-size: var(--font-xs);
-    padding: 4px 10px;
+  .steps-title {
+    font-size: 16px;
+  }
+
+  .steps-subtitle {
+    font-size: 12px;
+  }
+
+  .progress-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .progress-percent {
+    font-size: 12px;
+  }
+
+  .progress-bar-horizontal {
+    margin-bottom: 20px;
+  }
+
+  .step-item {
+    gap: 12px;
+    padding: 14px 0;
+  }
+
+  .step-number {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .step-check-icon {
+    font-size: 16px;
+  }
+
+  .step-name {
+    font-size: 14px;
+  }
+
+  .step-description {
+    font-size: 11px;
+  }
+
+  .btn-step-action {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .step-status {
+    font-size: 11px;
+    padding: 6px 12px;
   }
 
   .irs-header {

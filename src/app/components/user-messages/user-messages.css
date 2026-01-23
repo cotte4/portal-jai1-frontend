@@ -53,6 +53,8 @@
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   flex-wrap: wrap;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .title-icon {
@@ -265,6 +267,8 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   flex-shrink: 0;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .tickets-sidebar h3 {
@@ -286,6 +290,8 @@
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   transition: all 0.2s ease;
+  /* Initial state for GSAP stagger animation */
+  opacity: 0;
 }
 
 .ticket-item:hover {
@@ -350,6 +356,8 @@
   display: flex;
   flex-direction: column;
   min-height: 400px;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .chat-container.full-width {
@@ -417,6 +425,8 @@
 .message-wrapper {
   display: flex;
   width: 100%;
+  /* Initial state for GSAP stagger animation */
+  opacity: 0;
 }
 
 .message-wrapper.client {
@@ -628,6 +638,8 @@
   background: #e3f2fd;
   border-radius: 14px;
   border-left: 4px solid #2196f3;
+  /* Initial state for GSAP animation */
+  opacity: 0;
 }
 
 .info-icon {

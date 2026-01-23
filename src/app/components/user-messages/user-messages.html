@@ -13,10 +13,10 @@
       <p>Comunicacion directa con nuestro equipo de asistencia fiscal</p>
     </div>
     <div class="title-actions">
-      <button class="btn-refresh" (click)="loadTickets()" [disabled]="isLoading">
+      <button class="btn-refresh" appHoverScale (click)="loadTickets()" [disabled]="isLoading">
         <span>{{ isLoading ? '⏳' : '🔄' }}</span>
       </button>
-      <button class="btn-new-ticket" (click)="showNewTicketForm = true" *ngIf="!showNewTicketForm">
+      <button class="btn-new-ticket" appHoverScale (click)="showNewTicketForm = true" *ngIf="!showNewTicketForm">
         <span>+ Nuevo mensaje</span>
       </button>
     </div>
@@ -37,6 +37,8 @@
         type="text"
         [(ngModel)]="newTicketSubject"
         placeholder="Ej: Consulta sobre mi W2"
+        (focus)="animateInputFocus($event)"
+        (blur)="animateInputBlur($event)"
       />
     </div>
     <div class="form-group">
@@ -45,12 +47,15 @@
         [(ngModel)]="newTicketMessage"
         placeholder="Escribi tu consulta..."
         rows="4"
+        (focus)="animateInputFocus($event)"
+        (blur)="animateInputBlur($event)"
       ></textarea>
     </div>
     <div class="form-actions">
-      <button class="btn-cancel" (click)="cancelNewTicket()">Cancelar</button>
+      <button class="btn-cancel" appHoverScale (click)="cancelNewTicket()">Cancelar</button>
       <button
         class="btn-submit"
+        appHoverScale
         (click)="createTicket()"
         [disabled]="!newTicketSubject.trim() || !newTicketMessage.trim() || isSending"
       >
@@ -120,7 +125,7 @@
         <div class="empty-icon">💬</div>
         <h3>Sin mensajes aun</h3>
         <p>Envia tu primera consulta a nuestro equipo de soporte</p>
-        <button class="btn-start" (click)="showNewTicketForm = true">
+        <button class="btn-start" appHoverScale (click)="showNewTicketForm = true">
           Iniciar conversacion
         </button>
       </div>
@@ -148,9 +153,12 @@
             rows="1"
             (keydown.enter)="$event.preventDefault(); sendMessage()"
             [disabled]="isSending"
+            (focus)="animateInputFocus($event)"
+            (blur)="animateInputBlur($event)"
           ></textarea>
           <button
             class="btn-send"
+            appHoverScale
             (click)="sendMessage()"
             [disabled]="!newMessage.trim() || isSending"
           >

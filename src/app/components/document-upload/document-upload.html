@@ -73,6 +73,7 @@
 
   <!-- Upload Zone -->
   <div
+    #uploadZone
     class="upload-zone"
     [class.drag-over]="dragOver"
     [class.uploading]="isUploading"
@@ -84,6 +85,14 @@
       <span class="upload-icon">{{ isUploading ? '⏳' : '📤' }}</span>
     </div>
     <h2>{{ isUploading ? 'Subiendo archivo...' : 'Arrastra y suelta tus archivos aqui' }}</h2>
+
+    <!-- Progress bar for upload -->
+    <div class="upload-progress" *ngIf="isUploading">
+      <div class="progress-bar-track">
+        <div #progressBarFill class="progress-bar-fill"></div>
+      </div>
+    </div>
+
     <p class="upload-or" *ngIf="!isUploading">o</p>
     <label for="fileInput" class="btn-browse" *ngIf="!isUploading">
       <span>Seleccionar archivos</span>
@@ -116,14 +125,16 @@
   </div>
 
   <!-- Uploaded Files Section -->
-  <div class="files-section" *ngIf="uploadedFiles.length > 0 && !isLoading">
+  <div #filesSection class="files-section" *ngIf="uploadedFiles.length > 0 && !isLoading">
     <div class="section-header">
       <h2>Documentos cargados</h2>
       <span class="file-count">{{ uploadedFiles.length }} archivo<span *ngIf="uploadedFiles.length !== 1">s</span></span>
+      <!-- Success checkmark for upload complete -->
+      <span #successCheckmark class="success-checkmark">&#10003;</span>
     </div>
 
     <div class="files-list">
-      <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+      <div #fileCard class="file-card" *ngFor="let file of uploadedFiles; let i = index">
         <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
         <div class="file-details">
           <div class="file-name">{{ file.fileName }}</div>

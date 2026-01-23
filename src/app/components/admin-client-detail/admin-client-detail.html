@@ -2,7 +2,7 @@
   <!-- Header -->
   <header class="detail-header">
     <div class="header-content">
-      <button class="btn-back" (click)="goBack()">
+      <button class="btn-back" (click)="goBack()" appHoverScale="button">
         <span class="back-icon">←</span>
         <span>Volver al Dashboard</span>
       </button>
@@ -29,7 +29,7 @@
   <!-- Main Content -->
   <main class="detail-main" *ngIf="client && !isLoading">
     <!-- Client Info Header -->
-    <div class="client-header">
+    <div class="client-header animate-header" #clientHeader>
       <div class="client-avatar-large">
         {{ client.user.firstName.charAt(0) }}{{ client.user.lastName.charAt(0) }}
       </div>
@@ -64,22 +64,22 @@
           </option>
         </select>
         <input type="text" [(ngModel)]="statusComment" placeholder="Comentario (opcional)">
-        <button class="btn-update-status" (click)="updateStatus()" [disabled]="isSaving">
+        <button class="btn-update-status" (click)="updateStatus()" [disabled]="isSaving" appHoverScale="button">
           {{ isSaving ? 'Guardando...' : 'Actualizar Estado' }}
         </button>
       </div>
     </div>
 
     <!-- Step Control Section -->
-    <section class="step-control-section" *ngIf="client.taxCases && client.taxCases.length > 0">
+    <section class="step-control-section animate-section" *ngIf="client.taxCases && client.taxCases.length > 0" #stepControlSection>
       <div class="step-control-header">
         <h3>Control de Pasos</h3>
         <div class="step-control-actions">
-          <button class="btn-problem" [class.has-problem]="hasProblem" (click)="openProblemModal()">
+          <button class="btn-problem" [class.has-problem]="hasProblem" (click)="openProblemModal()" appHoverScale="button">
             <span *ngIf="hasProblem" class="problem-indicator"></span>
             {{ hasProblem ? 'Ver Problema' : 'Marcar Problema' }}
           </button>
-          <button class="btn-notify" (click)="openNotifyModal()">
+          <button class="btn-notify" (click)="openNotifyModal()" appHoverScale="button">
             Enviar Notificacion
           </button>
         </div>
@@ -116,11 +116,11 @@
     </section>
 
     <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button class="btn-action btn-paid" (click)="markPaid()" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
+    <div class="action-buttons animate-buttons" #actionButtons>
+      <button class="btn-action btn-paid" (click)="markPaid()" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived" appHoverScale="button">
         Marcar Pago Recibido
       </button>
-      <button class="btn-action btn-delete" (click)="deleteClient()">
+      <button class="btn-action btn-delete" (click)="deleteClient()" appHoverScale="button">
         Eliminar Cliente
       </button>
     </div>
@@ -130,7 +130,7 @@
       <!-- Left Column -->
       <div class="left-column">
         <!-- Profile Section -->
-        <section class="detail-section">
+        <section class="detail-section animate-detail-section" #detailSection>
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📋</span>
@@ -246,7 +246,7 @@
         </section>
 
         <!-- Documents Section -->
-        <section class="detail-section">
+        <section class="detail-section animate-detail-section" #detailSection>
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📁</span>
@@ -264,7 +264,7 @@
                   <span *ngIf="doc.isReviewed" class="reviewed-badge">Revisado</span>
                 </div>
               </div>
-              <button class="btn-doc-download" (click)="downloadDocument(doc)">
+              <button class="btn-doc-download" (click)="downloadDocument(doc)" appHoverScale="button">
                 Descargar
               </button>
             </div>
@@ -277,7 +277,7 @@
         </section>
 
         <!-- Status History -->
-        <section class="detail-section" *ngIf="client.statusHistory && client.statusHistory.length > 0">
+        <section class="detail-section animate-detail-section" *ngIf="client.statusHistory && client.statusHistory.length > 0" #detailSection>
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📜</span>
@@ -286,7 +286,7 @@
           </div>
 
           <div class="status-history-timeline">
-            <div class="history-item" *ngFor="let history of client.statusHistory; let i = index">
+            <div class="history-item animate-history-item" *ngFor="let history of client.statusHistory; let i = index" #historyItem>
               <div class="history-marker">
                 <div class="marker-dot" [class.first]="i === 0"></div>
                 <div class="marker-line" *ngIf="i < client.statusHistory.length - 1"></div>
@@ -314,7 +314,7 @@
 
       <!-- Right Column - Tickets -->
       <div class="right-column">
-        <section class="messages-section">
+        <section class="messages-section animate-messages" #messagesSection>
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">💬</span>
@@ -326,7 +326,8 @@
             <div class="ticket-card"
                  *ngFor="let ticket of tickets"
                  [class.selected]="selectedTicketId === ticket.id"
-                 (click)="selectTicket(ticket.id)">
+                 (click)="selectTicket(ticket.id)"
+                 appHoverScale="card">
               <div class="ticket-subject">{{ ticket.subject }}</div>
               <div class="ticket-status">{{ ticket.status }}</div>
               <div class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</div>
@@ -363,7 +364,7 @@
                 [disabled]="isSendingMessage"
                 (keydown.enter)="sendMessage(); $event.preventDefault()"
               ></textarea>
-              <button class="btn-send" (click)="sendMessage()" [disabled]="!newMessage.trim() || isSendingMessage">
+              <button class="btn-send" (click)="sendMessage()" [disabled]="!newMessage.trim() || isSendingMessage" appHoverScale="button">
                 <span>{{ isSendingMessage ? 'Enviando...' : 'Enviar' }}</span>
                 <span class="send-icon" *ngIf="!isSendingMessage">-></span>
               </button>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { Subscription, filter, finalize } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { Document, DocumentType } from '../../core/models';
 
 @Component({
@@ -14,13 +15,24 @@ import { Document, DocumentType } from '../../core/models';
   templateUrl: './document-upload.html',
   styleUrl: './document-upload.css'
 })
-export class DocumentUpload implements OnInit, OnDestroy {
+export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+
+  // Template references for animations
+  @ViewChild('uploadZone') uploadZoneRef!: ElementRef<HTMLElement>;
+  @ViewChild('filesSection') filesSectionRef!: ElementRef<HTMLElement>;
+  @ViewChildren('fileCard') fileCardRefs!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('progressBarFill') progressBarFillRef!: ElementRef<HTMLElement>;
+  @ViewChild('successCheckmark') successCheckmarkRef!: ElementRef<HTMLElement>;
+
+  // Track previously rendered file count for animation
+  private previousFileCount = 0;
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -68,8 +80,16 @@ export class DocumentUpload implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Subscribe to file card changes to animate new cards
+    this.fileCardRefs.changes.subscribe(() => {
+      this.animateNewFileCards();
+    });
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
   }
 
   loadDocuments() {
@@ -83,10 +103,14 @@ export class DocumentUpload implements OnInit, OnDestroy {
         this.isLoading = false;
         this.isLoadingInProgress = false;
         this.cdr.detectChanges();
+
+        // Animate initial file cards after view updates
+        setTimeout(() => this.animateInitialFileCards(), 0);
       })
     ).subscribe({
       next: (documents) => {
         this.uploadedFiles = documents;
+        this.previousFileCount = 0; // Reset for initial animation
 
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
@@ -98,6 +122,21 @@ export class DocumentUpload implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Animate initial file cards on page load
+   */
+  private animateInitialFileCards() {
+    if (this.fileCardRefs && this.fileCardRefs.length > 0) {
+      const cards = this.fileCardRefs.toArray().map(ref => ref.nativeElement);
+      this.animationService.staggerIn(cards, {
+        direction: 'left',
+        distance: 30,
+        stagger: 0.08
+      });
+      this.previousFileCount = this.uploadedFiles.length;
+    }
+  }
+
   onFileSelected(event: any) {
     const files: FileList = event.target.files;
     this.processFiles(files);
@@ -106,19 +145,45 @@ export class DocumentUpload implements OnInit, OnDestroy {
   onDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dragOver = true;
+    if (!this.dragOver) {
+      this.dragOver = true;
+      // Pulse animation on drag over
+      if (this.uploadZoneRef?.nativeElement) {
+        this.animationService.pulse(this.uploadZoneRef.nativeElement, {
+          scale: 1.02,
+          duration: 0.3,
+          repeat: -1
+        });
+      }
+    }
   }
 
   onDragLeave(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver = false;
+    // Stop pulse animation
+    if (this.uploadZoneRef?.nativeElement) {
+      this.animationService.killElementAnimations(this.uploadZoneRef.nativeElement);
+      // Reset scale
+      import('gsap').then(({ gsap }) => {
+        gsap.to(this.uploadZoneRef.nativeElement, { scale: 1, duration: 0.2 });
+      });
+    }
   }
 
   onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver = false;
+
+    // Stop pulse animation and reset scale
+    if (this.uploadZoneRef?.nativeElement) {
+      this.animationService.killElementAnimations(this.uploadZoneRef.nativeElement);
+      import('gsap').then(({ gsap }) => {
+        gsap.to(this.uploadZoneRef.nativeElement, { scale: 1, duration: 0.2 });
+      });
+    }
 
     const files = event.dataTransfer?.files;
     if (files) {
@@ -183,6 +248,14 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
   uploadFile(file: File) {
     this.isUploading = true;
+    this.previousFileCount = this.uploadedFiles.length;
+
+    // Animate progress bar if available
+    if (this.progressBarFillRef?.nativeElement) {
+      this.animationService.progressBar(this.progressBarFillRef.nativeElement, 100, {
+        duration: 1.5
+      });
+    }
 
     this.documentService.upload(file, this.selectedType).subscribe({
       next: (response) => {
@@ -192,6 +265,11 @@ export class DocumentUpload implements OnInit, OnDestroy {
 
         // Mark this document type as uploaded (for green checkmark)
         this.uploadedTypes.add(this.selectedType);
+
+        // Animate success checkmark if available
+        if (this.successCheckmarkRef?.nativeElement) {
+          this.animationService.successCheck(this.successCheckmarkRef.nativeElement);
+        }
 
         // If it's a W2, show the calculator popup
         if (this.selectedType === DocumentType.W2) {
@@ -208,6 +286,41 @@ export class DocumentUpload implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Animate new file cards sliding in from left
+   */
+  private animateNewFileCards() {
+    const currentCount = this.fileCardRefs.length;
+    if (currentCount > this.previousFileCount) {
+      // Animate only the new cards
+      const newCards = this.fileCardRefs.toArray().slice(this.previousFileCount);
+      newCards.forEach((cardRef, index) => {
+        this.animationService.slideIn(cardRef.nativeElement, 'left', {
+          delay: index * 0.1,
+          distance: 30
+        });
+      });
+      this.previousFileCount = currentCount;
+    }
+  }
+
+  /**
+   * Animate file card deletion with fade and scale out
+   */
+  private animateFileCardDelete(element: HTMLElement): Promise<void> {
+    return new Promise((resolve) => {
+      import('gsap').then(({ gsap }) => {
+        gsap.to(element, {
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.3,
+          ease: 'power2.in',
+          onComplete: resolve
+        });
+      });
+    });
+  }
+
   downloadFile(doc: Document) {
     this.documentService.getDownloadUrl(doc.id).subscribe({
       next: (response) => {
@@ -219,7 +332,7 @@ export class DocumentUpload implements OnInit, OnDestroy {
     });
   }
 
-  removeFile(doc: Document, index: number) {
+  async removeFile(doc: Document, index: number) {
     // Prevent double-click
     if (this.deletingDocId) {
       return;
@@ -233,9 +346,17 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.deletingDocId = doc.id;
     this.errorMessage = '';
 
+    // Get the file card element for animation
+    const fileCardElement = this.fileCardRefs.toArray()[index]?.nativeElement;
+
     this.documentService.delete(doc.id).subscribe({
-      next: () => {
+      next: async () => {
+        // Animate deletion before removing from array
+        if (fileCardElement) {
+          await this.animateFileCardDelete(fileCardElement);
+        }
         this.uploadedFiles.splice(index, 1);
+        this.previousFileCount = this.uploadedFiles.length;
         this.successMessage = 'Archivo eliminado correctamente';
         this.deletingDocId = null;
         this.cdr.detectChanges();

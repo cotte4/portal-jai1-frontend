@@ -1,24 +1,29 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { CompleteProfileRequest } from '../../core/models';
+import { CardAnimateDirective, HoverScaleDirective } from '../../shared/directives';
 
 @Component({
   selector: 'app-tax-form',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, CardAnimateDirective, HoverScaleDirective],
   templateUrl: './tax-form.html',
   styleUrl: './tax-form.css'
 })
-export class TaxForm implements OnInit, OnDestroy {
+export class TaxForm implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
+  private elementRef = inject(ElementRef);
   private subscriptions = new Subscription();
+  private animationsInitialized = false;
 
   // Form data mapped to API
   formData = {
@@ -73,8 +78,76 @@ export class TaxForm implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Initialize animations after view is ready
+    setTimeout(() => {
+      if (this.hasLoadedProfile && !this.showSuccessScreen && !this.showAlreadyCompletedScreen) {
+        this.initFormAnimations();
+      }
+    }, 100);
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  /**
+   * Initialize GSAP animations for form sections
+   */
+  private initFormAnimations(): void {
+    if (this.animationsInitialized) return;
+
+    const nativeElement = this.elementRef.nativeElement;
+
+    // Animate page header
+    const pageHeader = nativeElement.querySelector('.page-header');
+    if (pageHeader) {
+      this.animationService.slideIn(pageHeader as HTMLElement, 'up', { duration: 0.5 });
+    }
+
+    // Stagger animate form sections
+    const sections = nativeElement.querySelectorAll('.form-section');
+    if (sections.length > 0) {
+      this.animationService.staggerIn(sections, {
+        direction: 'up',
+        stagger: 0.15,
+        delay: 0.2,
+        distance: 30
+      });
+    }
+
+    // Animate help card
+    const helpCard = nativeElement.querySelector('.help-card');
+    if (helpCard) {
+      this.animationService.slideIn(helpCard as HTMLElement, 'up', { delay: 0.6 });
+    }
+
+    this.animationsInitialized = true;
+  }
+
+  /**
+   * Shake animation for validation errors
+   */
+  shakeOnError(elementSelector: string): void {
+    const element = this.elementRef.nativeElement.querySelector(elementSelector);
+    if (element) {
+      this.animationService.validationShake(element as HTMLElement);
+    }
+  }
+
+  /**
+   * Handle input focus animation
+   */
+  onInputFocus(event: FocusEvent): void {
+    const input = event.target as HTMLElement;
+    const formGroup = input.closest('.form-group');
+    if (formGroup) {
+      this.animationService.scaleIn(formGroup as HTMLElement, {
+        fromScale: 0.98,
+        duration: 0.2
+      });
+    }
   }
 
   loadDraft() {
@@ -92,6 +165,13 @@ export class TaxForm implements OnInit, OnDestroy {
         this.hasLoadedProfile = true;
         this.isLoadingInProgress = false;
         this.cdr.detectChanges(); // Force Angular to update the view
+
+        // Initialize animations after profile loads and view updates
+        setTimeout(() => {
+          if (!this.showSuccessScreen && !this.showAlreadyCompletedScreen) {
+            this.initFormAnimations();
+          }
+        }, 100);
       })
     ).subscribe({
       next: (profile) => {
@@ -146,6 +226,7 @@ export class TaxForm implements OnInit, OnDestroy {
     if (!isDraft) {
       if (!this.formData.ssn || !this.formData.dateOfBirth) {
         this.errorMessage = 'Por favor completa los campos requeridos (SSN y fecha de nacimiento)';
+        this.shakeOnError('.message.error-message');
         window.scrollTo(0, 0);
         return;
       }
@@ -153,6 +234,7 @@ export class TaxForm implements OnInit, OnDestroy {
       if (!this.formData.addressStreet || !this.formData.addressCity ||
           !this.formData.addressState || !this.formData.addressZip) {
         this.errorMessage = 'Por favor completa tu direccion';
+        this.shakeOnError('.message.error-message');
         window.scrollTo(0, 0);
         return;
       }
@@ -160,6 +242,7 @@ export class TaxForm implements OnInit, OnDestroy {
       if (!this.formData.bankName || !this.formData.bankRoutingNumber ||
           !this.formData.bankAccountNumber) {
         this.errorMessage = 'Por favor completa tu informacion bancaria';
+        this.shakeOnError('.message.error-message');
         window.scrollTo(0, 0);
         return;
       }

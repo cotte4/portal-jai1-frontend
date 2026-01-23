@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,19 +6,23 @@ import { Subscription, filter, skip, finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { HoverScaleDirective } from '../../shared/directives';
 import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models';
+import { gsap } from 'gsap';
 
 @Component({
   selector: 'app-user-messages',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HoverScaleDirective],
   templateUrl: './user-messages.html',
   styleUrl: './user-messages.css'
 })
-export class UserMessages implements OnInit, OnDestroy {
+export class UserMessages implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
 
@@ -39,6 +43,8 @@ export class UserMessages implements OnInit, OnDestroy {
   newTicketMessage: string = '';
 
   private isLoadingInProgress: boolean = false;
+  private pageAnimated: boolean = false;
+  private lastMessageCount: number = 0;
 
   ngOnInit() {
     const user = this.authService.currentUser;
@@ -80,8 +86,101 @@ export class UserMessages implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered after loading completes
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private animatePageEntrance() {
+    if (this.pageAnimated) return;
+    this.pageAnimated = true;
+
+    // Animate title section
+    const titleSection = document.querySelector('.messages-title-section') as HTMLElement;
+    if (titleSection) {
+      this.animationService.slideIn(titleSection, 'down', { duration: 0.4 });
+    }
+
+    // Animate tickets sidebar
+    const ticketsSidebar = document.querySelector('.tickets-sidebar') as HTMLElement;
+    if (ticketsSidebar) {
+      this.animationService.slideIn(ticketsSidebar, 'left', { delay: 0.2 });
+    }
+
+    // Animate chat container
+    const chatContainer = document.querySelector('.chat-container') as HTMLElement;
+    if (chatContainer) {
+      this.animationService.fadeIn(chatContainer, { delay: 0.3 });
+    }
+
+    // Animate info card
+    const infoCard = document.querySelector('.info-card') as HTMLElement;
+    if (infoCard) {
+      this.animationService.slideIn(infoCard, 'up', { delay: 0.5 });
+    }
+  }
+
+  private animateTicketsList() {
+    // Stagger animate ticket items
+    const ticketItems = document.querySelectorAll('.ticket-item');
+    if (ticketItems.length > 0) {
+      this.animationService.staggerIn(ticketItems, {
+        direction: 'right',
+        stagger: 0.05,
+        delay: 0.1
+      });
+    }
+  }
+
+  private animateMessagesList() {
+    // Stagger animate message wrappers
+    const messageWrappers = document.querySelectorAll('.message-wrapper');
+    if (messageWrappers.length > 0) {
+      this.animationService.staggerIn(messageWrappers, {
+        direction: 'up',
+        stagger: 0.05,
+        delay: 0.1
+      });
+    }
+  }
+
+  private animateNewMessage(isClientMessage: boolean = true) {
+    // Animate the last (newest) message
+    const messageWrappers = document.querySelectorAll('.message-wrapper');
+    if (messageWrappers.length > 0) {
+      const lastMessage = messageWrappers[messageWrappers.length - 1] as HTMLElement;
+      const direction = isClientMessage ? 'right' : 'left';
+      gsap.fromTo(lastMessage,
+        { opacity: 0, x: isClientMessage ? 30 : -30, y: 10 },
+        { opacity: 1, x: 0, y: 0, duration: 0.4, ease: 'back.out(1.2)' }
+      );
+    }
+  }
+
+  animateInputFocus(event: FocusEvent) {
+    const input = event.target as HTMLElement;
+    if (input && !this.animationService.prefersReducedMotion()) {
+      gsap.to(input, {
+        scale: 1.01,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    }
+  }
+
+  animateInputBlur(event: FocusEvent) {
+    const input = event.target as HTMLElement;
+    if (input && !this.animationService.prefersReducedMotion()) {
+      gsap.to(input, {
+        scale: 1,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    }
   }
 
   loadTickets() {
@@ -95,6 +194,12 @@ export class UserMessages implements OnInit, OnDestroy {
         this.hasLoaded = true;
         this.isLoadingInProgress = false;
         this.cdr.detectChanges();
+
+        // Trigger page animations after first load
+        setTimeout(() => {
+          this.animatePageEntrance();
+          this.animateTicketsList();
+        }, 50);
       })
     ).subscribe({
       next: (tickets) => {
@@ -132,8 +237,12 @@ export class UserMessages implements OnInit, OnDestroy {
         if (ticket) {
           this.activeTicket = ticket;
           this.messages = ticket.messages || [];
+          this.lastMessageCount = this.messages.length;
         }
         this.scrollToBottom();
+
+        // Animate messages after load
+        setTimeout(() => this.animateMessagesList(), 50);
       },
       error: () => {
         this.errorMessage = 'Error al cargar los mensajes';
@@ -145,16 +254,30 @@ export class UserMessages implements OnInit, OnDestroy {
     if (!this.newMessage.trim() || !this.activeTicket || this.isSending) return;
 
     this.isSending = true;
+    const previousMessageCount = this.messages.length;
+
     this.ticketService.addMessage(this.activeTicket.id, { message: this.newMessage }).subscribe({
       next: (updatedTicket) => {
         this.messages = updatedTicket.messages || [];
         this.newMessage = '';
         this.isSending = false;
         this.scrollToBottom();
+
+        // Animate new message if count increased
+        if (this.messages.length > previousMessageCount) {
+          setTimeout(() => this.animateNewMessage(true), 50);
+        }
       },
       error: (error) => {
         this.errorMessage = 'Error al enviar el mensaje';
         this.isSending = false;
+
+        // Shake the send button on error
+        const sendBtn = document.querySelector('.btn-send') as HTMLElement;
+        if (sendBtn) {
+          this.animationService.validationShake(sendBtn);
+        }
+
         console.error('Error sending message:', error);
       }
     });
@@ -175,6 +298,17 @@ export class UserMessages implements OnInit, OnDestroy {
         this.newTicketSubject = '';
         this.newTicketMessage = '';
         this.isSending = false;
+
+        // Animate new ticket item
+        setTimeout(() => {
+          const firstTicket = document.querySelector('.ticket-item') as HTMLElement;
+          if (firstTicket) {
+            gsap.fromTo(firstTicket,
+              { opacity: 0, x: -20 },
+              { opacity: 1, x: 0, duration: 0.4, ease: 'back.out(1.2)' }
+            );
+          }
+        }, 50);
       },
       error: (error) => {
         this.errorMessage = 'Error al crear el ticket';

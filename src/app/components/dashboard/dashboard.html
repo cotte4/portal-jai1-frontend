@@ -9,82 +9,161 @@
 <!-- Dashboard Content -->
 @if (hasLoaded) {
 <div class="dashboard-content">
-  <!-- Top Section: Two Cards Side by Side -->
-  <div class="top-section">
-    <!-- Left Card: Reembolso Estimado -->
-    <div class="refund-card">
-      <div class="refund-header">
-        <span class="refund-icon">💰</span>
-        <span class="refund-label">Reembolso Estimado</span>
-      </div>
-      
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1 class="welcome-title">Bienvenido a tu portal de taxes</h1>
+      <p class="welcome-subtitle">Seguí estos pasos para completar tu declaración y recibir tu reembolso</p>
+    </div>
+    <div class="welcome-refund">
       @if (hasCalculatorResult) {
-        <div class="refund-amount">{{ estimatedRefundDisplay }}</div>
-        <div class="refund-calculated">
-          <span class="check-icon">✓</span>
-          Calculado con tu W2
-        </div>
-        <button class="btn-recalculate" (click)="navigateTo('/tax-calculator')">
-          Recalcular →
-        </button>
+        <span class="refund-label-small">Reembolso estimado</span>
+        <span class="refund-value">{{ estimatedRefundDisplay }}</span>
       } @else {
-        <div class="refund-not-calculated">
-          <span class="question-icon">🧮</span>
-          <span>Aún no calculado</span>
-        </div>
-        <button class="btn-calculate-cta" (click)="navigateTo('/tax-calculator')">
-          <span>Calcular mi reembolso</span>
-          <span class="arrow">→</span>
+        <button class="btn-estimate" (click)="navigateTo('/tax-calculator')">
+          Calcular reembolso →
         </button>
       }
     </div>
+  </div>
 
-    <!-- Right Card: User Progress -->
-    <div class="progress-card">
-      <div class="progress-header">
-        <div class="progress-title">
-          <span class="progress-icon">📋</span>
-          <span>Tu Progreso</span>
+  <!-- Steps Section -->
+  <div class="steps-card">
+    <div class="steps-header">
+      <div class="steps-title-section">
+        <h2 class="steps-title">Pasos para enviar tu declaración</h2>
+        <p class="steps-subtitle">Completá cada paso en orden para procesar tu declaración</p>
+      </div>
+      <div class="steps-progress">
+        <div class="progress-circle">
+          <svg viewBox="0 0 36 36" class="circular-progress">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="circle-fill" [style.stroke-dasharray]="userProgressPercent + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <span class="progress-percent">{{ userProgressPercent }}%</span>
         </div>
-        <div class="progress-badge" [class.complete]="userProgressComplete">
-          {{ userProgressComplete ? 'Completado' : userProgressPercent + '%' }}
+      </div>
+    </div>
+
+    <div class="progress-bar-horizontal">
+      <div class="progress-fill-horizontal" [style.width.%]="userProgressPercent"></div>
+    </div>
+
+    <div class="steps-list">
+      <!-- Paso 1: Completar declaración -->
+      <div class="step-item" [class.done]="isProfileComplete" [class.active]="!isProfileComplete">
+        <div class="step-number-container">
+          <div class="step-number">
+            @if (isProfileComplete) {
+              <span class="step-check-icon">✓</span>
+            } @else {
+              <span>1</span>
+            }
+          </div>
+          <div class="step-connector" [class.done]="isProfileComplete"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-info">
+            <h3 class="step-name">Paso 1: Completá tu declaración</h3>
+            <p class="step-description">Ingresá tu información personal y datos fiscales</p>
+          </div>
+          <div class="step-action">
+            @if (isProfileComplete) {
+              <span class="step-status done">Completado</span>
+            } @else {
+              <button class="btn-step-action primary" (click)="navigateTo('/tax-form')">
+                Completar declaración
+              </button>
+            }
+          </div>
         </div>
       </div>
 
-      <div class="progress-bar-container">
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="userProgressPercent"></div>
+      <!-- Paso 2: Enviar formulario -->
+      <div class="step-item" [class.done]="isFormSent" [class.active]="isProfileComplete && !isFormSent" [class.locked]="!isProfileComplete">
+        <div class="step-number-container">
+          <div class="step-number">
+            @if (isFormSent) {
+              <span class="step-check-icon">✓</span>
+            } @else {
+              <span>2</span>
+            }
+          </div>
+          <div class="step-connector" [class.done]="isFormSent"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-info">
+            <h3 class="step-name">Paso 2: Enviá tu formulario</h3>
+            <p class="step-description">Revisá y enviá tu declaración para procesamiento</p>
+          </div>
+          <div class="step-action">
+            @if (isFormSent) {
+              <span class="step-status done">Enviado</span>
+            } @else if (isProfileComplete) {
+              <button class="btn-step-action primary" (click)="navigateTo('/tax-form')">
+                Enviar formulario
+              </button>
+            } @else {
+              <span class="step-status locked">Completá el paso anterior</span>
+            }
+          </div>
         </div>
       </div>
 
-      <div class="checklist">
-        <div class="checklist-item" [class.done]="isProfileComplete">
-          <span class="item-check">{{ isProfileComplete ? '✓' : '○' }}</span>
-          <span class="item-text">Datos de perfil</span>
-          @if (!isProfileComplete) {
-            <button class="item-action" (click)="navigateTo('/tax-form')">Completar</button>
-          }
+      <!-- Paso 3: Subir W2 -->
+      <div class="step-item" [class.done]="hasW2Document" [class.active]="!hasW2Document">
+        <div class="step-number-container">
+          <div class="step-number">
+            @if (hasW2Document) {
+              <span class="step-check-icon">✓</span>
+            } @else {
+              <span>3</span>
+            }
+          </div>
+          <div class="step-connector" [class.done]="hasW2Document"></div>
         </div>
-        <div class="checklist-item" [class.done]="isFormSent">
-          <span class="item-check">{{ isFormSent ? '✓' : '○' }}</span>
-          <span class="item-text">Formulario enviado</span>
-          @if (!isFormSent && isProfileComplete) {
-            <button class="item-action" (click)="navigateTo('/tax-form')">Enviar</button>
-          }
+        <div class="step-content">
+          <div class="step-info">
+            <h3 class="step-name">Paso 3: Subí tu documento W2</h3>
+            <p class="step-description">Cargá una foto o PDF de tu formulario W2</p>
+          </div>
+          <div class="step-action">
+            @if (hasW2Document) {
+              <span class="step-status done">Documento cargado</span>
+            } @else {
+              <button class="btn-step-action primary" (click)="navigateTo('/documents')">
+                Subir documento
+              </button>
+            }
+          </div>
         </div>
-        <div class="checklist-item" [class.done]="hasW2Document">
-          <span class="item-check">{{ hasW2Document ? '✓' : '○' }}</span>
-          <span class="item-text">Documento W2</span>
-          @if (!hasW2Document) {
-            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-          }
+      </div>
+
+      <!-- Paso 4: Comprobante de pago -->
+      <div class="step-item" [class.done]="hasPaymentProof" [class.active]="!hasPaymentProof" [class.last]="true">
+        <div class="step-number-container">
+          <div class="step-number">
+            @if (hasPaymentProof) {
+              <span class="step-check-icon">✓</span>
+            } @else {
+              <span>4</span>
+            }
+          </div>
         </div>
-        <div class="checklist-item" [class.done]="hasPaymentProof">
-          <span class="item-check">{{ hasPaymentProof ? '✓' : '○' }}</span>
-          <span class="item-text">Comprobante de pago</span>
-          @if (!hasPaymentProof) {
-            <button class="item-action" (click)="navigateTo('/documents')">Subir</button>
-          }
+        <div class="step-content">
+          <div class="step-info">
+            <h3 class="step-name">Paso 4: Subí tu comprobante de pago</h3>
+            <p class="step-description">Adjuntá el comprobante del pago del servicio</p>
+          </div>
+          <div class="step-action">
+            @if (hasPaymentProof) {
+              <span class="step-status done">Comprobante cargado</span>
+            } @else {
+              <button class="btn-step-action primary" (click)="navigateTo('/documents')">
+                Subir comprobante
+              </button>
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -176,7 +255,7 @@
     
     <div class="action-cards-grid">
       <!-- Calculator Card -->
-      <div class="action-card" (click)="navigateTo('/tax-calculator')">
+      <div class="action-card" (click)="navigateTo('/tax-calculator')" appHoverScale="card">
         <div class="card-top">
           <div class="card-icon purple">🧮</div>
           <span class="card-badge new">NUEVO</span>
@@ -187,7 +266,7 @@
       </div>
 
       <!-- Tax Form Card -->
-      <div class="action-card" (click)="navigateTo('/tax-form')">
+      <div class="action-card" (click)="navigateTo('/tax-form')" appHoverScale="card">
         <div class="card-top">
           <div class="card-icon blue">📋</div>
           @if (!isFormSent) {
@@ -200,7 +279,7 @@
       </div>
 
       <!-- Upload Documents Card -->
-      <div class="action-card" (click)="navigateTo('/documents')">
+      <div class="action-card" (click)="navigateTo('/documents')" appHoverScale="card">
         <div class="card-top">
           <div class="card-icon orange">📁</div>
         </div>
@@ -210,7 +289,7 @@
       </div>
 
       <!-- Chatbot Card -->
-      <div class="action-card" (click)="navigateTo('/chatbot')">
+      <div class="action-card" (click)="navigateTo('/chatbot')" appHoverScale="card">
         <div class="card-top">
           <div class="card-icon green">🤖</div>
         </div>
@@ -228,7 +307,7 @@
       <span class="help-title">¿Necesitas ayuda?</span>
       <span class="help-desc">Nuestro equipo está listo para asistirte</span>
     </div>
-    <button class="btn-help" (click)="navigateTo('/messages')">Contactar soporte</button>
+    <button class="btn-help" (click)="navigateTo('/messages')" appHoverScale>Contactar soporte</button>
   </div>
 </div>
 }

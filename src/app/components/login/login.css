@@ -47,7 +47,6 @@ html, body {
   height: 400px;
   top: -150px;
   right: -100px;
-  animation: float 8s ease-in-out infinite;
 }
 
 .decoration-2 {
@@ -56,7 +55,6 @@ html, body {
   bottom: -80px;
   left: -60px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-  animation: float 6s ease-in-out infinite reverse;
 }
 
 .decoration-3 {
@@ -65,17 +63,6 @@ html, body {
   top: 40%;
   right: 10%;
   background: rgba(178, 27, 67, 0.2);
-  animation: pulse 4s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
 /* Brand Content */
@@ -83,18 +70,7 @@ html, body {
   max-width: 520px;
   color: white;
   z-index: 1;
-  animation: fadeInUp 0.8s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 0; /* Initial state for GSAP */
 }
 
 /* Logo */
@@ -153,7 +129,8 @@ html, body {
   font-weight: 500;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  transition: background 0.3s ease;
+  opacity: 0; /* Initial state for GSAP stagger */
 }
 
 .pill:hover {
@@ -206,12 +183,7 @@ html, body {
 .form-wrapper {
   width: 100%;
   max-width: 420px;
-  animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  opacity: 0; /* Initial state for GSAP */
 }
 
 /* Mobile Logo */
@@ -291,13 +263,6 @@ html, body {
   color: #be123c;
   font-size: 14px;
   font-weight: 500;
-  animation: shake 0.5s ease-out;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
 }
 
 .error-icon {

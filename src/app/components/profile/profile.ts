@@ -1,26 +1,30 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { HoverScaleDirective } from '../../shared/directives';
 import { ProfileResponse, Address } from '../../core/models';
 import { timeout, catchError, filter } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
+import { gsap } from 'gsap';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, HoverScaleDirective],
   templateUrl: './profile.html',
   styleUrl: './profile.css'
 })
-export class Profile implements OnInit, OnDestroy {
+export class Profile implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private subscriptions = new Subscription();
 
   // User data
@@ -28,13 +32,13 @@ export class Profile implements OnInit, OnDestroy {
   userEmail: string = '';
   userPhone: string = '';
   profilePicture: string | null = null;
-  
+
   // Profile data
   dni: string = '';
   dateOfBirth: string = '';
   isVerified: boolean = false;
   memberSince: string = '';
-  
+
   // Address
   address: Address = {
     street: '',
@@ -62,6 +66,9 @@ export class Profile implements OnInit, OnDestroy {
     zip: ''
   };
 
+  // Track if page has been animated
+  private pageAnimated: boolean = false;
+
   ngOnInit() {
     this.loadProfile();
 
@@ -79,8 +86,89 @@ export class Profile implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered after loading completes
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private animatePageEntrance() {
+    if (this.pageAnimated) return;
+    this.pageAnimated = true;
+
+    // Animate member card
+    const memberCard = document.querySelector('.member-card') as HTMLElement;
+    if (memberCard) {
+      this.animationService.scaleIn(memberCard, { duration: 0.5 });
+    }
+
+    // Stagger animate info sections
+    const infoSections = document.querySelectorAll('.info-section');
+    if (infoSections.length > 0) {
+      this.animationService.staggerIn(infoSections, {
+        direction: 'up',
+        stagger: 0.1,
+        delay: 0.3
+      });
+    }
+
+    // Animate quick actions
+    const quickActions = document.querySelectorAll('.action-btn');
+    if (quickActions.length > 0) {
+      this.animationService.staggerIn(quickActions, {
+        direction: 'up',
+        stagger: 0.08,
+        delay: 0.5
+      });
+    }
+
+    // Animate alerts if present
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach((alert, index) => {
+      this.animationService.slideIn(alert as HTMLElement, 'right', { delay: 0.2 + index * 0.1 });
+    });
+  }
+
+  animateSaveSuccess() {
+    // Pulse animation on save button
+    const saveBtn = document.querySelector('.btn-save') as HTMLElement;
+    if (saveBtn) {
+      this.animationService.pulse(saveBtn, { scale: 1.05, repeat: 2 });
+    }
+
+    // Animate success message
+    const successAlert = document.querySelector('.alert.success') as HTMLElement;
+    if (successAlert) {
+      gsap.fromTo(successAlert,
+        { opacity: 0, x: 50, scale: 0.95 },
+        { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: 'back.out(1.2)' }
+      );
+    }
+  }
+
+  animateFormInputFocus(event: FocusEvent) {
+    const input = event.target as HTMLElement;
+    if (input && !this.animationService.prefersReducedMotion()) {
+      gsap.to(input, {
+        scale: 1.02,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    }
+  }
+
+  animateFormInputBlur(event: FocusEvent) {
+    const input = event.target as HTMLElement;
+    if (input && !this.animationService.prefersReducedMotion()) {
+      gsap.to(input, {
+        scale: 1,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    }
   }
 
   get userInitials(): string {
@@ -96,7 +184,7 @@ export class Profile implements OnInit, OnDestroy {
 
   loadProfile() {
     this.isLoading = true;
-    
+
     // First, load user data from auth service (this is instant)
     const user = this.authService.currentUser;
     if (user) {
@@ -104,7 +192,7 @@ export class Profile implements OnInit, OnDestroy {
       this.userEmail = user.email || 'usuario@ejemplo.com';
       this.userPhone = user.phone || '';
       this.memberSince = user.createdAt || '';
-      
+
       // Initialize edit form
       this.editForm.firstName = user.firstName || '';
       this.editForm.lastName = user.lastName || '';
@@ -154,10 +242,16 @@ export class Profile implements OnInit, OnDestroy {
         }
         // Always stop loading
         this.isLoading = false;
+
+        // Trigger page animations after content loads
+        setTimeout(() => this.animatePageEntrance(), 50);
       },
       error: () => {
         // Stop loading even on error
         this.isLoading = false;
+
+        // Trigger page animations
+        setTimeout(() => this.animatePageEntrance(), 50);
       }
     });
 
@@ -165,6 +259,7 @@ export class Profile implements OnInit, OnDestroy {
     setTimeout(() => {
       if (this.isLoading) {
         this.isLoading = false;
+        setTimeout(() => this.animatePageEntrance(), 50);
       }
     }, 3000);
   }
@@ -178,7 +273,7 @@ export class Profile implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
         this.errorMessage = 'Por favor selecciona una imagen válida';
@@ -228,6 +323,16 @@ export class Profile implements OnInit, OnDestroy {
     this.isEditing = !this.isEditing;
     this.errorMessage = '';
     this.successMessage = '';
+
+    // Animate form entrance
+    if (this.isEditing) {
+      setTimeout(() => {
+        const editForm = document.querySelector('.edit-form') as HTMLElement;
+        if (editForm) {
+          this.animationService.fadeIn(editForm, { duration: 0.3 });
+        }
+      }, 0);
+    }
   }
 
   saveChanges() {
@@ -280,11 +385,22 @@ export class Profile implements OnInit, OnDestroy {
         this.isSaving = false;
         this.isEditing = false;
         this.successMessage = '¡Cambios guardados correctamente!';
+
+        // Trigger save success animation
+        setTimeout(() => this.animateSaveSuccess(), 50);
+
         setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
         this.isSaving = false;
         this.errorMessage = error?.error?.message || 'Error al guardar los cambios';
+
+        // Shake animation on error
+        const saveBtn = document.querySelector('.btn-save') as HTMLElement;
+        if (saveBtn) {
+          this.animationService.validationShake(saveBtn);
+        }
+
         setTimeout(() => this.errorMessage = '', 5000);
       }
     });
@@ -294,10 +410,10 @@ export class Profile implements OnInit, OnDestroy {
     if (!dateStr) return 'No especificada';
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: 'long', 
-        year: 'numeric' 
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
       });
     } catch {
       return 'No especificada';

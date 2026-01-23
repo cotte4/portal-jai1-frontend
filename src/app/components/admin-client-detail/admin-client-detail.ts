@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,8 @@ import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { HoverScaleDirective, CardAnimateDirective } from '../../shared/directives';
 import {
   AdminClientDetail as ClientDetail,
   InternalStatus,
@@ -19,19 +21,30 @@ import {
 
 @Component({
   selector: 'app-admin-client-detail',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HoverScaleDirective, CardAnimateDirective],
   templateUrl: './admin-client-detail.html',
   styleUrl: './admin-client-detail.css'
 })
-export class AdminClientDetail implements OnInit, OnDestroy {
+export class AdminClientDetail implements OnInit, OnDestroy, AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private adminService = inject(AdminService);
   private documentService = inject(DocumentService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+
+  @ViewChild('clientHeader') clientHeader!: ElementRef;
+  @ViewChild('stepControlSection') stepControlSection!: ElementRef;
+  @ViewChild('actionButtons') actionButtons!: ElementRef;
+  @ViewChildren('detailSection') detailSections!: QueryList<ElementRef>;
+  @ViewChildren('historyItem') historyItems!: QueryList<ElementRef>;
+  @ViewChild('messagesSection') messagesSection!: ElementRef;
+
+  private animationsInitialized = false;
+  activeTab: string = 'profile';
 
   clientId: string = '';
   client: ClientDetail | null = null;
@@ -99,12 +112,107 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Initialize entrance animations after view is ready
+    setTimeout(() => this.initEntranceAnimations(), 100);
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private initEntranceAnimations() {
+    if (this.animationsInitialized || this.isLoading) return;
+    this.animationsInitialized = true;
+
+    // Animate client header
+    if (this.clientHeader?.nativeElement) {
+      this.animationService.slideIn(this.clientHeader.nativeElement, 'up', {
+        duration: 0.5,
+        distance: 30
+      });
+    }
+
+    // Animate step control section
+    if (this.stepControlSection?.nativeElement) {
+      this.animationService.slideIn(this.stepControlSection.nativeElement, 'up', {
+        delay: 0.15,
+        duration: 0.5,
+        distance: 30
+      });
+    }
+
+    // Animate action buttons
+    if (this.actionButtons?.nativeElement) {
+      this.animationService.fadeIn(this.actionButtons.nativeElement, {
+        delay: 0.25
+      });
+    }
+
+    // Animate detail sections with stagger
+    setTimeout(() => {
+      if (this.detailSections && this.detailSections.length > 0) {
+        const sections = this.detailSections.map(s => s.nativeElement);
+        this.animationService.staggerIn(sections, {
+          direction: 'up',
+          stagger: 0.15,
+          delay: 0.3,
+          distance: 30
+        });
+      }
+    }, 50);
+
+    // Animate messages section
+    if (this.messagesSection?.nativeElement) {
+      this.animationService.slideIn(this.messagesSection.nativeElement, 'right', {
+        delay: 0.4,
+        distance: 30
+      });
+    }
+  }
+
+  private animateTimelineItems() {
+    // Animate history timeline items with stagger
+    setTimeout(() => {
+      if (this.historyItems && this.historyItems.length > 0) {
+        const items = this.historyItems.map(h => h.nativeElement);
+        this.animationService.staggerIn(items, {
+          direction: 'left',
+          stagger: 0.1,
+          distance: 20
+        });
+      }
+    }, 100);
+  }
+
+  animateStatusChange(element: HTMLElement) {
+    // Pulse animation when status changes
+    this.animationService.pulse(element, {
+      scale: 1.05,
+      duration: 0.2,
+      repeat: 2
+    });
+  }
+
+  switchTab(tab: string) {
+    this.activeTab = tab;
+    // Re-trigger section animations on tab switch
+    setTimeout(() => {
+      if (this.detailSections && this.detailSections.length > 0) {
+        const sections = this.detailSections.map(s => s.nativeElement);
+        this.animationService.staggerIn(sections, {
+          direction: 'up',
+          stagger: 0.1,
+          distance: 20
+        });
+      }
+    }, 50);
   }
 
   loadClientData() {
     this.isLoading = true;
+    this.animationsInitialized = false; // Reset animations flag for fresh load
     this.adminService.getClient(this.clientId).subscribe({
       next: (data) => {
         this.client = data;
@@ -119,6 +227,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         }
         this.isLoading = false;
         this.cdr.markForCheck();
+        // Trigger entrance animations after data loads
+        setTimeout(() => {
+          this.initEntranceAnimations();
+          this.animateTimelineItems();
+        }, 100);
         // Load tickets using the user ID (not profile ID)
         if (data.user?.id) {
           this.loadTickets(data.user.id);
@@ -172,6 +285,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.isSaving = false;
         setTimeout(() => {
           this.successMessage = 'Estado actualizado correctamente';
+          // Animate status change indicator
+          const statusControl = document.querySelector('.status-control');
+          if (statusControl) {
+            this.animateStatusChange(statusControl as HTMLElement);
+          }
           this.loadClientData();
         }, 0);
       },

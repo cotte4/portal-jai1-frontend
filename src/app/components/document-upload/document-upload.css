@@ -9,12 +9,6 @@
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .popup-card {
@@ -25,18 +19,6 @@
   width: 100%;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: popIn 0.4s ease;
-}
-
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .popup-icon {
@@ -169,18 +151,6 @@
   margin-bottom: 24px;
   font-size: 14px;
   font-weight: 500;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .success-message {
@@ -382,6 +352,29 @@
   font-size: 18px;
 }
 
+/* Upload Progress Bar */
+.upload-progress {
+  width: 100%;
+  max-width: 300px;
+  margin: 16px auto;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  border-radius: 4px;
+  transition: width 0.1s ease-out;
+}
+
 /* Initial Loading Screen */
 .initial-loading {
   display: flex;
@@ -467,6 +460,23 @@
   font-weight: 600;
 }
 
+/* Success Checkmark */
+.success-checkmark {
+  width: 28px;
+  height: 28px;
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 8px;
+  opacity: 0;
+  transform: scale(0);
+}
+
 .files-list {
   display: flex;
   flex-direction: column;
@@ -480,8 +490,10 @@
   padding: 16px;
   background: #fafafa;
   border-radius: 14px;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease;
   border: 2px solid transparent;
+  opacity: 0;
+  transform: translateX(-30px);
 }
 
 .file-card:hover {

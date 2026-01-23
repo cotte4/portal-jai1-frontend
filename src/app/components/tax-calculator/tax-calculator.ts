@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize } from 'rxjs';
@@ -7,17 +7,19 @@ import { W2SharedService } from '../../core/services/w2-shared.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { DocumentType, OcrConfidence, Document } from '../../core/models';
+import { CardAnimateDirective, HoverScaleDirective } from '../../shared/directives';
 
 type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'already-calculated';
 
 @Component({
   selector: 'app-tax-calculator',
-  imports: [CommonModule],
+  imports: [CommonModule, CardAnimateDirective, HoverScaleDirective],
   templateUrl: './tax-calculator.html',
   styleUrl: './tax-calculator.css'
 })
-export class TaxCalculator implements OnInit, OnDestroy {
+export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private documentService = inject(DocumentService);
@@ -25,9 +27,12 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
+  private elementRef = inject(ElementRef);
   private subscriptions = new Subscription();
   private isLoadingInProgress = false;
+  private resultAnimated = false;
 
   state: CalculatorState = 'loading';
   existingW2: Document | null = null;
@@ -77,8 +82,77 @@ export class TaxCalculator implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered by state changes
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  /**
+   * Animate the result display with counter animation
+   */
+  private animateResultDisplay(): void {
+    if (this.resultAnimated) return;
+
+    const nativeElement = this.elementRef.nativeElement;
+
+    // Animate the result amount with counter effect
+    const amountElement = nativeElement.querySelector('.result-amount .amount');
+    if (amountElement) {
+      this.animationService.counterUp(amountElement as HTMLElement, this.estimatedRefund, {
+        duration: 1.5,
+        prefix: '',
+        suffix: '',
+        decimals: 0
+      });
+    }
+
+    // Stagger animate breakdown items
+    const breakdownItems = nativeElement.querySelectorAll('.breakdown-item');
+    if (breakdownItems.length > 0) {
+      this.animationService.staggerIn(breakdownItems, {
+        direction: 'up',
+        stagger: 0.2,
+        delay: 0.3,
+        distance: 20
+      });
+    }
+
+    // Stagger animate highlight items
+    const highlights = nativeElement.querySelectorAll('.result-highlights .highlight');
+    if (highlights.length > 0) {
+      this.animationService.staggerIn(highlights, {
+        direction: 'left',
+        stagger: 0.1,
+        delay: 0.8,
+        distance: 30
+      });
+    }
+
+    // Animate CTA button
+    const ctaButton = nativeElement.querySelector('.cta-button');
+    if (ctaButton) {
+      this.animationService.scaleIn(ctaButton as HTMLElement, {
+        delay: 1.2,
+        fromScale: 0.9
+      });
+    }
+
+    this.resultAnimated = true;
+  }
+
+  /**
+   * Animate the upload card entrance
+   */
+  private animateUploadCard(): void {
+    const nativeElement = this.elementRef.nativeElement;
+    const card = nativeElement.querySelector('.calculator-card');
+    if (card) {
+      this.animationService.slideIn(card as HTMLElement, 'up', { duration: 0.5 });
+    }
   }
 
   /**
@@ -298,6 +372,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   showResult() {
     this.state = 'result';
+    this.resultAnimated = false; // Reset for new result
 
     // Save the calculator result
     this.calculatorResultService.saveResult(
@@ -311,6 +386,11 @@ export class TaxCalculator implements OnInit, OnDestroy {
       this.autoSaveW2();
     }
     this.cdr.detectChanges();
+
+    // Trigger result animations after view updates
+    setTimeout(() => {
+      this.animateResultDisplay();
+    }, 100);
   }
 
   /**
@@ -358,6 +438,12 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.isSavingDocument = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
+    this.resultAnimated = false;
+
+    // Animate upload card entrance
+    setTimeout(() => {
+      this.animateUploadCard();
+    }, 100);
   }
 
   getConfidenceLabel(): string {

@@ -392,18 +392,6 @@
   max-width: 85%;
   padding: 16px;
   border-radius: 16px;
-  animation: messageSlide 0.3s ease;
-}
-
-@keyframes messageSlide {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .message-bubble.admin {
@@ -581,9 +569,35 @@ transform: translateX(4px);
   animation: pulse 2s infinite;
 }
 
+/* Keep pulse animation for problem indicator */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* GSAP Animation Initial States */
+.animate-header {
+  opacity: 0;
+}
+
+.animate-section {
+  opacity: 0;
+}
+
+.animate-buttons {
+  opacity: 0;
+}
+
+.animate-detail-section {
+  opacity: 0;
+}
+
+.animate-history-item {
+  opacity: 0;
+}
+
+.animate-messages {
+  opacity: 0;
 }
 
 .btn-notify {
@@ -822,12 +836,6 @@ transform: translateX(4px);
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .modal-content {
@@ -837,18 +845,6 @@ transform: translateX(4px);
   max-width: 500px;
   max-height: 90vh;
   overflow: hidden;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .modal-header {
