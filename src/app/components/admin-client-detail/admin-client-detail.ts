@@ -980,39 +980,43 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   /**
-   * Get filtered case status options (valid transitions only)
+   * Get all case status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredCaseStatusOptions(): CaseStatus[] {
-    if (!this.validCaseStatusTransitions.length) {
-      return this.caseStatusOptions;
-    }
-    return this.caseStatusOptions.filter(status =>
-      this.validCaseStatusTransitions.includes(status)
-    );
+    return this.caseStatusOptions;
   }
 
   /**
-   * Get filtered federal status options (valid transitions only)
+   * Get all federal status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredFederalStatusOptions(): FederalStatusNew[] {
-    if (!this.validFederalStatusTransitions.length) {
-      return this.federalStatusNewOptions;
-    }
-    return this.federalStatusNewOptions.filter(status =>
-      this.validFederalStatusTransitions.includes(status)
-    );
+    return this.federalStatusNewOptions;
   }
 
   /**
-   * Get filtered state status options (valid transitions only)
+   * Check if a federal status is a valid transition from current
+   */
+  isValidFederalTransition(status: FederalStatusNew): boolean {
+    if (!this.validFederalStatusTransitions.length) return true;
+    return this.validFederalStatusTransitions.includes(status);
+  }
+
+  /**
+   * Get all state status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredStateStatusOptions(): StateStatusNew[] {
-    if (!this.validStateStatusTransitions.length) {
-      return this.stateStatusNewOptions;
-    }
-    return this.stateStatusNewOptions.filter(status =>
-      this.validStateStatusTransitions.includes(status)
-    );
+    return this.stateStatusNewOptions;
+  }
+
+  /**
+   * Check if a state status is a valid transition from current
+   */
+  isValidStateTransition(status: StateStatusNew): boolean {
+    if (!this.validStateStatusTransitions.length) return true;
+    return this.validStateStatusTransitions.includes(status);
   }
 
   // ===== OVERRIDE MODAL METHODS =====
