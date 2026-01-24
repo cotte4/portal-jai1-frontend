@@ -1,13 +1,60 @@
 <div class="profile-page">
-  <!-- Loading State -->
+  <!-- Skeleton Loading State -->
   @if (isLoading) {
-    <div class="loading-container">
-      <div class="loader"></div>
-      <span>Cargando perfil...</span>
+    <div class="profile-skeleton">
+      <!-- Skeleton: Member Card -->
+      <div class="member-card skeleton-card">
+        <div class="card-header">
+          <div class="header-pattern"></div>
+          <div class="profile-picture-container">
+            <div class="skeleton skeleton-avatar"></div>
+          </div>
+        </div>
+        <div class="card-body" style="padding-top: 60px;">
+          <div class="skeleton skeleton-title" style="width: 180px; height: 28px; margin: 0 auto 12px;"></div>
+          <div class="skeleton skeleton-text" style="width: 140px; height: 14px; margin: 0 auto 16px;"></div>
+          <div class="skeleton skeleton-rect" style="width: 120px; height: 32px; margin: 0 auto; border-radius: 20px;"></div>
+        </div>
+      </div>
+
+      <!-- Skeleton: Info Sections -->
+      <div class="info-section skeleton-card">
+        <div class="skeleton-row" style="margin-bottom: 20px;">
+          <div class="skeleton skeleton-circle" style="width: 24px; height: 24px;"></div>
+          <div class="skeleton skeleton-title" style="width: 160px; height: 20px;"></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="skeleton skeleton-text" style="width: 60px; height: 12px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 140px; height: 16px;"></div>
+          </div>
+          <div class="info-item">
+            <div class="skeleton skeleton-text" style="width: 60px; height: 12px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 120px; height: 16px;"></div>
+          </div>
+          <div class="info-item">
+            <div class="skeleton skeleton-text" style="width: 60px; height: 12px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 180px; height: 16px;"></div>
+          </div>
+          <div class="info-item">
+            <div class="skeleton skeleton-text" style="width: 60px; height: 12px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 100px; height: 16px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton: Another Section -->
+      <div class="info-section skeleton-card">
+        <div class="skeleton-row" style="margin-bottom: 20px;">
+          <div class="skeleton skeleton-circle" style="width: 24px; height: 24px;"></div>
+          <div class="skeleton skeleton-title" style="width: 140px; height: 20px;"></div>
+        </div>
+        <div class="skeleton skeleton-rect" style="width: 100%; height: 60px;"></div>
+      </div>
     </div>
   } @else {
     <!-- Member Card -->
-    <div class="member-card">
+    <div class="member-card" #memberCard>
       <div class="card-header">
         <div class="header-pattern"></div>
         <div class="member-badge">
@@ -82,7 +129,7 @@
     }
 
     <!-- Personal Data Section -->
-    <div class="info-section">
+    <div class="info-section" #infoSection>
       <div class="section-header">
         <h2>Mis datos personales</h2>
         <button class="btn-edit" (click)="toggleEdit()">
@@ -155,7 +202,7 @@
     </div>
 
     <!-- Address Section -->
-    <div class="info-section">
+    <div class="info-section" #infoSection>
       <div class="section-header">
         <h2>Domicilio actual</h2>
       </div>

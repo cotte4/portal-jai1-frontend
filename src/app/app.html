@@ -1,2 +1,35 @@
+<!-- Splash Screen -->
+@if (showSplash()) {
+  <div class="splash-screen" [class.fading]="splashFading()">
+    <!-- Background Effects -->
+    <div class="splash-bg">
+      <div class="splash-gradient"></div>
+      <div class="splash-glow glow-1"></div>
+      <div class="splash-glow glow-2"></div>
+      <div class="splash-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="splash-content">
+      <div class="splash-logo-container">
+        <img src="assets/images/jai1-logo.svg" alt="JAI1" class="splash-logo">
+        <div class="logo-shine"></div>
+      </div>
+      <div class="splash-tagline">
+        <span class="tagline-text">JAI1 for J1's</span>
+      </div>
+      <div class="splash-loader">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  </div>
+}
+
 <router-outlet></router-outlet>
 <app-toast></app-toast>

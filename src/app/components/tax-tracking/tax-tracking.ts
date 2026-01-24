@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ConfettiService } from '../../core/services/confetti.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 import {
@@ -34,12 +36,21 @@ interface TrackingStep {
   styleUrl: './tax-tracking.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TaxTracking implements OnInit, OnDestroy {
+export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private notificationService = inject(NotificationService);
   private dataRefreshService = inject(DataRefreshService);
+  private confettiService = inject(ConfettiService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
+
+  // Animation references
+  @ViewChild('sharedTrack') sharedTrack!: ElementRef<HTMLElement>;
+  @ViewChild('federalTrack') federalTrack!: ElementRef<HTMLElement>;
+  @ViewChild('stateTrack') stateTrack!: ElementRef<HTMLElement>;
+  @ViewChildren('trackingStep') trackingSteps!: QueryList<ElementRef<HTMLElement>>;
+  private hasAnimated = false;
 
   profileData: ProfileResponse | null = null;
   isLoading = true;
@@ -94,12 +105,43 @@ export class TaxTracking implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     // Clear safety timeout to prevent memory leaks and errors after component destroy
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
+    }
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate shared track section
+    if (this.sharedTrack?.nativeElement) {
+      this.animationService.slideIn(this.sharedTrack.nativeElement, 'up', { delay: 0.1 });
+    }
+
+    // Animate federal track
+    if (this.federalTrack?.nativeElement) {
+      this.animationService.slideIn(this.federalTrack.nativeElement, 'left', { delay: 0.2 });
+    }
+
+    // Animate state track
+    if (this.stateTrack?.nativeElement) {
+      this.animationService.slideIn(this.stateTrack.nativeElement, 'right', { delay: 0.3 });
+    }
+
+    // Stagger animate individual steps
+    if (this.trackingSteps?.length) {
+      const steps = this.trackingSteps.map(s => s.nativeElement);
+      this.animationService.staggerIn(steps, { direction: 'up', stagger: 0.08, delay: 0.4 });
     }
   }
 
@@ -131,6 +173,9 @@ export class TaxTracking implements OnInit, OnDestroy {
           this.previousFederalStatus = data.taxCase?.federalStatusNew;
           this.previousStateStatus = data.taxCase?.stateStatusNew;
           this.buildSteps();
+
+          // Run entrance animations after data loads
+          setTimeout(() => this.runEntranceAnimations(), 100);
         }
       },
       error: () => {}
@@ -246,6 +291,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         'Tu reembolso federal ha sido depositado en tu cuenta.',
         NotificationType.STATUS_CHANGE
       );
+      // Celebrate the deposit with fireworks!
+      setTimeout(() => this.confettiService.fireworks(), 500);
     }
   }
 
@@ -271,6 +318,8 @@ export class TaxTracking implements OnInit, OnDestroy {
         'Tu reembolso estatal ha sido depositado en tu cuenta.',
         NotificationType.STATUS_CHANGE
       );
+      // Celebrate the deposit with money rain!
+      setTimeout(() => this.confettiService.moneyRain(), 500);
     }
   }
 

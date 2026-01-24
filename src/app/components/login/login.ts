@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, AfterViewInit, OnDestroy, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { UserRole } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -15,13 +16,18 @@ import { environment } from '../../../environments/environment';
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Login implements OnInit {
+export class Login implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+  private animationService = inject(AnimationService);
+
+  @ViewChild('brandContent') brandContent!: ElementRef<HTMLElement>;
+  @ViewChild('formWrapper') formWrapper!: ElementRef<HTMLElement>;
+  @ViewChild('errorAlert') errorAlert!: ElementRef<HTMLElement>;
 
   email: string = '';
   password: string = '';
@@ -52,6 +58,21 @@ export class Login implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  ngAfterViewInit() {
+    // Animate brand content sliding in from left
+    if (this.brandContent?.nativeElement) {
+      this.animationService.slideIn(this.brandContent.nativeElement, 'left', { delay: 0.1 });
+    }
+    // Animate form wrapper sliding in from right
+    if (this.formWrapper?.nativeElement) {
+      this.animationService.slideIn(this.formWrapper.nativeElement, 'right', { delay: 0.2 });
+    }
+  }
+
+  ngOnDestroy() {
+    this.animationService.killAnimations();
   }
 
   onLogin() {

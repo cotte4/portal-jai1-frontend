@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { Document, DocumentType } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
@@ -18,15 +19,21 @@ import { APP_CONSTANTS } from '../../core/constants/app.constants';
   styleUrl: './document-upload.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DocumentUpload implements OnInit, OnDestroy {
+export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
   private calculatorResultService = inject(CalculatorResultService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('uploadZone') uploadZone!: ElementRef<HTMLElement>;
+  @ViewChildren('fileCard') fileCards!: QueryList<ElementRef<HTMLElement>>;
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -93,8 +100,29 @@ export class DocumentUpload implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate upload zone
+    if (this.uploadZone?.nativeElement) {
+      this.animationService.scaleIn(this.uploadZone.nativeElement, { delay: 0.1 });
+    }
+
+    // Stagger animate file cards
+    if (this.fileCards?.length) {
+      const cards = this.fileCards.map(c => c.nativeElement);
+      this.animationService.staggerIn(cards, { direction: 'up', stagger: 0.08, delay: 0.2 });
+    }
   }
 
   loadDocuments() {
@@ -116,6 +144,9 @@ export class DocumentUpload implements OnInit, OnDestroy {
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
         documents.forEach(doc => this.uploadedTypes.add(doc.type));
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       },
       error: (error) => {
         this.toastService.error(error.message || 'Error al cargar documentos');

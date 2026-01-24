@@ -75,8 +75,27 @@
   --btn-padding-lg: 12px 24px;
 }
 
-/* ==================== MOBILE VARIABLES (max-width: 768px) ==================== */
-@media (max-width: 768px) {
+/* ==================== TABLET VARIABLES (768px - 1023px) ==================== */
+@media (max-width: 1023px) {
+  :root {
+    /* Spacing - Tablet (slightly reduced) */
+    --spacing-lg: 20px;
+    --spacing-xl: 28px;
+    --spacing-2xl: 40px;
+
+    /* Typography - Tablet */
+    --font-xl: 20px;
+    --font-2xl: 26px;
+    --font-3xl: 32px;
+
+    /* Card padding - slightly reduced on tablet */
+    --card-padding: 20px;
+    --page-padding: 20px;
+  }
+}
+
+/* ==================== MOBILE VARIABLES (481px - 767px) ==================== */
+@media (max-width: 767px) {
   :root {
     /* Spacing - Mobile (reduced) */
     --spacing-xs: 2px;
@@ -149,7 +168,7 @@ img, video, iframe, embed, object {
 }
 
 /* Better tap targets on mobile */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   button,
   a,
   input[type="button"],
@@ -177,16 +196,44 @@ img, video, iframe, embed, object {
 }
 
 /* ==================== UTILITY CLASSES ==================== */
-/* Hide on mobile */
-@media (max-width: 768px) {
+/* Hide on mobile (<768px) */
+@media (max-width: 767px) {
   .hide-mobile {
     display: none !important;
   }
 }
 
-/* Hide on desktop */
-@media (min-width: 769px) {
+/* Hide on tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop (>=1024px) */
+@media (min-width: 1024px) {
   .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 768px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet */
+@media (max-width: 767px), (min-width: 1024px) {
+  .show-tablet-only {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop */
+@media (max-width: 1023px) {
+  .show-desktop-only {
     display: none !important;
   }
 }

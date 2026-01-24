@@ -8,6 +8,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
+import { ConfettiService } from '../../core/services/confetti.service';
 import { DocumentType } from '../../core/models';
 
 type OnboardingStep = 'welcome' | 'benefits' | 'documents' | 'calculator' | 'warning';
@@ -34,6 +35,7 @@ export class Onboarding implements OnInit, OnDestroy {
   private profileService = inject(ProfileService);
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
+  private confettiService = inject(ConfettiService);
   private cdr = inject(ChangeDetectorRef);
 
   // Cleanup tracking
@@ -293,6 +295,9 @@ export class Onboarding implements OnInit, OnDestroy {
 
     this.calculatorState = 'result';
     this.cdr.detectChanges(); // Trigger change detection for OnPush strategy
+
+    // Celebrate the result with money rain!
+    setTimeout(() => this.confettiService.moneyRain(), 300);
 
     // Save result to localStorage and backend with full breakdown data
     this.calculatorResultService.saveResult(

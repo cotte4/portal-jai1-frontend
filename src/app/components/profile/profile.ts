@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { ProfileResponse, Address } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 import { timeout, catchError, filter, retry, take } from 'rxjs/operators';
@@ -19,15 +20,21 @@ import { of, Subscription, timer } from 'rxjs';
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Profile implements OnInit, OnDestroy {
+export class Profile implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('memberCard') memberCard!: ElementRef<HTMLElement>;
+  @ViewChildren('infoSection') infoSections!: QueryList<ElementRef<HTMLElement>>;
 
   // User data
   userName: string = '';
@@ -143,12 +150,33 @@ export class Profile implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     // Clear safety timeout to prevent memory leaks and errors after component destroy
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
+    }
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate member card with scale-in effect
+    if (this.memberCard?.nativeElement) {
+      this.animationService.scaleIn(this.memberCard.nativeElement, { delay: 0.1 });
+    }
+
+    // Stagger animate info sections
+    if (this.infoSections?.length) {
+      const sections = this.infoSections.map(s => s.nativeElement);
+      this.animationService.staggerIn(sections, { direction: 'up', stagger: 0.1, delay: 0.2 });
     }
   }
 
@@ -340,6 +368,9 @@ export class Profile implements OnInit, OnDestroy {
         this.profileDataLoaded = true; // API data received - can now show verification status
         this.isLoading = false;
         this.cdr.detectChanges();
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       },
       error: () => {
         // If we have any data to show, mark as loaded

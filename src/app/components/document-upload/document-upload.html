@@ -213,6 +213,7 @@
   <!-- Upload Zone -->
   <div
     class="upload-zone"
+    #uploadZone
     [class.drag-over]="dragOver"
     [class.uploading]="isUploading"
     (dragover)="onDragOver($event)"
@@ -248,10 +249,38 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div class="loading-state" *ngIf="isLoading">
-    <div class="spinner"></div>
-    <p>Cargando documentos...</p>
+  <!-- Skeleton Loading State -->
+  <div class="skeleton-loading" *ngIf="isLoading">
+    <div class="section-header skeleton-header">
+      <div class="skeleton skeleton-title" style="width: 180px; height: 24px;"></div>
+      <div class="skeleton skeleton-text" style="width: 80px; height: 18px;"></div>
+    </div>
+    <div class="files-list skeleton-list">
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 200px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 280px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 180px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 240px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 160px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 220px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Uploaded Files Section -->
@@ -262,7 +291,7 @@
     </div>
 
     <div class="files-list">
-      <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+      <div class="file-card" #fileCard *ngFor="let file of uploadedFiles; let i = index">
         <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
         <div class="file-details">
           <div class="file-name">{{ file.fileName }}</div>

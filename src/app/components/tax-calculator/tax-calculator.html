@@ -83,7 +83,7 @@
   </div>
 
   <!-- Upload State -->
-  <div class="calculator-card" *ngIf="state === 'upload'">
+  <div class="calculator-card" #uploadCard *ngIf="state === 'upload'">
     <div class="card-header">
       <div class="header-icon">📄</div>
       <h1>Calculadora de Reembolso</h1>
@@ -214,7 +214,7 @@
   </div>
 
   <!-- Result State -->
-  <div class="calculator-card result-card" *ngIf="state === 'result'">
+  <div class="calculator-card result-card" #resultCard *ngIf="state === 'result'">
     <div class="result-celebration">
       <div class="confetti confetti-1">🎉</div>
       <div class="confetti confetti-2">✨</div>

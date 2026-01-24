@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -10,6 +10,8 @@ import {
   RewardTier
 } from '../../core/services/referral.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfettiService } from '../../core/services/confetti.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { REFERRAL_TERMS_TITLE, REFERRAL_TERMS_CONTENT } from './referral-terms-content';
@@ -27,14 +29,24 @@ const REFERRAL_ONBOARDING_KEY = 'referral_onboarding_completed';
   styleUrl: './referral-program.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferralProgram implements OnInit, OnDestroy {
+export class ReferralProgram implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private referralService = inject(ReferralService);
   private authService = inject(AuthService);
+  private confettiService = inject(ConfettiService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
 
   private destroy$ = new Subject<void>();
   private transitionTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private previousTier: number = 0;
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('welcomeCard') welcomeCard!: ElementRef<HTMLElement>;
+  @ViewChild('codeCard') codeCard!: ElementRef<HTMLElement>;
+  @ViewChildren('statCard') statCards!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChildren('tierCard') tierCards!: QueryList<ElementRef<HTMLElement>>;
 
   viewState: ViewState = 'loading';
   rewardTiers: RewardTier[] = [];
@@ -82,11 +94,43 @@ export class ReferralProgram implements OnInit, OnDestroy {
     }, 800);
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.animationService.killAnimations();
     if (this.transitionTimeoutId) {
       clearTimeout(this.transitionTimeoutId);
+    }
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate welcome card
+    if (this.welcomeCard?.nativeElement) {
+      this.animationService.slideIn(this.welcomeCard.nativeElement, 'up', { delay: 0.1 });
+    }
+
+    // Animate code card with scale effect
+    if (this.codeCard?.nativeElement) {
+      this.animationService.scaleIn(this.codeCard.nativeElement, { delay: 0.2 });
+    }
+
+    // Stagger animate stat cards
+    if (this.statCards?.length) {
+      const cards = this.statCards.map(c => c.nativeElement);
+      this.animationService.staggerIn(cards, { direction: 'up', stagger: 0.08, delay: 0.3 });
+    }
+
+    // Stagger animate tier cards
+    if (this.tierCards?.length) {
+      const tiers = this.tierCards.map(c => c.nativeElement);
+      this.animationService.staggerIn(tiers, { direction: 'up', stagger: 0.1, delay: 0.5 });
     }
   }
 
@@ -115,6 +159,12 @@ export class ReferralProgram implements OnInit, OnDestroy {
         // Determine view state based on code eligibility
         if (data.code.code) {
           this.viewState = 'dashboard';
+
+          // Check for tier upgrade celebration
+          this.checkTierUpgrade();
+
+          // Run entrance animations after data loads
+          setTimeout(() => this.runEntranceAnimations(), 100);
         } else {
           this.viewState = 'not-eligible';
         }
@@ -262,12 +312,34 @@ export class ReferralProgram implements OnInit, OnDestroy {
     this.referralService.copyCodeToClipboard().then(success => {
       if (success) {
         this.codeCopied = true;
+        // Quick confetti burst for copy success
+        this.confettiService.quickBurst();
         setTimeout(() => {
           this.codeCopied = false;
           this.cdr.detectChanges();
         }, 2000);
       }
     });
+  }
+
+  // Check if user reached a new tier and celebrate
+  private checkTierUpgrade(): void {
+    const currentTierNum = this.currentTier?.tier || 0;
+    const storedTierKey = `jai1_referral_tier_${this.currentUserId}`;
+    const storedTier = parseInt(localStorage.getItem(storedTierKey) || '0', 10);
+
+    // If current tier is higher than stored, celebrate!
+    if (currentTierNum > storedTier && storedTier > 0) {
+      setTimeout(() => {
+        this.confettiService.stars();
+        setTimeout(() => this.confettiService.sideCannons(), 300);
+      }, 500);
+    }
+
+    // Update stored tier
+    if (currentTierNum > 0) {
+      localStorage.setItem(storedTierKey, currentTierNum.toString());
+    }
   }
 
   toggleShareOptions() {

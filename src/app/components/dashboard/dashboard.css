@@ -1,4 +1,53 @@
-/* ==================== LOADING SCREEN ==================== */
+/* ==================== SKELETON LOADING ==================== */
+.skeleton-state {
+  pointer-events: none;
+}
+
+.skeleton-state .skeleton-card {
+  background: white;
+  border: none;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-text {
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  border-radius: 6px;
+}
+
+.skeleton-rect {
+  border-radius: 8px;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Keep old spinner for backwards compatibility */
 .dashboard-loading {
   display: flex;
   flex-direction: column;
@@ -799,7 +848,8 @@
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 1200px) {
+/* Tablet (768px - 1023px): 2 columns */
+@media (max-width: 1023px) {
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -809,7 +859,8 @@
   }
 }
 
-@media (max-width: 900px) {
+/* Mobile (<768px): 1 column */
+@media (max-width: 767px) {
   .bento-grid {
     grid-template-columns: 1fr;
   }
@@ -817,9 +868,7 @@
   .bento-grid .bento-card:last-child {
     grid-column: span 1;
   }
-}
 
-@media (max-width: 768px) {
   .dashboard-content {
     padding: var(--page-padding);
     gap: var(--spacing-lg);

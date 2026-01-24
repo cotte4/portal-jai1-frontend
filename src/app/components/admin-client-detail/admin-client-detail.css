@@ -1473,11 +1473,11 @@ transform: translateX(4px);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1023px) {
   .accounts-grid, .content-grid, .federal-state-grid, .new-status-grid { grid-template-columns: 1fr; }
   .messages-section { height: 600px; position: relative; top: 0; }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .client-header { flex-direction: column; align-items: flex-start; }
   .info-grid { grid-template-columns: 1fr; }
 }

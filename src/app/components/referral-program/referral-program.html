@@ -147,9 +147,7 @@
     <!-- Header with Mode Toggle -->
     <header class="referral-header">
       <div class="header-left">
-        <div class="logo">
-          <span class="logo-j">J</span><span class="logo-slash">/</span><span class="logo-ai">AI1</span>
-        </div>
+        <img src="assets/images/jai1-logo.svg" alt="JAI1" class="header-logo-img">
         <span class="header-divider">|</span>
         <span class="header-title">Programa de Referidos</span>
       </div>
@@ -167,17 +165,69 @@
       </div>
     </header>
 
-    <!-- Loading State -->
+    <!-- Skeleton Loading State -->
     @if (viewState === 'loading') {
-      <div class="state-container">
-        <div class="loading-content">
-          <div class="loading-spinner"></div>
-          <h2>Cargando tu programa de referidos...</h2>
-          <p>Un momento por favor</p>
-          <button class="btn-refresh-loading" (click)="refresh()" [disabled]="isRefreshing">
-            <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
-            <span>{{ isRefreshing ? 'Actualizando...' : 'Refrescar' }}</span>
-          </button>
+      <div class="referral-skeleton">
+        <!-- Skeleton: Welcome Section -->
+        <div class="skeleton-welcome-card">
+          <div class="skeleton-row" style="margin-bottom: 16px;">
+            <div class="skeleton skeleton-circle" style="width: 56px; height: 56px;"></div>
+            <div>
+              <div class="skeleton skeleton-title" style="width: 200px; height: 24px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 280px; height: 16px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton: Code Card -->
+        <div class="skeleton-code-card">
+          <div class="skeleton skeleton-text" style="width: 120px; height: 14px; margin-bottom: 16px;"></div>
+          <div class="skeleton skeleton-rect" style="width: 100%; height: 56px; margin-bottom: 16px;"></div>
+          <div class="skeleton-row" style="gap: 12px;">
+            <div class="skeleton skeleton-rect" style="flex: 1; height: 44px;"></div>
+            <div class="skeleton skeleton-rect" style="flex: 1; height: 44px;"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton: Stats -->
+        <div class="skeleton-stats-row">
+          <div class="skeleton-stat-card">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-title" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80px; height: 12px;"></div>
+          </div>
+          <div class="skeleton-stat-card">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-title" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80px; height: 12px;"></div>
+          </div>
+          <div class="skeleton-stat-card">
+            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-title" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80px; height: 12px;"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton: Tiers -->
+        <div class="skeleton-tiers-section">
+          <div class="skeleton skeleton-title" style="width: 140px; height: 20px; margin-bottom: 20px;"></div>
+          <div class="skeleton-tiers-grid">
+            <div class="skeleton-tier-card">
+              <div class="skeleton skeleton-circle" style="width: 48px; height: 48px; margin-bottom: 12px;"></div>
+              <div class="skeleton skeleton-text" style="width: 80px; height: 16px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 60px; height: 14px;"></div>
+            </div>
+            <div class="skeleton-tier-card">
+              <div class="skeleton skeleton-circle" style="width: 48px; height: 48px; margin-bottom: 12px;"></div>
+              <div class="skeleton skeleton-text" style="width: 80px; height: 16px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 60px; height: 14px;"></div>
+            </div>
+            <div class="skeleton-tier-card">
+              <div class="skeleton skeleton-circle" style="width: 48px; height: 48px; margin-bottom: 12px;"></div>
+              <div class="skeleton skeleton-text" style="width: 80px; height: 16px; margin-bottom: 8px;"></div>
+              <div class="skeleton skeleton-text" style="width: 60px; height: 14px;"></div>
+            </div>
+          </div>
         </div>
       </div>
     }
@@ -241,7 +291,7 @@
         <!-- STATE 1: No Referrals Yet - Empty State -->
         @if (!hasReferrals) {
           <!-- Welcome Section -->
-          <section class="welcome-section">
+          <section class="welcome-section" #welcomeCard>
             <div class="welcome-badge">
               <span class="badge-icon">🌟</span>
               <span class="badge-text">JAIGENT</span>
@@ -252,7 +302,7 @@
 
           <!-- Prominent Code Card for Empty State -->
           <section class="code-section featured">
-            <div class="code-card featured">
+            <div class="code-card featured" #codeCard>
               <div class="code-header">
                 <span class="code-label">Tu codigo de referido</span>
               </div>
@@ -322,7 +372,7 @@
 
             <div class="tiers-grid">
               @for (tier of rewardTiers; track tier.tier) {
-                <div class="tier-card"
+                <div class="tier-card" #tierCard
                      [class.next]="tier.tier === 1">
                   <div class="tier-icon">{{ tier.icon }}</div>
                   <div class="tier-content">
@@ -355,7 +405,7 @@
           <!-- Stats Grid - MAIN FOCUS -->
           <section class="stats-section primary">
             <div class="stats-grid large">
-              <div class="stat-card referrals featured">
+              <div class="stat-card referrals featured" #statCard>
                 <div class="stat-icon">👥</div>
                 <div class="stat-content">
                   <span class="stat-value">{{ totalReferralCount }}</span>
@@ -363,7 +413,7 @@
                 </div>
               </div>
 
-              <div class="stat-card earnings featured">
+              <div class="stat-card earnings featured" #statCard>
                 <div class="stat-icon">💰</div>
                 <div class="stat-content">
                   <span class="stat-value">{{ currentDiscountPercent }}%</span>
