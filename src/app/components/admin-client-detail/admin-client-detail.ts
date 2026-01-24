@@ -43,6 +43,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   clientId: string = '';
   client: ClientDetail | null = null;
   tickets: Ticket[] = [];
+  selectedTicketFull: Ticket | null = null;  // Full ticket with messages
+  isLoadingSelectedTicket: boolean = false;
   statusComment: string = '';
   newMessage: string = '';
   selectedTicketId: string | null = null;
@@ -344,12 +346,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.isSendingMessage = true;
     this.ticketErrorMessage = '';
-    this.ticketService.addMessage(this.selectedTicketId, { message: this.newMessage }).subscribe({
-      next: () => {
+    const ticketId = this.selectedTicketId;
+
+    this.ticketService.addMessage(ticketId, { message: this.newMessage }).subscribe({
+      next: (updatedTicket) => {
         this.newMessage = '';
         this.ticketSuccessMessage = 'Mensaje enviado';
         this.isSendingMessage = false;
-        this.loadTickets();
+        // Update the selected ticket with the response (includes new message)
+        this.selectedTicketFull = updatedTicket;
+        this.loadTickets(); // Refresh list to update unread counts
         setTimeout(() => this.ticketSuccessMessage = '', 3000);
         this.cdr.markForCheck();
       },
@@ -365,10 +371,26 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.selectedTicketId = ticketId;
     this.ticketErrorMessage = '';
     this.ticketSuccessMessage = '';
+    this.selectedTicketFull = null;
+    this.isLoadingSelectedTicket = true;
+
+    // Fetch full ticket with messages
+    this.ticketService.getTicket(ticketId).subscribe({
+      next: (ticket) => {
+        this.selectedTicketFull = ticket;
+        this.isLoadingSelectedTicket = false;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.ticketErrorMessage = getErrorMessage(error, 'Error al cargar el ticket');
+        this.isLoadingSelectedTicket = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
-  get selectedTicket(): Ticket | undefined {
-    return this.tickets.find(t => t.id === this.selectedTicketId);
+  get selectedTicket(): Ticket | null {
+    return this.selectedTicketFull;
   }
 
   // DEPRECATED: These methods are kept for backward compatibility in templates

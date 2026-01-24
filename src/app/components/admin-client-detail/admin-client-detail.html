@@ -658,18 +658,34 @@
             </div>
           </div>
 
+          <!-- Loading Selected Ticket -->
+          <div class="tickets-loading" *ngIf="isLoadingSelectedTicket">
+            <div class="spinner-small"></div>
+            <p>Cargando conversacion...</p>
+          </div>
+
           <!-- Selected Ticket Conversation -->
-          <div class="messages-container" *ngIf="selectedTicket">
+          <div class="messages-container" *ngIf="selectedTicket && !isLoadingSelectedTicket">
+            <div class="conversation-header-mini">
+              <span class="ticket-subject-display">{{ selectedTicket.subject }}</span>
+              <span class="ticket-status-mini" [class]="'status-' + selectedTicket.status">{{ getTicketStatusLabel(selectedTicket.status) }}</span>
+            </div>
+
             <div class="messages-list">
               <div class="message-item"
                    *ngFor="let msg of selectedTicket.messages; trackBy: trackById"
                    [class.admin-message]="msg.sender?.role === 'admin'"
                    [class.client-message]="msg.sender?.role !== 'admin'">
                 <div class="message-header">
-                  <span class="sender-name">{{ msg.sender?.firstName || 'Usuario' }}</span>
-                  <span class="message-date">{{ msg.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="sender-name">{{ msg.sender?.role === 'admin' ? 'Soporte JAI1' : (msg.sender?.firstName || 'Cliente') }}</span>
+                  <span class="message-date">{{ msg.createdAt | date:'dd/MM HH:mm' }}</span>
                 </div>
                 <div class="message-text">{{ msg.message }}</div>
+              </div>
+
+              <!-- Empty messages state -->
+              <div class="empty-conversation" *ngIf="!selectedTicket.messages || selectedTicket.messages.length === 0">
+                <p>No hay mensajes en este ticket</p>
               </div>
             </div>
 
