@@ -70,25 +70,19 @@ export class Chatbot implements OnInit, AfterViewChecked {
     this.shouldScrollToBottom = true;
 
     // Send to chatbot service
-    console.log('Sending message to chatbot service...');
     this.chatbotService.sendMessage(messageText, this.messages).subscribe({
       next: (response) => {
-        console.log('Chatbot response received:', response);
         this.isTyping = false;
         this.addBotMessage(response);
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Chatbot error:', error);
         this.isTyping = false;
         this.addBotMessage(
           'Lo siento, hubo un problema al procesar tu mensaje. ' +
           (error.message || 'Por favor, intenta de nuevo.')
         );
         this.cdr.detectChanges();
-      },
-      complete: () => {
-        console.log('Chatbot subscription completed');
       }
     });
   }

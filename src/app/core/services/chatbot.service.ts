@@ -40,19 +40,14 @@ export class ChatbotService {
       }))
     };
 
-    console.log('ChatbotService: Sending to', this.webhookUrl);
     return this.http.post<ChatbotResponse>(this.webhookUrl, payload).pipe(
       map(response => {
-        console.log('ChatbotService: Raw response', response);
         if (response.error) {
-          console.log('ChatbotService: Response has error field', response.error);
           throw new Error(String(response.error));
         }
-        console.log('ChatbotService: Returning response text', response.response);
         return response.response || 'Lo siento, no pude procesar tu mensaje.';
       }),
       catchError((error: HttpErrorResponse | Error) => {
-        console.error('ChatbotService: catchError', error);
         return this.handleError(error as HttpErrorResponse);
       })
     );
