@@ -1,31 +1,75 @@
+/* ============================================
+   JAI1 Chat Widget - Floating Action Button
+   Premium Glass Morphism Design
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600&display=swap');
+
+/* CSS Custom Properties */
+:host {
+  --accent-warm: #e07a5f;
+  --accent-warm-light: #f4a582;
+  --accent-warm-glow: rgba(224, 122, 95, 0.25);
+  --accent-deep: #3d405b;
+  --accent-sage: #81b29a;
+  --accent-cream: #f2cc8f;
+
+  --text-primary: #2d3436;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 12px 40px rgba(224, 122, 95, 0.35);
+  --shadow-glow: 0 0 60px rgba(224, 122, 95, 0.25);
+
+  --blur-glass: 16px;
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 .chat-widget-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 28px;
+  right: 28px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* Tooltip */
+/* ============================================
+   Tooltip - Glass Card
+   ============================================ */
 .widget-tooltip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  animation: tooltipIn 0.3s ease-out;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   cursor: pointer;
+  animation: tooltipFloat 0.6s var(--transition-bounce) backwards;
+  transform-origin: bottom right;
+  transition: all var(--transition-smooth);
 }
 
-@keyframes tooltipIn {
+.widget-tooltip:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+@keyframes tooltipFloat {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.95);
+    transform: translateY(12px) scale(0.9);
   }
   to {
     opacity: 1;
@@ -34,106 +78,247 @@
 }
 
 .widget-tooltip span {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
-  color: #1e293b;
   font-weight: 500;
+  color: var(--text-primary);
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .tooltip-close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border: none;
-  background: #f1f5f9;
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 50%;
-  color: #64748b;
-  font-size: 14px;
+  color: var(--accent-deep);
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-smooth);
+  line-height: 1;
 }
 
 .tooltip-close:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: var(--accent-warm);
+  color: white;
+  transform: rotate(90deg);
 }
 
-/* Widget Button */
+/* ============================================
+   Widget Button - Floating Orb
+   ============================================ */
 .chat-widget-button {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border: none;
-  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  background: linear-gradient(145deg, var(--accent-warm) 0%, var(--accent-warm-light) 100%);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(29, 52, 93, 0.4);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-float);
+  transition: all var(--transition-smooth);
   overflow: visible;
 }
 
+/* Subtle gradient ring */
+.chat-widget-button::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent-warm-light), var(--accent-cream));
+  opacity: 0.4;
+  z-index: -1;
+  transition: all var(--transition-smooth);
+}
+
 .chat-widget-button:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 28px rgba(29, 52, 93, 0.5);
+  transform: scale(1.1) translateY(-4px);
+  box-shadow:
+    var(--shadow-float),
+    var(--shadow-glow);
+}
+
+.chat-widget-button:hover::before {
+  opacity: 0.6;
+  inset: -6px;
 }
 
 .chat-widget-button:active {
-  transform: scale(0.98);
+  transform: scale(0.95);
+  box-shadow: var(--shadow-soft);
 }
 
 .widget-logo {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   filter: brightness(0) invert(1);
   z-index: 2;
+  transition: transform var(--transition-smooth);
 }
 
-/* Pulse Animation */
+.chat-widget-button:hover .widget-logo {
+  transform: scale(1.05) rotate(-5deg);
+}
+
+/* ============================================
+   Pulse Animation - Organic Ripple
+   ============================================ */
 .widget-pulse {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: rgba(29, 52, 93, 0.4);
-  animation: pulse 2s ease-out infinite;
-  z-index: 1;
+  background: transparent;
+  border: 2px solid var(--accent-warm);
+  animation: pulseRipple 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  z-index: 0;
+  pointer-events: none;
 }
 
-@keyframes pulse {
+/* Second ripple with offset */
+.widget-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-warm-light);
+  animation: pulseRipple 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.8s;
+}
+
+@keyframes pulseRipple {
   0% {
     transform: scale(1);
     opacity: 0.6;
   }
+  50% {
+    opacity: 0.3;
+  }
   100% {
-    transform: scale(1.5);
+    transform: scale(1.8);
     opacity: 0;
   }
 }
 
-/* Responsive */
+/* Pause animation on hover for focus */
+.chat-widget-button:hover .widget-pulse,
+.chat-widget-button:hover .widget-pulse::after {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+/* ============================================
+   Notification Dot (optional future use)
+   ============================================ */
+.notification-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-sage);
+  border: 3px solid white;
+  border-radius: 50%;
+  z-index: 3;
+  animation: notificationPop 0.4s var(--transition-bounce) backwards;
+}
+
+@keyframes notificationPop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
 @media (max-width: 768px) {
+  .chat-widget-container {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+
+  .chat-widget-button {
+    width: 58px;
+    height: 58px;
+  }
+
+  .chat-widget-button::before {
+    inset: -3px;
+  }
+
+  .widget-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* Hide tooltip on mobile - button is self-explanatory */
+  .widget-tooltip {
+    display: none;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
   .chat-widget-container {
     bottom: 16px;
     right: 16px;
   }
 
   .chat-widget-button {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
   }
 
   .widget-logo {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .widget-pulse,
+  .widget-pulse::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .widget-tooltip,
+  .chat-widget-button,
+  .widget-logo,
+  .tooltip-close {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode adjustment */
+@media (prefers-color-scheme: dark) {
+  :host {
+    --bg-glass: rgba(45, 46, 50, 0.9);
+    --text-primary: #f5f5f5;
   }
 
   .widget-tooltip {
-    display: none;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .tooltip-close {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f5f5f5;
   }
 }
