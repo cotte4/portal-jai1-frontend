@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, catchError, throwError, retry, timer } from 'rxjs';
+import { Observable, catchError, throwError, retry, timer, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Ticket, TicketStatus, CreateTicketRequest, AddMessageRequest } from '../models';
+import { Ticket, TicketStatus, CreateTicketRequest, AddMessageRequest, TicketsPaginatedResponse } from '../models';
 
 // Response type for status updates
 interface UpdateStatusResponse {
@@ -73,9 +73,29 @@ export class TicketService {
   }
 
   /**
-   * Get all tickets with optional filters
+   * Get all tickets with optional filters (backward compatible - returns array)
+   * For paginated results, use getTicketsPaginated()
    */
   getTickets(status?: TicketStatus, userId?: string): Observable<Ticket[]> {
+    return this.getTicketsPaginated(status, userId).pipe(
+      map(response => response.tickets)
+    );
+  }
+
+  /**
+   * Get tickets with cursor-based pagination
+   * @param status - Optional status filter
+   * @param userId - Optional user ID filter
+   * @param cursor - Cursor for pagination (last ticket ID from previous page)
+   * @param limit - Maximum number of results per page (default 20, max 100)
+   * @returns Paginated response with tickets, nextCursor, and hasMore flag
+   */
+  getTicketsPaginated(
+    status?: TicketStatus,
+    userId?: string,
+    cursor?: string,
+    limit?: number
+  ): Observable<TicketsPaginatedResponse> {
     let params = new HttpParams();
 
     if (status) {
@@ -84,8 +104,14 @@ export class TicketService {
     if (userId) {
       params = params.set('user_id', userId);
     }
+    if (cursor) {
+      params = params.set('cursor', cursor);
+    }
+    if (limit) {
+      params = params.set('limit', limit.toString());
+    }
 
-    return this.http.get<Ticket[]>(`${this.apiUrl}/tickets`, { params }).pipe(
+    return this.http.get<TicketsPaginatedResponse>(`${this.apiUrl}/tickets`, { params }).pipe(
       retry({
         count: RETRY_CONFIG.count,
         delay: (error, retryCount) => {

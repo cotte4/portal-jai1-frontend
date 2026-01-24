@@ -27,6 +27,13 @@ export class NotificationService {
   private newNotificationSubject = new Subject<Notification[]>();
   public newNotification$ = this.newNotificationSubject.asObservable();
 
+  // Ticket real-time events
+  private ticketMessageSubject = new Subject<{ ticketId: string; message: any }>();
+  public ticketMessage$ = this.ticketMessageSubject.asObservable();
+
+  private ticketStatusSubject = new Subject<{ ticketId: string; status: string }>();
+  public ticketStatus$ = this.ticketStatusSubject.asObservable();
+
   private pollingSubscription: Subscription | null = null;
   private fetchSubscription: Subscription | null = null;
   private knownNotificationIds = new Set<string>();
@@ -171,6 +178,18 @@ export class NotificationService {
       this.socket.on('notification', (notification: Notification) => {
         console.log('Received real-time notification:', notification);
         this.handleIncomingNotification(notification);
+      });
+
+      // Handle ticket message events
+      this.socket.on('ticket:message', (data: { ticketId: string; message: any }) => {
+        console.log('Received ticket message:', data);
+        this.ticketMessageSubject.next(data);
+      });
+
+      // Handle ticket status change events
+      this.socket.on('ticket:status', (data: { ticketId: string; status: string }) => {
+        console.log('Received ticket status change:', data);
+        this.ticketStatusSubject.next(data);
       });
 
       // Handle connection errors
@@ -495,5 +514,12 @@ export class NotificationService {
       isWebSocketConnected: this.isWebSocketConnected,
       reconnectAttempts: this.reconnectAttempts,
     };
+  }
+
+  /**
+   * Check if WebSocket is currently connected
+   */
+  get isConnected(): boolean {
+    return this.isWebSocketConnected;
   }
 }

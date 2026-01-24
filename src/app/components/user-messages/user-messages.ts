@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { AnimationService } from '../../core/services/animation.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models';
 
 @Component({
@@ -22,6 +23,7 @@ export class UserMessages implements OnInit, AfterViewInit {
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
   private animationService = inject(AnimationService);
+  private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private hasAnimated = false;
@@ -132,12 +134,62 @@ export class UserMessages implements OnInit, AfterViewInit {
       }
     });
 
-    // Auto-polling every 60 seconds for new messages
-    // This is a simpler alternative to WebSocket - see PRD for reasoning
-    interval(60000).pipe(
+    // Subscribe to real-time ticket messages via WebSocket
+    this.notificationService.ticketMessage$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, message }) => {
+      // If the message is for the active ticket, add it to the conversation
+      if (this.activeTicket?.id === ticketId) {
+        // Check if message already exists to avoid duplicates
+        const exists = this.messages.some(m => m.id === message.id);
+        if (!exists) {
+          this.messages = [...this.messages, message as TicketMessage];
+          this.scrollToBottom();
+          this.cdr.detectChanges();
+        }
+      } else {
+        // Message is for a different ticket - increment unread count
+        const ticketIndex = this.tickets.findIndex(t => t.id === ticketId);
+        if (ticketIndex !== -1) {
+          const currentUnread = this.tickets[ticketIndex].unreadCount || 0;
+          this.tickets[ticketIndex] = {
+            ...this.tickets[ticketIndex],
+            unreadCount: currentUnread + 1
+          };
+          this.cdr.detectChanges();
+        }
+      }
+    });
+
+    // Subscribe to real-time ticket status changes via WebSocket
+    this.notificationService.ticketStatus$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, status }) => {
+      // Update the ticket status in the list
+      const ticketIndex = this.tickets.findIndex(t => t.id === ticketId);
+      if (ticketIndex !== -1) {
+        this.tickets[ticketIndex] = {
+          ...this.tickets[ticketIndex],
+          status: status as TicketStatus
+        };
+      }
+      // Update the active ticket if it's the one being updated
+      if (this.activeTicket?.id === ticketId) {
+        this.activeTicket = {
+          ...this.activeTicket,
+          status: status as TicketStatus
+        };
+      }
+      this.cdr.detectChanges();
+    });
+
+    // Auto-polling every 120 seconds for new messages (fallback when WebSocket disconnected)
+    // Reduced from 60s since WebSocket provides real-time updates
+    interval(120000).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      if (this.hasLoaded && !this.isLoadingInProgress) {
+      // Only poll if WebSocket is not connected
+      if (this.hasLoaded && !this.isLoadingInProgress && !this.notificationService.isConnected) {
         this.refreshActiveTicket();
       }
     });

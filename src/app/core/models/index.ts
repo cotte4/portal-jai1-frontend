@@ -396,6 +396,12 @@ export interface AddMessageRequest {
   message: string;
 }
 
+export interface TicketsPaginatedResponse {
+  tickets: Ticket[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 // ============= NOTIFICATIONS =============
 
 export interface Notification {

@@ -626,19 +626,39 @@
               <span class="section-icon">💬</span>
               <h2>Tickets de Soporte</h2>
             </div>
+            <button class="btn-refresh-tickets" (click)="loadTickets()" [disabled]="isLoadingTickets" title="Recargar tickets">
+              <span [class.spinning]="isLoadingTickets">↻</span>
+            </button>
           </div>
 
-          <div class="tickets-list" *ngIf="tickets.length > 0">
+          <!-- Error Message (visible always when there's an error) -->
+          <div class="ticket-error-message" *ngIf="ticketErrorMessage">
+            <span class="error-icon">!</span>
+            {{ ticketErrorMessage }}
+            <button class="btn-retry" (click)="loadTickets()">Reintentar</button>
+          </div>
+
+          <!-- Loading State -->
+          <div class="tickets-loading" *ngIf="isLoadingTickets">
+            <div class="spinner-small"></div>
+            <p>Cargando tickets...</p>
+          </div>
+
+          <!-- Tickets List (only when loaded and has tickets) -->
+          <div class="tickets-list" *ngIf="!isLoadingTickets && tickets.length > 0">
             <div class="ticket-card"
                  *ngFor="let ticket of tickets; trackBy: trackById"
                  [class.selected]="selectedTicketId === ticket.id"
                  (click)="selectTicket(ticket.id)">
               <div class="ticket-subject">{{ ticket.subject }}</div>
-              <div class="ticket-status">{{ ticket.status }}</div>
-              <div class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</div>
+              <div class="ticket-meta">
+                <span class="ticket-status" [class]="'status-' + ticket.status">{{ getTicketStatusLabel(ticket.status) }}</span>
+                <span class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</span>
+              </div>
             </div>
           </div>
 
+          <!-- Selected Ticket Conversation -->
           <div class="messages-container" *ngIf="selectedTicket">
             <div class="messages-list">
               <div class="message-item"
@@ -653,10 +673,7 @@
               </div>
             </div>
 
-            <!-- Ticket Messages -->
-            <div class="ticket-error-message" *ngIf="ticketErrorMessage">
-              {{ ticketErrorMessage }}
-            </div>
+            <!-- Success Message -->
             <div class="ticket-success-message" *ngIf="ticketSuccessMessage">
               {{ ticketSuccessMessage }}
             </div>
@@ -676,9 +693,11 @@
             </div>
           </div>
 
-          <div class="empty-messages" *ngIf="tickets.length === 0">
+          <!-- Empty State (only when loaded and no tickets) -->
+          <div class="empty-messages" *ngIf="!isLoadingTickets && tickets.length === 0 && !ticketErrorMessage">
             <span class="empty-icon">💬</span>
             <p>No hay tickets de soporte</p>
+            <span class="empty-hint">El cliente no ha creado ningun ticket</span>
           </div>
         </section>
       </div>

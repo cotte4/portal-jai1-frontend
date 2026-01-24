@@ -953,6 +953,17 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return index;
   }
 
+  // ===== TICKET STATUS LABEL =====
+
+  getTicketStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'open': 'Abierto',
+      'in_progress': 'En Progreso',
+      'closed': 'Cerrado'
+    };
+    return labels[status] || status;
+  }
+
   // ===== STATUS TRANSITION VALIDATION =====
 
   /**
