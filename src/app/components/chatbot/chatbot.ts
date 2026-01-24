@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,7 @@ export class Chatbot implements OnInit, AfterViewChecked {
 
   private router = inject(Router);
   private chatbotService = inject(ChatbotService);
+  private cdr = inject(ChangeDetectorRef);
 
   messages: ChatMessage[] = [];
   inputMessage: string = '';
@@ -75,6 +76,7 @@ export class Chatbot implements OnInit, AfterViewChecked {
         console.log('Chatbot response received:', response);
         this.isTyping = false;
         this.addBotMessage(response);
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Chatbot error:', error);
@@ -83,6 +85,7 @@ export class Chatbot implements OnInit, AfterViewChecked {
           'Lo siento, hubo un problema al procesar tu mensaje. ' +
           (error.message || 'Por favor, intenta de nuevo.')
         );
+        this.cdr.detectChanges();
       },
       complete: () => {
         console.log('Chatbot subscription completed');
