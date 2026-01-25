@@ -487,6 +487,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/alarms']);
   }
 
+  goToJai1gents() {
+    this.router.navigate(['/admin/jai1gents']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 
