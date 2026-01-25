@@ -87,6 +87,13 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isTogglingCron: boolean = false;
   showMissingDocsInfoModal: boolean = false;
 
+  // Sidebar - collapsed by default on mobile
+  sidebarCollapsed: boolean = typeof window !== 'undefined' && window.innerWidth <= 1024;
+
+  // Dark Mode
+  darkMode: boolean = false;
+  private readonly DARK_MODE_KEY = 'jai1_admin_dark_mode';
+
   // Advanced filters
   showAdvancedFilters: boolean = false;
   advancedFilters: AdvancedFilters = {
@@ -156,6 +163,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    // Load dark mode preference
+    this.loadDarkModePreference();
+
     // Read filters from URL params first
     this.loadFiltersFromUrl();
 
@@ -519,6 +529,32 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ===== SIDEBAR =====
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.cdr.detectChanges();
+  }
+
+  // ===== DARK MODE =====
+  toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    this.saveDarkModePreference();
+    this.cdr.detectChanges();
+  }
+
+  private loadDarkModePreference() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedPreference = localStorage.getItem(this.DARK_MODE_KEY);
+      this.darkMode = savedPreference === 'true';
+    }
+  }
+
+  private saveDarkModePreference() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(this.DARK_MODE_KEY, this.darkMode.toString());
+    }
   }
 
   logout() {

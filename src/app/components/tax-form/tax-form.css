@@ -3,14 +3,16 @@
    ============================================= */
 
 .success-screen {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px 24px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #f8fafc 0%, #e8f4f8 100%);
   animation: fadeIn 0.5s ease;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes fadeIn {
@@ -1096,11 +1098,26 @@
 
   /* Success Screen Responsive */
   .success-screen {
-    padding: 16px 12px;
+    padding: 24px 16px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 20px));
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .success-container {
+    margin: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
 
   .success-title {
     font-size: 22px;
+  }
+
+  .success-subtitle {
+    font-size: 14px;
+    padding: 0 8px;
+    line-height: 1.5;
   }
 
   .success-icon-wrapper {
@@ -1118,6 +1135,11 @@
     text-align: center;
   }
 
+  .next-step-content p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
   .progress-steps {
     flex-wrap: wrap;
     gap: 8px;
@@ -1125,6 +1147,16 @@
 
   .step-line {
     display: none;
+  }
+
+  /* Completed status list */
+  .completed-status-list {
+    margin-bottom: 16px;
+  }
+
+  .completed-status-item {
+    font-size: 13px;
+    padding: 10px 14px;
   }
 
   /* Referral section - compact */

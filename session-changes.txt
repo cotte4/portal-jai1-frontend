@@ -1,0 +1,54 @@
+SESSION CHANGES - Admin Dashboard Dark Mode & Mobile Responsiveness
+====================================================================
+Date: January 25, 2026
+
+FEATURES ADDED:
+---------------
+
+1. DARK MODE FOR ADMIN PORTAL
+   - Added dark mode toggle in the topbar (next to "Exportar Excel" button)
+   - Toggle shows moon/sun icon with "Dark mode" text and On/Off switch
+   - User preference saved to localStorage (persists across sessions)
+   - Complete dark theme with:
+     * Dark backgrounds (#0f172a, #1e293b)
+     * Purple accent colors (#6366f1)
+     * All UI elements styled: sidebar, topbar, cards, tables, modals, forms
+     * Status badges with dark-appropriate colors
+     * Custom scrollbar styling
+
+2. MOBILE RESPONSIVENESS IMPROVEMENTS
+   - Sidebar now overlays content on mobile (doesn't push it)
+   - Main content takes full viewport width on mobile
+   - Stats cards: 2 columns on tablet, 1 column on small mobile
+   - Season stats: 2 columns on tablet, 1 column on small mobile
+   - Search/filter bar: stacks vertically on mobile
+   - Table: horizontal scroll with touch support
+   - Topbar buttons: icons only on mobile (text hidden)
+   - Dark mode toggle: icon + switch only on mobile (text hidden)
+   - Active filters bar: stacks vertically on mobile
+
+FILES MODIFIED:
+---------------
+- src/app/components/admin-dashboard/admin-dashboard.ts
+  * Added darkMode property and DARK_MODE_KEY constant
+  * Added toggleDarkMode() method
+  * Added loadDarkModePreference() method
+  * Added saveDarkModePreference() method
+
+- src/app/components/admin-dashboard/admin-dashboard.html
+  * Added [class.dark-mode]="darkMode" to main container
+  * Added dark mode toggle in topbar actions section
+
+- src/app/components/admin-dashboard/admin-dashboard.css
+  * Added dark mode toggle styles for topbar
+  * Added complete dark mode theme (~400 lines)
+  * Added mobile responsive styles for all breakpoints
+  * Fixed sidebar overlay behavior on mobile
+  * Made layout mobile-first (margin-left: 0 default)
+
+BREAKPOINTS:
+------------
+- Desktop (>1024px): Sidebar always visible, full layout
+- Tablet (768px-1024px): Sidebar as overlay, 2-column grids
+- Mobile (<768px): Stacked layouts, icons only in topbar
+- Small mobile (<480px): Single column grids

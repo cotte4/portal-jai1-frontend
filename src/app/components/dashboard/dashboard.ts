@@ -86,6 +86,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   userName: string = '';
   userEmail: string = '';
 
+  // PWA Install Overlay
+  showInstallOverlay: boolean = false;
+  private deferredPrompt: any = null;
+  private readonly INSTALL_DISMISSED_KEY = 'jai1_install_dismissed';
+  private readonly INSTALL_OVERLAY_SHOWN_KEY = 'jai1_install_overlay_shown_session';
+
   ngOnInit() {
     this.loadData();
     this.subscriptions.add(
@@ -110,6 +116,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         this.loadData();
       })
     );
+
+    // Setup PWA install overlay
+    this.setupInstallOverlay();
   }
 
   ngAfterViewInit() {
@@ -904,5 +913,94 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     }
 
     return 'Esperando formulario y documentos';
+  }
+
+  // ============ PWA INSTALL OVERLAY ============
+
+  private setupInstallOverlay() {
+    // Don't show if user permanently dismissed
+    if (localStorage.getItem(this.INSTALL_DISMISSED_KEY) === 'true') {
+      return;
+    }
+
+    // Don't show if already shown this session
+    if (sessionStorage.getItem(this.INSTALL_OVERLAY_SHOWN_KEY) === 'true') {
+      return;
+    }
+
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return;
+    }
+
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // iOS Safari - show overlay after a delay
+      this.showOverlayAfterDelay();
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.showOverlayAfterDelay();
+    });
+
+    // Hide if app gets installed
+    window.addEventListener('appinstalled', () => {
+      this.showInstallOverlay = false;
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private showOverlayAfterDelay() {
+    // Show overlay after 2 seconds to let the page load
+    setTimeout(() => {
+      if (localStorage.getItem(this.INSTALL_DISMISSED_KEY) !== 'true') {
+        this.showInstallOverlay = true;
+        sessionStorage.setItem(this.INSTALL_OVERLAY_SHOWN_KEY, 'true');
+        this.cdr.detectChanges();
+      }
+    }, 2000);
+  }
+
+  closeInstallOverlay() {
+    this.showInstallOverlay = false;
+    this.cdr.detectChanges();
+  }
+
+  dismissInstallPermanently() {
+    localStorage.setItem(this.INSTALL_DISMISSED_KEY, 'true');
+    this.showInstallOverlay = false;
+    this.cdr.detectChanges();
+  }
+
+  async installApp() {
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // Show iOS instructions
+      alert('Para instalar la app:\n\n1. Tocá el botón Compartir (📤) abajo\n2. Seleccioná "Agregar a inicio"\n3. Tocá "Agregar"\n\n¡Listo! La app aparecerá en tu pantalla de inicio.');
+      this.closeInstallOverlay();
+      return;
+    }
+
+    // Use the deferred prompt for Chrome/Edge/etc.
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      const { outcome } = await this.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        this.showInstallOverlay = false;
+      }
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    }
   }
 }

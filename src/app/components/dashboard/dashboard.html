@@ -333,6 +333,35 @@
     </div>
   }
 
+  <!-- Referral Promo Card - Shows when all steps are complete (after IRS tracking) -->
+  @if (allStepsComplete) {
+    <div class="referral-promo-card" (click)="navigateTo('/referral-program')">
+      <div class="referral-promo-content">
+        <div class="referral-promo-text">
+          <h3 class="referral-promo-title">Refiere amigos, genera más</h3>
+          <p class="referral-promo-subtitle">¡Aprovechá!</p>
+          <button class="referral-promo-btn" (click)="navigateTo('/referral-program'); $event.stopPropagation()">
+            Invitá ya
+          </button>
+          <span class="referral-promo-terms">*Aplican T&C</span>
+        </div>
+        <div class="referral-promo-graphic">
+          <svg class="phone-icon" viewBox="0 0 80 120" fill="none">
+            <!-- Phone body -->
+            <rect x="10" y="5" width="60" height="110" rx="8" fill="rgba(255,255,255,0.3)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+            <!-- Screen -->
+            <rect x="15" y="15" width="50" height="85" rx="4" fill="rgba(255,255,255,0.2)"/>
+            <!-- Home button area -->
+            <rect x="30" y="105" width="20" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+          <div class="percent-badge">
+            <span class="percent-symbol">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Help Footer -->
   <div class="help-footer">
     <div class="help-icon-wrap">
@@ -347,4 +376,57 @@
     <button class="btn-help" (click)="navigateTo('/messages')">Contactar soporte</button>
   </div>
 </div>
+}
+
+<!-- Install App Overlay -->
+@if (showInstallOverlay) {
+  <div class="install-overlay" (click)="closeInstallOverlay()">
+    <div class="install-overlay-card" (click)="$event.stopPropagation()">
+      <!-- Close button -->
+      <button class="install-overlay-close" (click)="closeInstallOverlay()">✕</button>
+
+      <!-- Icon -->
+      <div class="install-overlay-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12" y2="18"/>
+        </svg>
+      </div>
+
+      <!-- Content -->
+      <h2 class="install-overlay-title">Instalá la app JAI1</h2>
+      <p class="install-overlay-desc">Accedé más rápido y sin barras del navegador. Como una app nativa, directo desde tu pantalla de inicio.</p>
+
+      <!-- Benefits -->
+      <div class="install-overlay-benefits">
+        <div class="benefit-item">
+          <span class="benefit-icon">⚡</span>
+          <span>Acceso instantáneo</span>
+        </div>
+        <div class="benefit-item">
+          <span class="benefit-icon">📱</span>
+          <span>Pantalla completa</span>
+        </div>
+        <div class="benefit-item">
+          <span class="benefit-icon">🔔</span>
+          <span>Notificaciones</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <button class="install-overlay-btn" (click)="installApp()">
+        <svg class="install-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Instalá la app
+      </button>
+
+      <!-- Dismiss permanently -->
+      <button class="install-overlay-dismiss" (click)="dismissInstallPermanently()">
+        Dejame de sugerir la app
+      </button>
+    </div>
+  </div>
 }

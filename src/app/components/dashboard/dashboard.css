@@ -838,6 +838,125 @@
   transform: translateX(4px);
 }
 
+/* ==================== REFERRAL PROMO CARD ==================== */
+.referral-promo-card {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FF8C42 100%);
+  border-radius: 20px;
+  padding: 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.35);
+}
+
+.referral-promo-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.referral-promo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(255, 107, 53, 0.45);
+}
+
+.referral-promo-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.referral-promo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.referral-promo-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.referral-promo-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 16px 0;
+}
+
+.referral-promo-btn {
+  background: white;
+  color: #FF6B35;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.referral-promo-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+.referral-promo-terms {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 12px;
+}
+
+.referral-promo-graphic {
+  position: relative;
+  width: 100px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.referral-promo-graphic .phone-icon {
+  width: 80px;
+  height: 110px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.percent-badge {
+  position: absolute;
+  right: -5px;
+  bottom: 15px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  transform: rotate(10deg);
+}
+
+.percent-symbol {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+}
+
 /* ==================== STEP CARDS - HORIZONTAL ON DESKTOP ==================== */
 .steps-list {
   display: grid;
@@ -1211,6 +1330,52 @@
     font-size: 12px;
   }
 
+  /* ===== REFERRAL PROMO CARD - MOBILE ===== */
+  .referral-promo-card {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .referral-promo-title {
+    font-size: 20px;
+  }
+
+  .referral-promo-subtitle {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .referral-promo-btn {
+    padding: 11px 24px;
+    font-size: 14px;
+  }
+
+  .referral-promo-terms {
+    font-size: 10px;
+    margin-top: 10px;
+  }
+
+  .referral-promo-graphic {
+    width: 85px;
+    height: 100px;
+  }
+
+  .referral-promo-graphic .phone-icon {
+    width: 70px;
+    height: 95px;
+  }
+
+  .percent-badge {
+    width: 40px;
+    height: 40px;
+    right: -3px;
+    bottom: 10px;
+  }
+
+  .percent-symbol {
+    font-size: 20px;
+  }
+
   /* ===== STEP CARDS - MOBILE VERTICAL LAYOUT ===== */
   .steps-list {
     grid-template-columns: 1fr;
@@ -1535,6 +1700,53 @@
     font-size: 11px;
   }
 
+  /* Referral Promo Card Small Mobile */
+  .referral-promo-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .referral-promo-title {
+    font-size: 18px;
+  }
+
+  .referral-promo-subtitle {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .referral-promo-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 20px;
+  }
+
+  .referral-promo-terms {
+    font-size: 9px;
+  }
+
+  .referral-promo-graphic {
+    width: 75px;
+    height: 90px;
+  }
+
+  .referral-promo-graphic .phone-icon {
+    width: 60px;
+    height: 85px;
+  }
+
+  .percent-badge {
+    width: 36px;
+    height: 36px;
+    right: -2px;
+    bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .percent-symbol {
+    font-size: 18px;
+  }
+
   /* Step Cards Small Mobile */
   .steps-list {
     grid-template-columns: 1fr;
@@ -1731,6 +1943,52 @@
     font-size: 12px;
   }
 
+  /* Referral Promo Card Very Small */
+  .referral-promo-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .referral-promo-content {
+    gap: 12px;
+  }
+
+  .referral-promo-title {
+    font-size: 16px;
+  }
+
+  .referral-promo-subtitle {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .referral-promo-btn {
+    padding: 9px 18px;
+    font-size: 12px;
+  }
+
+  .referral-promo-graphic {
+    width: 65px;
+    height: 80px;
+  }
+
+  .referral-promo-graphic .phone-icon {
+    width: 52px;
+    height: 75px;
+  }
+
+  .percent-badge {
+    width: 32px;
+    height: 32px;
+    right: 0;
+    bottom: 5px;
+    border-radius: 8px;
+  }
+
+  .percent-symbol {
+    font-size: 16px;
+  }
+
   .tracking-card-content {
     flex-direction: column;
     align-items: stretch;
@@ -1742,5 +2000,235 @@
     padding-top: 12px;
     margin-top: 12px;
     border-top: 1px solid #e5e7eb;
+  }
+}
+
+/* ==================== INSTALL APP OVERLAY ==================== */
+.install-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: overlayFadeIn 0.3s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.install-overlay-card {
+  background: white;
+  border-radius: 24px;
+  padding: 32px 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: cardSlideUp 0.4s ease;
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.install-overlay-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.install-overlay-close:hover {
+  background: #e2e8f0;
+  color: #1D345D;
+}
+
+.install-overlay-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #B21B43 0%, #8B1535 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(178, 27, 67, 0.3);
+}
+
+.install-overlay-icon svg {
+  width: 36px;
+  height: 36px;
+  stroke: white;
+}
+
+.install-overlay-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 12px 0;
+}
+
+.install-overlay-desc {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.install-overlay-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 20px;
+}
+
+.benefit-icon {
+  font-size: 14px;
+}
+
+.install-overlay-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #B21B43 0%, #8B1535 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(178, 27, 67, 0.3);
+}
+
+.install-overlay-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(178, 27, 67, 0.4);
+}
+
+.install-overlay-btn:active {
+  transform: translateY(0);
+}
+
+.install-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.install-overlay-dismiss {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 8px;
+}
+
+.install-overlay-dismiss:hover {
+  color: #64748b;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .install-overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  .install-overlay-card {
+    padding: 28px 24px;
+    border-radius: 24px 24px 0 0;
+    max-width: 100%;
+    animation: cardSlideUpMobile 0.4s ease;
+  }
+
+  @keyframes cardSlideUpMobile {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .install-overlay-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .install-overlay-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .install-overlay-title {
+    font-size: 22px;
+  }
+
+  .install-overlay-desc {
+    font-size: 14px;
+  }
+
+  .install-overlay-benefits {
+    gap: 8px;
+  }
+
+  .benefit-item {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .install-overlay-btn {
+    padding: 14px 20px;
+    font-size: 15px;
   }
 }

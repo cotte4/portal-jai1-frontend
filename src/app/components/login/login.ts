@@ -36,6 +36,10 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
+  // PWA Install
+  showInstallButton: boolean = false;
+  private deferredPrompt: any = null;
+
   private readonly REMEMBER_EMAIL_KEY = 'jai1_remembered_email';
 
   ngOnInit() {
@@ -57,6 +61,44 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
         this.errorMessage = 'Error al iniciar sesion con Google. Intenta nuevamente.';
         this.cdr.detectChanges();
       }
+    });
+
+    // PWA Install prompt - listen for beforeinstallprompt event
+    this.setupInstallPrompt();
+  }
+
+  private setupInstallPrompt() {
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      this.showInstallButton = false;
+      return;
+    }
+
+    // Check if iOS Safari (needs different handling)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // iOS Safari doesn't support beforeinstallprompt, show button anyway
+      // It will show instructions on how to add to home screen
+      this.showInstallButton = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.showInstallButton = true;
+      this.cdr.detectChanges();
+    });
+
+    // Hide button if app gets installed
+    window.addEventListener('appinstalled', () => {
+      this.showInstallButton = false;
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
     });
   }
 
@@ -168,5 +210,28 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   loginWithGoogle() {
     // Redirect to backend Google OAuth endpoint
     window.location.href = `${environment.apiUrl}/auth/google`;
+  }
+
+  async installApp() {
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // Show iOS instructions alert
+      alert('Para instalar la app:\n\n1. Tocá el botón Compartir (📤) abajo\n2. Seleccioná "Agregar a inicio"\n3. Tocá "Agregar"\n\n¡Listo! La app aparecerá en tu pantalla de inicio.');
+      return;
+    }
+
+    // Use the deferred prompt for Chrome/Edge/etc.
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      const { outcome } = await this.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        this.showInstallButton = false;
+      }
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    }
   }
 }
