@@ -1,11 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, finalize, catchError, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
-import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models';
+import { NotificationService } from '../../core/services/notification.service';
+import { Ticket, TicketMessage, TicketStatus, UserRole, TicketsPaginatedResponse } from '../../core/models';
 
 @Component({
   selector: 'app-admin-tickets',
@@ -18,7 +20,9 @@ export class AdminTickets implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private ticketService = inject(TicketService);
+  private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
   private subscriptions = new Subscription();
 
   // Expose enum to template
@@ -39,6 +43,11 @@ export class AdminTickets implements OnInit, OnDestroy {
   newMessage: string = '';
   selectedFilter: TicketStatus | 'all' = 'all';
 
+  // Pagination State
+  nextCursor: string | null = null;
+  hasMore: boolean = false;
+  isLoadingMore: boolean = false;
+
   // Stats
   stats = {
     total: 0,
@@ -49,24 +58,91 @@ export class AdminTickets implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadTickets();
+    this.setupWebSocketSubscriptions();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
+  /**
+   * Subscribe to real-time ticket events via WebSocket
+   */
+  private setupWebSocketSubscriptions(): void {
+    // Subscribe to real-time ticket messages
+    this.notificationService.ticketMessage$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, message }) => {
+      // If the message is for the selected ticket, add it to the conversation
+      if (this.selectedTicket?.id === ticketId) {
+        // Check if message already exists to avoid duplicates
+        const exists = this.messages.some(m => m.id === message.id);
+        if (!exists) {
+          this.messages = [...this.messages, message as TicketMessage];
+          this.scrollToBottom();
+          this.cdr.detectChanges();
+        }
+      } else {
+        // Message is for a different ticket - increment unread count
+        const ticketIndex = this.filteredTickets.findIndex(t => t.id === ticketId);
+        if (ticketIndex !== -1) {
+          const currentUnread = this.filteredTickets[ticketIndex].unreadCount || 0;
+          this.filteredTickets[ticketIndex] = {
+            ...this.filteredTickets[ticketIndex],
+            unreadCount: currentUnread + 1
+          };
+          this.cdr.detectChanges();
+        }
+      }
+    });
+
+    // Subscribe to real-time ticket status changes
+    this.notificationService.ticketStatus$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, status }) => {
+      // Update the ticket status in filteredTickets
+      const ticketIndex = this.filteredTickets.findIndex(t => t.id === ticketId);
+      if (ticketIndex !== -1) {
+        this.filteredTickets[ticketIndex] = {
+          ...this.filteredTickets[ticketIndex],
+          status: status as TicketStatus
+        };
+      }
+      // Update in allTickets as well
+      const allIndex = this.allTickets.findIndex(t => t.id === ticketId);
+      if (allIndex !== -1) {
+        this.allTickets[allIndex] = {
+          ...this.allTickets[allIndex],
+          status: status as TicketStatus
+        };
+        this.calculateStats();
+      }
+      // Update the selected ticket if it's the one being updated
+      if (this.selectedTicket?.id === ticketId) {
+        this.selectedTicket = {
+          ...this.selectedTicket,
+          status: status as TicketStatus
+        };
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
   loadTickets(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    // Reset pagination state on initial load / filter change
+    this.nextCursor = null;
+    this.hasMore = false;
 
     // Get all tickets (admin sees all)
     const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
 
-    this.ticketService.getTickets(statusFilter).pipe(
+    this.ticketService.getTicketsPaginated(statusFilter).pipe(
       catchError((error: Error) => {
         this.errorMessage = error?.message || 'Error al cargar tickets';
         console.error('Error loading tickets:', error);
-        return of([] as Ticket[]);
+        return of({ tickets: [], nextCursor: null, hasMore: false } as TicketsPaginatedResponse);
       }),
       finalize(() => {
         this.isLoading = false;
@@ -74,12 +150,14 @@ export class AdminTickets implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (tickets: Ticket[]) => {
-        this.filteredTickets = tickets ?? [];
+      next: (response: TicketsPaginatedResponse) => {
+        this.filteredTickets = response.tickets ?? [];
+        this.nextCursor = response.nextCursor;
+        this.hasMore = response.hasMore;
 
         // If no filter, also update allTickets for stats
         if (this.selectedFilter === 'all') {
-          this.allTickets = tickets ?? [];
+          this.allTickets = response.tickets ?? [];
           this.calculateStats();
         }
       }
@@ -99,6 +177,40 @@ export class AdminTickets implements OnInit, OnDestroy {
         this.allTickets = tickets ?? [];
         this.calculateStats();
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadMoreTickets(): void {
+    if (!this.hasMore || this.isLoadingMore || !this.nextCursor) return;
+
+    this.isLoadingMore = true;
+    this.errorMessage = '';
+
+    const statusFilter = this.selectedFilter === 'all' ? undefined : this.selectedFilter;
+
+    this.ticketService.getTicketsPaginated(statusFilter, undefined, this.nextCursor).pipe(
+      catchError((error: Error) => {
+        this.errorMessage = error?.message || 'Error al cargar mas tickets';
+        console.error('Error loading more tickets:', error);
+        return of({ tickets: [], nextCursor: null, hasMore: false } as TicketsPaginatedResponse);
+      }),
+      finalize(() => {
+        this.isLoadingMore = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (response: TicketsPaginatedResponse) => {
+        // Append new tickets to existing list
+        this.filteredTickets = [...this.filteredTickets, ...(response.tickets ?? [])];
+        this.nextCursor = response.nextCursor;
+        this.hasMore = response.hasMore;
+
+        // Update allTickets for stats if no filter is active
+        if (this.selectedFilter === 'all') {
+          this.allTickets = this.filteredTickets;
+          this.calculateStats();
+        }
       }
     });
   }

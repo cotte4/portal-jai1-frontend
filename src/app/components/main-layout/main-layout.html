@@ -154,3 +154,8 @@
 <!-- Toast Notifications -->
 <app-toast></app-toast>
 
+<!-- Chat Widget (hidden on chatbot page) -->
+@if (!isOnChatbotPage) {
+  <app-chat-widget></app-chat-widget>
+}
+

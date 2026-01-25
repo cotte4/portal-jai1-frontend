@@ -34,6 +34,18 @@
   </div>
 </div>
 
+<!-- Consent Form Modal -->
+<div class="popup-overlay consent-form-modal" *ngIf="showConsentFormModal" (click)="closeConsentForm()">
+  <div class="consent-form-modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeConsentForm()">x</button>
+    <app-consent-form
+      [isModal]="true"
+      (signed)="onConsentFormSigned()"
+      (cancelled)="closeConsentForm()">
+    </app-consent-form>
+  </div>
+</div>
+
 <!-- Payment Instructions Modal -->
 <div class="popup-overlay" *ngIf="showPaymentInstructions" (click)="closePaymentInstructions()">
   <div class="popup-card payment-instructions-modal" (click)="$event.stopPropagation()">
@@ -109,14 +121,18 @@
 </div>
 
 <div class="upload-content" *ngIf="hasLoaded">
-  <!-- Success Screen when all required docs uploaded -->
-  <div class="success-screen" *ngIf="allRequiredDocsUploaded && !showUploadView">
+  <!-- Success Screen when all required docs uploaded AND consent signed -->
+  <div class="success-screen" *ngIf="canComplete && !showUploadView">
     <div class="success-card">
       <div class="success-icon-big">🎉</div>
-      <h1>¡Documentos Completos!</h1>
-      <p class="success-subtitle">Has subido todos los documentos necesarios</p>
+      <h1>¡Todo Listo!</h1>
+      <p class="success-subtitle">Has completado todos los requisitos</p>
 
       <div class="success-checklist">
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Acuerdo de Consentimiento</span>
+        </div>
         <div class="success-item completed">
           <span class="item-icon">✓</span>
           <span>Documento W2</span>
@@ -127,7 +143,7 @@
         </div>
       </div>
 
-      <p class="success-message">Tu documentación está lista para ser procesada. Nuestro equipo revisará todo y te notificaremos cualquier novedad.</p>
+      <p class="success-message">Tu documentacion esta lista para ser procesada. Nuestro equipo revisara todo y te notificaremos cualquier novedad.</p>
 
       <div class="success-actions">
         <button class="btn-primary-action" (click)="goToDashboard()">
@@ -135,7 +151,7 @@
           <span>→</span>
         </button>
         <button class="btn-secondary-action" (click)="goToTaxForm()">
-          Completar mi Declaración
+          Completar mi Declaracion
         </button>
       </div>
     </div>
@@ -150,17 +166,54 @@
   </div>
 
   <!-- Regular upload view -->
-  <div *ngIf="!allRequiredDocsUploaded || showUploadView">
+  <div *ngIf="!canComplete || showUploadView">
     <!-- Back to success button when viewing docs after completion -->
-    <button class="btn-back-to-success" *ngIf="allRequiredDocsUploaded && showUploadView" (click)="showUploadView = false">
+    <button class="btn-back-to-success" *ngIf="canComplete && showUploadView" (click)="showUploadView = false">
       ← Volver al resumen
     </button>
 
     <!-- Page Title -->
     <div class="page-title">
-      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
-      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+      <h1>{{ canComplete ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+      <p>{{ canComplete ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
     </div>
+
+  <!-- Consent Form Section -->
+  <div class="consent-form-section" [class.signed]="isConsentFormSigned">
+    <div class="consent-form-card">
+      <div class="consent-form-header">
+        <div class="consent-icon-wrapper" [class.signed]="isConsentFormSigned">
+          <span class="consent-icon" *ngIf="!isConsentFormSigned">✍️</span>
+          <span class="consent-icon" *ngIf="isConsentFormSigned">✓</span>
+        </div>
+        <div class="consent-info">
+          <h3>Acuerdo de Consentimiento</h3>
+          <p *ngIf="!isConsentFormSigned">Debes firmar el acuerdo de servicios para continuar</p>
+          <p *ngIf="isConsentFormSigned" class="signed-text">Firmado el {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}</p>
+        </div>
+      </div>
+      <div class="consent-form-actions">
+        <button
+          *ngIf="!isConsentFormSigned"
+          class="btn-consent-primary"
+          (click)="openConsentForm()">
+          <span>Firmar Acuerdo</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <button
+          *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
+          class="btn-consent-secondary"
+          (click)="downloadSignedConsentForm()">
+          <span>Descargar PDF</span>
+          <span class="btn-icon">⬇️</span>
+        </button>
+      </div>
+    </div>
+    <div class="consent-warning" *ngIf="!isConsentFormSigned">
+      <span class="warning-icon">⚠️</span>
+      <span>Debes firmar el acuerdo antes de poder completar tu solicitud</span>
+    </div>
+  </div>
 
   <!-- Messages -->
   <div class="message success-message" *ngIf="successMessage">

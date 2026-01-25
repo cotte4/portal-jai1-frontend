@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
 import { adminGuard } from './guards/admin-guard';
+import { jai1gentGuard } from './guards/jai1gent-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -80,6 +81,31 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-alarms/admin-alarms').then(m => m.AdminAlarms),
     canActivate: [adminGuard]
   },
+  {
+    path: 'admin/jai1gents',
+    loadComponent: () => import('./components/admin-jai1gents/admin-jai1gents').then(m => m.AdminJai1gents),
+    canActivate: [adminGuard]
+  },
+
+  // JAI1GENT routes - lazy loaded
+  {
+    path: 'jai1gent/register',
+    loadComponent: () => import('./components/jai1gent-register/jai1gent-register').then(m => m.Jai1gentRegister)
+  },
+  {
+    path: 'jai1gent/login',
+    loadComponent: () => import('./components/jai1gent-login/jai1gent-login').then(m => m.Jai1gentLogin)
+  },
+  {
+    path: 'jai1gent/dashboard',
+    loadComponent: () => import('./components/jai1gent-dashboard/jai1gent-dashboard').then(m => m.Jai1gentDashboard),
+    canActivate: [jai1gentGuard]
+  },
+  {
+    path: 'jai1gent/profile',
+    loadComponent: () => import('./components/jai1gent-profile/jai1gent-profile').then(m => m.Jai1gentProfile),
+    canActivate: [jai1gentGuard]
+  },
 
   // Full-screen protected routes - lazy loaded
   {
@@ -135,6 +161,10 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () => import('./components/profile/profile').then(m => m.Profile)
+      },
+      {
+        path: 'consent-form',
+        loadComponent: () => import('./components/consent-form/consent-form').then(m => m.ConsentForm)
       }
     ]
   },

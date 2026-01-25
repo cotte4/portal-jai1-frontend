@@ -1,59 +1,141 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { ChatbotService, ChatMessage } from '../../core/services/chatbot.service';
+
+interface QuickAction {
+  label: string;
+  message: string;
+}
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './chatbot.html',
   styleUrl: './chatbot.css'
 })
-export class Chatbot implements OnInit {
+export class Chatbot implements OnInit, AfterViewChecked {
+  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  @ViewChild('messageInput') private messageInput!: ElementRef;
+
   private router = inject(Router);
-  private sanitizer = inject(DomSanitizer);
+  private chatbotService = inject(ChatbotService);
+  private cdr = inject(ChangeDetectorRef);
 
-  private readonly ALLOWED_CHATBOT_DOMAINS = ['app.relevanceai.com'];
+  messages: ChatMessage[] = [];
+  inputMessage: string = '';
+  isTyping: boolean = false;
+  showQuickActions: boolean = true;
 
-  isChatOpen = false;
-  chatbotUrl: SafeResourceUrl;
+  quickActions: QuickAction[] = [
+    { label: 'Como funciona?', message: 'Como funciona el proceso de devolucion de impuestos?' },
+    { label: 'Que documentos necesito?', message: 'Que documentos necesito para hacer mi declaracion de impuestos?' },
+    { label: 'Cuanto tarda?', message: 'Cuanto tiempo tarda el proceso de devolucion?' }
+  ];
 
-  constructor() {
-    this.chatbotUrl = this.validateAndTrustUrl(
-      'https://app.relevanceai.com/agents/bcbe5a/8cba1df1b42f-4044-a926-18f8ee83d3c8/84379516-1725-42b5-a261-6bfcfeaa328c/embed-chat?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Cuomo+bongeas%3F&hide_logo=false&hide_description=false'
+  private shouldScrollToBottom = false;
+
+  ngOnInit() {
+    // Add welcome message from bot
+    this.addBotMessage(
+      'Hola! Soy el Asistente JAI1. Estoy aqui para ayudarte con tus consultas sobre devolucion de impuestos para estudiantes J-1. Como puedo ayudarte hoy?'
     );
   }
 
-  private validateAndTrustUrl(url: string): SafeResourceUrl {
-    try {
-      const parsedUrl = new URL(url);
-      if (this.ALLOWED_CHATBOT_DOMAINS.includes(parsedUrl.hostname)) {
-        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-      }
-      console.error('Chatbot URL domain not in whitelist:', parsedUrl.hostname);
-      return this.sanitizer.bypassSecurityTrustResourceUrl('about:blank');
-    } catch {
-      return this.sanitizer.bypassSecurityTrustResourceUrl('about:blank');
+  ngAfterViewChecked() {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
     }
   }
 
-  ngOnInit() {}
+  sendMessage(message?: string) {
+    const messageText = message || this.inputMessage.trim();
 
-  openChat(): void {
-    this.isChatOpen = true;
-    document.body.style.overflow = 'hidden';
+    if (!messageText || this.isTyping) {
+      return;
+    }
+
+    // Hide quick actions after first message
+    this.showQuickActions = false;
+
+    // Add user message
+    this.addUserMessage(messageText);
+    this.inputMessage = '';
+
+    // Show typing indicator
+    this.isTyping = true;
+    this.shouldScrollToBottom = true;
+
+    // Send to chatbot service
+    this.chatbotService.sendMessage(messageText, this.messages).subscribe({
+      next: (response) => {
+        this.isTyping = false;
+        this.addBotMessage(response);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.isTyping = false;
+        this.addBotMessage(
+          'Lo siento, hubo un problema al procesar tu mensaje. ' +
+          (error.message || 'Por favor, intenta de nuevo.')
+        );
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  closeChat(): void {
-    this.isChatOpen = false;
-    document.body.style.overflow = '';
+  onQuickAction(action: QuickAction) {
+    this.sendMessage(action.message);
   }
 
-  goBack(): void {
+  goBack() {
     this.router.navigate(['/dashboard']);
   }
 
-  contactSupport(): void {
+  goToSupport() {
     this.router.navigate(['/messages']);
+  }
+
+  onKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  private addUserMessage(content: string) {
+    const message: ChatMessage = {
+      id: this.chatbotService.generateMessageId(),
+      content,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    this.messages.push(message);
+    this.shouldScrollToBottom = true;
+  }
+
+  private addBotMessage(content: string) {
+    const message: ChatMessage = {
+      id: this.chatbotService.generateMessageId(),
+      content,
+      sender: 'bot',
+      timestamp: new Date()
+    };
+    this.messages.push(message);
+    this.shouldScrollToBottom = true;
+  }
+
+  private scrollToBottom() {
+    try {
+      if (this.messagesContainer) {
+        this.messagesContainer.nativeElement.scrollTop =
+          this.messagesContainer.nativeElement.scrollHeight;
+      }
+    } catch (err) {
+      // Ignore scroll errors
+    }
   }
 }

@@ -1,0 +1,158 @@
+<div class="profile-page">
+  <!-- Header -->
+  <header class="profile-header">
+    <button class="btn-back" (click)="goBack()">
+      <- Volver
+    </button>
+    <h1>Informacion de Pago</h1>
+  </header>
+
+  <!-- Main Content -->
+  <main class="profile-content">
+    @if (isLoading && !hasLoaded) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando...</p>
+      </div>
+    } @else {
+      <form class="payment-form" (ngSubmit)="onSave()">
+        <div class="form-intro">
+          <p>Configura como queres recibir tus comisiones por referidos.</p>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="method-selection">
+          <label class="method-option" [class.selected]="paymentMethod === 'bank_transfer'">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="bank_transfer"
+              [(ngModel)]="paymentMethod"
+              (change)="onPaymentMethodChange()"
+            >
+            <div class="method-content">
+              <span class="method-icon">$</span>
+              <span class="method-name">Transferencia Bancaria</span>
+              <span class="method-desc">Deposito directo a tu cuenta</span>
+            </div>
+          </label>
+
+          <label class="method-option" [class.selected]="paymentMethod === 'zelle'">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="zelle"
+              [(ngModel)]="paymentMethod"
+              (change)="onPaymentMethodChange()"
+            >
+            <div class="method-content">
+              <span class="method-icon">Z</span>
+              <span class="method-name">Zelle</span>
+              <span class="method-desc">Envio instantaneo via Zelle</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Bank Transfer Fields -->
+        @if (paymentMethod === 'bank_transfer') {
+          <div class="form-section">
+            <h3>Datos bancarios</h3>
+
+            <div class="input-group">
+              <label for="bankName">Nombre del banco *</label>
+              <input
+                type="text"
+                id="bankName"
+                [(ngModel)]="bankName"
+                name="bankName"
+                placeholder="Ej: Bank of America"
+                required
+              >
+            </div>
+
+            <div class="input-group">
+              <label for="routingNumber">Routing number *</label>
+              <input
+                type="text"
+                id="routingNumber"
+                [(ngModel)]="bankRoutingNumber"
+                name="routingNumber"
+                placeholder="9 digitos"
+                maxlength="9"
+                pattern="\d{9}"
+                required
+              >
+              <span class="input-hint">El numero de 9 digitos de tu banco</span>
+            </div>
+
+            <div class="input-group">
+              <label for="accountNumber">Numero de cuenta *</label>
+              <input
+                type="text"
+                id="accountNumber"
+                [(ngModel)]="bankAccountNumber"
+                name="accountNumber"
+                placeholder="Tu numero de cuenta"
+                required
+              >
+            </div>
+          </div>
+        }
+
+        <!-- Zelle Fields -->
+        @if (paymentMethod === 'zelle') {
+          <div class="form-section">
+            <h3>Datos de Zelle</h3>
+            <p class="section-hint">Ingresa el email o telefono asociado a tu cuenta Zelle</p>
+
+            <div class="input-group">
+              <label for="zelleEmail">Email de Zelle</label>
+              <input
+                type="email"
+                id="zelleEmail"
+                [(ngModel)]="zelleEmail"
+                name="zelleEmail"
+                placeholder="tu@email.com"
+              >
+            </div>
+
+            <div class="divider">
+              <span>o</span>
+            </div>
+
+            <div class="input-group">
+              <label for="zellePhone">Telefono de Zelle</label>
+              <input
+                type="tel"
+                id="zellePhone"
+                [(ngModel)]="zellePhone"
+                name="zellePhone"
+                placeholder="+1 (555) 123-4567"
+              >
+            </div>
+          </div>
+        }
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+          <span class="notice-icon">*</span>
+          <p>Tu informacion de pago esta protegida con encriptacion de nivel bancario.</p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="btn-save"
+          [disabled]="!isFormValid() || isSaving"
+        >
+          @if (isSaving) {
+            <span class="spinner-btn"></span>
+            <span>Guardando...</span>
+          } @else {
+            <span>Guardar informacion de pago</span>
+          }
+        </button>
+      </form>
+    }
+  </main>
+</div>

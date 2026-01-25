@@ -2,19 +2,21 @@ import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef,
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter, finalize } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { AnimationService } from '../../core/services/animation.service';
-import { Document, DocumentType } from '../../core/models';
+import { ConsentFormService } from '../../core/services/consent-form.service';
+import { Document, DocumentType, ConsentFormStatusResponse } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
+import { ConsentForm } from '../consent-form/consent-form';
 
 @Component({
   selector: 'app-document-upload',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConsentForm],
   templateUrl: './document-upload.html',
   styleUrl: './document-upload.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,6 +29,7 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private toastService = inject(ToastService);
   private calculatorResultService = inject(CalculatorResultService);
   private animationService = inject(AnimationService);
+  private consentFormService = inject(ConsentFormService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private hasAnimated = false;
@@ -69,6 +72,10 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
 
   // Payment Instructions Modal
   showPaymentInstructions: boolean = false;
+
+  // Consent Form
+  consentFormStatus: ConsentFormStatusResponse | null = null;
+  showConsentFormModal: boolean = false;
 
   // Check if payment proof tab is selected
   get isPaymentProofSelected(): boolean {
@@ -130,7 +137,11 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
     this.isLoadingInProgress = true;
     // Keep hasLoaded = false until API completes to show loading spinner
 
-    this.documentService.getDocuments().pipe(
+    // Load documents and consent form status in parallel
+    forkJoin({
+      documents: this.documentService.getDocuments(),
+      consentStatus: this.consentFormService.getStatus()
+    }).pipe(
       finalize(() => {
         this.hasLoaded = true;
         this.isLoading = false;
@@ -138,8 +149,9 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (documents) => {
+      next: ({ documents, consentStatus }) => {
         this.uploadedFiles = documents;
+        this.consentFormStatus = consentStatus;
 
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
@@ -374,5 +386,44 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   closeW2Popup() {
     this.showW2Popup = false;
     this.lastUploadedW2 = null;
+  }
+
+  // Consent Form Methods
+  get isConsentFormSigned(): boolean {
+    return this.consentFormStatus?.status === 'signed';
+  }
+
+  get canComplete(): boolean {
+    return this.isConsentFormSigned && this.allRequiredDocsUploaded;
+  }
+
+  openConsentForm() {
+    this.showConsentFormModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeConsentForm() {
+    this.showConsentFormModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onConsentFormSigned() {
+    this.showConsentFormModal = false;
+    // Reload to update consent status
+    this.loadDocuments();
+    this.toastService.success('Acuerdo de consentimiento firmado exitosamente');
+  }
+
+  downloadSignedConsentForm() {
+    if (!this.consentFormStatus?.canDownload) return;
+
+    this.consentFormService.getDownloadUrl().subscribe({
+      next: (response) => {
+        window.open(response.url, '_blank');
+      },
+      error: (error) => {
+        this.toastService.error(error.error?.message || 'Error al descargar el acuerdo');
+      }
+    });
   }
 }

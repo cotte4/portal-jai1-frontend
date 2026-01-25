@@ -1,0 +1,241 @@
+<div class="admin-page">
+  <!-- Header -->
+  <header class="page-header">
+    <button class="btn-back" (click)="goBack()"><- Volver</button>
+    <h1>Gestion de JAI1GENTS</h1>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'jai1gents'"
+      (click)="setTab('jai1gents')"
+    >
+      JAI1GENTS ({{ jai1gentsTotal }})
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'invite-codes'"
+      (click)="setTab('invite-codes')"
+    >
+      Codigos de Invitacion ({{ unusedCodesCount }} disponibles)
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <main class="page-content">
+    <!-- JAI1GENTS Tab -->
+    @if (activeTab === 'jai1gents') {
+      <div class="tab-content">
+        <!-- Search -->
+        <div class="search-bar">
+          <input
+            type="text"
+            [(ngModel)]="jai1gentsSearch"
+            (keyup.enter)="onSearchJai1gents()"
+            placeholder="Buscar por nombre o email..."
+          >
+          <button class="btn-search" (click)="onSearchJai1gents()">Buscar</button>
+        </div>
+
+        <!-- Table -->
+        @if (jai1gentsLoading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+          </div>
+        } @else if (jai1gents.length === 0) {
+          <div class="empty-state">
+            <p>No hay JAI1GENTS registrados aun.</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Codigo</th>
+                  <th>Referidos</th>
+                  <th>Ganancias</th>
+                  <th>Tier</th>
+                  <th>Pago</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (jai1gent of jai1gents; track jai1gent.id) {
+                  <tr>
+                    <td class="name-cell">{{ jai1gent.name }}</td>
+                    <td class="email-cell">{{ jai1gent.email }}</td>
+                    <td class="code-cell">
+                      <span class="code-badge">{{ jai1gent.referral_code }}</span>
+                    </td>
+                    <td class="stats-cell">
+                      {{ jai1gent.stats.completed_referrals }}/{{ jai1gent.stats.total_referrals }}
+                    </td>
+                    <td class="earnings-cell">${{ jai1gent.stats.total_earnings.toFixed(2) }}</td>
+                    <td class="tier-cell">
+                      <span class="tier-badge">Tier {{ jai1gent.tier.tierNumber }}</span>
+                      <span class="tier-percent">({{ jai1gent.tier.percent }}%)</span>
+                    </td>
+                    <td class="payment-cell">
+                      @if (jai1gent.has_payment_info) {
+                        <span class="payment-status ok">Configurado</span>
+                      } @else {
+                        <span class="payment-status pending">Pendiente</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Invite Codes Tab -->
+    @if (activeTab === 'invite-codes') {
+      <div class="tab-content">
+        <!-- Actions Bar -->
+        <div class="actions-bar">
+          <button class="btn-generate" (click)="openGenerateModal()">
+            + Generar Codigos
+          </button>
+          <select [(ngModel)]="inviteCodesFilter" (change)="onFilterChange()">
+            <option value="all">Todos</option>
+            <option value="unused">Sin usar</option>
+            <option value="used">Usados</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        @if (inviteCodesLoading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+          </div>
+        } @else if (inviteCodes.length === 0) {
+          <div class="empty-state">
+            <p>No hay codigos de invitacion.</p>
+            <button class="btn-generate-empty" (click)="openGenerateModal()">
+              Generar primeros codigos
+            </button>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Codigo</th>
+                  <th>Creado por</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Usado por</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (code of inviteCodes; track code.id) {
+                  <tr [class.used]="code.used_by">
+                    <td class="code-cell">
+                      <span class="code-display">{{ code.code }}</span>
+                    </td>
+                    <td>{{ code.created_by }}</td>
+                    <td>{{ code.created_at | date:'dd/MM/yyyy' }}</td>
+                    <td>
+                      @if (code.used_by) {
+                        <span class="status-badge used">Usado</span>
+                      } @else {
+                        <span class="status-badge available">Disponible</span>
+                      }
+                    </td>
+                    <td>
+                      @if (code.used_by) {
+                        {{ code.used_by.name }} ({{ code.used_by.email }})
+                      } @else {
+                        -
+                      }
+                    </td>
+                    <td>
+                      @if (!code.used_by) {
+                        <button class="btn-copy-small" (click)="copyCode(code.code)">
+                          Copiar
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Generate Codes Modal -->
+  @if (showGenerateModal) {
+    <div class="modal-overlay" (click)="closeGenerateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Generar Codigos de Invitacion</h2>
+          <button class="btn-close" (click)="closeGenerateModal()">X</button>
+        </div>
+
+        @if (generatedCodes.length === 0) {
+          <div class="modal-body">
+            <div class="input-group">
+              <label>Cantidad de codigos</label>
+              <input
+                type="number"
+                [(ngModel)]="generateCount"
+                min="1"
+                max="100"
+                placeholder="5"
+              >
+              <span class="hint">Maximo 100 codigos por vez</span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-cancel" (click)="closeGenerateModal()">Cancelar</button>
+            <button
+              class="btn-confirm"
+              (click)="generateCodes()"
+              [disabled]="isGenerating"
+            >
+              @if (isGenerating) {
+                Generando...
+              } @else {
+                Generar {{ generateCount }} codigos
+              }
+            </button>
+          </div>
+        } @else {
+          <div class="modal-body">
+            <p class="success-message">Se generaron {{ generatedCodes.length }} codigos!</p>
+            <div class="codes-list">
+              @for (code of generatedCodes; track code) {
+                <div class="generated-code">
+                  <span>{{ code }}</span>
+                  <button class="btn-copy-inline" (click)="copyCode(code)">Copiar</button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-copy-all" (click)="copyAllCodes()">
+              Copiar todos
+            </button>
+            <button class="btn-confirm" (click)="closeGenerateModal()">
+              Cerrar
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,11 +10,12 @@ import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
 import { ToastComponent } from '../toast/toast';
+import { ChatWidget } from '../chat-widget/chat-widget';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ChatWidget],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -26,7 +28,6 @@ export class MainLayout implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
-  private chatbotScriptId = 'relevance-ai-chatbot';
   private subscriptions = new Subscription();
   private navTimeouts: ReturnType<typeof setTimeout>[] = [];
 
@@ -38,15 +39,25 @@ export class MainLayout implements OnInit, OnDestroy {
   unreadNotifications: number = 0;
   notifications: Notification[] = [];
   loadingMoreNotifications = false;
+  isOnChatbotPage = false;
 
   ngOnInit() {
+    // Track current route to hide widget on chatbot page
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: NavigationEnd) => {
+        this.isOnChatbotPage = event.urlAfterRedirects.includes('/chatbot');
+        this.cdr.markForCheck();
+      })
+    );
+    // Check initial route
+    this.isOnChatbotPage = this.router.url.includes('/chatbot');
     this.loadUserData();
     this.setupNotifications();
-    this.loadChatbotScript();
   }
 
   ngOnDestroy() {
-    this.removeChatbotScript();
     this.notificationService.stopPolling();
     this.subscriptions.unsubscribe();
     this.navTimeouts.forEach(t => clearTimeout(t));
@@ -90,34 +101,6 @@ export class MainLayout implements OnInit, OnDestroy {
 
     // Start polling every 30 seconds
     this.notificationService.startPolling(30000);
-  }
-
-  private loadChatbotScript() {
-    // Check if script already exists
-    if (document.getElementById(this.chatbotScriptId)) return;
-
-    const script = document.createElement('script');
-    script.id = this.chatbotScriptId;
-    script.src = 'https://app.relevanceai.com/embed/chat-bubble.js';
-    script.defer = true;
-    script.setAttribute('data-relevanceai-share-id', 'bcbe5a/8cba1df1b42f-4044-a926-18f8ee83d3c8/84379516-1725-42b5-a261-6bfcfeaa328c');
-    script.setAttribute('data-share-styles', 'hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%231D345D&bubble_icon=pd%2Fchat&input_placeholder_text=Escrib%C3%AD+tu+pregunta...&hide_logo=false&hide_description=false');
-    document.body.appendChild(script);
-  }
-
-  private removeChatbotScript() {
-    const script = document.getElementById(this.chatbotScriptId);
-    if (script) {
-      script.remove();
-    }
-    // Also remove the chatbot widget elements
-    const chatWidget = document.querySelector('[data-relevanceai-chat-bubble]');
-    if (chatWidget) {
-      chatWidget.remove();
-    }
-    // Remove any iframe or chat container added by the script
-    const relevanceElements = document.querySelectorAll('[id^="relevance"], [class*="relevance"]');
-    relevanceElements.forEach(el => el.remove());
   }
 
   get userInitials(): string {

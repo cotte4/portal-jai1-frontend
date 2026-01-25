@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ReferralService } from '../../core/services/referral.service';
+import { Jai1gentService } from '../../core/services/jai1gent.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -17,6 +18,7 @@ export class Register {
   private router = inject(Router);
   private authService = inject(AuthService);
   private referralService = inject(ReferralService);
+  private jai1gentService = inject(Jai1gentService);
   private cdr = inject(ChangeDetectorRef);
 
   // Form data
@@ -39,6 +41,7 @@ export class Register {
   referralCodeValid: boolean | null = null;
   referralCodeValidating: boolean = false;
   referrerName: string = '';
+  isJai1gentReferral: boolean = false;
 
   // Modal state
   showTermsModal: boolean = false;
@@ -130,30 +133,56 @@ export class Register {
     if (!this.referralCode || this.referralCode.length < 4) {
       this.referralCodeValid = null;
       this.referrerName = '';
+      this.isJai1gentReferral = false;
       return;
     }
 
     this.referralCodeValidating = true;
-    this.referralService.validateCode(this.referralCode).subscribe({
-      next: (result) => {
-        this.referralCodeValidating = false;
-        this.referralCodeValid = result.valid;
-        this.referrerName = result.referrerName || '';
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.referralCodeValidating = false;
-        this.referralCodeValid = false;
-        this.referrerName = '';
-        this.cdr.detectChanges();
-      }
-    });
+
+    // Check if it's a JAI1GENT referral code (starts with JAI)
+    if (this.referralCode.toUpperCase().startsWith('JAI')) {
+      this.jai1gentService.validateReferralCode(this.referralCode).subscribe({
+        next: (result) => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = result.valid;
+          this.referrerName = result.jai1gentName || '';
+          this.isJai1gentReferral = result.valid;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = false;
+          this.referrerName = '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Regular client referral code
+      this.referralService.validateCode(this.referralCode).subscribe({
+        next: (result) => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = result.valid;
+          this.referrerName = result.referrerName || '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = false;
+          this.referrerName = '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   clearReferralCode() {
     this.referralCode = '';
     this.referralCodeValid = null;
     this.referrerName = '';
+    this.isJai1gentReferral = false;
   }
 
   openTermsModal(event: Event) {
