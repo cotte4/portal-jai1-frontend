@@ -860,6 +860,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     const labels: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando Formulario',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Documentos',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos Enviados',
       [CaseStatus.PREPARING]: 'Preparando',
       [CaseStatus.TAXES_FILED]: 'Taxes Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'

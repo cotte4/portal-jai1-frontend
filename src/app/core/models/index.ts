@@ -10,6 +10,7 @@ export enum UserRole {
 export enum CaseStatus {
   AWAITING_FORM = 'awaiting_form',
   AWAITING_DOCS = 'awaiting_docs',
+  DOCUMENTOS_ENVIADOS = 'documentos_enviados',
   PREPARING = 'preparing',
   TAXES_FILED = 'taxes_filed',
   CASE_ISSUES = 'case_issues'

@@ -216,12 +216,19 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         this.documents = results.documents || [];
 
         // Sync calculator result from backend (for cross-device support)
-        if (results.calculatorResult && results.calculatorResult.estimatedRefund) {
-          // Save to localStorage for consistency and update local state
-          this.calculatorResultService.saveResult(
-            results.calculatorResult.estimatedRefund,
-            results.calculatorResult.w2FileName
-          );
+        // Backend returns { hasEstimate: boolean, estimate: {...} | null }
+        const backendData = results.calculatorResult as any;
+        if (backendData?.hasEstimate && backendData?.estimate) {
+          const estimate = backendData.estimate;
+          // Use syncFromBackend to properly populate all fields and update BehaviorSubject
+          this.calculatorResultService.syncFromBackend({
+            estimatedRefund: estimate.estimatedRefund,
+            w2FileName: estimate.w2FileName,
+            box2Federal: estimate.box2Federal,
+            box17State: estimate.box17State,
+            ocrConfidence: estimate.ocrConfidence,
+            createdAt: estimate.createdAt
+          });
         }
 
         // Cache dashboard data for faster loads on refresh
@@ -254,6 +261,21 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   get estimatedRefundDisplay(): string {
     if (this.calculatorResult) {
       return `$${this.calculatorResult.estimatedRefund.toLocaleString()}`;
+    }
+    return '---';
+  }
+
+  // ============ ACTUAL REFUND (from IRS) ============
+  get actualRefund(): number | null {
+    const federal = Number(this.profileData?.taxCase?.federalActualRefund || 0);
+    const state = Number(this.profileData?.taxCase?.stateActualRefund || 0);
+    const total = federal + state;
+    return total > 0 ? total : null;
+  }
+
+  get actualRefundDisplay(): string {
+    if (this.actualRefund) {
+      return `$${this.actualRefund.toLocaleString()}`;
     }
     return '---';
   }
@@ -776,6 +798,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const mapping: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando formulario y documentos',
       [CaseStatus.AWAITING_DOCS]: 'Esperando formulario y documentos',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos enviados',
       [CaseStatus.PREPARING]: 'Información recibida',
       [CaseStatus.TAXES_FILED]: 'Taxes presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas - contactar soporte',

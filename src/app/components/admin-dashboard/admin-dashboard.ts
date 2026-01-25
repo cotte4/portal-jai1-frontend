@@ -588,6 +588,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     const labels: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando Form',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Docs',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Docs Enviados',
       [CaseStatus.PREPARING]: 'Preparando',
       [CaseStatus.TAXES_FILED]: 'Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'

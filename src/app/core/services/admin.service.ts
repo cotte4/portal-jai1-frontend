@@ -162,8 +162,7 @@ export class AdminService {
       `${this.apiUrl}/admin/clients/${clientId}/status`,
       data
     ).pipe(
-      catchError(this.handleError),
-      shareReplay(1)
+      catchError(this.handleError)
     );
   }
 

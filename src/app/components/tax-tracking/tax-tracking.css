@@ -969,6 +969,26 @@
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
 
+/* ==================== UPDATE INFO ==================== */
+.update-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface-secondary, #f5f5f7);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.update-info .info-icon {
+  font-size: 16px;
+}
+
+.update-info .info-text {
+  font-size: 13px;
+  color: var(--text-secondary, #6e6e73);
+}
+
 /* ==================== INFO NOTE ==================== */
 .info-note {
   display: flex;

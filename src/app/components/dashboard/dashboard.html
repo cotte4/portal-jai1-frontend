@@ -67,15 +67,30 @@
   <!-- Refund Card - Row 1 (Top priority) -->
   <div class="refund-section" #welcomeSection>
     <div class="refund-card">
-      <div class="refund-badge">
-        <svg class="refund-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v6l4 2"/>
-        </svg>
-        <span>Reembolso Estimado</span>
-      </div>
-
-      @if (hasCalculatorResult) {
+      @if (actualRefund) {
+        <!-- Highest priority: Show actual/final refund from IRS -->
+        <div class="refund-badge">
+          <svg class="refund-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Reembolso Final</span>
+        </div>
+        <div class="refund-amount" #refundValue>{{ actualRefundDisplay }}</div>
+        <div class="refund-calculated">
+          <svg class="check-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Confirmado por el IRS
+        </div>
+      } @else if (hasCalculatorResult) {
+        <!-- Second priority: Show estimated refund from calculator -->
+        <div class="refund-badge">
+          <svg class="refund-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          <span>Reembolso Estimado</span>
+        </div>
         <div class="refund-amount" #refundValue>{{ estimatedRefundDisplay }}</div>
         <div class="refund-calculated">
           <svg class="check-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -84,6 +99,14 @@
           Calculado con tu W2
         </div>
       } @else {
+        <!-- Fallback: Prompt user to upload W2 -->
+        <div class="refund-badge">
+          <svg class="refund-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          <span>Reembolso Estimado</span>
+        </div>
         <div class="refund-not-calculated">
           <svg class="doc-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
