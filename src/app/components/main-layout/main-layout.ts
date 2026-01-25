@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -11,11 +11,13 @@ import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
 import { ToastComponent } from '../toast/toast';
 import { ChatWidget } from '../chat-widget/chat-widget';
+import { BottomNav } from '../../shared/components/bottom-nav/bottom-nav';
+import { MobileHeader } from '../../shared/components/mobile-header/mobile-header';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ChatWidget],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ChatWidget, BottomNav, MobileHeader],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,8 +42,29 @@ export class MainLayout implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   loadingMoreNotifications = false;
   isOnChatbotPage = false;
+  isMobileView: boolean = false;
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkMobileView();
+  }
+
+  private checkMobileView() {
+    const wasMobile = this.isMobileView;
+    this.isMobileView = window.innerWidth < 1024;
+    if (wasMobile !== this.isMobileView) {
+      // Close sidebar when switching to mobile
+      if (this.isMobileView) {
+        this.sidebarOpen = false;
+      }
+      this.cdr.markForCheck();
+    }
+  }
 
   ngOnInit() {
+    // Check initial mobile view
+    this.checkMobileView();
+
     // Track current route to hide widget on chatbot page
     this.subscriptions.add(
       this.router.events.pipe(

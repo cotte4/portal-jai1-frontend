@@ -67,25 +67,39 @@
   <!-- Refund Card - Row 1 (Top priority) -->
   <div class="refund-section" #welcomeSection>
     <div class="refund-card">
-      <div class="refund-header">
-        <span class="refund-icon">💰</span>
-        <span class="refund-label">Reembolso Estimado</span>
+      <div class="refund-badge">
+        <svg class="refund-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>Reembolso Estimado</span>
       </div>
 
       @if (hasCalculatorResult) {
         <div class="refund-amount" #refundValue>{{ estimatedRefundDisplay }}</div>
         <div class="refund-calculated">
-          <span class="check-icon">✓</span>
+          <svg class="check-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
           Calculado con tu W2
         </div>
       } @else {
         <div class="refund-not-calculated">
-          <span class="question-icon">📄</span>
+          <svg class="doc-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
           <span>Sube tu W2 para calcular</span>
         </div>
         <button class="btn-calculate-cta" (click)="navigateTo('/tax-calculator')">
           <span>Calcular mi reembolso</span>
-          <span class="arrow">→</span>
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
         </button>
       }
     </div>
@@ -129,76 +143,117 @@
     </div>
   }
 
-  <!-- Bento Grid: Steps Section - Row 3 (only show if not all steps complete) -->
+  <!-- Steps Section - Row 3 (only show if not all steps complete) -->
   @if (!allStepsComplete) {
-    <div class="bento-grid">
+    <div class="steps-list">
       <!-- Step 1: Completá tu declaración -->
-      <div class="bento-card" #bentoCard
+      <div class="step-card" #bentoCard
            [class.completed]="isStep1Complete"
            [class.attention]="!isStep1Complete && !isStep2Complete && !isStep3Complete">
-        <div class="bento-card-content">
-          @if (isStep1Complete) {
-            <div class="completed-overlay">
-              <div class="completed-icon">✓</div>
-              <span class="completed-text">¡Completado!</span>
+        @if (isStep1Complete) {
+          <div class="step-completed-row">
+            <div class="step-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
             </div>
-          } @else {
+            <span class="step-completed-text">Declaración completada</span>
+          </div>
+        } @else {
+          <div class="step-header">
             <div class="step-number">1</div>
-            <div class="bento-icon">📝</div>
-            <h3 class="bento-title">Completá tu declaración</h3>
-            <p class="bento-desc">Llená el formulario con tus datos personales y tributarios</p>
-            <button class="bento-btn" (click)="navigateTo('/tax-form')">
-              Completar declaración
-              <span class="btn-arrow">→</span>
-            </button>
-          }
-        </div>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="step-body">
+            <h3 class="step-title">Completá tu declaración</h3>
+            <p class="step-desc">Llená el formulario con tus datos personales y tributarios para iniciar tu trámite</p>
+          </div>
+          <button class="step-btn" (click)="navigateTo('/tax-form')">
+            Completar
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        }
       </div>
 
       <!-- Step 2: Subí tu documento W2 -->
-      <div class="bento-card" #bentoCard
+      <div class="step-card" #bentoCard
            [class.completed]="isStep2Complete"
            [class.attention]="isStep1Complete && !isStep2Complete && !isStep3Complete">
-        <div class="bento-card-content">
-          @if (isStep2Complete) {
-            <div class="completed-overlay">
-              <div class="completed-icon">✓</div>
-              <span class="completed-text">¡Completado!</span>
+        @if (isStep2Complete) {
+          <div class="step-completed-row">
+            <div class="step-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
             </div>
-          } @else {
+            <span class="step-completed-text">Documento W2 subido</span>
+          </div>
+        } @else {
+          <div class="step-header">
             <div class="step-number">2</div>
-            <div class="bento-icon">📄</div>
-            <h3 class="bento-title">Subí tu documento W2</h3>
-            <p class="bento-desc">Cargá tu formulario W2 para calcular tu reembolso</p>
-            <button class="bento-btn" (click)="navigateTo('/documents')">
-              Ir a mis documentos
-              <span class="btn-arrow">→</span>
-            </button>
-          }
-        </div>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+          </div>
+          <div class="step-body">
+            <h3 class="step-title">Subí tu documento W2</h3>
+            <p class="step-desc">Cargá tu formulario W2 que te dio tu empleador para calcular tu reembolso</p>
+          </div>
+          <button class="step-btn" (click)="navigateTo('/documents')">
+            Subir W2
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        }
       </div>
 
       <!-- Step 3: Subí tu comprobante de pago -->
-      <div class="bento-card" #bentoCard
+      <div class="step-card" #bentoCard
            [class.completed]="isStep3Complete"
            [class.attention]="isStep1Complete && isStep2Complete && !isStep3Complete">
-        <div class="bento-card-content">
-          @if (isStep3Complete) {
-            <div class="completed-overlay">
-              <div class="completed-icon">✓</div>
-              <span class="completed-text">¡Completado!</span>
+        @if (isStep3Complete) {
+          <div class="step-completed-row">
+            <div class="step-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
             </div>
-          } @else {
+            <span class="step-completed-text">Comprobante subido</span>
+          </div>
+        } @else {
+          <div class="step-header">
             <div class="step-number">3</div>
-            <div class="bento-icon">💳</div>
-            <h3 class="bento-title">Subí tu comprobante de pago</h3>
-            <p class="bento-desc">Adjuntá el comprobante del pago inicial</p>
-            <button class="bento-btn" (click)="navigateTo('/documents')">
-              Ir a mis documentos
-              <span class="btn-arrow">→</span>
-            </button>
-          }
-        </div>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+          </div>
+          <div class="step-body">
+            <h3 class="step-title">Subí tu comprobante de pago</h3>
+            <p class="step-desc">Adjuntá el comprobante del pago inicial para continuar con el proceso</p>
+          </div>
+          <button class="step-btn" (click)="navigateTo('/documents')">
+            Subir comprobante
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        }
       </div>
     </div>
   }
@@ -257,7 +312,11 @@
 
   <!-- Help Footer -->
   <div class="help-footer">
-    <div class="help-icon">💬</div>
+    <div class="help-icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
     <div class="help-text">
       <span class="help-title">¿Necesitas ayuda?</span>
       <span class="help-desc">Nuestro equipo está listo para asistirte</span>

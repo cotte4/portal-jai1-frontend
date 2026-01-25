@@ -178,54 +178,7 @@
       <p>{{ canComplete ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
     </div>
 
-  <!-- Consent Form Section -->
-  <div class="consent-form-section" [class.signed]="isConsentFormSigned">
-    <div class="consent-form-card">
-      <div class="consent-form-header">
-        <div class="consent-icon-wrapper" [class.signed]="isConsentFormSigned">
-          <span class="consent-icon" *ngIf="!isConsentFormSigned">✍️</span>
-          <span class="consent-icon" *ngIf="isConsentFormSigned">✓</span>
-        </div>
-        <div class="consent-info">
-          <h3>Acuerdo de Consentimiento</h3>
-          <p *ngIf="!isConsentFormSigned">Debes firmar el acuerdo de servicios para continuar</p>
-          <p *ngIf="isConsentFormSigned" class="signed-text">Firmado el {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}</p>
-        </div>
-      </div>
-      <div class="consent-form-actions">
-        <button
-          *ngIf="!isConsentFormSigned"
-          class="btn-consent-primary"
-          (click)="openConsentForm()">
-          <span>Firmar Acuerdo</span>
-          <span class="btn-arrow">→</span>
-        </button>
-        <button
-          *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
-          class="btn-consent-secondary"
-          (click)="downloadSignedConsentForm()">
-          <span>Descargar PDF</span>
-          <span class="btn-icon">⬇️</span>
-        </button>
-      </div>
-    </div>
-    <div class="consent-warning" *ngIf="!isConsentFormSigned">
-      <span class="warning-icon">⚠️</span>
-      <span>Debes firmar el acuerdo antes de poder completar tu solicitud</span>
-    </div>
-  </div>
-
-  <!-- Messages -->
-  <div class="message success-message" *ngIf="successMessage">
-    <span class="message-icon">✓</span>
-    {{ successMessage }}
-  </div>
-  <div class="message error-message" *ngIf="errorMessage">
-    <span class="message-icon">⚠</span>
-    {{ errorMessage }}
-  </div>
-
- <!-- Document Type Tabs -->
+  <!-- Document Type Tabs -->
   <div class="document-type-tabs">
     <button
       *ngFor="let type of documentTypes"
@@ -284,6 +237,7 @@
     <input
       type="file"
       id="fileInput"
+      #fileInput
       (change)="onFileSelected($event)"
       accept=".pdf,.png,.jpg,.jpeg"
       multiple
@@ -300,6 +254,43 @@
         <span>Maximo 25MB por archivo</span>
       </div>
     </div>
+  </div>
+
+  <!-- Consent Form Section - Compact Horizontal -->
+  <div class="consent-form-compact" [class.signed]="isConsentFormSigned">
+    <div class="consent-compact-content">
+      <div class="consent-compact-left">
+        <span class="consent-compact-icon" [class.signed]="isConsentFormSigned">
+          {{ isConsentFormSigned ? '✓' : '✍️' }}
+        </span>
+        <span class="consent-compact-title">Acuerdo de Consentimiento</span>
+        <span class="consent-compact-status" *ngIf="isConsentFormSigned">
+          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+      <button
+        *ngIf="!isConsentFormSigned"
+        class="btn-consent-compact"
+        (click)="openConsentForm()">
+        Firmar
+      </button>
+      <button
+        *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
+        class="btn-consent-compact secondary"
+        (click)="downloadSignedConsentForm()">
+        PDF ⬇️
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="message success-message" *ngIf="successMessage">
+    <span class="message-icon">✓</span>
+    {{ successMessage }}
+  </div>
+  <div class="message error-message" *ngIf="errorMessage">
+    <span class="message-icon">⚠</span>
+    {{ errorMessage }}
   </div>
 
   <!-- Skeleton Loading State -->

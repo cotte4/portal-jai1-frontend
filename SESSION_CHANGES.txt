@@ -1,0 +1,162 @@
+================================================================================
+MOBILE APP-LIKE TRANSFORMATION SESSION
+================================================================================
+Date: January 25, 2026
+Developer: Claude Code (AI Assistant)
+
+OVERVIEW
+--------
+Transformed the JAI1 Tax Portal mobile experience from a responsive website
+to a native app-like experience with bottom navigation, optimized layouts,
+and thumb-zone friendly interactions.
+
+Target users: J1 visa students (Spanish-speaking), primarily mobile users.
+
+================================================================================
+NEW COMPONENTS CREATED
+================================================================================
+
+1. Bottom Navigation Component
+   Location: src/app/shared/components/bottom-nav/
+   Files: bottom-nav.ts, bottom-nav.html, bottom-nav.css
+
+   Features:
+   - 5 navigation items: Inicio, Declaracion, Documentos, Soporte, Perfil
+   - Active state with filled icon + accent color underline
+   - Badge support for unread messages
+   - Safe area insets for notched phones (env(safe-area-inset-bottom))
+   - 64px height + safe area
+   - Only visible on mobile (<1024px)
+
+2. Mobile Header Component
+   Location: src/app/shared/components/mobile-header/
+   Files: mobile-header.ts, mobile-header.html, mobile-header.css
+
+   Features:
+   - Dynamic page title based on route
+   - Back button (when not on dashboard)
+   - Notification bell (right side)
+   - 56px height with sticky positioning
+   - Backdrop blur effect (frosted glass)
+   - Only visible on mobile (<1024px)
+
+================================================================================
+MODIFIED FILES
+================================================================================
+
+1. src/app/components/main-layout/
+   - main-layout.html: Added bottom-nav and mobile-header components
+   - main-layout.css: Hide sidebar on mobile, show bottom nav
+   - main-layout.ts: Added mobile detection, route title logic
+
+2. src/app/components/dashboard/
+   - dashboard.css:
+     * Refund card hero style for mobile
+     * Progress section compact layout
+     * Step cards: 3 columns desktop, 2 columns tablet, 1 column mobile
+     * IRS tracking card mobile optimization
+     * Help footer compact style
+   - dashboard.html: Restructured for mobile-first layout
+
+3. src/app/components/document-upload/
+   - document-upload.html:
+     * Reordered elements: Page title > Document Type Tabs > W2 hint >
+       Upload Zone > Consent Form > File List
+     * Added compact inline consent form section
+   - document-upload.css:
+     * iOS-style segmented control for document type tabs
+     * Compact consent form horizontal layout
+     * Mobile-optimized upload zone
+   - document-upload.ts:
+     * Shortened tab labels ("Pago" instead of "Comprobante de Pago")
+     * Added auto-open file picker with ?upload=true query param
+
+4. src/app/components/tax-form/
+   - tax-form.html:
+     * Added mobile sticky action bar (Save/Submit buttons)
+     * Compact referral code section (single line: icon + label + input + button)
+   - tax-form.css:
+     * Single column layout on mobile
+     * Sticky bottom action bar styles
+     * Compact referral section styles
+     * Form inputs full-width on mobile
+
+5. src/styles.css
+   - Added mobile CSS variables:
+     * --bottom-nav-height: 64px
+     * --mobile-header-height: 56px
+     * --safe-area-bottom: env(safe-area-inset-bottom, 0px)
+     * --content-bottom-padding
+
+================================================================================
+RESPONSIVE BREAKPOINTS
+================================================================================
+
+Desktop (>1023px):
+- Sidebar navigation visible
+- Dashboard steps in 3 columns
+- Full layouts
+
+Tablet (768px - 1023px):
+- Sidebar still visible (optional)
+- Dashboard steps in 2 columns (3rd spans full width)
+- Adjusted padding
+
+Mobile (<768px):
+- Bottom navigation visible
+- Mobile header visible
+- Sidebar hidden
+- Dashboard steps in 1 column
+- All components optimized for thumb-zone
+
+Small Mobile (<480px):
+- Ultra compact layouts
+- Reduced padding and font sizes
+
+Very Small Mobile (<360px):
+- Minimal layouts for small devices
+
+================================================================================
+MOBILE STRUCTURE
+================================================================================
+
++-----------------------------+
+| Mobile Header (56px sticky) |
+| [<-] Page Title        [bell]|
++-----------------------------+
+|                             |
+|    Page Content             |
+|    (scrollable)             |
+|                             |
++-----------------------------+
+| Bottom Nav (64px + safe)    |
+| [home][form][docs][msg][user]|
++-----------------------------+
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+[ ] Bottom nav appears on screens < 1024px
+[ ] All 5 nav items navigate correctly
+[ ] Active state highlights correctly
+[ ] Notification badge updates on messages
+[ ] Safe area insets work on iPhone with notch
+[ ] All forms are usable with thumb only
+[ ] Sticky elements don't overlap content
+[ ] Dashboard steps: 3 cols desktop, 2 cols tablet, 1 col mobile
+[ ] Document upload tabs work correctly
+[ ] Consent form compact layout displays properly
+[ ] Tax form sticky action bar works on mobile
+
+================================================================================
+KEY BREAKPOINTS TO TEST
+================================================================================
+
+- 375px (iPhone SE)
+- 390px (iPhone 14)
+- 412px (Pixel 5)
+- 768px (Tablet portrait)
+- 1024px (Tablet landscape / Desktop threshold)
+
+================================================================================

@@ -1,0 +1,112 @@
+<header class="mobile-header">
+  <div class="header-left">
+    @if (showBackButton) {
+      <button class="btn-back" (click)="goBack()" aria-label="Go back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+    } @else {
+      <!-- Hamburger Menu -->
+      <button class="btn-menu" (click)="toggleProfilePanel()" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <h1 class="header-title">{{ currentTitle }}</h1>
+
+  <div class="header-right">
+    <button class="btn-notifications" (click)="onNotificationClick()" aria-label="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      @if (unreadNotifications > 0) {
+        <span class="notif-badge">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
+      }
+    </button>
+  </div>
+</header>
+
+<!-- Profile Panel Overlay -->
+@if (showProfilePanel) {
+  <div class="profile-overlay" (click)="closeProfilePanel()"></div>
+}
+
+<!-- Profile Slide Panel -->
+<div class="menu-panel" [class.open]="showProfilePanel">
+  <div class="menu-panel-header">
+    <h2>Menu</h2>
+    <button class="btn-close-panel" (click)="closeProfilePanel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- User Info Card (tappable to go to profile) -->
+  <a class="menu-user-card" (click)="navigateAndClose('/profile')">
+    <div class="menu-avatar">
+      @if (userProfilePicture) {
+        <img [src]="userProfilePicture" alt="Profile" />
+      } @else {
+        <span class="avatar-initials">{{ userInitials }}</span>
+      }
+    </div>
+    <div class="menu-user-info">
+      <span class="menu-user-name">{{ userName }}</span>
+      <span class="menu-user-email">{{ userEmail }}</span>
+    </div>
+    <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </a>
+
+  <!-- Menu Items -->
+  <nav class="menu-nav">
+    <a class="menu-nav-item" (click)="navigateAndClose('/tax-calculator')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="4" y="2" width="16" height="20" rx="2"/>
+        <line x1="8" y1="6" x2="16" y2="6"/>
+        <line x1="8" y1="10" x2="16" y2="10"/>
+        <line x1="8" y1="14" x2="12" y2="14"/>
+        <line x1="8" y1="18" x2="10" y2="18"/>
+      </svg>
+      <span>Calculadora de reembolso</span>
+    </a>
+
+    <a class="menu-nav-item" (click)="navigateAndClose('/referral-program')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M20 12v10H4V12"/>
+        <path d="M2 7h20v5H2z"/>
+        <path d="M12 22V7"/>
+        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+      </svg>
+      <span>Programa de referidos</span>
+    </a>
+
+    <a class="menu-nav-item" (click)="navigateAndClose('/messages')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>Soporte</span>
+    </a>
+  </nav>
+
+  <!-- Logout Button -->
+  <button class="btn-logout" (click)="logout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    <span>Cerrar sesion</span>
+  </button>
+</div>

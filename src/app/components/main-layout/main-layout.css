@@ -575,6 +575,22 @@
   background: #f5f7fa;
 }
 
+/* Mobile page content - add bottom padding for nav */
+.mobile-page-content {
+  padding-bottom: var(--content-bottom-padding, 96px);
+}
+
+/* ==================== MOBILE APP LAYOUT ==================== */
+.mobile-layout {
+  flex-direction: column;
+}
+
+.mobile-layout .mobile-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* ==================== TABLET (768px - 1023px) ==================== */
 @media (max-width: 1023px) {
   .sidebar {

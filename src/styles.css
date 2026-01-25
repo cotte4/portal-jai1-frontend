@@ -73,6 +73,15 @@
   --btn-padding-sm: 8px 16px;
   --btn-padding-md: 10px 20px;
   --btn-padding-lg: 12px 24px;
+
+  /* ==================== MOBILE APP NAVIGATION ==================== */
+  /* Mobile Navigation Heights */
+  --bottom-nav-height: 64px;
+  --mobile-header-height: 56px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Content padding to account for fixed navigation */
+  --content-bottom-padding: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 16px);
 }
 
 /* ==================== TABLET VARIABLES (768px - 1023px) ==================== */
@@ -253,5 +262,31 @@ img, video, iframe, embed, object {
 
   .safe-area-top {
     padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+  }
+}
+
+/* ==================== MOBILE APP LAYOUT UTILITIES ==================== */
+/* Content padding for bottom nav - use on page containers */
+@media (max-width: 1023px) {
+  .mobile-content {
+    padding-bottom: var(--content-bottom-padding);
+  }
+
+  /* Scrollable content area for mobile */
+  .mobile-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--content-bottom-padding);
+  }
+}
+
+/* Full-width mobile card */
+@media (max-width: 767px) {
+  .mobile-full-width {
+    margin-left: calc(-1 * var(--page-padding));
+    margin-right: calc(-1 * var(--page-padding));
+    border-radius: 0;
   }
 }
