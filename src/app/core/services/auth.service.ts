@@ -151,6 +151,10 @@ export class AuthService {
     return this.currentUser?.role === UserRole.CLIENT;
   }
 
+  get isJai1gent(): boolean {
+    return this.currentUser?.role === UserRole.JAI1GENT;
+  }
+
   /**
    * Update current user data after profile changes
    * This properly triggers the BehaviorSubject and persists to storage

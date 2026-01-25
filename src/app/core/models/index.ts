@@ -2,7 +2,8 @@
 
 export enum UserRole {
   CLIENT = 'client',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  JAI1GENT = 'jai1gent'
 }
 
 // Unified case status
@@ -140,7 +141,42 @@ export type PaymentMethod = 'bank_deposit' | 'check';
 export enum DocumentType {
   W2 = 'w2',
   PAYMENT_PROOF = 'payment_proof',
+  CONSENT_FORM = 'consent_form',
   OTHER = 'other'
+}
+
+// ============= CONSENT FORM =============
+
+export type ConsentFormStatus = 'pending' | 'signed';
+
+export interface ConsentFormStatusResponse {
+  status: ConsentFormStatus;
+  signedAt: string | null;
+  canDownload: boolean;
+}
+
+export interface ConsentFormPrefilledResponse {
+  fullName: string;
+  dniPassport: string | null;
+  street: string | null;
+  city: string | null;
+  email: string;
+  date: {
+    day: number;
+    month: string;
+    year: number;
+  };
+  canSign: boolean;
+  missingFields: string[];
+}
+
+export interface SignConsentFormRequest {
+  signature: string; // base64 PNG
+}
+
+export interface SignConsentFormResponse {
+  success: boolean;
+  downloadUrl: string;
 }
 
 export enum TicketStatus {
