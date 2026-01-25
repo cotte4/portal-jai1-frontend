@@ -61,6 +61,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   isSavingDocument = false;
   documentSaved = false;
   isFromDocuments = false;
+  isDemo = false;
 
   ngOnInit() {
     this.checkExistingW2();
@@ -390,11 +391,13 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
     // Celebrate the result with money rain!
     setTimeout(() => this.confettiService.moneyRain(), 300);
 
-    // Save the calculator result
-    this.calculatorResultService.saveResult(
-      this.estimatedRefund,
-      this.uploadedFile?.name
-    );
+    // Save the calculator result (skip for demo mode)
+    if (!this.isDemo) {
+      this.calculatorResultService.saveResult(
+        this.estimatedRefund,
+        this.uploadedFile?.name
+      );
+    }
 
     // AUTO-SAVE: If W2 was uploaded here (not from documents), automatically save it
     // This triggers the W2_UPLOADED event which advances client progress
@@ -444,6 +447,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
     this.isSavingDocument = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
+    this.isDemo = false;
   }
 
   /**
@@ -476,6 +480,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   }
 
   runDemo() {
+    this.isDemo = true; // Mark as demo - won't save result
     this.isFromDocuments = true; // Demo mode - no auto-save needed
     this.state = 'calculating';
     this.calculationProgress = 0;
