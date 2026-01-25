@@ -4,12 +4,10 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
-import { DocumentService } from '../../core/services/document.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { ConfettiService } from '../../core/services/confetti.service';
-import { DocumentType } from '../../core/models';
 
 type OnboardingStep = 'welcome' | 'benefits' | 'documents' | 'calculator' | 'warning';
 
@@ -31,7 +29,6 @@ export class Onboarding implements OnInit, OnDestroy {
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
-  private documentService = inject(DocumentService);
   private profileService = inject(ProfileService);
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
@@ -41,7 +38,6 @@ export class Onboarding implements OnInit, OnDestroy {
   // Cleanup tracking
   private progressIntervalId: ReturnType<typeof setInterval> | null = null;
   private resultTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private uploadSubscription: Subscription | null = null;
   private apiSubscription: Subscription | null = null;
   private onboardingSubscription: Subscription | null = null;
 
@@ -103,9 +99,6 @@ export class Onboarding implements OnInit, OnDestroy {
     }
     if (this.resultTimeoutId) {
       clearTimeout(this.resultTimeoutId);
-    }
-    if (this.uploadSubscription) {
-      this.uploadSubscription.unsubscribe();
     }
     if (this.apiSubscription) {
       this.apiSubscription.unsubscribe();
@@ -310,13 +303,8 @@ export class Onboarding implements OnInit, OnDestroy {
       }
     );
 
-    // Save W2 document
-    if (this.uploadedFile) {
-      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-        next: () => console.log('=== ONBOARDING: W2 uploaded successfully ==='),
-        error: (err) => console.error('=== ONBOARDING: W2 upload failed ===', err)
-      });
-    }
+    // Note: W2 document is now automatically saved by the backend during estimate calculation
+    // No need to call documentService.upload() separately
   }
 
   goToDashboard() {

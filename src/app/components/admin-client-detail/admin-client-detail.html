@@ -505,7 +505,17 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Reembolso Estimado</span>
-                  <span class="info-value">{{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
+                  <span class="info-value">
+                    {{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}
+                    <button
+                      *ngIf="client.taxCases[0]?.estimatedRefund"
+                      class="btn-reset-estimate"
+                      (click)="resetW2Estimate()"
+                      [disabled]="isResettingEstimate"
+                      title="Permite al cliente recalcular su W2">
+                      {{ isResettingEstimate ? 'Reseteando...' : 'Reset' }}
+                    </button>
+                  </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Pago Recibido</span>

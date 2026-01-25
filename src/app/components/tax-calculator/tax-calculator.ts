@@ -57,8 +57,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   ocrConfidence: OcrConfidence = 'high';
   errorMessage = '';
 
-  // Auto-save states
-  isSavingDocument = false;
+  // Document save states (backend now saves W2 automatically during estimate)
   documentSaved = false;
   isFromDocuments = false;
   isDemo = false;
@@ -167,7 +166,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: (results) => {
-        this.existingW2 = results.documents.find(d => d.type === DocumentType.W2) || null;
+        this.existingW2 = results.documents.find((d: Document) => d.type === DocumentType.W2) || null;
 
         // Check if backend has an existing estimate (cross-device sync)
         const backendData = results.backendEstimate as any;
@@ -397,41 +396,14 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
         this.estimatedRefund,
         this.uploadedFile?.name
       );
-    }
 
-    // AUTO-SAVE: If W2 was uploaded here (not from documents), automatically save it
-    // This triggers the W2_UPLOADED event which advances client progress
-    if (this.uploadedFile && !this.isFromDocuments && !this.documentSaved) {
-      this.autoSaveW2();
-    }
-  }
-
-  /**
-   * Automatically save the W2 to documents after successful calculation
-   * This triggers progress automation (W2_UPLOADED event) and updates dashboard progress to 25%
-   */
-  private autoSaveW2() {
-    if (!this.uploadedFile) return;
-
-    this.isSavingDocument = true;
-
-    this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-      next: () => {
-        this.isSavingDocument = false;
+      // Backend now saves the W2 document automatically during estimate
+      // Mark as saved and refresh dashboard to show updated progress
+      if (this.uploadedFile && !this.isFromDocuments) {
         this.documentSaved = true;
-
-        // Trigger dashboard refresh so "Tu Progreso" updates to show W2 uploaded (+25%)
         this.dataRefreshService.refreshDashboard();
-
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isSavingDocument = false;
-        // Don't show error to user - they can still use calculator results
-        // They can manually upload later in documents section
-        this.cdr.detectChanges();
       }
-    });
+    }
   }
 
   resetCalculator() {
@@ -444,7 +416,6 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
     this.box17State = 0;
     this.ocrConfidence = 'high';
     this.errorMessage = '';
-    this.isSavingDocument = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
     this.isDemo = false;

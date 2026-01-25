@@ -2290,3 +2290,27 @@ transform: translateX(4px);
   line-height: 1.5;
   font-style: italic;
 }
+
+/* Reset W2 Estimate Button */
+.btn-reset-estimate {
+  margin-left: 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #dc3545;
+  background: transparent;
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset-estimate:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-reset-estimate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -487,6 +487,18 @@ export class AdminService {
     );
   }
 
+  /**
+   * Reset W2 estimate for a client (allows them to recalculate)
+   * Deletes W2Estimate, Document records, and storage files
+   */
+  resetW2Estimate(clientId: string): Observable<{ message: string; deletedEstimates: number; deletedDocuments: number }> {
+    return this.http.delete<{ message: string; deletedEstimates: number; deletedDocuments: number }>(
+      `${this.apiUrl}/admin/clients/${clientId}/w2-estimate`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

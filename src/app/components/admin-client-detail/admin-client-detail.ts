@@ -55,6 +55,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   isDeleting: boolean = false;
   isSavingFederal: boolean = false;
   isSavingState: boolean = false;
+  isResettingEstimate: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -1162,6 +1163,30 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         if (!this.handleStatusUpdateError(error, 'state', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
         }
+      }
+    });
+  }
+
+  /**
+   * Reset W2 estimate for a client
+   * Allows them to recalculate their W2
+   */
+  resetW2Estimate() {
+    if (!this.clientId || !confirm('¿Estás seguro de resetear el estimado W2? El cliente podrá recalcular su W2.')) {
+      return;
+    }
+
+    this.isResettingEstimate = true;
+
+    this.adminService.resetW2Estimate(this.clientId).subscribe({
+      next: (result) => {
+        this.isResettingEstimate = false;
+        this.toastService.success(`W2 reseteado: ${result.deletedEstimates} estimado(s), ${result.deletedDocuments} documento(s)`);
+        this.loadClientData(); // Refresh to show updated state
+      },
+      error: (error) => {
+        this.isResettingEstimate = false;
+        this.toastService.error(getErrorMessage(error, 'Error al resetear W2'));
       }
     });
   }
