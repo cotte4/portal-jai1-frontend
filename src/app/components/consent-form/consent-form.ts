@@ -13,10 +13,10 @@ import {
   Input
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subscription, finalize } from 'rxjs';
 import { ConsentFormService } from '../../core/services/consent-form.service';
 import { ToastService } from '../../core/services/toast.service';
-import { ConsentFormPrefilledResponse } from '../../core/models';
 
 // Consent form clause text (matches backend template)
 const CONSENT_CLAUSES = [
@@ -45,7 +45,7 @@ const CONSENT_CLAUSES = [
 @Component({
   selector: 'app-consent-form',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './consent-form.html',
   styleUrl: './consent-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -65,7 +65,18 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   isLoading = false;
   hasLoaded = false;
   isSigning = false;
-  prefilledData: ConsentFormPrefilledResponse | null = null;
+
+  // Form fields (manually filled by client)
+  formData = {
+    fullName: '',
+    dniPassport: '',
+    street: '',
+    city: '',
+    email: ''
+  };
+
+  // Current date
+  currentDate = this.getCurrentDate();
 
   // Signature canvas
   private ctx: CanvasRenderingContext2D | null = null;
@@ -73,16 +84,21 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   private lastX = 0;
   private lastY = 0;
   hasSignature = false;
+  canvasReady = false;
 
   // Clauses
   clauses = CONSENT_CLAUSES;
 
   ngOnInit() {
-    this.loadPrefilledData();
+    this.hasLoaded = true;
+    this.cdr.detectChanges();
   }
 
   ngAfterViewInit() {
-    this.initCanvas();
+    // Delay canvas initialization to ensure DOM is ready
+    setTimeout(() => {
+      this.initCanvas();
+    }, 100);
   }
 
   ngOnDestroy() {
@@ -90,36 +106,41 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     this.removeCanvasListeners();
   }
 
-  private loadPrefilledData() {
-    this.isLoading = true;
-    this.consentFormService.getPrefilled().pipe(
-      finalize(() => {
-        this.hasLoaded = true;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      })
-    ).subscribe({
-      next: (data) => {
-        this.prefilledData = data;
-      },
-      error: (error) => {
-        this.toastService.error(error.error?.message || 'Error al cargar datos');
-      }
-    });
+  private getCurrentDate(): { day: number; month: string; year: number } {
+    const now = new Date();
+    const months = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    return {
+      day: now.getDate(),
+      month: months[now.getMonth()],
+      year: now.getFullYear()
+    };
   }
 
   private initCanvas() {
-    if (!this.signatureCanvas?.nativeElement) return;
+    if (!this.signatureCanvas?.nativeElement) {
+      console.warn('Canvas element not found');
+      return;
+    }
 
     const canvas = this.signatureCanvas.nativeElement;
+    const wrapper = canvas.parentElement;
+
+    // Get actual dimensions from wrapper
+    const width = wrapper?.clientWidth || 400;
+    const height = 120;
+
+    // Set canvas dimensions
+    canvas.width = width - 4; // Account for border
+    canvas.height = height;
+
     this.ctx = canvas.getContext('2d');
-
-    if (!this.ctx) return;
-
-    // Set canvas size
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    if (!this.ctx) {
+      console.warn('Could not get canvas context');
+      return;
+    }
 
     // Configure drawing style
     this.ctx.strokeStyle = '#1D345D';
@@ -127,8 +148,15 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
 
+    // Fill with white background
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     // Add event listeners
     this.addCanvasListeners();
+
+    this.canvasReady = true;
+    this.cdr.detectChanges();
   }
 
   private addCanvasListeners() {
@@ -136,38 +164,39 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     if (!canvas) return;
 
     // Mouse events
-    canvas.addEventListener('mousedown', this.startDrawing.bind(this));
-    canvas.addEventListener('mousemove', this.draw.bind(this));
-    canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
-    canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
+    canvas.addEventListener('mousedown', this.onMouseDown);
+    canvas.addEventListener('mousemove', this.onMouseMove);
+    canvas.addEventListener('mouseup', this.onMouseUp);
+    canvas.addEventListener('mouseout', this.onMouseUp);
 
     // Touch events
-    canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-    canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    canvas.addEventListener('touchend', this.stopDrawing.bind(this));
+    canvas.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', this.onMouseUp);
   }
 
   private removeCanvasListeners() {
     const canvas = this.signatureCanvas?.nativeElement;
     if (!canvas) return;
 
-    canvas.removeEventListener('mousedown', this.startDrawing.bind(this));
-    canvas.removeEventListener('mousemove', this.draw.bind(this));
-    canvas.removeEventListener('mouseup', this.stopDrawing.bind(this));
-    canvas.removeEventListener('mouseout', this.stopDrawing.bind(this));
-    canvas.removeEventListener('touchstart', this.handleTouchStart.bind(this));
-    canvas.removeEventListener('touchmove', this.handleTouchMove.bind(this));
-    canvas.removeEventListener('touchend', this.stopDrawing.bind(this));
+    canvas.removeEventListener('mousedown', this.onMouseDown);
+    canvas.removeEventListener('mousemove', this.onMouseMove);
+    canvas.removeEventListener('mouseup', this.onMouseUp);
+    canvas.removeEventListener('mouseout', this.onMouseUp);
+    canvas.removeEventListener('touchstart', this.onTouchStart);
+    canvas.removeEventListener('touchmove', this.onTouchMove);
+    canvas.removeEventListener('touchend', this.onMouseUp);
   }
 
-  private startDrawing(e: MouseEvent) {
+  // Arrow functions to preserve 'this' context
+  private onMouseDown = (e: MouseEvent) => {
     this.isDrawing = true;
     const rect = this.signatureCanvas.nativeElement.getBoundingClientRect();
     this.lastX = e.clientX - rect.left;
     this.lastY = e.clientY - rect.top;
-  }
+  };
 
-  private draw(e: MouseEvent) {
+  private onMouseMove = (e: MouseEvent) => {
     if (!this.isDrawing || !this.ctx) return;
 
     const rect = this.signatureCanvas.nativeElement.getBoundingClientRect();
@@ -183,22 +212,22 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     this.lastY = y;
     this.hasSignature = true;
     this.cdr.detectChanges();
-  }
+  };
 
-  private stopDrawing() {
+  private onMouseUp = () => {
     this.isDrawing = false;
-  }
+  };
 
-  private handleTouchStart(e: TouchEvent) {
+  private onTouchStart = (e: TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
     const rect = this.signatureCanvas.nativeElement.getBoundingClientRect();
     this.isDrawing = true;
     this.lastX = touch.clientX - rect.left;
     this.lastY = touch.clientY - rect.top;
-  }
+  };
 
-  private handleTouchMove(e: TouchEvent) {
+  private onTouchMove = (e: TouchEvent) => {
     e.preventDefault();
     if (!this.isDrawing || !this.ctx) return;
 
@@ -216,13 +245,14 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     this.lastY = y;
     this.hasSignature = true;
     this.cdr.detectChanges();
-  }
+  };
 
   clearSignature() {
     if (!this.ctx || !this.signatureCanvas?.nativeElement) return;
 
     const canvas = this.signatureCanvas.nativeElement;
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     this.hasSignature = false;
     this.cdr.detectChanges();
   }
@@ -232,14 +262,32 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     return this.signatureCanvas.nativeElement.toDataURL('image/png');
   }
 
-  signAgreement() {
-    if (!this.hasSignature) {
-      this.toastService.warning('Por favor, firma el documento antes de continuar');
-      return;
-    }
+  get isFormValid(): boolean {
+    return !!(
+      this.formData.fullName.trim() &&
+      this.formData.dniPassport.trim() &&
+      this.formData.street.trim() &&
+      this.formData.city.trim() &&
+      this.formData.email.trim() &&
+      this.hasSignature
+    );
+  }
 
-    if (!this.prefilledData?.canSign) {
-      this.toastService.error('Por favor, completa tu perfil antes de firmar');
+  get missingFields(): string[] {
+    const missing: string[] = [];
+    if (!this.formData.fullName.trim()) missing.push('Nombre completo');
+    if (!this.formData.dniPassport.trim()) missing.push('DNI/Pasaporte');
+    if (!this.formData.street.trim()) missing.push('Direccion');
+    if (!this.formData.city.trim()) missing.push('Ciudad');
+    if (!this.formData.email.trim()) missing.push('Email');
+    if (!this.hasSignature) missing.push('Firma');
+    return missing;
+  }
+
+  signAgreement() {
+    if (!this.isFormValid) {
+      const missing = this.missingFields.join(', ');
+      this.toastService.warning(`Completa los campos: ${missing}`);
       return;
     }
 
@@ -248,7 +296,7 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
 
     const signature = this.getSignatureAsBase64();
 
-    this.consentFormService.sign(signature).pipe(
+    this.consentFormService.sign(signature, this.formData).pipe(
       finalize(() => {
         this.isSigning = false;
         this.cdr.detectChanges();
@@ -274,8 +322,7 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get formattedDate(): string {
-    if (!this.prefilledData?.date) return '';
-    const { day, month, year } = this.prefilledData.date;
+    const { day, month, year } = this.currentDate;
     return `${day} de ${month} de ${year}`;
   }
 }

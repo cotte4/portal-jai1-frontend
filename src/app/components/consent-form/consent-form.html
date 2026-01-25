@@ -1,11 +1,5 @@
-<!-- Loading State -->
-<div class="consent-loading" *ngIf="!hasLoaded">
-  <div class="loading-spinner"></div>
-  <p>Cargando acuerdo...</p>
-</div>
-
 <!-- Main Content -->
-<div class="consent-container" *ngIf="hasLoaded" [class.modal-mode]="isModal">
+<div class="consent-container" [class.modal-mode]="isModal">
   <!-- Header -->
   <div class="consent-header">
     <div class="header-logo">
@@ -14,39 +8,78 @@
     <h1 class="header-title">ACUERDO POR PRESTACION DE SERVICIOS</h1>
   </div>
 
-  <!-- Missing Fields Warning -->
-  <div class="warning-card" *ngIf="prefilledData && !prefilledData.canSign">
-    <div class="warning-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-    </div>
-    <div class="warning-content">
-      <h3>Completa tu perfil para firmar</h3>
-      <p>Faltan los siguientes datos:</p>
-      <ul>
-        <li *ngFor="let field of prefilledData.missingFields">
-          {{ field === 'address' ? 'Direccion' : field === 'city' ? 'Ciudad' : field }}
-        </li>
-      </ul>
-      <a routerLink="/profile" class="warning-link">Completar perfil</a>
-    </div>
-  </div>
-
   <!-- Document Content -->
   <div class="document-wrapper">
     <div class="document-content">
-      <!-- Introduction -->
+      <!-- Introduction with Input Fields -->
       <div class="document-intro">
         <p>
           Entre <strong>JAI-1</strong>, con domicilio electronico en la casilla de correo jai1&#64;memas.agency, en adelante la <strong>empresa</strong>, y
-          <span class="prefilled-field">{{ prefilledData?.fullName || '_______________' }}</span>,
-          DNI/Pasaporte <span class="prefilled-field">{{ prefilledData?.dniPassport || '_______________' }}</span>,
-          con domicilio en calle <span class="prefilled-field">{{ prefilledData?.street || '_______________' }}</span>
-          de la ciudad de <span class="prefilled-field">{{ prefilledData?.city || '_______________' }}</span>
-          y electronico en la casilla de correo <span class="prefilled-field">{{ prefilledData?.email || '_______________' }}</span>,
+        </p>
+
+        <!-- Form Fields Section -->
+        <div class="form-fields-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Nombre Completo *</label>
+              <input
+                type="text"
+                id="fullName"
+                [(ngModel)]="formData.fullName"
+                placeholder="Ej: Juan Carlos Perez"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row two-columns">
+            <div class="form-group">
+              <label for="dniPassport">DNI / Pasaporte *</label>
+              <input
+                type="text"
+                id="dniPassport"
+                [(ngModel)]="formData.dniPassport"
+                placeholder="Ej: 12345678"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input
+                type="email"
+                id="email"
+                [(ngModel)]="formData.email"
+                placeholder="Ej: juan@email.com"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row two-columns">
+            <div class="form-group">
+              <label for="street">Direccion (Calle) *</label>
+              <input
+                type="text"
+                id="street"
+                [(ngModel)]="formData.street"
+                placeholder="Ej: Av. Corrientes 1234"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="city">Ciudad *</label>
+              <input
+                type="text"
+                id="city"
+                [(ngModel)]="formData.city"
+                placeholder="Ej: Buenos Aires"
+                class="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <p class="intro-continuation">
           en adelante el <strong>cliente</strong>, se celebra el presente acuerdo sujeto a las siguientes clausulas y condiciones:
         </p>
       </div>
@@ -62,7 +95,7 @@
       <div class="document-closing">
         <p>
           En prueba de conformidad, se firman dos ejemplares de un mismo tenor y a un solo efecto,
-          a los <span class="prefilled-field">{{ formattedDate }}</span>.-
+          a los <span class="date-field">{{ formattedDate }}</span>.-
         </p>
       </div>
 
@@ -70,7 +103,7 @@
       <div class="signatures-section">
         <!-- Client Signature -->
         <div class="signature-block client-signature">
-          <label class="signature-label">FIRMA CLIENTE:</label>
+          <label class="signature-label">FIRMA CLIENTE: *</label>
           <div class="signature-canvas-wrapper">
             <canvas
               #signatureCanvas
@@ -88,7 +121,7 @@
               Limpiar
             </button>
           </div>
-          <p class="signature-hint" *ngIf="!hasSignature">Dibuja tu firma aqui</p>
+          <p class="signature-hint" *ngIf="!hasSignature">Dibuja tu firma aqui con el mouse o dedo</p>
         </div>
 
         <!-- JAI-1 Signatures -->
@@ -140,7 +173,7 @@
       </button>
       <button
         class="btn-primary"
-        [disabled]="!hasSignature || !prefilledData?.canSign || isSigning"
+        [disabled]="!isFormValid || isSigning"
         (click)="signAgreement()">
         <span *ngIf="!isSigning">Firmar Acuerdo</span>
         <span *ngIf="isSigning" class="btn-loading">

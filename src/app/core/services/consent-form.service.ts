@@ -38,13 +38,20 @@ export class ConsentFormService {
   }
 
   /**
-   * Sign the consent form with client signature
+   * Sign the consent form with client signature and form data
    * @param signature Base64 encoded PNG signature image
+   * @param formData Client form data (name, dni, address, city, email)
    */
-  sign(signature: string): Observable<SignConsentFormResponse> {
+  sign(signature: string, formData: {
+    fullName: string;
+    dniPassport: string;
+    street: string;
+    city: string;
+    email: string;
+  }): Observable<SignConsentFormResponse> {
     return this.http.post<SignConsentFormResponse>(
       `${this.apiUrl}/consent-form/sign`,
-      { signature }
+      { signature, ...formData }
     ).pipe(
       catchError(this.handleError)
     );
