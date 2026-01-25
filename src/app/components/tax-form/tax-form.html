@@ -153,55 +153,50 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Referral Code Section -->
-  <section class="referral-section" *ngIf="!hasAppliedReferral">
-    <div class="referral-banner">
-      <div class="referral-icon">🎁</div>
-      <div class="referral-content">
-        <h3>¿Tienes un código de referido?</h3>
-        <p>Ingresa el código y obtén $11 de descuento en tu comisión</p>
-      </div>
-      <div class="referral-input-group">
-        <div class="referral-input-wrapper" [class.input-valid]="referralCodeValid === true" [class.input-invalid]="referralCodeValid === false">
-          <input
-            type="text"
-            [(ngModel)]="referralCode"
-            name="referralCode"
-            placeholder="Ej: ABC1234"
-            maxlength="10"
-            (blur)="validateReferralCode()"
-            (keyup.enter)="referralCodeValid ? applyReferralCode() : validateReferralCode()"
-          >
-          <span class="validation-spinner" *ngIf="referralCodeValidating"></span>
-          <span class="validation-check" *ngIf="referralCodeValid === true && !referralCodeValidating">✓</span>
-          <span class="validation-x" *ngIf="referralCodeValid === false && !referralCodeValidating">✗</span>
-        </div>
-        <button
-          type="button"
-          class="btn-apply-referral"
-          [disabled]="!referralCodeValid || referralCodeApplying"
-          (click)="applyReferralCode()"
+  <!-- Referral Code Section - Compact -->
+  <section class="referral-compact" *ngIf="!hasAppliedReferral">
+    <div class="referral-compact-row">
+      <span class="referral-compact-icon">🎁</span>
+      <span class="referral-compact-label">Código referido <span class="referral-discount">-$11</span></span>
+      <div class="referral-compact-input" [class.valid]="referralCodeValid === true" [class.invalid]="referralCodeValid === false">
+        <input
+          type="text"
+          [(ngModel)]="referralCode"
+          name="referralCode"
+          placeholder="ABC1234"
+          maxlength="10"
+          (blur)="validateReferralCode()"
+          (keyup.enter)="referralCodeValid ? applyReferralCode() : validateReferralCode()"
         >
-          {{ referralCodeApplying ? 'Aplicando...' : 'Aplicar' }}
-        </button>
+        <span class="input-status" *ngIf="referralCodeValidating">
+          <span class="mini-spinner"></span>
+        </span>
+        <span class="input-status valid" *ngIf="referralCodeValid === true && !referralCodeValidating">✓</span>
+        <span class="input-status invalid" *ngIf="referralCodeValid === false && !referralCodeValidating">✗</span>
       </div>
-      <div class="referral-feedback" *ngIf="referralCodeValid === true && referrerName">
-        <span class="referral-success">Referido por: <strong>{{ referrerName }}</strong> - $11 de descuento</span>
-      </div>
-      <div class="referral-feedback" *ngIf="referralCodeValid === false">
-        <span class="referral-error">Código inválido. Verifica e intenta de nuevo.</span>
-      </div>
+      <button
+        type="button"
+        class="btn-apply-compact"
+        [disabled]="!referralCodeValid || referralCodeApplying"
+        (click)="applyReferralCode()"
+      >
+        {{ referralCodeApplying ? '...' : 'Aplicar' }}
+      </button>
+    </div>
+    <div class="referral-compact-feedback" *ngIf="referralCodeValid === true && referrerName">
+      Referido por: <strong>{{ referrerName }}</strong>
+    </div>
+    <div class="referral-compact-feedback error" *ngIf="referralCodeValid === false">
+      Código inválido
     </div>
   </section>
 
-  <!-- Referral Applied Success -->
-  <section class="referral-section applied" *ngIf="hasAppliedReferral">
-    <div class="referral-banner success">
-      <div class="referral-icon">✓</div>
-      <div class="referral-content">
-        <h3>Código de referido aplicado</h3>
-        <p>Obtendrás $11 de descuento en tu comisión. Referido por: <strong>{{ referrerName }}</strong></p>
-      </div>
+  <!-- Referral Applied Success - Compact -->
+  <section class="referral-compact applied" *ngIf="hasAppliedReferral">
+    <div class="referral-compact-row success">
+      <span class="referral-compact-icon success">✓</span>
+      <span class="referral-compact-label">Código aplicado <span class="referral-discount">-$11</span></span>
+      <span class="referral-referrer">por {{ referrerName }}</span>
     </div>
   </section>
 
@@ -596,5 +591,16 @@
       <p>Nuestro equipo esta disponible para asistirte</p>
     </div>
     <button type="button" class="btn-help">Contactar soporte</button>
+  </div>
+
+  <!-- Mobile Sticky Action Bar -->
+  <div class="mobile-sticky-actions">
+    <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSavingDraft">
+      {{ isSavingDraft ? 'Guardando...' : 'Borrador' }}
+    </button>
+    <button type="button" class="btn-submit" (click)="onSubmit()" [disabled]="isLoading || !isFormComplete()">
+      <span>{{ isLoading ? 'Enviando...' : 'Enviar' }}</span>
+      <span class="submit-icon">→</span>
+    </button>
   </div>
 </div>

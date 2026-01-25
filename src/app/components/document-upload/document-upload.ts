@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, finalize, forkJoin } from 'rxjs';
@@ -23,6 +23,7 @@ import { ConsentForm } from '../consent-form/consent-form';
 })
 export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
@@ -37,6 +38,7 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   // Animation references
   @ViewChild('uploadZone') uploadZone!: ElementRef<HTMLElement>;
   @ViewChildren('fileCard') fileCards!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -66,7 +68,7 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   selectedType: DocumentType = DocumentType.W2;
   documentTypes = [
     { value: DocumentType.W2, label: 'W2' },
-    { value: DocumentType.PAYMENT_PROOF, label: 'Comprobante de Pago' },
+    { value: DocumentType.PAYMENT_PROOF, label: 'Pago' },
     { value: DocumentType.OTHER, label: 'Otro' }
   ];
 
@@ -93,6 +95,22 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.loadDocuments();
 
+    // Check for upload query param to auto-open file picker
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
+        if (params['upload'] === 'true') {
+          // Wait for content to load, then trigger file picker
+          this.triggerFilePickerWhenReady();
+          // Clear the query param from URL
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }
+      })
+    );
+
     // Auto-refresh on navigation
     this.subscriptions.add(
       this.router.events.pipe(
@@ -105,6 +123,32 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(
       this.dataRefreshService.onRefresh('/documents').subscribe(() => this.loadDocuments())
     );
+  }
+
+  private triggerFilePickerWhenReady() {
+    // If already loaded, trigger immediately
+    if (this.hasLoaded) {
+      setTimeout(() => this.openFilePicker(), 100);
+      return;
+    }
+
+    // Otherwise wait for load to complete
+    const checkInterval = setInterval(() => {
+      if (this.hasLoaded) {
+        clearInterval(checkInterval);
+        setTimeout(() => this.openFilePicker(), 100);
+      }
+    }, 100);
+
+    // Safety timeout after 5 seconds
+    setTimeout(() => clearInterval(checkInterval), 5000);
+  }
+
+  openFilePicker() {
+    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
   }
 
   ngAfterViewInit() {
@@ -245,8 +289,13 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getSelectedTypeLabel(): string {
-    const found = this.documentTypes.find(t => t.value === this.selectedType);
-    return found?.label || '';
+    // Full labels for confirmation popup
+    const fullLabels: Record<string, string> = {
+      [DocumentType.W2]: 'W2',
+      [DocumentType.PAYMENT_PROOF]: 'Comprobante de Pago',
+      [DocumentType.OTHER]: 'Otro'
+    };
+    return fullLabels[this.selectedType] || '';
   }
 
   uploadFile(file: File) {
@@ -340,8 +389,13 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getDocumentTypeLabel(type: DocumentType): string {
-    const found = this.documentTypes.find(t => t.value === type);
-    return found?.label || type;
+    // Full labels for file list display
+    const fullLabels: Record<string, string> = {
+      [DocumentType.W2]: 'W2',
+      [DocumentType.PAYMENT_PROOF]: 'Comprobante de Pago',
+      [DocumentType.OTHER]: 'Otro'
+    };
+    return fullLabels[type] || type;
   }
 
   goBack() {

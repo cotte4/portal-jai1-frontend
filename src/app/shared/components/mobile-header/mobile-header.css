@@ -1,0 +1,390 @@
+/* ==================== MOBILE HEADER ==================== */
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-header-height, 56px);
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+/* Header Sections */
+.header-left,
+.header-right {
+  width: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.header-left {
+  justify-content: flex-start;
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
+/* Title */
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-primary, #1D345D);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+
+/* Back Button */
+.btn-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-back:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.btn-back svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-primary, #1D345D);
+}
+
+/* Hamburger Menu Button */
+.btn-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-menu:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.btn-menu svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--color-primary, #1D345D);
+}
+
+/* Notification Button */
+.btn-notifications {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f0f2f5;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-notifications:active {
+  transform: scale(0.95);
+  background: #e4e6e9;
+}
+
+.btn-notifications svg {
+  width: 20px;
+  height: 20px;
+  stroke: #1D345D;
+}
+
+.notif-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* ==================== MENU PANEL (Slide-in) ==================== */
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.menu-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 320px;
+  background: #f8f9fa;
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.menu-panel.open {
+  transform: translateX(0);
+}
+
+.menu-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.menu-panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1D345D;
+}
+
+.btn-close-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-close-panel:active {
+  background: #e8e8e8;
+}
+
+.btn-close-panel svg {
+  width: 18px;
+  height: 18px;
+  stroke: #666;
+}
+
+/* User Card */
+.menu-user-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
+}
+
+.menu-user-card:active {
+  background: #f5f5f7;
+}
+
+.menu-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.menu-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.menu-avatar .avatar-initials {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.menu-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1D345D;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-user-email {
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-arrow {
+  width: 18px;
+  height: 18px;
+  stroke: #ccc;
+  flex-shrink: 0;
+}
+
+/* Menu Navigation */
+.menu-nav {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.menu-nav-item:active {
+  background: #f0f0f0;
+}
+
+.menu-nav-item svg {
+  width: 22px;
+  height: 22px;
+  stroke: #667eea;
+  flex-shrink: 0;
+}
+
+.menu-nav-item span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1D345D;
+}
+
+/* Logout Button - Fixed at bottom */
+.btn-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: auto 12px 12px 12px;
+  margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 14px 16px;
+  background: white;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-logout:active {
+  background: #fef2f2;
+}
+
+.btn-logout svg {
+  width: 20px;
+  height: 20px;
+  stroke: #ef4444;
+}
+
+.btn-logout span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+/* ==================== RESPONSIVE ==================== */
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .mobile-header {
+    display: none;
+  }
+
+  .menu-panel,
+  .profile-overlay {
+    display: none;
+  }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+  .header-title {
+    font-size: 15px;
+  }
+
+  .mobile-header {
+    padding: 0 8px;
+  }
+
+  .btn-menu svg {
+    width: 20px;
+    height: 20px;
+  }
+}
