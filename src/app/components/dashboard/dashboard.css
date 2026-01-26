@@ -1112,6 +1112,53 @@
   color: #1D345D;
 }
 
+/* ==================== REFERRAL BANNER HOME ==================== */
+.referral-banner-home {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff6b35 100%);
+  background-size: 200% 100%;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+}
+
+.referral-banner-home:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+  background-position: 100% 0;
+}
+
+.referral-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.referral-banner-icon {
+  font-size: 24px;
+}
+
+.referral-banner-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.referral-banner-arrow {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.referral-banner-home:hover .referral-banner-arrow {
+  transform: translateX(4px);
+}
+
 /* ==================== HELP FOOTER ==================== */
 .help-footer {
   display: flex;

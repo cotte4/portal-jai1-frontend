@@ -9,11 +9,12 @@ import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
 import { ToastComponent } from '../toast/toast';
+import { PwaInstallPrompt } from '../pwa-install-prompt/pwa-install-prompt';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, PwaInstallPrompt],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush

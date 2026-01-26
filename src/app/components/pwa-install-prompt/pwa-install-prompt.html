@@ -1,0 +1,42 @@
+@if (showPrompt()) {
+  <div class="pwa-overlay" (click)="dismiss()">
+    <div class="pwa-modal" (click)="$event.stopPropagation()">
+      <button class="pwa-close" (click)="dismiss()">×</button>
+
+      <div class="pwa-icon">
+        <img src="assets/icons/icon-192x192.png" alt="JAI1" onerror="this.style.display='none'">
+        <span class="pwa-icon-fallback">📱</span>
+      </div>
+
+      <h2 class="pwa-title">Instala la app JAI1</h2>
+      <p class="pwa-description">
+        Accede mas rapido y sin barras del navegador.
+        Como una app nativa, directo desde tu pantalla de inicio.
+      </p>
+
+      <div class="pwa-features">
+        <div class="pwa-feature">
+          <span class="feature-icon">⚡</span>
+          <span>Acceso instantaneo</span>
+        </div>
+        <div class="pwa-feature">
+          <span class="feature-icon">📱</span>
+          <span>Pantalla completa</span>
+        </div>
+        <div class="pwa-feature">
+          <span class="feature-icon">🔔</span>
+          <span>Notificaciones</span>
+        </div>
+      </div>
+
+      <button class="pwa-install-btn" (click)="installApp()">
+        <span>📲</span>
+        <span>Instala la app</span>
+      </button>
+
+      <button class="pwa-later-btn" (click)="dismiss()">
+        Dejamelo para la app
+      </button>
+    </div>
+  </div>
+}

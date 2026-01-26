@@ -963,6 +963,7 @@
 @media (max-width: 768px) {
   .form-content {
     padding: 16px;
+    padding-bottom: 100px; /* Space for fixed submit button */
   }
 
   .page-header {
@@ -971,13 +972,26 @@
   }
 
   .header-actions {
-    width: 100%;
-    flex-direction: column;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 16px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: flex;
+    gap: 12px;
+    flex-direction: row;
   }
 
-  .header-actions .btn-draft,
+  .header-actions .btn-draft {
+    flex: 0 0 auto;
+    padding: 14px 16px;
+  }
+
   .header-actions .btn-submit {
-    width: 100%;
+    flex: 1;
     justify-content: center;
   }
 

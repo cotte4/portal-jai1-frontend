@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, finalize } from 'rxjs';
@@ -11,7 +11,7 @@ import { Document, DocumentType } from '../../core/models';
 
 @Component({
   selector: 'app-document-upload',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './document-upload.html',
   styleUrl: './document-upload.css',
   changeDetection: ChangeDetectionStrategy.OnPush
