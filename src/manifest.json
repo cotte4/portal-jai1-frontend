@@ -1,0 +1,27 @@
+{
+  "name": "JAI1 - Portal de Cliente",
+  "short_name": "JAI1",
+  "description": "Portal de cliente para tramites de visa J1 y taxes",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#1D345D",
+  "icons": [
+    {
+      "src": "assets/images/jai1-favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/jai1-apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "scope": "/",
+  "lang": "es",
+  "categories": ["finance", "productivity"],
+  "prefer_related_applications": false
+}

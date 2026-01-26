@@ -1,0 +1,155 @@
+<div class="dashboard-page">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="header-logo">
+      <span class="header-badge">JAI1GENT</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-profile" (click)="goToProfile()">
+        Perfil
+      </button>
+      <button class="btn-logout" (click)="logout()">
+        Salir
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+    @if (isLoading && !hasLoaded) {
+      <div class="loading-state">
+        <div class="spinner-large"></div>
+        <p>Cargando dashboard...</p>
+      </div>
+    } @else if (errorMessage) {
+      <div class="error-state">
+        <span class="error-icon">!</span>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-retry" (click)="loadDashboard()">Reintentar</button>
+      </div>
+    } @else if (dashboard) {
+      <!-- Referral Code Card -->
+      <section class="referral-code-card">
+        <h2>Tu codigo de referido</h2>
+        <div class="code-display">
+          <span class="code">{{ dashboard.referral_code }}</span>
+          <button class="btn-copy" (click)="copyReferralCode()" [class.copied]="copySuccess">
+            {{ copySuccess ? 'Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+        <button class="btn-share" (click)="shareCode()">
+          Compartir codigo
+        </button>
+        <p class="code-hint">Comparte este codigo con tus amigos para ganar comisiones</p>
+      </section>
+
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value">{{ dashboard.stats.total_referrals }}</span>
+          <span class="stat-label">Total Referidos</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ dashboard.stats.completed_referrals }}</span>
+          <span class="stat-label">Completados</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ dashboard.stats.pending_referrals }}</span>
+          <span class="stat-label">Pendientes</span>
+        </div>
+        <div class="stat-card highlight">
+          <span class="stat-value">${{ dashboard.stats.total_earnings.toFixed(2) }}</span>
+          <span class="stat-label">Ganancias Totales</span>
+        </div>
+      </section>
+
+      <!-- Tier Progress -->
+      <section class="tier-card">
+        <div class="tier-header">
+          <h3>Tu nivel de comision</h3>
+          <span class="tier-badge">Tier {{ dashboard.tier.current.tierNumber }}</span>
+        </div>
+        <div class="tier-info">
+          <div class="current-tier">
+            <span class="tier-percent">{{ dashboard.tier.current.percent }}%</span>
+            <span class="tier-label">de comision por referido</span>
+          </div>
+          @if (dashboard.tier.next) {
+            <div class="next-tier">
+              <span class="next-label">Proximo nivel:</span>
+              <span class="next-value">{{ dashboard.tier.next.nextPercent }}% con {{ dashboard.tier.next.nextTierAt }} referidos</span>
+            </div>
+          } @else {
+            <div class="max-tier">
+              Has alcanzado el nivel maximo!
+            </div>
+          }
+        </div>
+
+        <!-- Tier Table -->
+        <div class="tier-table">
+          <h4>Niveles de comision</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Referidos</th>
+                <th>Comision</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tier of dashboard.tier.all_tiers; track tier.tier_number) {
+                <tr [class.current]="tier.tier_number === dashboard.tier.current.tierNumber">
+                  <td>{{ tier.tier_number }}</td>
+                  <td>{{ tier.min_referrals }}-{{ tier.max_referrals || '...' }}</td>
+                  <td>{{ tier.percent }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recent Referrals -->
+      <section class="referrals-card">
+        <h3>Ultimos referidos</h3>
+        @if (dashboard.recent_referrals.length === 0) {
+          <div class="empty-state">
+            <p>Aun no tienes referidos. Comparte tu codigo para empezar a ganar!</p>
+          </div>
+        } @else {
+          <div class="referrals-list">
+            @for (referral of dashboard.recent_referrals; track referral.id) {
+              <div class="referral-item">
+                <div class="referral-info">
+                  <span class="referral-name">{{ referral.referred_name }}</span>
+                  <span class="referral-date">{{ referral.created_at | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="referral-status">
+                  <span class="status-badge" [ngClass]="getStatusClass(referral.status)">
+                    {{ getStatusLabel(referral.status) }}
+                  </span>
+                  @if (referral.commission_amount) {
+                    <span class="commission">${{ referral.commission_amount.toFixed(2) }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Payment Info Alert -->
+      @if (!dashboard.payment_info.has_payment_info) {
+        <section class="payment-alert">
+          <span class="alert-icon">!</span>
+          <div class="alert-content">
+            <p>Configura tu metodo de pago para recibir tus comisiones.</p>
+            <button class="btn-setup" (click)="goToProfile()">Configurar ahora</button>
+          </div>
+        </section>
+      }
+    }
+  </main>
+</div>

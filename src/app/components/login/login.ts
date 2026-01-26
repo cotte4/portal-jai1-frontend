@@ -1,9 +1,11 @@
-import { Component, inject, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, AfterViewInit, OnDestroy, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { StorageService } from '../../core/services/storage.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { UserRole } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -14,11 +16,18 @@ import { environment } from '../../../environments/environment';
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Login implements OnInit {
+export class Login implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private storage = inject(StorageService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
+  private animationService = inject(AnimationService);
+
+  @ViewChild('brandContent') brandContent!: ElementRef<HTMLElement>;
+  @ViewChild('formWrapper') formWrapper!: ElementRef<HTMLElement>;
+  @ViewChild('errorAlert') errorAlert!: ElementRef<HTMLElement>;
 
   email: string = '';
   password: string = '';
@@ -26,6 +35,10 @@ export class Login implements OnInit {
   showPassword: boolean = false;
   rememberMe: boolean = false;
   isLoading: boolean = false;
+
+  // PWA Install
+  showInstallButton: boolean = false;
+  private deferredPrompt: any = null;
 
   private readonly REMEMBER_EMAIL_KEY = 'jai1_remembered_email';
 
@@ -41,10 +54,67 @@ export class Login implements OnInit {
     this.route.queryParams.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(params => {
-      if (params['error'] === 'google_auth_failed') {
+      if (params['error'] === 'google_no_account') {
+        this.errorMessage = 'No encontramos una cuenta con este email. Por favor, registrate primero o iniciá sesión con otro método.';
+        this.cdr.detectChanges();
+      } else if (params['error'] === 'google_auth_failed') {
         this.errorMessage = 'Error al iniciar sesion con Google. Intenta nuevamente.';
+        this.cdr.detectChanges();
       }
     });
+
+    // PWA Install prompt - listen for beforeinstallprompt event
+    this.setupInstallPrompt();
+  }
+
+  private setupInstallPrompt() {
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      this.showInstallButton = false;
+      return;
+    }
+
+    // Check if iOS Safari (needs different handling)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // iOS Safari doesn't support beforeinstallprompt, show button anyway
+      // It will show instructions on how to add to home screen
+      this.showInstallButton = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.showInstallButton = true;
+      this.cdr.detectChanges();
+    });
+
+    // Hide button if app gets installed
+    window.addEventListener('appinstalled', () => {
+      this.showInstallButton = false;
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngAfterViewInit() {
+    // Animate brand content sliding in from left
+    if (this.brandContent?.nativeElement) {
+      this.animationService.slideIn(this.brandContent.nativeElement, 'left', { delay: 0.1 });
+    }
+    // Animate form wrapper sliding in from right
+    if (this.formWrapper?.nativeElement) {
+      this.animationService.slideIn(this.formWrapper.nativeElement, 'right', { delay: 0.2 });
+    }
+  }
+
+  ngOnDestroy() {
+    this.animationService.killAnimations();
   }
 
   onLogin() {
@@ -81,14 +151,18 @@ export class Login implements OnInit {
         localStorage.removeItem('jai1_cached_profile');
         localStorage.removeItem('jai1_calculator_result'); // Clear old calculator data
 
-        // Check if user has a profile (from backend response)
-        // hasProfile means they've been through onboarding before
+        // Check if user should skip onboarding:
+        // 1. hasProfile from backend = user has completed tax form (profileComplete = true)
+        // 2. local onboarding flag = user has been through onboarding before (even without completing tax form)
+        // If EITHER is true, skip onboarding - they're not a first-time user
         const hasProfile = (response as any).hasProfile ?? (response as any).has_profile;
-        if (hasProfile) {
-          // User has profile - go to dashboard
+        const hasCompletedOnboarding = this.storage.isOnboardingCompleted();
+
+        if (hasProfile || hasCompletedOnboarding) {
+          // Existing user - go to dashboard
           this.router.navigate(['/dashboard']);
         } else {
-          // First time - show onboarding
+          // First time user - show onboarding
           this.router.navigate(['/onboarding']);
         }
       },
@@ -105,7 +179,8 @@ export class Login implements OnInit {
         }
 
         // Map common error messages to Spanish
-        const message = error.message || '';
+        // Use error.error?.message for NestJS HttpErrorResponse structure
+        const message = error.error?.message || error.message || '';
         if (message.includes('Invalid credentials') || message.includes('credentials')) {
           this.errorMessage = 'Email o contraseña incorrectos';
         } else if (message.includes('deactivated')) {
@@ -115,6 +190,7 @@ export class Login implements OnInit {
         } else {
           this.errorMessage = message || 'Credenciales inválidas';
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -134,5 +210,28 @@ export class Login implements OnInit {
   loginWithGoogle() {
     // Redirect to backend Google OAuth endpoint
     window.location.href = `${environment.apiUrl}/auth/google`;
+  }
+
+  async installApp() {
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // Show iOS instructions alert
+      alert('Para instalar la app:\n\n1. Tocá el botón Compartir (📤) abajo\n2. Seleccioná "Agregar a inicio"\n3. Tocá "Agregar"\n\n¡Listo! La app aparecerá en tu pantalla de inicio.');
+      return;
+    }
+
+    // Use the deferred prompt for Chrome/Edge/etc.
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      const { outcome } = await this.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        this.showInstallButton = false;
+      }
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    }
   }
 }

@@ -50,12 +50,12 @@
           </span>
         </div>
       </div>
-      <!-- Status display - use Phase-Based Status Section below for changes -->
+      <!-- Status display - use Status Section below for changes -->
       <div class="status-control">
         <span class="phase-badge" *ngIf="!taxesFiled">Pre-Presentacion</span>
         <span class="phase-badge filed" *ngIf="taxesFiled">Taxes Presentados</span>
-        <span class="status-info" *ngIf="selectedFederalStatus">Fed: {{ getTaxStatusLabel(selectedFederalStatus) }}</span>
-        <span class="status-info" *ngIf="selectedStateStatus">Est: {{ getTaxStatusLabel(selectedStateStatus) }}</span>
+        <span class="status-info" *ngIf="selectedFederalStatusNew">Fed: {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}</span>
+        <span class="status-info" *ngIf="selectedStateStatusNew">Est: {{ getStateStatusNewLabel(selectedStateStatusNew) }}</span>
       </div>
     </div>
 
@@ -118,25 +118,22 @@
         <div class="pre-filing-card">
           <div class="pre-filing-header">
             <span class="pre-filing-icon">📝</span>
-            <h3>Estado Pre-Presentacion</h3>
-            <span class="status-badge-large" [class]="'status-' + selectedPreFilingStatus">
-              {{ getPreFilingStatusLabel(selectedPreFilingStatus) }}
+            <h3>Estado del Caso</h3>
+            <span class="status-badge-large" [class]="'status-' + selectedCaseStatus">
+              {{ getCaseStatusLabel(selectedCaseStatus) }}
             </span>
           </div>
           <div class="pre-filing-body">
             <div class="pre-filing-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedPreFilingStatus">
-                <option *ngFor="let status of preFilingStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getPreFilingStatusLabel(status) }}
+              <select [(ngModel)]="selectedCaseStatus">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getCaseStatusLabel(status) }}
                 </option>
               </select>
             </div>
-            <div class="pre-filing-field">
-              <label>Comentario (opcional)</label>
-              <input type="text" [(ngModel)]="preFilingComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-update-prefiling" (click)="updatePreFilingStatus()" [disabled]="isSavingPreFiling">
+            <button class="btn-update-prefiling" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
               {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
             </button>
           </div>
@@ -179,22 +176,47 @@
       </div>
 
       <div class="federal-state-grid">
-        <!-- Federal Track -->
-        <div class="track-card federal-track">
+        <!-- Case Status -->
+        <div class="track-card case-status-card" style="grid-column: span 2;">
           <div class="track-header">
-            <span class="track-icon">🦅</span>
-            <h3>Federal</h3>
-            <span class="track-status" [class]="'status-' + (selectedFederalStatus || 'pending')">
-              {{ getTaxStatusLabel(selectedFederalStatus) }}
+            <span class="track-icon">📊</span>
+            <h3>Estado del Caso</h3>
+            <span class="track-status" [class]="'status-' + (selectedCaseStatus || 'pending')">
+              {{ getCaseStatusLabel(selectedCaseStatus) }}
             </span>
           </div>
           <div class="track-body">
             <div class="track-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedFederalStatus">
+              <select [(ngModel)]="selectedCaseStatus">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getTaxStatusLabel(status) }}
+                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getCaseStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+            <button class="btn-track-update" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
+              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar Estado' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Federal Track -->
+        <div class="track-card federal-track">
+          <div class="track-header">
+            <span class="track-icon">🦅</span>
+            <h3>Federal</h3>
+            <span class="track-status" [class]="'status-' + (selectedFederalStatusNew || 'pending')">
+              {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}
+            </span>
+          </div>
+          <div class="track-body">
+            <div class="track-field">
+              <label>Estado</label>
+              <select [(ngModel)]="selectedFederalStatusNew">
+                <option [ngValue]="null">Sin estado</option>
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getFederalStatusNewLabel(status) }}
                 </option>
               </select>
             </div>
@@ -214,8 +236,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateFederalStatusWithComment()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal' }}
+            <button class="btn-track-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederal">
+              {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
           </div>
         </div>
@@ -225,17 +247,17 @@
           <div class="track-header">
             <span class="track-icon">🗽</span>
             <h3>Estatal</h3>
-            <span class="track-status" [class]="'status-' + (selectedStateStatus || 'pending')">
-              {{ getTaxStatusLabel(selectedStateStatus) }}
+            <span class="track-status" [class]="'status-' + (selectedStateStatusNew || 'pending')">
+              {{ getStateStatusNewLabel(selectedStateStatusNew) }}
             </span>
           </div>
           <div class="track-body">
             <div class="track-field">
               <label>Estado</label>
-              <select [(ngModel)]="selectedStateStatus">
+              <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of taxStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getTaxStatusLabel(status) }}
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                  {{ getStateStatusNewLabel(status) }}
                 </option>
               </select>
             </div>
@@ -255,104 +277,8 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
             </div>
-            <button class="btn-track-update" (click)="updateStateStatusWithComment()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NEW STATUS SYSTEM (v2) Section -->
-    <section class="new-status-section" *ngIf="client.taxCases && client.taxCases.length > 0 && taxesFiled">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="section-icon">🆕</span>
-          <h2>Sistema de Estados v2 (Nuevo)</h2>
-        </div>
-        <span class="section-badge beta">BETA</span>
-      </div>
-
-      <div class="new-status-grid">
-        <!-- Case Status -->
-        <div class="status-card case-status-card">
-          <div class="status-card-header">
-            <span class="status-icon">📊</span>
-            <h3>Estado del Caso</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedCaseStatus || 'pending')">
-              {{ getCaseStatusLabel(selectedCaseStatus) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedCaseStatus">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getCaseStatusLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <button class="btn-status-update" (click)="updateCaseStatus()" [disabled]="isSavingPreFiling || !selectedCaseStatus">
-              {{ isSavingPreFiling ? 'Guardando...' : 'Actualizar' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Federal Status New -->
-        <div class="status-card federal-new-card">
-          <div class="status-card-header">
-            <span class="status-icon">🦅</span>
-            <h3>Federal (v2)</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedFederalStatusNew || 'pending')">
-              {{ getFederalStatusNewLabel(selectedFederalStatusNew) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedFederalStatusNew">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getFederalStatusNewLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <div class="status-field">
-              <label>Comentario</label>
-              <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-status-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Federal v2' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- State Status New -->
-        <div class="status-card state-new-card">
-          <div class="status-card-header">
-            <span class="status-icon">🗽</span>
-            <h3>Estatal (v2)</h3>
-            <span class="status-badge-large" [class]="'status-' + (selectedStateStatusNew || 'pending')">
-              {{ getStateStatusNewLabel(selectedStateStatusNew) }}
-            </span>
-          </div>
-          <div class="status-card-body">
-            <div class="status-field">
-              <label>Estado</label>
-              <select [(ngModel)]="selectedStateStatusNew">
-                <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
-                  {{ getStateStatusNewLabel(status) }}
-                </option>
-              </select>
-            </div>
-            <div class="status-field">
-              <label>Comentario</label>
-              <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
-            </div>
-            <button class="btn-status-update" (click)="updateStateStatusNew()" [disabled]="isSavingFederalState">
-              {{ isSavingFederalState ? 'Guardando...' : 'Actualizar Estatal v2' }}
+            <button class="btn-track-update" (click)="updateStateStatusNew()" [disabled]="isSavingState">
+              {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal' }}
             </button>
           </div>
         </div>
@@ -579,7 +505,17 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Reembolso Estimado</span>
-                  <span class="info-value">{{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}</span>
+                  <span class="info-value">
+                    {{ client.taxCases[0]?.estimatedRefund ? ('$' + client.taxCases[0].estimatedRefund) : 'Pendiente' }}
+                    <button
+                      *ngIf="client.taxCases[0]?.estimatedRefund"
+                      class="btn-reset-estimate"
+                      (click)="resetW2Estimate()"
+                      [disabled]="isResettingEstimate"
+                      title="Permite al cliente recalcular su W2">
+                      {{ isResettingEstimate ? 'Reseteando...' : 'Reset' }}
+                    </button>
+                  </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Pago Recibido</span>
@@ -656,7 +592,7 @@
           <div class="section-header">
             <div class="section-title">
               <span class="section-icon">📜</span>
-              <h2>Historial de Estados</h2>
+              <h2>Historial de Estados ({{ client.statusHistory.length }})</h2>
             </div>
           </div>
 
@@ -668,18 +604,23 @@
               </div>
               <div class="history-content">
                 <div class="history-header">
-                  <span class="history-date">{{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="history-date">
+                    <span class="date-icon">📅</span>
+                    {{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
                   <span class="history-admin" *ngIf="history.changedBy">
-                    por {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
+                    <span class="admin-icon">👤</span>
+                    {{ history.changedBy.firstName || '' }} {{ history.changedBy.lastName || '' }}
                   </span>
                 </div>
                 <div class="history-change">
-                  <span class="status-badge old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
-                  <span class="arrow">→</span>
-                  <span class="status-badge new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
+                  <span class="status-badge-history old">{{ getHistoryStatusLabel(history.previousStatus) }}</span>
+                  <span class="arrow-icon">→</span>
+                  <span class="status-badge-history new">{{ getHistoryStatusLabel(history.newStatus) }}</span>
                 </div>
                 <div class="history-comment" *ngIf="history.comment">
-                  "{{ history.comment }}"
+                  <span class="comment-icon">💬</span>
+                  <span class="comment-text">"{{ history.comment }}"</span>
                 </div>
               </div>
             </div>
@@ -695,37 +636,70 @@
               <span class="section-icon">💬</span>
               <h2>Tickets de Soporte</h2>
             </div>
+            <button class="btn-refresh-tickets" (click)="loadTickets()" [disabled]="isLoadingTickets" title="Recargar tickets">
+              <span [class.spinning]="isLoadingTickets">↻</span>
+            </button>
           </div>
 
-          <div class="tickets-list" *ngIf="tickets.length > 0">
+          <!-- Error Message (visible always when there's an error) -->
+          <div class="ticket-error-message" *ngIf="ticketErrorMessage">
+            <span class="error-icon">!</span>
+            {{ ticketErrorMessage }}
+            <button class="btn-retry" (click)="loadTickets()">Reintentar</button>
+          </div>
+
+          <!-- Loading State -->
+          <div class="tickets-loading" *ngIf="isLoadingTickets">
+            <div class="spinner-small"></div>
+            <p>Cargando tickets...</p>
+          </div>
+
+          <!-- Tickets List (only when loaded and has tickets) -->
+          <div class="tickets-list" *ngIf="!isLoadingTickets && tickets.length > 0">
             <div class="ticket-card"
                  *ngFor="let ticket of tickets; trackBy: trackById"
                  [class.selected]="selectedTicketId === ticket.id"
                  (click)="selectTicket(ticket.id)">
               <div class="ticket-subject">{{ ticket.subject }}</div>
-              <div class="ticket-status">{{ ticket.status }}</div>
-              <div class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</div>
+              <div class="ticket-meta">
+                <span class="ticket-status" [class]="'status-' + ticket.status">{{ getTicketStatusLabel(ticket.status) }}</span>
+                <span class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="messages-container" *ngIf="selectedTicket">
+          <!-- Loading Selected Ticket -->
+          <div class="tickets-loading" *ngIf="isLoadingSelectedTicket">
+            <div class="spinner-small"></div>
+            <p>Cargando conversacion...</p>
+          </div>
+
+          <!-- Selected Ticket Conversation -->
+          <div class="messages-container" *ngIf="selectedTicket && !isLoadingSelectedTicket">
+            <div class="conversation-header-mini">
+              <span class="ticket-subject-display">{{ selectedTicket.subject }}</span>
+              <span class="ticket-status-mini" [class]="'status-' + selectedTicket.status">{{ getTicketStatusLabel(selectedTicket.status) }}</span>
+            </div>
+
             <div class="messages-list">
               <div class="message-item"
                    *ngFor="let msg of selectedTicket.messages; trackBy: trackById"
                    [class.admin-message]="msg.sender?.role === 'admin'"
                    [class.client-message]="msg.sender?.role !== 'admin'">
                 <div class="message-header">
-                  <span class="sender-name">{{ msg.sender?.firstName || 'Usuario' }}</span>
-                  <span class="message-date">{{ msg.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="sender-name">{{ msg.sender?.role === 'admin' ? 'Soporte JAI1' : (msg.sender?.firstName || 'Cliente') }}</span>
+                  <span class="message-date">{{ msg.createdAt | date:'dd/MM HH:mm' }}</span>
                 </div>
                 <div class="message-text">{{ msg.message }}</div>
               </div>
+
+              <!-- Empty messages state -->
+              <div class="empty-conversation" *ngIf="!selectedTicket.messages || selectedTicket.messages.length === 0">
+                <p>No hay mensajes en este ticket</p>
+              </div>
             </div>
 
-            <!-- Ticket Messages -->
-            <div class="ticket-error-message" *ngIf="ticketErrorMessage">
-              {{ ticketErrorMessage }}
-            </div>
+            <!-- Success Message -->
             <div class="ticket-success-message" *ngIf="ticketSuccessMessage">
               {{ ticketSuccessMessage }}
             </div>
@@ -745,9 +719,11 @@
             </div>
           </div>
 
-          <div class="empty-messages" *ngIf="tickets.length === 0">
+          <!-- Empty State (only when loaded and no tickets) -->
+          <div class="empty-messages" *ngIf="!isLoadingTickets && tickets.length === 0 && !ticketErrorMessage">
             <span class="empty-icon">💬</span>
             <p>No hay tickets de soporte</p>
+            <span class="empty-hint">El cliente no ha creado ningun ticket</span>
           </div>
         </section>
       </div>

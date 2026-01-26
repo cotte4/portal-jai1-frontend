@@ -10,8 +10,6 @@ import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
   AdminClientDetail as ClientDetail,
-  TaxStatus,
-  PreFilingStatus,
   CaseStatus,
   FederalStatusNew,
   StateStatusNew,
@@ -45,6 +43,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   clientId: string = '';
   client: ClientDetail | null = null;
   tickets: Ticket[] = [];
+  selectedTicketFull: Ticket | null = null;  // Full ticket with messages
+  isLoadingSelectedTicket: boolean = false;
   statusComment: string = '';
   newMessage: string = '';
   selectedTicketId: string | null = null;
@@ -53,6 +53,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   isSaving: boolean = false;
   isMarkingPaid: boolean = false;
   isDeleting: boolean = false;
+  isSavingFederal: boolean = false;
+  isSavingState: boolean = false;
+  isResettingEstimate: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -63,8 +66,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   ticketSuccessMessage: string = '';
 
   // Status options
-  taxStatusOptions = Object.values(TaxStatus);
-  preFilingStatusOptions = Object.values(PreFilingStatus);
   problemTypeOptions = Object.values(ProblemType);
 
   // NEW STATUS SYSTEM (v2) options
@@ -82,26 +83,21 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   hasAlarm: boolean = false;
   hasCriticalAlarm: boolean = false;
 
-  // NEW: Phase-based status tracking
+  // Phase-based status tracking
   taxesFiled: boolean = false;
   taxesFiledAt: string = '';
-  selectedPreFilingStatus: PreFilingStatus = PreFilingStatus.AWAITING_REGISTRATION;
-  preFilingComment: string = '';
   isSavingPreFiling: boolean = false;
   isMarkingFiled: boolean = false;
   federalComment: string = '';
   stateComment: string = '';
 
-  // Federal/State tracking
-  selectedFederalStatus: TaxStatus | null = null;
-  selectedStateStatus: TaxStatus | null = null;
+  // Federal/State tracking (v2 only)
   federalEstimatedDate: string = '';
   stateEstimatedDate: string = '';
   federalActualRefund: number | null = null;
   stateActualRefund: number | null = null;
   federalDepositDate: string = '';
   stateDepositDate: string = '';
-  isSavingFederalState: boolean = false;
 
   // Problem tracking
   showProblemModal: boolean = false;
@@ -191,13 +187,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.hasProblem = taxCase.hasProblem || false;
           this.selectedProblemType = taxCase.problemType || null;
           this.problemDescription = taxCase.problemDescription || '';
-          // Load phase-based status data
-          this.taxesFiled = taxCase.taxesFiled || false;
-          this.taxesFiledAt = taxCase.taxesFiledAt ? this.formatDateForInput(taxCase.taxesFiledAt) : '';
-          this.selectedPreFilingStatus = taxCase.preFilingStatus || PreFilingStatus.AWAITING_REGISTRATION;
-          // Load federal/state tracking data
-          this.selectedFederalStatus = taxCase.federalStatus || null;
-          this.selectedStateStatus = taxCase.stateStatus || null;
+          // Derive taxesFiled from caseStatus (v2)
+          this.taxesFiled = taxCase.caseStatus === CaseStatus.TAXES_FILED;
+          this.taxesFiledAt = this.taxesFiled && taxCase.caseStatusChangedAt ? this.formatDateForInput(taxCase.caseStatusChangedAt) : '';
+          // Load federal/state tracking data (v2)
           this.federalEstimatedDate = taxCase.federalEstimatedDate ? this.formatDateForInput(taxCase.federalEstimatedDate) : '';
           this.stateEstimatedDate = taxCase.stateEstimatedDate ? this.formatDateForInput(taxCase.stateEstimatedDate) : '';
           this.federalActualRefund = taxCase.federalActualRefund || null;
@@ -207,7 +200,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           // Load comment fields
           this.federalComment = '';
           this.stateComment = '';
-          this.preFilingComment = '';
           // NEW STATUS SYSTEM (v2)
           this.selectedCaseStatus = taxCase.caseStatus || null;
           this.selectedFederalStatusNew = taxCase.federalStatusNew || null;
@@ -243,9 +235,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
         this.validStateStatusTransitions = transitions.stateStatusNew.validTransitions;
         this.cdr.markForCheck();
       },
-      error: (error) => {
+      error: () => {
         // Don't show error - transitions are optional enhancement
-        console.warn('Could not load valid transitions:', error);
       }
     });
   }
@@ -265,13 +256,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       error: (error) => {
         this.ticketErrorMessage = getErrorMessage(error, 'Error al cargar los tickets');
         this.isLoadingTickets = false;
-        console.error('Error loading tickets:', error);
         this.cdr.markForCheck();
       }
     });
   }
 
-  // Status Update - now uses phase-based status (preFilingStatus, federalStatus, stateStatus)
+  // Status Update - uses V2 status system (caseStatus, federalStatusNew, stateStatusNew)
   // Legacy methods kept for backward compatibility but no longer functional
   openStatusConfirmModal() {
     this.toastService.info('Use los controles de estado Federal/Estatal para actualizar el estado');
@@ -357,19 +347,22 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     this.isSendingMessage = true;
     this.ticketErrorMessage = '';
-    this.ticketService.addMessage(this.selectedTicketId, { message: this.newMessage }).subscribe({
-      next: () => {
+    const ticketId = this.selectedTicketId;
+
+    this.ticketService.addMessage(ticketId, { message: this.newMessage }).subscribe({
+      next: (updatedTicket) => {
         this.newMessage = '';
         this.ticketSuccessMessage = 'Mensaje enviado';
         this.isSendingMessage = false;
-        this.loadTickets();
+        // Update the selected ticket with the response (includes new message)
+        this.selectedTicketFull = updatedTicket;
+        this.loadTickets(); // Refresh list to update unread counts
         setTimeout(() => this.ticketSuccessMessage = '', 3000);
         this.cdr.markForCheck();
       },
       error: (error) => {
         this.ticketErrorMessage = getErrorMessage(error, 'Error al enviar el mensaje');
         this.isSendingMessage = false;
-        console.error('Error sending message:', error);
         this.cdr.markForCheck();
       }
     });
@@ -379,14 +372,30 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.selectedTicketId = ticketId;
     this.ticketErrorMessage = '';
     this.ticketSuccessMessage = '';
+    this.selectedTicketFull = null;
+    this.isLoadingSelectedTicket = true;
+
+    // Fetch full ticket with messages
+    this.ticketService.getTicket(ticketId).subscribe({
+      next: (ticket) => {
+        this.selectedTicketFull = ticket;
+        this.isLoadingSelectedTicket = false;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.ticketErrorMessage = getErrorMessage(error, 'Error al cargar el ticket');
+        this.isLoadingSelectedTicket = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
-  get selectedTicket(): Ticket | undefined {
-    return this.tickets.find(t => t.id === this.selectedTicketId);
+  get selectedTicket(): Ticket | null {
+    return this.selectedTicketFull;
   }
 
   // DEPRECATED: These methods are kept for backward compatibility in templates
-  // New status system uses preFilingStatus, federalStatus, stateStatus
+  // V2 status system uses caseStatus, federalStatusNew, stateStatusNew
   getInternalStatusLabel(status: any): string {
     // Legacy support - return generic label
     return status || 'Sin Estado';
@@ -553,20 +562,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     });
   }
 
-  // Federal/State Status Methods
-  getTaxStatusLabel(status: TaxStatus | null): string {
-    if (!status) return 'Sin estado';
-    const labels: Record<TaxStatus, string> = {
-      [TaxStatus.FILED]: 'Presentado',
-      [TaxStatus.PENDING]: 'Pendiente',
-      [TaxStatus.PROCESSING]: 'En Proceso',
-      [TaxStatus.APPROVED]: 'Aprobado',
-      [TaxStatus.REJECTED]: 'Rechazado',
-      [TaxStatus.DEPOSITED]: 'Depositado'
-    };
-    return labels[status] || status;
-  }
-
   formatDateForInput(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -592,7 +587,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   // Status history label transformation
   getHistoryStatusLabel(status: string | null | undefined): string {
-    if (!status) return 'Nuevo';
+    if (!status) return 'Estado Inicial';
 
     // Check if it's a step change
     if (status.startsWith('step:')) {
@@ -600,7 +595,50 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       return `Paso ${step}`;
     }
 
-    // Internal status labels
+    // Check if status contains composite data (e.g., "taxesFiled: false, preFiling: awaiting_documents")
+    if (status.includes(':') || status.includes(',')) {
+      return this.parseCompositeStatus(status);
+    }
+
+    // NEW STATUS SYSTEM (v2) - Case Status
+    const caseStatusLabels: Record<string, string> = {
+      awaiting_form: 'Esperando Formulario',
+      awaiting_docs: 'Esperando Documentos',
+      preparing: 'Preparando Declaración',
+      taxes_filed: 'Taxes Presentados',
+      case_issues: 'Problemas en el Caso'
+    };
+
+    // NEW STATUS SYSTEM (v2) - Federal/State Status
+    const federalStateLabels: Record<string, string> = {
+      in_process: 'En Proceso',
+      in_verification: 'En Verificación',
+      verification_in_progress: 'Verificación en Progreso',
+      verification_letter_sent: 'Carta de Verificación Enviada',
+      check_in_transit: 'Cheque en Camino',
+      issues: 'Problemas',
+      taxes_sent: 'Reembolso Enviado',
+      taxes_completed: 'Completado'
+    };
+
+    // Pre-filing status labels
+    const preFilingLabels: Record<string, string> = {
+      awaiting_registration: 'Esperando Registro',
+      awaiting_documents: 'Esperando Documentos',
+      documentation_complete: 'Documentación Completa'
+    };
+
+    // Old tax status labels
+    const taxStatusLabels: Record<string, string> = {
+      filed: 'Presentado',
+      pending: 'Pendiente',
+      processing: 'En Proceso',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      deposited: 'Depositado'
+    };
+
+    // Internal status labels (legacy)
     const internalLabels: Record<string, string> = {
       revision_de_registro: 'Revisión de Registro',
       esperando_datos: 'Esperando Datos',
@@ -614,7 +652,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       proceso_finalizado: 'Proceso Finalizado'
     };
 
-    // Client status labels
+    // Client status labels (legacy)
     const clientLabels: Record<string, string> = {
       esperando_datos: 'Esperando Datos',
       cuenta_en_revision: 'Cuenta en Revisión',
@@ -626,67 +664,70 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       taxes_finalizados: 'Taxes Finalizados'
     };
 
-    return internalLabels[status] || clientLabels[status] || status;
+    // Try all label mappings
+    return caseStatusLabels[status] ||
+           federalStateLabels[status] ||
+           preFilingLabels[status] ||
+           taxStatusLabels[status] ||
+           internalLabels[status] ||
+           clientLabels[status] ||
+           this.formatStatusCode(status);
   }
 
-  updateFederalStatus() {
-    this.isSavingFederalState = true;
-    const updateData: any = {};
+  // Parse composite status strings (e.g., "taxesFiled: false, preFiling: awaiting_documents")
+  private parseCompositeStatus(status: string): string {
+    const parts: string[] = [];
 
-    if (this.selectedFederalStatus) {
-      updateData.federalStatus = this.selectedFederalStatus;
-    }
-    if (this.federalEstimatedDate) {
-      updateData.federalEstimatedDate = this.federalEstimatedDate;
-    }
-    if (this.federalActualRefund !== null) {
-      updateData.federalActualRefund = this.federalActualRefund;
-    }
-    if (this.federalDepositDate) {
-      updateData.federalDepositDate = this.federalDepositDate;
-    }
+    // Split by comma or semicolon
+    const segments = status.split(/[,;]/).map(s => s.trim());
 
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.toastService.success('Estado Federal actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
+    for (const segment of segments) {
+      // Check if it's a key-value pair
+      if (segment.includes(':')) {
+        const [key, value] = segment.split(':').map(s => s.trim());
+        const formattedValue = this.formatStatusValue(key, value);
+        if (formattedValue) {
+          parts.push(formattedValue);
+        }
+      } else {
+        // Just a value, format it
+        parts.push(this.getHistoryStatusLabel(segment));
       }
-    });
+    }
+
+    return parts.length > 0 ? parts.join(' • ') : status;
   }
 
-  updateStateStatus() {
-    this.isSavingFederalState = true;
-    const updateData: any = {};
+  // Format individual status values
+  private formatStatusValue(key: string, value: string): string {
+    const fieldLabels: Record<string, string> = {
+      taxesFiled: 'Taxes Presentados',
+      preFiling: 'Pre-Presentación',
+      preFilingStatus: 'Pre-Presentación',
+      caseStatus: 'Estado del Caso',
+      federalStatus: 'Federal',
+      stateStatus: 'Estatal',
+      federalStatusNew: 'Federal',
+      stateStatusNew: 'Estatal'
+    };
 
-    if (this.selectedStateStatus) {
-      updateData.stateStatus = this.selectedStateStatus;
-    }
-    if (this.stateEstimatedDate) {
-      updateData.stateEstimatedDate = this.stateEstimatedDate;
-    }
-    if (this.stateActualRefund !== null) {
-      updateData.stateActualRefund = this.stateActualRefund;
-    }
-    if (this.stateDepositDate) {
-      updateData.stateDepositDate = this.stateDepositDate;
-    }
+    const fieldLabel = fieldLabels[key] || key;
+    const valueLabel = this.getHistoryStatusLabel(value);
 
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.toastService.success('Estado Estatal actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
-      }
-    });
+    // Handle boolean values
+    if (value === 'true') return fieldLabel;
+    if (value === 'false') return `${fieldLabel}: No`;
+
+    return `${fieldLabel}: ${valueLabel}`;
+  }
+
+  // Format raw status codes to readable form
+  private formatStatusCode(code: string): string {
+    // Replace underscores with spaces and capitalize each word
+    return code
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   // Credentials toggle methods
@@ -768,41 +809,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     });
   }
 
-  // ===== PHASE-BASED STATUS METHODS =====
-
-  getPreFilingStatusLabel(status: PreFilingStatus | null): string {
-    if (!status) return 'Sin estado';
-    const labels: Record<PreFilingStatus, string> = {
-      [PreFilingStatus.AWAITING_REGISTRATION]: 'Esperando Registro',
-      [PreFilingStatus.AWAITING_DOCUMENTS]: 'Esperando Documentos',
-      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'Documentacion Completa'
-    };
-    return labels[status] || status;
-  }
-
-  updatePreFilingStatus() {
-    this.isSavingPreFiling = true;
-    const updateData: any = {
-      preFilingStatus: this.selectedPreFilingStatus
-    };
-
-    if (this.preFilingComment) {
-      updateData.comment = this.preFilingComment;
-    }
-
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingPreFiling = false;
-        this.preFilingComment = '';
-        this.toastService.success('Estado pre-presentacion actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingPreFiling = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado'));
-      }
-    });
-  }
+  // ===== MARK TAXES AS FILED =====
 
   // Open confirmation modal for markTaxesAsFiled
   openMarkFiledConfirm() {
@@ -822,12 +829,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   confirmMarkFiled() {
     this.showMarkFiledConfirm = false;
     this.isMarkingFiled = true;
-    const updateData: any = {
-      taxesFiled: true,
-      taxesFiledAt: this.taxesFiledAt,
-      // Set initial federal/state status to 'filed'
-      federalStatus: TaxStatus.FILED,
-      stateStatus: TaxStatus.FILED
+    const updateData: UpdateStatusRequest = {
+      caseStatus: CaseStatus.TAXES_FILED,
+      federalStatusNew: FederalStatusNew.IN_PROCESS,
+      stateStatusNew: StateStatusNew.IN_PROCESS
     };
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
@@ -849,83 +854,14 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.openMarkFiledConfirm();
   }
 
-  // Updated federal status with comment
-  updateFederalStatusWithComment() {
-    this.isSavingFederalState = true;
-    const updateData: any = {};
-
-    if (this.selectedFederalStatus) {
-      updateData.federalStatus = this.selectedFederalStatus;
-    }
-    if (this.federalEstimatedDate) {
-      updateData.federalEstimatedDate = this.federalEstimatedDate;
-    }
-    if (this.federalActualRefund !== null) {
-      updateData.federalActualRefund = this.federalActualRefund;
-    }
-    if (this.federalDepositDate) {
-      updateData.federalDepositDate = this.federalDepositDate;
-    }
-    if (this.federalComment) {
-      updateData.federalComment = this.federalComment;
-    }
-
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.federalComment = '';
-        this.toastService.success('Estado Federal actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
-      }
-    });
-  }
-
-  // Updated state status with comment
-  updateStateStatusWithComment() {
-    this.isSavingFederalState = true;
-    const updateData: any = {};
-
-    if (this.selectedStateStatus) {
-      updateData.stateStatus = this.selectedStateStatus;
-    }
-    if (this.stateEstimatedDate) {
-      updateData.stateEstimatedDate = this.stateEstimatedDate;
-    }
-    if (this.stateActualRefund !== null) {
-      updateData.stateActualRefund = this.stateActualRefund;
-    }
-    if (this.stateDepositDate) {
-      updateData.stateDepositDate = this.stateDepositDate;
-    }
-    if (this.stateComment) {
-      updateData.stateComment = this.stateComment;
-    }
-
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
-        this.isSavingFederalState = false;
-        this.stateComment = '';
-        this.toastService.success('Estado Estatal actualizado');
-        this.loadClientData();
-      },
-      error: (error) => {
-        this.isSavingFederalState = false;
-        this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
-      }
-    });
-  }
-
-  // ===== NEW STATUS SYSTEM (v2) METHODS =====
+  // ===== STATUS SYSTEM (v2) METHODS =====
 
   getCaseStatusLabel(status: CaseStatus | null): string {
     if (!status) return 'Sin estado';
     const labels: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando Formulario',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Documentos',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos Enviados',
       [CaseStatus.PREPARING]: 'Preparando',
       [CaseStatus.TAXES_FILED]: 'Taxes Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'
@@ -941,6 +877,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
       [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
+      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas',
       [FederalStatusNew.TAXES_SENT]: 'Reembolso Enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -956,6 +893,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
       [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
+      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [StateStatusNew.ISSUES]: 'Problemas',
       [StateStatusNew.TAXES_SENT]: 'Reembolso Enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -994,6 +932,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.federalComment = this.federalComment;
     }
 
+    console.log('[FRONTEND] updateFederalStatusNew - Sending update:', {
+      selectedFederalStatusNew: this.selectedFederalStatusNew,
+      updateData: JSON.stringify(updateData)
+    });
+
     this.executeFederalStatusUpdate(updateData);
   }
 
@@ -1016,6 +959,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.stateComment = this.stateComment;
     }
 
+    console.log('[FRONTEND] updateStateStatusNew - Sending update:', {
+      selectedStateStatusNew: this.selectedStateStatusNew,
+      updateData: JSON.stringify(updateData)
+    });
+
     this.executeStateStatusUpdate(updateData);
   }
 
@@ -1027,6 +975,17 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  // ===== TICKET STATUS LABEL =====
+
+  getTicketStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'open': 'Abierto',
+      'in_progress': 'En Progreso',
+      'closed': 'Cerrado'
+    };
+    return labels[status] || status;
   }
 
   // ===== STATUS TRANSITION VALIDATION =====
@@ -1056,39 +1015,43 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   /**
-   * Get filtered case status options (valid transitions only)
+   * Get all case status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredCaseStatusOptions(): CaseStatus[] {
-    if (!this.validCaseStatusTransitions.length) {
-      return this.caseStatusOptions;
-    }
-    return this.caseStatusOptions.filter(status =>
-      this.validCaseStatusTransitions.includes(status)
-    );
+    return this.caseStatusOptions;
   }
 
   /**
-   * Get filtered federal status options (valid transitions only)
+   * Get all federal status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredFederalStatusOptions(): FederalStatusNew[] {
-    if (!this.validFederalStatusTransitions.length) {
-      return this.federalStatusNewOptions;
-    }
-    return this.federalStatusNewOptions.filter(status =>
-      this.validFederalStatusTransitions.includes(status)
-    );
+    return this.federalStatusNewOptions;
   }
 
   /**
-   * Get filtered state status options (valid transitions only)
+   * Check if a federal status is a valid transition from current
+   */
+  isValidFederalTransition(status: FederalStatusNew): boolean {
+    if (!this.validFederalStatusTransitions.length) return true;
+    return this.validFederalStatusTransitions.includes(status);
+  }
+
+  /**
+   * Get all state status options (admins can select any status)
+   * Invalid transitions will trigger override modal on save
    */
   get filteredStateStatusOptions(): StateStatusNew[] {
-    if (!this.validStateStatusTransitions.length) {
-      return this.stateStatusNewOptions;
-    }
-    return this.stateStatusNewOptions.filter(status =>
-      this.validStateStatusTransitions.includes(status)
-    );
+    return this.stateStatusNewOptions;
+  }
+
+  /**
+   * Check if a state status is a valid transition from current
+   */
+  isValidStateTransition(status: StateStatusNew): boolean {
+    if (!this.validStateStatusTransitions.length) return true;
+    return this.validStateStatusTransitions.includes(status);
   }
 
   // ===== OVERRIDE MODAL METHODS =====
@@ -1169,16 +1132,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   private executeFederalStatusUpdate(updateData: UpdateStatusRequest) {
-    this.isSavingFederalState = true;
+    this.isSavingFederal = true;
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         this.federalComment = '';
         this.toastService.success('Estado Federal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingFederal = false;
         if (!this.handleStatusUpdateError(error, 'federal', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
         }
@@ -1187,19 +1150,43 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   private executeStateStatusUpdate(updateData: UpdateStatusRequest) {
-    this.isSavingFederalState = true;
+    this.isSavingState = true;
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
       next: () => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         this.stateComment = '';
         this.toastService.success('Estado Estatal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederalState = false;
+        this.isSavingState = false;
         if (!this.handleStatusUpdateError(error, 'state', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
         }
+      }
+    });
+  }
+
+  /**
+   * Reset W2 estimate for a client
+   * Allows them to recalculate their W2
+   */
+  resetW2Estimate() {
+    if (!this.clientId || !confirm('¿Estás seguro de resetear el estimado W2? El cliente podrá recalcular su W2.')) {
+      return;
+    }
+
+    this.isResettingEstimate = true;
+
+    this.adminService.resetW2Estimate(this.clientId).subscribe({
+      next: (result) => {
+        this.isResettingEstimate = false;
+        this.toastService.success(`W2 reseteado: ${result.deletedEstimates} estimado(s), ${result.deletedDocuments} documento(s)`);
+        this.loadClientData(); // Refresh to show updated state
+      },
+      error: (error) => {
+        this.isResettingEstimate = false;
+        this.toastService.error(getErrorMessage(error, 'Error al resetear W2'));
       }
     });
   }

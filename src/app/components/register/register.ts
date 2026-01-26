@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ReferralService } from '../../core/services/referral.service';
+import { Jai1gentService } from '../../core/services/jai1gent.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -17,6 +18,7 @@ export class Register {
   private router = inject(Router);
   private authService = inject(AuthService);
   private referralService = inject(ReferralService);
+  private jai1gentService = inject(Jai1gentService);
   private cdr = inject(ChangeDetectorRef);
 
   // Form data
@@ -39,6 +41,7 @@ export class Register {
   referralCodeValid: boolean | null = null;
   referralCodeValidating: boolean = false;
   referrerName: string = '';
+  isJai1gentReferral: boolean = false;
 
   // Modal state
   showTermsModal: boolean = false;
@@ -67,6 +70,12 @@ export class Register {
       return;
     }
 
+    // Password strength validation
+    if (!this.isPasswordStrong()) {
+      this.errorMessage = 'La contrasena debe contener al menos una mayuscula, una minuscula, un numero y un caracter especial (@$!%*?&)';
+      return;
+    }
+
     // Password match validation
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'Las contrasenas no coinciden';
@@ -91,17 +100,18 @@ export class Register {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Registro exitoso! Redirigiendo...';
+        this.successMessage = 'Registro exitoso! Revisa tu email para verificar tu cuenta.';
         this.cdr.detectChanges();
 
-        // Redirect to onboarding for first-time users
+        // Store email for verification page and redirect
+        sessionStorage.setItem('pendingVerificationEmail', this.email);
         setTimeout(() => {
-          this.router.navigate(['/onboarding']);
-        }, 1000);
+          this.router.navigate(['/verify-email-sent']);
+        }, 1500);
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error al registrar. Intenta nuevamente.';
+        this.errorMessage = error.error?.message || error.message || 'Error al registrar. Intenta nuevamente.';
         this.cdr.detectChanges();
       }
     });
@@ -123,30 +133,56 @@ export class Register {
     if (!this.referralCode || this.referralCode.length < 4) {
       this.referralCodeValid = null;
       this.referrerName = '';
+      this.isJai1gentReferral = false;
       return;
     }
 
     this.referralCodeValidating = true;
-    this.referralService.validateCode(this.referralCode).subscribe({
-      next: (result) => {
-        this.referralCodeValidating = false;
-        this.referralCodeValid = result.valid;
-        this.referrerName = result.referrerName || '';
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.referralCodeValidating = false;
-        this.referralCodeValid = false;
-        this.referrerName = '';
-        this.cdr.detectChanges();
-      }
-    });
+
+    // Check if it's a JAI1GENT referral code (starts with JAI)
+    if (this.referralCode.toUpperCase().startsWith('JAI')) {
+      this.jai1gentService.validateReferralCode(this.referralCode).subscribe({
+        next: (result) => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = result.valid;
+          this.referrerName = result.jai1gentName || '';
+          this.isJai1gentReferral = result.valid;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = false;
+          this.referrerName = '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Regular client referral code
+      this.referralService.validateCode(this.referralCode).subscribe({
+        next: (result) => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = result.valid;
+          this.referrerName = result.referrerName || '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.referralCodeValidating = false;
+          this.referralCodeValid = false;
+          this.referrerName = '';
+          this.isJai1gentReferral = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   clearReferralCode() {
     this.referralCode = '';
     this.referralCodeValid = null;
     this.referrerName = '';
+    this.isJai1gentReferral = false;
   }
 
   openTermsModal(event: Event) {
@@ -169,4 +205,24 @@ export class Register {
     // The backend handles both login and registration automatically
     window.location.href = `${environment.apiUrl}/auth/google`;
   }
+
+  // Password strength validation helper
+  isPasswordStrong(): boolean {
+    const value = this.password;
+    if (!value) return false;
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumeric = /[0-9]/.test(value);
+    const hasSpecialChar = /[@$!%*?&]/.test(value);
+
+    return hasUpperCase && hasLowerCase && hasNumeric && hasSpecialChar;
+  }
+
+  // Individual password requirement checks for UI feedback
+  get hasMinLength(): boolean { return this.password.length >= 8; }
+  get hasUpperCase(): boolean { return /[A-Z]/.test(this.password); }
+  get hasLowerCase(): boolean { return /[a-z]/.test(this.password); }
+  get hasNumber(): boolean { return /[0-9]/.test(this.password); }
+  get hasSpecialChar(): boolean { return /[@$!%*?&]/.test(this.password); }
 }

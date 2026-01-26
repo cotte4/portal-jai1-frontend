@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ElementRef, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, forkJoin, finalize, of } from 'rxjs';
@@ -9,16 +9,24 @@ import { DocumentService } from '../../core/services/document.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { ConfettiService } from '../../core/services/confetti.service';
 import {
   ProfileResponse,
   Document,
   DocumentType,
-  TaxStatus,
-  PreFilingStatus,
   CaseStatus,
   FederalStatusNew,
   StateStatusNew
 } from '../../core/models';
+import {
+  isFederalApproved,
+  isFederalDeposited,
+  isFederalRejected,
+  isStateApproved,
+  isStateDeposited,
+  isStateRejected
+} from '../../core/utils/status-display-mapper';
 
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 
@@ -48,7 +56,7 @@ interface DashboardCacheData {
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Dashboard implements OnInit, OnDestroy {
+export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
@@ -57,7 +65,14 @@ export class Dashboard implements OnInit, OnDestroy {
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private animationService = inject(AnimationService);
+  private confettiService = inject(ConfettiService);
   private subscriptions = new Subscription();
+
+  @ViewChild('welcomeSection') welcomeSection!: ElementRef<HTMLElement>;
+  @ViewChild('refundValue') refundValue!: ElementRef<HTMLElement>;
+  @ViewChildren('bentoCard') bentoCards!: QueryList<ElementRef<HTMLElement>>;
+  private hasAnimated: boolean = false;
 
   profileData: ProfileResponse | null = null;
   documents: Document[] = [];
@@ -70,6 +85,12 @@ export class Dashboard implements OnInit, OnDestroy {
   // User info from auth service (available immediately)
   userName: string = '';
   userEmail: string = '';
+
+  // PWA Install Overlay
+  showInstallOverlay: boolean = false;
+  private deferredPrompt: any = null;
+  private readonly INSTALL_DISMISSED_KEY = 'jai1_install_dismissed';
+  private readonly INSTALL_OVERLAY_SHOWN_KEY = 'jai1_install_overlay_shown_session';
 
   ngOnInit() {
     this.loadData();
@@ -95,15 +116,60 @@ export class Dashboard implements OnInit, OnDestroy {
         this.loadData();
       })
     );
+
+    // Setup PWA install overlay
+    this.setupInstallOverlay();
+  }
+
+  ngAfterViewInit() {
+    // Trigger entrance animations after data loads
+    this.runEntranceAnimations();
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     // Clear safety timeout to prevent memory leaks and errors after component destroy
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
     }
+  }
+
+  private runEntranceAnimations() {
+    if (this.hasAnimated) return;
+
+    // Wait for hasLoaded to be true, then animate
+    const checkAndAnimate = () => {
+      if (!this.hasLoaded) {
+        setTimeout(checkAndAnimate, 100);
+        return;
+      }
+
+      this.hasAnimated = true;
+
+      // Animate welcome section
+      if (this.welcomeSection?.nativeElement) {
+        this.animationService.slideIn(this.welcomeSection.nativeElement, 'up', { delay: 0.1 });
+      }
+
+      // Stagger animate bento cards
+      if (this.bentoCards?.length) {
+        const cards = this.bentoCards.map(c => c.nativeElement);
+        this.animationService.staggerIn(cards, { direction: 'up', stagger: 0.08, delay: 0.2 });
+      }
+
+      // Animate refund counter if available
+      if (this.refundValue?.nativeElement && this.calculatorResult?.estimatedRefund) {
+        this.animationService.counterUp(
+          this.refundValue.nativeElement,
+          this.calculatorResult.estimatedRefund,
+          { prefix: '$', decimals: 0, duration: 1 }
+        );
+      }
+    };
+
+    checkAndAnimate();
   }
 
   loadData() {
@@ -132,10 +198,7 @@ export class Dashboard implements OnInit, OnDestroy {
     forkJoin({
       profile: this.profileService.getProfile().pipe(
         timeout(8000),
-        catchError(error => {
-          console.warn('Profile load error or timeout:', error);
-          return of(null);
-        })
+        catchError(() => of(null))
       ),
       documents: this.documentService.getDocuments().pipe(
         timeout(8000),
@@ -153,22 +216,35 @@ export class Dashboard implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: (results) => {
+        // Track previous state for confetti logic
+        const wasAllComplete = this.allStepsComplete;
+
         if (results.profile) {
           this.profileData = results.profile;
         }
         this.documents = results.documents || [];
 
         // Sync calculator result from backend (for cross-device support)
-        if (results.calculatorResult && results.calculatorResult.estimatedRefund) {
-          // Save to localStorage for consistency and update local state
-          this.calculatorResultService.saveResult(
-            results.calculatorResult.estimatedRefund,
-            results.calculatorResult.w2FileName
-          );
+        // Backend returns { hasEstimate: boolean, estimate: {...} | null }
+        const backendData = results.calculatorResult as any;
+        if (backendData?.hasEstimate && backendData?.estimate) {
+          const estimate = backendData.estimate;
+          // Use syncFromBackend to properly populate all fields and update BehaviorSubject
+          this.calculatorResultService.syncFromBackend({
+            estimatedRefund: estimate.estimatedRefund,
+            w2FileName: estimate.w2FileName,
+            box2Federal: estimate.box2Federal,
+            box17State: estimate.box17State,
+            ocrConfidence: estimate.ocrConfidence,
+            createdAt: estimate.createdAt
+          });
         }
 
         // Cache dashboard data for faster loads on refresh
         this.cacheDashboardData();
+
+        // Trigger confetti when all steps become complete (first time only per session)
+        this.checkAndTriggerConfetti(wasAllComplete);
       }
     });
 
@@ -181,7 +257,6 @@ export class Dashboard implements OnInit, OnDestroy {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
-        console.log('Dashboard: Safety timeout triggered');
       }
       this.safetyTimeoutId = null;
     }, 5000);
@@ -199,6 +274,21 @@ export class Dashboard implements OnInit, OnDestroy {
     return '---';
   }
 
+  // ============ ACTUAL REFUND (from IRS) ============
+  get actualRefund(): number | null {
+    const federal = Number(this.profileData?.taxCase?.federalActualRefund || 0);
+    const state = Number(this.profileData?.taxCase?.stateActualRefund || 0);
+    const total = federal + state;
+    return total > 0 ? total : null;
+  }
+
+  get actualRefundDisplay(): string {
+    if (this.actualRefund) {
+      return `$${this.actualRefund.toLocaleString()}`;
+    }
+    return '---';
+  }
+
   // ============ USER PROGRESS ============
   get isProfileComplete(): boolean {
     return this.profileData?.profile?.profileComplete || false;
@@ -206,7 +296,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isFormSent(): boolean {
     // Form is sent if profile is complete and not a draft
-    return this.profileData?.profile?.profileComplete === true && 
+    return this.profileData?.profile?.profileComplete === true &&
            this.profileData?.profile?.isDraft === false;
   }
 
@@ -216,19 +306,6 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get hasPaymentProof(): boolean {
     return this.documents.some(d => d.type === DocumentType.PAYMENT_PROOF);
-  }
-
-  get userProgressPercent(): number {
-    let completed = 0;
-    if (this.isProfileComplete) completed++;
-    if (this.isFormSent) completed++;
-    if (this.hasW2Document) completed++;
-    if (this.hasPaymentProof) completed++;
-    return Math.round((completed / 4) * 100);
-  }
-
-  get userProgressComplete(): boolean {
-    return this.userProgressPercent === 100;
   }
 
   // ============ BENTO GRID STEP STATES ============
@@ -271,14 +348,13 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isSentToIRS(): boolean {
     if (!this.taxCase) return false;
-    // Taxes are sent to IRS when taxesFiled = true
-    return this.taxCase.taxesFiled === true;
+    // Taxes are sent to IRS when caseStatus = TAXES_FILED
+    return this.taxCase.caseStatus === CaseStatus.TAXES_FILED;
   }
 
   get isAcceptedByIRS(): boolean {
     if (!this.taxCase) return false;
-    return this.taxCase.federalStatus === TaxStatus.APPROVED ||
-           this.taxCase.federalStatus === TaxStatus.DEPOSITED;
+    return isFederalApproved(this.taxCase.federalStatusNew);
   }
 
   get estimatedReturnDate(): string | null {
@@ -304,8 +380,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get isRefundDeposited(): boolean {
     if (!this.taxCase) return false;
-    return this.taxCase.federalStatus === TaxStatus.DEPOSITED ||
-           this.taxCase.stateStatus === TaxStatus.DEPOSITED;
+    return isFederalDeposited(this.taxCase.federalStatusNew) || isStateDeposited(this.taxCase.stateStatusNew);
   }
 
   get irsProgressPercent(): number {
@@ -327,10 +402,10 @@ export class Dashboard implements OnInit, OnDestroy {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
 
-    const taxesFiled = taxCase?.taxesFiled || false;
-    const preFilingStatus = taxCase?.preFilingStatus;
-    const federalStatus = taxCase?.federalStatus;
-    const stateStatus = taxCase?.stateStatus;
+    const caseStatus = taxCase?.caseStatus;
+    const taxesFiled = caseStatus === CaseStatus.TAXES_FILED;
+    const federalStatus = taxCase?.federalStatusNew;
+    const stateStatus = taxCase?.stateStatusNew;
     const profileComplete = profile?.profileComplete || false;
 
     // Total of 8 steps: 2 shared + 3 federal + 3 estatal
@@ -353,7 +428,7 @@ export class Dashboard implements OnInit, OnDestroy {
     const isSubmitted = taxesFiled === true;
 
     if (!isSubmitted) {
-      if (preFilingStatus === PreFilingStatus.DOCUMENTATION_COMPLETE) {
+      if (caseStatus === CaseStatus.PREPARING) {
         return {
           stepNumber: 2,
           totalSteps: 8,
@@ -379,7 +454,7 @@ export class Dashboard implements OnInit, OnDestroy {
     // Determine most relevant step based on status
 
     // Check for rejections first
-    if (federalStatus === TaxStatus.REJECTED) {
+    if (isFederalRejected(federalStatus)) {
       return {
         stepNumber: 3,
         totalSteps: 8,
@@ -391,7 +466,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (stateStatus === TaxStatus.REJECTED) {
+    if (isStateRejected(stateStatus)) {
       return {
         stepNumber: 3,
         totalSteps: 8,
@@ -404,7 +479,7 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check if both are deposited (completed)
-    if (federalStatus === TaxStatus.DEPOSITED && stateStatus === TaxStatus.DEPOSITED) {
+    if (isFederalDeposited(federalStatus) && isStateDeposited(stateStatus)) {
       return {
         stepNumber: 8,
         totalSteps: 8,
@@ -417,9 +492,9 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check individual deposit status
-    if (federalStatus === TaxStatus.DEPOSITED) {
+    if (isFederalDeposited(federalStatus)) {
       // Federal done, check state
-      if (stateStatus === TaxStatus.APPROVED) {
+      if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
         return {
           stepNumber: 7,
           totalSteps: 8,
@@ -430,7 +505,7 @@ export class Dashboard implements OnInit, OnDestroy {
           status: 'active'
         };
       }
-      if (stateStatus === TaxStatus.PROCESSING || !stateStatus) {
+      if (!isStateApproved(stateStatus)) {
         return {
           stepNumber: 6,
           totalSteps: 8,
@@ -443,9 +518,9 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     }
 
-    if (stateStatus === TaxStatus.DEPOSITED) {
+    if (isStateDeposited(stateStatus)) {
       // State done, check federal
-      if (federalStatus === TaxStatus.APPROVED) {
+      if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
         return {
           stepNumber: 5,
           totalSteps: 8,
@@ -456,7 +531,7 @@ export class Dashboard implements OnInit, OnDestroy {
           status: 'active'
         };
       }
-      if (federalStatus === TaxStatus.PROCESSING || !federalStatus) {
+      if (!isFederalApproved(federalStatus)) {
         return {
           stepNumber: 4,
           totalSteps: 8,
@@ -470,7 +545,8 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // Check approved but not deposited
-    if (federalStatus === TaxStatus.APPROVED && stateStatus === TaxStatus.APPROVED) {
+    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus) &&
+        isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
       return {
         stepNumber: 6,
         totalSteps: 8,
@@ -482,7 +558,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (federalStatus === TaxStatus.APPROVED) {
+    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
       return {
         stepNumber: 5,
         totalSteps: 8,
@@ -494,7 +570,7 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    if (stateStatus === TaxStatus.APPROVED) {
+    if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
       return {
         stepNumber: 5,
         totalSteps: 8,
@@ -506,8 +582,11 @@ export class Dashboard implements OnInit, OnDestroy {
       };
     }
 
-    // Default: waiting for IRS decisions
-    if (federalStatus === TaxStatus.PROCESSING || stateStatus === TaxStatus.PROCESSING) {
+    // Default: waiting for IRS decisions - active processing
+    const federalIsActive = federalStatus && !isFederalApproved(federalStatus) && !isFederalRejected(federalStatus);
+    const stateIsActive = stateStatus && !isStateApproved(stateStatus) && !isStateRejected(stateStatus);
+
+    if (federalIsActive || stateIsActive) {
       return {
         stepNumber: 3,
         totalSteps: 8,
@@ -542,9 +621,120 @@ export class Dashboard implements OnInit, OnDestroy {
            this.currentStepInfo.stepNumber === 8;
   }
 
+  // ============ IRS SUMMARY HELPERS ============
+  getCurrentStatusMessage(): string {
+    if (this.isRefundDeposited) {
+      return '¡Tu reembolso ha sido depositado!';
+    }
+    if (this.isAcceptedByIRS) {
+      return 'Tu declaración fue aprobada';
+    }
+    if (this.isSentToIRS) {
+      return 'Tu declaración está en proceso';
+    }
+    return 'Pendiente de enviar al IRS';
+  }
+
+  getFederalPercent(): number {
+    // No progress until submitted to IRS
+    if (!this.isSentToIRS) return 0;
+    if (!this.taxCase) return 0;
+
+    const status = this.taxCase.federalStatusNew;
+    // Progress based on federal status
+    if (status === FederalStatusNew.TAXES_COMPLETED) return 100;
+    if (status === FederalStatusNew.TAXES_SENT || status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === FederalStatusNew.IN_PROCESS) return 33;
+    if (status === FederalStatusNew.ISSUES) return 33;
+    return 0;
+  }
+
+  getEstatalPercent(): number {
+    // No progress until submitted to IRS
+    if (!this.isSentToIRS) return 0;
+    if (!this.taxCase) return 0;
+
+    const status = this.taxCase.stateStatusNew;
+    // Progress based on state status
+    if (status === StateStatusNew.TAXES_COMPLETED) return 100;
+    if (status === StateStatusNew.TAXES_SENT || status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === StateStatusNew.IN_PROCESS) return 33;
+    if (status === StateStatusNew.ISSUES) return 33;
+    return 0;
+  }
+
+  getFederalStatusText(): string {
+    if (!this.isSentToIRS) return 'No enviado';
+    if (!this.taxCase) return 'Pendiente';
+    const status = this.taxCase.federalStatusNew;
+    if (status === FederalStatusNew.TAXES_COMPLETED) return 'Completado';
+    if (status === FederalStatusNew.TAXES_SENT) return 'Enviado';
+    if (status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === FederalStatusNew.IN_PROCESS) return 'En proceso';
+    if (status === FederalStatusNew.ISSUES) return 'Con problemas';
+    return 'Pendiente';
+  }
+
+  getEstatalStatusText(): string {
+    if (!this.isSentToIRS) return 'No enviado';
+    if (!this.taxCase) return 'Pendiente';
+    const status = this.taxCase.stateStatusNew;
+    if (status === StateStatusNew.TAXES_COMPLETED) return 'Completado';
+    if (status === StateStatusNew.TAXES_SENT) return 'Enviado';
+    if (status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === StateStatusNew.IN_PROCESS) return 'En proceso';
+    if (status === StateStatusNew.ISSUES) return 'Con problemas';
+    return 'Pendiente';
+  }
+
   // ============ NAVIGATION ============
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  // ============ CONFETTI CELEBRATIONS ============
+  private checkAndTriggerConfetti(wasAllComplete: boolean): void {
+    // Check if all steps JUST became complete (transition from incomplete to complete)
+    // Only show confetti once ever, persisted in localStorage
+    if (this.allStepsComplete && !wasAllComplete && !this.hasShownCompletionConfetti()) {
+      this.markCompletionConfettiShown();
+      // Delay slightly to let the UI update first
+      setTimeout(() => {
+        this.confettiService.bigCelebration();
+      }, 500);
+    }
+
+    // Check if refund was just deposited
+    if (this.isRefundDeposited && !this.hasShownDepositConfetti()) {
+      this.markDepositConfettiShown();
+      setTimeout(() => {
+        this.confettiService.fireworks();
+      }, 300);
+    }
+  }
+
+  private hasShownCompletionConfetti(): boolean {
+    const key = `jai1_completion_confetti_${this.authService.currentUser?.id}`;
+    return localStorage.getItem(key) === 'true';
+  }
+
+  private markCompletionConfettiShown(): void {
+    const key = `jai1_completion_confetti_${this.authService.currentUser?.id}`;
+    localStorage.setItem(key, 'true');
+  }
+
+  private hasShownDepositConfetti(): boolean {
+    const key = `jai1_deposit_confetti_${this.authService.currentUser?.id}`;
+    return localStorage.getItem(key) === 'true';
+  }
+
+  private markDepositConfettiShown(): void {
+    const key = `jai1_deposit_confetti_${this.authService.currentUser?.id}`;
+    localStorage.setItem(key, 'true');
   }
 
   // ============ CACHING ============
@@ -582,8 +772,7 @@ export class Dashboard implements OnInit, OnDestroy {
         this.calculatorResult = cacheData.calculatorResult;
       }
       return true; // Cache was successfully loaded
-    } catch (e) {
-      console.warn('Failed to load dashboard cache:', e);
+    } catch {
       return false;
     }
   }
@@ -602,8 +791,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
     try {
       localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn('Failed to cache dashboard data:', e);
+    } catch {
+      // Silently ignore cache write failures
     }
   }
 
@@ -618,6 +807,7 @@ export class Dashboard implements OnInit, OnDestroy {
     const mapping: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando formulario y documentos',
       [CaseStatus.AWAITING_DOCS]: 'Esperando formulario y documentos',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos enviados',
       [CaseStatus.PREPARING]: 'Información recibida',
       [CaseStatus.TAXES_FILED]: 'Taxes presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas - contactar soporte',
@@ -638,6 +828,7 @@ export class Dashboard implements OnInit, OnDestroy {
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
       [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [FederalStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -658,6 +849,7 @@ export class Dashboard implements OnInit, OnDestroy {
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
       [StateStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
+      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [StateStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [StateStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -685,7 +877,7 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     // If taxes are filed, show federal/state status
-    if (caseStatus === CaseStatus.TAXES_FILED || taxCase.taxesFiled) {
+    if (caseStatus === CaseStatus.TAXES_FILED) {
       // Prioritize showing the most advanced status
       if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED ||
           stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
@@ -721,5 +913,94 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
     return 'Esperando formulario y documentos';
+  }
+
+  // ============ PWA INSTALL OVERLAY ============
+
+  private setupInstallOverlay() {
+    // Don't show if user permanently dismissed
+    if (localStorage.getItem(this.INSTALL_DISMISSED_KEY) === 'true') {
+      return;
+    }
+
+    // Don't show if already shown this session
+    if (sessionStorage.getItem(this.INSTALL_OVERLAY_SHOWN_KEY) === 'true') {
+      return;
+    }
+
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return;
+    }
+
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // iOS Safari - show overlay after a delay
+      this.showOverlayAfterDelay();
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.showOverlayAfterDelay();
+    });
+
+    // Hide if app gets installed
+    window.addEventListener('appinstalled', () => {
+      this.showInstallOverlay = false;
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private showOverlayAfterDelay() {
+    // Show overlay after 2 seconds to let the page load
+    setTimeout(() => {
+      if (localStorage.getItem(this.INSTALL_DISMISSED_KEY) !== 'true') {
+        this.showInstallOverlay = true;
+        sessionStorage.setItem(this.INSTALL_OVERLAY_SHOWN_KEY, 'true');
+        this.cdr.detectChanges();
+      }
+    }, 2000);
+  }
+
+  closeInstallOverlay() {
+    this.showInstallOverlay = false;
+    this.cdr.detectChanges();
+  }
+
+  dismissInstallPermanently() {
+    localStorage.setItem(this.INSTALL_DISMISSED_KEY, 'true');
+    this.showInstallOverlay = false;
+    this.cdr.detectChanges();
+  }
+
+  async installApp() {
+    // Check if iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIOS && isSafari) {
+      // Show iOS instructions
+      alert('Para instalar la app:\n\n1. Tocá el botón Compartir (📤) abajo\n2. Seleccioná "Agregar a inicio"\n3. Tocá "Agregar"\n\n¡Listo! La app aparecerá en tu pantalla de inicio.');
+      this.closeInstallOverlay();
+      return;
+    }
+
+    // Use the deferred prompt for Chrome/Edge/etc.
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      const { outcome } = await this.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        this.showInstallOverlay = false;
+      }
+      this.deferredPrompt = null;
+      this.cdr.detectChanges();
+    }
   }
 }

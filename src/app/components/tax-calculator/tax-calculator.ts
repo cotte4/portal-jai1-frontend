@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription, filter, finalize, forkJoin, of } from 'rxjs';
@@ -8,7 +8,10 @@ import { W2SharedService } from '../../core/services/w2-shared.service';
 import { CalculatorResultService, CalculatorResult } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ConfettiService } from '../../core/services/confetti.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { DocumentType, OcrConfidence, Document } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
 type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'already-calculated';
 
@@ -19,7 +22,7 @@ type CalculatorState = 'loading' | 'upload' | 'calculating' | 'result' | 'alread
   styleUrl: './tax-calculator.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TaxCalculator implements OnInit, OnDestroy {
+export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private documentService = inject(DocumentService);
@@ -27,10 +30,18 @@ export class TaxCalculator implements OnInit, OnDestroy {
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
   private dataRefreshService = inject(DataRefreshService);
+  private confettiService = inject(ConfettiService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private apiSubscription: Subscription | null = null;
   private isLoadingInProgress = false;
   private activeIntervals: ReturnType<typeof setInterval>[] = [];
+
+  // Animation references
+  @ViewChild('resultCard') resultCard!: ElementRef<HTMLElement>;
+  @ViewChild('refundAmount') refundAmount!: ElementRef<HTMLElement>;
+  @ViewChild('uploadCard') uploadCard!: ElementRef<HTMLElement>;
 
   state: CalculatorState = 'loading';
   existingW2: Document | null = null;
@@ -46,10 +57,10 @@ export class TaxCalculator implements OnInit, OnDestroy {
   ocrConfidence: OcrConfidence = 'high';
   errorMessage = '';
 
-  // Auto-save states
-  isSavingDocument = false;
+  // Document save states (backend now saves W2 automatically during estimate)
   documentSaved = false;
   isFromDocuments = false;
+  isDemo = false;
 
   ngOnInit() {
     this.checkExistingW2();
@@ -64,7 +75,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
           // This prevents recalculation when navigating back
           const existingResult = this.calculatorResultService.getResult();
           if (existingResult) {
-            console.log('=== CALCULATOR: Ignoring W2 upload event - already have result ===');
             return false;
           }
           return true;
@@ -95,8 +105,21 @@ export class TaxCalculator implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animate upload card on initial load
+    setTimeout(() => {
+      if (this.uploadCard?.nativeElement && this.state === 'upload') {
+        this.animationService.scaleIn(this.uploadCard.nativeElement, { delay: 0.1 });
+      }
+    }, 100);
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+    }
     // Clear any active intervals to prevent memory leaks
     this.clearAllIntervals();
   }
@@ -143,7 +166,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: (results) => {
-        this.existingW2 = results.documents.find(d => d.type === DocumentType.W2) || null;
+        this.existingW2 = results.documents.find((d: Document) => d.type === DocumentType.W2) || null;
 
         // Check if backend has an existing estimate (cross-device sync)
         const backendData = results.backendEstimate as any;
@@ -169,7 +192,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
           // Show already-calculated state - user cannot recalculate
           this.state = 'already-calculated';
-          console.log('=== CALCULATOR: Existing estimate found in backend ===', estimate);
           return;
         }
 
@@ -223,24 +245,16 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   handleFile(file: File) {
-    console.log('=== CALCULATOR: File received ===', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-
-    // Backend only accepts JPG/PNG (not PDF/WEBP)
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // Backend accepts JPG/PNG and PDF (PDF is converted to image on backend)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      console.warn('=== CALCULATOR: Invalid file type ===', file.type);
-      alert('Solo archivos JPG y PNG son compatibles con el análisis automático. Por favor convierte tu W2 a uno de estos formatos.');
+      alert('Formatos aceptados: JPG, PNG, PDF. Por favor sube tu W2 en uno de estos formatos.');
       return;
     }
 
     // Validate file size (max 25MB)
-    const maxSize = 25 * 1024 * 1024;
+    const maxSize = APP_CONSTANTS.MAX_FILE_SIZE_BYTES;
     if (file.size > maxSize) {
-      console.warn('=== CALCULATOR: File too large ===', file.size);
       alert('El archivo es demasiado grande (máximo 25MB).');
       return;
     }
@@ -252,11 +266,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   startCalculation() {
-    console.log('=== CALCULATOR: Starting calculation ===');
-    console.log('File from component:', this.uploadedFile?.name);
-    console.log('File from service:', this.calculatorApiService.getCurrentFile()?.name);
-    console.log('Is from documents:', this.isFromDocuments);
-
     this.state = 'calculating';
     this.calculationProgress = 0;
     this.errorMessage = '';
@@ -266,18 +275,14 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
     // If no file available, return to upload state (don't run demo mode automatically)
     if (!fileToProcess) {
-      console.warn('=== CALCULATOR: No file found, returning to upload state ===');
       this.state = 'upload';
       this.errorMessage = 'Por favor sube un documento W2 para calcular tu reembolso.';
       this.cdr.detectChanges();
       return;
     }
 
-    console.log('=== CALCULATOR: File found, calling API for real OCR analysis ===', fileToProcess.name);
-
     // Validate file before API call
     if (fileToProcess.size === 0) {
-      console.error('=== CALCULATOR: File has no content (size = 0) ===');
       this.errorMessage = 'El archivo está vacío. Por favor sube un W2 válido.';
       this.state = 'upload';
       return;
@@ -293,12 +298,11 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.activeIntervals.push(progressInterval);
 
     // Call real API with OCR
-    this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
+    this.apiSubscription = this.calculatorApiService.estimateRefund(fileToProcess).subscribe({
       next: (response) => {
         clearInterval(progressInterval);
         this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
         this.calculationProgress = 100;
-        console.log('=== CALCULATOR: API response received ===', response);
 
         this.box2Federal = response.box2Federal;
         this.box17State = response.box17State;
@@ -313,17 +317,16 @@ export class TaxCalculator implements OnInit, OnDestroy {
       error: (error) => {
         clearInterval(progressInterval);
         this.activeIntervals = this.activeIntervals.filter(i => i !== progressInterval);
-        console.error('=== CALCULATOR: API ERROR ===', error);
-        console.error('Error status:', error.status);
-        console.error('Error details:', error.error);
 
         // Provide specific error messages based on error type
         let errorMsg = 'Error al procesar el documento.';
 
         if (error.status === 400) {
-          errorMsg = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG o PNG.';
+          errorMsg = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG, PNG o PDF.';
         } else if (error.status === 401) {
           errorMsg = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+        } else if (error.status === 408) {
+          errorMsg = 'El procesamiento tardó demasiado. Por favor, intentá de nuevo.';
         } else if (error.status === 413) {
           errorMsg = 'El archivo es demasiado grande. Intenta con una imagen más pequeña.';
         } else if (error.status === 500) {
@@ -340,8 +343,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   runMockCalculation() {
-    console.log('=== CALCULATOR: DEMO MODE - Generating random values (NOT using API) ===');
-
     // Demo mode with simulated progress (track interval for cleanup)
     this.ngZone.runOutsideAngular(() => {
       const progressInterval = setInterval(() => {
@@ -358,12 +359,6 @@ export class TaxCalculator implements OnInit, OnDestroy {
             this.estimatedRefund = this.box2Federal + this.box17State;
             this.ocrConfidence = 'high';
 
-            console.log('=== CALCULATOR: DEMO results (random) ===', {
-              box2Federal: this.box2Federal,
-              box17State: this.box17State,
-              total: this.estimatedRefund
-            });
-
             setTimeout(() => {
               this.showResult();
             }, 600);
@@ -376,54 +371,42 @@ export class TaxCalculator implements OnInit, OnDestroy {
 
   showResult() {
     this.state = 'result';
-
-    // Save the calculator result
-    this.calculatorResultService.saveResult(
-      this.estimatedRefund,
-      this.uploadedFile?.name
-    );
-
-    // AUTO-SAVE: If W2 was uploaded here (not from documents), automatically save it
-    // This triggers the W2_UPLOADED event which advances client progress
-    if (this.uploadedFile && !this.isFromDocuments && !this.documentSaved) {
-      this.autoSaveW2();
-    }
     this.cdr.detectChanges();
-  }
 
-  /**
-   * Automatically save the W2 to documents after successful calculation
-   * This triggers progress automation (W2_UPLOADED event) and updates dashboard progress to 25%
-   */
-  private autoSaveW2() {
-    if (!this.uploadedFile) return;
-
-    console.log('=== CALCULATOR: Auto-saving W2 to documents ===');
-    this.isSavingDocument = true;
-
-    this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-      next: (response) => {
-        console.log('=== CALCULATOR: W2 auto-saved successfully ===', response);
-        this.isSavingDocument = false;
-        this.documentSaved = true;
-
-        // Trigger dashboard refresh so "Tu Progreso" updates to show W2 uploaded (+25%)
-        this.dataRefreshService.refreshDashboard();
-
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('=== CALCULATOR: Failed to auto-save W2 ===', error);
-        this.isSavingDocument = false;
-        // Don't show error to user - they can still use calculator results
-        // They can manually upload later in documents section
-        this.cdr.detectChanges();
+    // Animate the result card and refund amount
+    setTimeout(() => {
+      if (this.resultCard?.nativeElement) {
+        this.animationService.scaleIn(this.resultCard.nativeElement, { delay: 0 });
       }
-    });
+      if (this.refundAmount?.nativeElement) {
+        this.animationService.counterUp(
+          this.refundAmount.nativeElement,
+          this.estimatedRefund,
+          { prefix: '$', duration: 1.5 }
+        );
+      }
+    }, 100);
+
+    // Celebrate the result with money rain!
+    setTimeout(() => this.confettiService.moneyRain(), 300);
+
+    // Save the calculator result (skip for demo mode)
+    if (!this.isDemo) {
+      this.calculatorResultService.saveResult(
+        this.estimatedRefund,
+        this.uploadedFile?.name
+      );
+
+      // Backend now saves the W2 document automatically during estimate
+      // Mark as saved and refresh dashboard to show updated progress
+      if (this.uploadedFile && !this.isFromDocuments) {
+        this.documentSaved = true;
+        this.dataRefreshService.refreshDashboard();
+      }
+    }
   }
 
   resetCalculator() {
-    console.log('=== CALCULATOR: Resetting calculator ===');
     this.state = 'upload';
     this.uploadedFile = null;
     this.calculatorApiService.clearCurrentFile(); // Clear service file reference
@@ -433,9 +416,25 @@ export class TaxCalculator implements OnInit, OnDestroy {
     this.box17State = 0;
     this.ocrConfidence = 'high';
     this.errorMessage = '';
-    this.isSavingDocument = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
+    this.isDemo = false;
+  }
+
+  /**
+   * Cancel ongoing calculation and return to upload state
+   */
+  cancelCalculation() {
+    // Cancel API subscription
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+      this.apiSubscription = null;
+    }
+    // Clear all intervals
+    this.clearAllIntervals();
+    // Reset state
+    this.resetCalculator();
+    this.cdr.detectChanges();
   }
 
   getConfidenceLabel(): string {
@@ -452,6 +451,7 @@ export class TaxCalculator implements OnInit, OnDestroy {
   }
 
   runDemo() {
+    this.isDemo = true; // Mark as demo - won't save result
     this.isFromDocuments = true; // Demo mode - no auto-save needed
     this.state = 'calculating';
     this.calculationProgress = 0;

@@ -4,10 +4,10 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
-import { DocumentService } from '../../core/services/document.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { CalculatorApiService } from '../../core/services/calculator-api.service';
-import { DocumentType } from '../../core/models';
+import { ConfettiService } from '../../core/services/confetti.service';
 
 type OnboardingStep = 'welcome' | 'benefits' | 'documents' | 'calculator' | 'warning';
 
@@ -29,16 +29,17 @@ export class Onboarding implements OnInit, OnDestroy {
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
-  private documentService = inject(DocumentService);
+  private profileService = inject(ProfileService);
   private calculatorResultService = inject(CalculatorResultService);
   private calculatorApiService = inject(CalculatorApiService);
+  private confettiService = inject(ConfettiService);
   private cdr = inject(ChangeDetectorRef);
 
   // Cleanup tracking
   private progressIntervalId: ReturnType<typeof setInterval> | null = null;
   private resultTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private uploadSubscription: Subscription | null = null;
   private apiSubscription: Subscription | null = null;
+  private onboardingSubscription: Subscription | null = null;
 
   // State
   currentStep: OnboardingStep = 'welcome';
@@ -55,6 +56,7 @@ export class Onboarding implements OnInit, OnDestroy {
   box17State = 0;
   ocrConfidence = '';
   errorMessage = '';
+  isCompletingOnboarding = false;
 
   // Benefits content
   benefits: Benefit[] = [
@@ -98,11 +100,11 @@ export class Onboarding implements OnInit, OnDestroy {
     if (this.resultTimeoutId) {
       clearTimeout(this.resultTimeoutId);
     }
-    if (this.uploadSubscription) {
-      this.uploadSubscription.unsubscribe();
-    }
     if (this.apiSubscription) {
       this.apiSubscription.unsubscribe();
+    }
+    if (this.onboardingSubscription) {
+      this.onboardingSubscription.unsubscribe();
     }
   }
 
@@ -139,8 +141,7 @@ export class Onboarding implements OnInit, OnDestroy {
 
   // Warning actions
   exploreApp() {
-    this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+    this.completeOnboardingAndNavigate();
   }
 
   // Calculator methods
@@ -175,10 +176,10 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   handleFile(file: File) {
-    // Only accept JPG/PNG for OCR analysis
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // Accept JPG/PNG and PDF for OCR analysis (PDF is converted on backend)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      alert('Solo archivos JPG y PNG son compatibles. Por favor convierte tu W2 a uno de estos formatos.');
+      alert('Formatos aceptados: JPG, PNG, PDF. Por favor sube tu W2 en uno de estos formatos.');
       return;
     }
 
@@ -224,13 +225,27 @@ export class Onboarding implements OnInit, OnDestroy {
         }, 600);
         this.cdr.detectChanges();
       },
-      error: (error) => {
+      error: (error: any) => {
         if (this.progressIntervalId) {
           clearInterval(this.progressIntervalId);
           this.progressIntervalId = null;
         }
-        console.error('Calculator API error:', error);
-        this.errorMessage = 'Error al analizar el documento. Intenta con otra imagen.';
+
+        // Provide specific error messages based on error type
+        if (error.status === 408) {
+          this.errorMessage = 'El procesamiento tardó demasiado. Por favor, intentá de nuevo o continuá sin calcular.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Archivo inválido. Asegúrate de subir un W2 válido en formato JPG o PNG.';
+        } else if (error.status === 401) {
+          this.errorMessage = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+        } else if (error.status === 500) {
+          this.errorMessage = 'Error del servidor. Por favor, intentá de nuevo en unos minutos.';
+        } else if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else {
+          this.errorMessage = 'Hubo un problema al procesar tu documento. Por favor, intentá de nuevo o continuá sin calcular.';
+        }
+
         this.calculatorState = 'error';
         this.cdr.detectChanges();
       }
@@ -245,12 +260,37 @@ export class Onboarding implements OnInit, OnDestroy {
 
   skipCalculator() {
     // Allow user to skip calculator and go directly to dashboard
-    this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+    this.completeOnboardingAndNavigate();
+  }
+
+  cancelAndSkip() {
+    // Cancel ongoing calculation and skip to dashboard
+    if (this.progressIntervalId) {
+      clearInterval(this.progressIntervalId);
+      this.progressIntervalId = null;
+    }
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+      this.apiSubscription = null;
+    }
+    this.calculatorState = 'upload';
+    this.calculationProgress = 0;
+    this.skipCalculator();
   }
 
   showResult() {
+    console.log('=== ONBOARDING: Showing result ===', {
+      estimatedRefund: this.estimatedRefund,
+      box2Federal: this.box2Federal,
+      box17State: this.box17State,
+      ocrConfidence: this.ocrConfidence
+    });
+
     this.calculatorState = 'result';
+    this.cdr.detectChanges(); // Trigger change detection for OnPush strategy
+
+    // Celebrate the result with money rain!
+    setTimeout(() => this.confettiService.moneyRain(), 300);
 
     // Save result to localStorage and backend with full breakdown data
     this.calculatorResultService.saveResult(
@@ -263,27 +303,69 @@ export class Onboarding implements OnInit, OnDestroy {
       }
     );
 
-    // Save W2 document
-    if (this.uploadedFile) {
-      this.uploadSubscription = this.documentService.upload(this.uploadedFile, DocumentType.W2).subscribe({
-        next: () => console.log('W2 saved successfully'),
-        error: (err) => console.error('Error saving W2:', err)
-      });
-    }
+    // Note: W2 document is now automatically saved by the backend during estimate calculation
+    // No need to call documentService.upload() separately
   }
 
   goToDashboard() {
+    console.log('=== ONBOARDING: User clicked "Ir al Dashboard" ===');
+    this.completeOnboardingAndNavigate();
+  }
+
+  /**
+   * Mark onboarding as complete in both localStorage (for immediate UI) and backend (for persistence).
+   * This ensures the user doesn't see onboarding again on subsequent logins (including Google OAuth).
+   * Also syncs the estimated refund from calculator to the TaxCase in the database.
+   */
+  private completeOnboardingAndNavigate() {
+    // Prevent double-clicks
+    if (this.isCompletingOnboarding) {
+      console.log('=== ONBOARDING: Already completing, ignoring duplicate click ===');
+      return;
+    }
+
+    console.log('=== ONBOARDING: Starting completion flow ===');
+    this.isCompletingOnboarding = true;
+    this.cdr.detectChanges();
+
+    // Set localStorage immediately for fast UI response
     this.storage.setOnboardingCompleted();
-    this.router.navigate(['/dashboard']);
+    console.log('=== ONBOARDING: localStorage marked as complete ===');
+
+    // Call backend to persist the onboarding complete status
+    // This ensures Google login users don't see onboarding again
+    // IMPORTANT: Backend will also sync estimated refund from W2Estimate to TaxCase
+    this.onboardingSubscription = this.profileService.markOnboardingComplete().subscribe({
+      next: (response) => {
+        console.log('=== ONBOARDING: Backend marked complete successfully ===', response);
+        // Success - navigate to dashboard
+        this.ngZone.run(() => {
+          console.log('=== ONBOARDING: Navigating to /dashboard ===');
+          this.router.navigate(['/dashboard']);
+        });
+      },
+      error: (error) => {
+        // Even if API fails, navigate to dashboard (localStorage is set)
+        // User might see onboarding again on next Google login, but UX is preserved for now
+        console.error('=== ONBOARDING: Failed to mark complete in backend ===', error);
+        this.isCompletingOnboarding = false;
+        this.ngZone.run(() => {
+          console.log('=== ONBOARDING: Navigating to /dashboard (despite error) ===');
+          this.router.navigate(['/dashboard']);
+        });
+      }
+    });
   }
 
   formatCurrency(amount: number): string {
+    // Handle null/undefined/NaN
+    const validAmount = amount || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(validAmount);
   }
 
   get currentBenefit(): Benefit {

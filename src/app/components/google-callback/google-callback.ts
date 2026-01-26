@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { StorageService } from '../../core/services/storage.service';
 import { UserRole } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -56,6 +57,7 @@ export class GoogleCallback implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private storage = inject(StorageService);
   private http = inject(HttpClient);
 
   ngOnInit() {
@@ -97,16 +99,26 @@ export class GoogleCallback implements OnInit {
           const user = this.authService.currentUser;
 
           // Redirect based on role and profile status
+          // Check both backend hasProfile AND local onboarding flag
+          // If EITHER is true, user has been through onboarding before
+          const hasCompletedOnboarding = this.storage.isOnboardingCompleted();
+
           if (user?.role === UserRole.ADMIN) {
             this.router.navigate(['/admin/dashboard']);
-          } else if (response.user.hasProfile) {
+          } else if (response.user.hasProfile || hasCompletedOnboarding) {
             this.router.navigate(['/dashboard']);
           } else {
             this.router.navigate(['/onboarding']);
           }
         },
-        error: () => {
-          this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
+        error: (err) => {
+          // Check if this is a "no account found" error
+          const errorCode = err?.error?.error || '';
+          if (errorCode === 'GOOGLE_NO_ACCOUNT') {
+            this.router.navigate(['/login'], { queryParams: { error: 'google_no_account' } });
+          } else {
+            this.router.navigate(['/login'], { queryParams: { error: 'google_auth_failed' } });
+          }
         }
       });
   }

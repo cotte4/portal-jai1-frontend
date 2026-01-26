@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,12 +10,14 @@ import { ToastService } from '../../core/services/toast.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { Notification } from '../../core/models';
 import { ToastComponent } from '../toast/toast';
-import { PwaInstallPrompt } from '../pwa-install-prompt/pwa-install-prompt';
+import { ChatWidget } from '../chat-widget/chat-widget';
+import { BottomNav } from '../../shared/components/bottom-nav/bottom-nav';
+import { MobileHeader } from '../../shared/components/mobile-header/mobile-header';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, PwaInstallPrompt],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ChatWidget, BottomNav, MobileHeader],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -26,7 +29,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private notificationSoundService = inject(NotificationSoundService);
   private toastService = inject(ToastService);
   private dataRefreshService = inject(DataRefreshService);
-  private chatbotScriptId = 'relevance-ai-chatbot';
+  private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private navTimeouts: ReturnType<typeof setTimeout>[] = [];
 
@@ -37,15 +40,47 @@ export class MainLayout implements OnInit, OnDestroy {
   showNotificationsPanel: boolean = false;
   unreadNotifications: number = 0;
   notifications: Notification[] = [];
+  loadingMoreNotifications = false;
+  isOnChatbotPage = false;
+  isMobileView: boolean = false;
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkMobileView();
+  }
+
+  private checkMobileView() {
+    const wasMobile = this.isMobileView;
+    this.isMobileView = window.innerWidth < 1024;
+    if (wasMobile !== this.isMobileView) {
+      // Close sidebar when switching to mobile
+      if (this.isMobileView) {
+        this.sidebarOpen = false;
+      }
+      this.cdr.markForCheck();
+    }
+  }
 
   ngOnInit() {
+    // Check initial mobile view
+    this.checkMobileView();
+
+    // Track current route to hide widget on chatbot page
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: NavigationEnd) => {
+        this.isOnChatbotPage = event.urlAfterRedirects.includes('/chatbot');
+        this.cdr.markForCheck();
+      })
+    );
+    // Check initial route
+    this.isOnChatbotPage = this.router.url.includes('/chatbot');
     this.loadUserData();
     this.setupNotifications();
-    this.loadChatbotScript();
   }
 
   ngOnDestroy() {
-    this.removeChatbotScript();
     this.notificationService.stopPolling();
     this.subscriptions.unsubscribe();
     this.navTimeouts.forEach(t => clearTimeout(t));
@@ -57,6 +92,7 @@ export class MainLayout implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.notifications$.subscribe((notifications) => {
         this.notifications = notifications;
+        this.cdr.markForCheck();
       })
     );
 
@@ -64,6 +100,7 @@ export class MainLayout implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.unreadCount$.subscribe((count) => {
         this.unreadNotifications = count;
+        this.cdr.markForCheck();
       })
     );
 
@@ -87,34 +124,6 @@ export class MainLayout implements OnInit, OnDestroy {
 
     // Start polling every 30 seconds
     this.notificationService.startPolling(30000);
-  }
-
-  private loadChatbotScript() {
-    // Check if script already exists
-    if (document.getElementById(this.chatbotScriptId)) return;
-
-    const script = document.createElement('script');
-    script.id = this.chatbotScriptId;
-    script.src = 'https://app.relevanceai.com/embed/chat-bubble.js';
-    script.defer = true;
-    script.setAttribute('data-relevanceai-share-id', 'bcbe5a/8cba1df1b42f-4044-a926-18f8ee83d3c8/84379516-1725-42b5-a261-6bfcfeaa328c');
-    script.setAttribute('data-share-styles', 'hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%231D345D&bubble_icon=pd%2Fchat&input_placeholder_text=Escrib%C3%AD+tu+pregunta...&hide_logo=false&hide_description=false');
-    document.body.appendChild(script);
-  }
-
-  private removeChatbotScript() {
-    const script = document.getElementById(this.chatbotScriptId);
-    if (script) {
-      script.remove();
-    }
-    // Also remove the chatbot widget elements
-    const chatWidget = document.querySelector('[data-relevanceai-chat-bubble]');
-    if (chatWidget) {
-      chatWidget.remove();
-    }
-    // Remove any iframe or chat container added by the script
-    const relevanceElements = document.querySelectorAll('[id^="relevance"], [class*="relevance"]');
-    relevanceElements.forEach(el => el.remove());
   }
 
   get userInitials(): string {
@@ -164,9 +173,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al marcar como leída');
-        console.error('Mark as read error:', error);
       }
     });
   }
@@ -176,9 +184,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al marcar todas como leídas');
-        console.error('Mark all as read error:', error);
       }
     });
   }
@@ -189,9 +196,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al archivar notificación');
-        console.error('Archive notification error:', error);
       }
     });
   }
@@ -201,9 +207,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         this.toastService.success('Notificaciones leídas archivadas');
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al archivar notificaciones');
-        console.error('Archive all read error:', error);
       }
     });
   }
@@ -214,9 +219,8 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         // State is updated reactively via subscription
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al eliminar notificación');
-        console.error('Delete notification error:', error);
       }
     });
   }
@@ -226,11 +230,35 @@ export class MainLayout implements OnInit, OnDestroy {
       next: () => {
         this.toastService.success('Notificaciones leídas eliminadas');
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error('Error al eliminar notificaciones');
-        console.error('Delete all read error:', error);
       }
     });
+  }
+
+  loadMoreNotifications() {
+    if (this.loadingMoreNotifications || !this.notificationService.hasMore) {
+      return;
+    }
+
+    this.loadingMoreNotifications = true;
+    this.cdr.markForCheck();
+
+    this.notificationService.loadMoreNotifications().subscribe({
+      next: () => {
+        this.loadingMoreNotifications = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingMoreNotifications = false;
+        this.cdr.markForCheck();
+        this.toastService.error('Error al cargar más notificaciones');
+      }
+    });
+  }
+
+  get hasMoreNotifications(): boolean {
+    return this.notificationService.hasMore;
   }
 
   getNotificationIcon(type: string | null | undefined): string {

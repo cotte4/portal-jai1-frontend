@@ -1,29 +1,44 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter, finalize } from 'rxjs';
+import { Subscription, filter, finalize, forkJoin } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { W2SharedService } from '../../core/services/w2-shared.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Document, DocumentType } from '../../core/models';
+import { CalculatorResultService } from '../../core/services/calculator-result.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { ConsentFormService } from '../../core/services/consent-form.service';
+import { Document, DocumentType, ConsentFormStatusResponse } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
+import { ConsentForm } from '../consent-form/consent-form';
 
 @Component({
   selector: 'app-document-upload',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ConsentForm],
   templateUrl: './document-upload.html',
   styleUrl: './document-upload.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DocumentUpload implements OnInit, OnDestroy {
+export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
   private w2SharedService = inject(W2SharedService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
+  private calculatorResultService = inject(CalculatorResultService);
+  private animationService = inject(AnimationService);
+  private consentFormService = inject(ConsentFormService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('uploadZone') uploadZone!: ElementRef<HTMLElement>;
+  @ViewChildren('fileCard') fileCards!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
@@ -53,12 +68,48 @@ export class DocumentUpload implements OnInit, OnDestroy {
   selectedType: DocumentType = DocumentType.W2;
   documentTypes = [
     { value: DocumentType.W2, label: 'W2' },
-    { value: DocumentType.PAYMENT_PROOF, label: 'Comprobante de Pago' },
+    { value: DocumentType.PAYMENT_PROOF, label: 'Pago' },
     { value: DocumentType.OTHER, label: 'Otro' }
   ];
 
+  // Payment Instructions Modal
+  showPaymentInstructions: boolean = false;
+
+  // Consent Form
+  consentFormStatus: ConsentFormStatusResponse | null = null;
+  showConsentFormModal: boolean = false;
+
+  // Check if payment proof tab is selected
+  get isPaymentProofSelected(): boolean {
+    return this.selectedType === DocumentType.PAYMENT_PROOF;
+  }
+
+  openPaymentInstructions() {
+    this.showPaymentInstructions = true;
+  }
+
+  closePaymentInstructions() {
+    this.showPaymentInstructions = false;
+  }
+
   ngOnInit() {
     this.loadDocuments();
+
+    // Check for upload query param to auto-open file picker
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
+        if (params['upload'] === 'true') {
+          // Wait for content to load, then trigger file picker
+          this.triggerFilePickerWhenReady();
+          // Clear the query param from URL
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }
+      })
+    );
 
     // Auto-refresh on navigation
     this.subscriptions.add(
@@ -74,8 +125,55 @@ export class DocumentUpload implements OnInit, OnDestroy {
     );
   }
 
+  private triggerFilePickerWhenReady() {
+    // If already loaded, trigger immediately
+    if (this.hasLoaded) {
+      setTimeout(() => this.openFilePicker(), 100);
+      return;
+    }
+
+    // Otherwise wait for load to complete
+    const checkInterval = setInterval(() => {
+      if (this.hasLoaded) {
+        clearInterval(checkInterval);
+        setTimeout(() => this.openFilePicker(), 100);
+      }
+    }, 100);
+
+    // Safety timeout after 5 seconds
+    setTimeout(() => clearInterval(checkInterval), 5000);
+  }
+
+  openFilePicker() {
+    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate upload zone
+    if (this.uploadZone?.nativeElement) {
+      this.animationService.scaleIn(this.uploadZone.nativeElement, { delay: 0.1 });
+    }
+
+    // Stagger animate file cards
+    if (this.fileCards?.length) {
+      const cards = this.fileCards.map(c => c.nativeElement);
+      this.animationService.staggerIn(cards, { direction: 'up', stagger: 0.08, delay: 0.2 });
+    }
   }
 
   loadDocuments() {
@@ -83,7 +181,11 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.isLoadingInProgress = true;
     // Keep hasLoaded = false until API completes to show loading spinner
 
-    this.documentService.getDocuments().pipe(
+    // Load documents and consent form status in parallel
+    forkJoin({
+      documents: this.documentService.getDocuments(),
+      consentStatus: this.consentFormService.getStatus()
+    }).pipe(
       finalize(() => {
         this.hasLoaded = true;
         this.isLoading = false;
@@ -91,12 +193,16 @@ export class DocumentUpload implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (documents) => {
+      next: ({ documents, consentStatus }) => {
         this.uploadedFiles = documents;
+        this.consentFormStatus = consentStatus;
 
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
         documents.forEach(doc => this.uploadedTypes.add(doc.type));
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       },
       error: (error) => {
         this.toastService.error(error.message || 'Error al cargar documentos');
@@ -137,8 +243,8 @@ export class DocumentUpload implements OnInit, OnDestroy {
     this.successMessage = '';
 
     // Allowed file types
-    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-    const maxSize = 25 * 1024 * 1024; // 25MB (matching backend)
+    const allowedTypes = APP_CONSTANTS.SUPPORTED_DOCUMENT_TYPES;
+    const maxSize = APP_CONSTANTS.MAX_FILE_SIZE_BYTES;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -183,8 +289,13 @@ export class DocumentUpload implements OnInit, OnDestroy {
   }
 
   getSelectedTypeLabel(): string {
-    const found = this.documentTypes.find(t => t.value === this.selectedType);
-    return found?.label || '';
+    // Full labels for confirmation popup
+    const fullLabels: Record<string, string> = {
+      [DocumentType.W2]: 'W2',
+      [DocumentType.PAYMENT_PROOF]: 'Comprobante de Pago',
+      [DocumentType.OTHER]: 'Otro'
+    };
+    return fullLabels[this.selectedType] || '';
   }
 
   uploadFile(file: File) {
@@ -199,10 +310,19 @@ export class DocumentUpload implements OnInit, OnDestroy {
         // Mark this document type as uploaded (for green checkmark)
         this.uploadedTypes.add(this.selectedType);
 
-        // If it's a W2, show the calculator popup
+        // If it's a W2, only show calculator popup if user doesn't have an existing estimate
         if (this.selectedType === DocumentType.W2) {
-          this.lastUploadedW2 = response.document;
-          this.showW2Popup = true;
+          const existingResult = this.calculatorResultService.getResult();
+          const hasValidEstimate = existingResult && existingResult.estimatedRefund > 0;
+
+          if (!hasValidEstimate) {
+            // No estimate or estimate is 0 - offer to calculate
+            this.lastUploadedW2 = response.document;
+            this.showW2Popup = true;
+          } else {
+            // User already has an estimate - just upload the document, don't ask
+            // Keep existing estimatedRefund value
+          }
         }
         this.cdr.detectChanges();
       },
@@ -269,8 +389,13 @@ export class DocumentUpload implements OnInit, OnDestroy {
   }
 
   getDocumentTypeLabel(type: DocumentType): string {
-    const found = this.documentTypes.find(t => t.value === type);
-    return found?.label || type;
+    // Full labels for file list display
+    const fullLabels: Record<string, string> = {
+      [DocumentType.W2]: 'W2',
+      [DocumentType.PAYMENT_PROOF]: 'Comprobante de Pago',
+      [DocumentType.OTHER]: 'Otro'
+    };
+    return fullLabels[type] || type;
   }
 
   goBack() {
@@ -315,5 +440,44 @@ export class DocumentUpload implements OnInit, OnDestroy {
   closeW2Popup() {
     this.showW2Popup = false;
     this.lastUploadedW2 = null;
+  }
+
+  // Consent Form Methods
+  get isConsentFormSigned(): boolean {
+    return this.consentFormStatus?.status === 'signed';
+  }
+
+  get canComplete(): boolean {
+    return this.isConsentFormSigned && this.allRequiredDocsUploaded;
+  }
+
+  openConsentForm() {
+    this.showConsentFormModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeConsentForm() {
+    this.showConsentFormModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onConsentFormSigned() {
+    this.showConsentFormModal = false;
+    // Reload to update consent status
+    this.loadDocuments();
+    this.toastService.success('Acuerdo de consentimiento firmado exitosamente');
+  }
+
+  downloadSignedConsentForm() {
+    if (!this.consentFormStatus?.canDownload) return;
+
+    this.consentFormService.getDownloadUrl().subscribe({
+      next: (response) => {
+        window.open(response.url, '_blank');
+      },
+      error: (error) => {
+        this.toastService.error(error.error?.message || 'Error al descargar el acuerdo');
+      }
+    });
   }
 }

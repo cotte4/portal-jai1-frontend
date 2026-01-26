@@ -1080,7 +1080,7 @@
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .leaderboard-header {
     padding: 12px 16px;
   }

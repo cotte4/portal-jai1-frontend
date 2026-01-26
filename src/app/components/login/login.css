@@ -594,6 +594,40 @@ html, body {
   color: #B21B43;
 }
 
+/* Install App Button */
+.btn-install-app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #B21B43 0%, #8B1535 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(178, 27, 67, 0.3);
+}
+
+.btn-install-app:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(178, 27, 67, 0.4);
+}
+
+.btn-install-app:active {
+  transform: translateY(0);
+}
+
+.btn-install-app .install-icon {
+  width: 20px;
+  height: 20px;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
   .brand-title {
@@ -605,7 +639,7 @@ html, body {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .login-page {
     flex-direction: column;
     height: 100vh;

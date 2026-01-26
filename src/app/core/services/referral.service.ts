@@ -22,6 +22,7 @@ export interface ReferralRecord {
 }
 
 export interface DiscountInfo {
+  totalReferrals: number;
   successfulReferrals: number;
   pendingReferrals: number;
   currentDiscountPercent: number;
@@ -34,7 +35,7 @@ export interface LeaderboardEntry {
   userId: string;
   displayName: string;
   profilePicturePath: string | null;
-  successfulReferrals: number;
+  totalReferrals: number;
   currentTier: number;
 }
 
@@ -205,6 +206,7 @@ export class ReferralService {
     return this.http.get<DiscountInfo>(`${this.apiUrl}/referrals/my-discount`).pipe(
       tap(response => this.myDiscountSubject.next(response)),
       catchError(() => of({
+        totalReferrals: 0,
         successfulReferrals: 0,
         pendingReferrals: 0,
         currentDiscountPercent: 0,
@@ -239,6 +241,27 @@ export class ReferralService {
       discount: this.getMyDiscount(),
       leaderboard: this.getLeaderboard()
     });
+  }
+
+  /**
+   * Mark referral onboarding as complete
+   */
+  markReferralOnboardingComplete(): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/referrals/mark-onboarding-complete`,
+      {}
+    );
+  }
+
+  /**
+   * Get referral onboarding status
+   */
+  getReferralOnboardingStatus(): Observable<{ completed: boolean }> {
+    return this.http.get<{ completed: boolean }>(
+      `${this.apiUrl}/referrals/onboarding-status`
+    ).pipe(
+      catchError(() => of({ completed: false }))
+    );
   }
 
   // === HELPER METHODS ===

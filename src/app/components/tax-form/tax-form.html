@@ -153,55 +153,50 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Referral Code Section -->
-  <section class="referral-section" *ngIf="!hasAppliedReferral">
-    <div class="referral-banner">
-      <div class="referral-icon">🎁</div>
-      <div class="referral-content">
-        <h3>¿Tienes un código de referido?</h3>
-        <p>Ingresa el código y obtén $11 de descuento en tu comisión</p>
-      </div>
-      <div class="referral-input-group">
-        <div class="referral-input-wrapper" [class.input-valid]="referralCodeValid === true" [class.input-invalid]="referralCodeValid === false">
-          <input
-            type="text"
-            [(ngModel)]="referralCode"
-            name="referralCode"
-            placeholder="Ej: ABC1234"
-            maxlength="10"
-            (blur)="validateReferralCode()"
-            (keyup.enter)="referralCodeValid ? applyReferralCode() : validateReferralCode()"
-          >
-          <span class="validation-spinner" *ngIf="referralCodeValidating"></span>
-          <span class="validation-check" *ngIf="referralCodeValid === true && !referralCodeValidating">✓</span>
-          <span class="validation-x" *ngIf="referralCodeValid === false && !referralCodeValidating">✗</span>
-        </div>
-        <button
-          type="button"
-          class="btn-apply-referral"
-          [disabled]="!referralCodeValid || referralCodeApplying"
-          (click)="applyReferralCode()"
+  <!-- Referral Code Section - Compact -->
+  <section class="referral-compact" *ngIf="!hasAppliedReferral">
+    <div class="referral-compact-row">
+      <span class="referral-compact-icon">🎁</span>
+      <span class="referral-compact-label">Código referido <span class="referral-discount">-$11</span></span>
+      <div class="referral-compact-input" [class.valid]="referralCodeValid === true" [class.invalid]="referralCodeValid === false">
+        <input
+          type="text"
+          [(ngModel)]="referralCode"
+          name="referralCode"
+          placeholder="ABC1234"
+          maxlength="10"
+          (blur)="validateReferralCode()"
+          (keyup.enter)="referralCodeValid ? applyReferralCode() : validateReferralCode()"
         >
-          {{ referralCodeApplying ? 'Aplicando...' : 'Aplicar' }}
-        </button>
+        <span class="input-status" *ngIf="referralCodeValidating">
+          <span class="mini-spinner"></span>
+        </span>
+        <span class="input-status valid" *ngIf="referralCodeValid === true && !referralCodeValidating">✓</span>
+        <span class="input-status invalid" *ngIf="referralCodeValid === false && !referralCodeValidating">✗</span>
       </div>
-      <div class="referral-feedback" *ngIf="referralCodeValid === true && referrerName">
-        <span class="referral-success">Referido por: <strong>{{ referrerName }}</strong> - $11 de descuento</span>
-      </div>
-      <div class="referral-feedback" *ngIf="referralCodeValid === false">
-        <span class="referral-error">Código inválido. Verifica e intenta de nuevo.</span>
-      </div>
+      <button
+        type="button"
+        class="btn-apply-compact"
+        [disabled]="!referralCodeValid || referralCodeApplying"
+        (click)="applyReferralCode()"
+      >
+        {{ referralCodeApplying ? '...' : 'Aplicar' }}
+      </button>
+    </div>
+    <div class="referral-compact-feedback" *ngIf="referralCodeValid === true && referrerName">
+      Referido por: <strong>{{ referrerName }}</strong>
+    </div>
+    <div class="referral-compact-feedback error" *ngIf="referralCodeValid === false">
+      Código inválido
     </div>
   </section>
 
-  <!-- Referral Applied Success -->
-  <section class="referral-section applied" *ngIf="hasAppliedReferral">
-    <div class="referral-banner success">
-      <div class="referral-icon">✓</div>
-      <div class="referral-content">
-        <h3>Código de referido aplicado</h3>
-        <p>Obtendrás $11 de descuento en tu comisión. Referido por: <strong>{{ referrerName }}</strong></p>
-      </div>
+  <!-- Referral Applied Success - Compact -->
+  <section class="referral-compact applied" *ngIf="hasAppliedReferral">
+    <div class="referral-compact-row success">
+      <span class="referral-compact-icon success">✓</span>
+      <span class="referral-compact-label">Código aplicado <span class="referral-discount">-$11</span></span>
+      <span class="referral-referrer">por {{ referrerName }}</span>
     </div>
   </section>
 
@@ -243,6 +238,36 @@
               required
             >
           </div>
+
+          <!-- Phone Number Field with Country Code -->
+          <div class="form-group">
+            <label for="phoneNumber">Numero de celular *</label>
+            <p class="field-description">Ingresa tu numero de WhatsApp para que podamos contactarte sobre tu declaracion</p>
+            <div class="phone-input-wrapper" [class.has-error]="phoneError">
+              <select
+                [(ngModel)]="formData.phoneCountryCode"
+                name="phoneCountryCode"
+                class="country-code-select"
+                (change)="onFormChange()"
+              >
+                <option *ngFor="let country of countryCodes" [value]="country.code">
+                  {{ getCountryFlag(country.code) }} {{ country.name }} ({{ country.code }})
+                </option>
+              </select>
+              <input
+                type="tel"
+                id="phoneNumber"
+                [value]="formData.phoneNumber"
+                (input)="onPhoneNumberInput($event)"
+                name="phoneNumber"
+                placeholder="911XXXXXXXX"
+                maxlength="15"
+                class="phone-number-input"
+                required
+              >
+            </div>
+            <span class="field-error" *ngIf="phoneError">{{ phoneError }}</span>
+          </div>
         </div>
       </section>
 
@@ -259,14 +284,53 @@
         <div class="form-stack">
           <div class="form-group">
             <label for="workState">Estado donde trabajaste *</label>
-            <input
-              type="text"
-              id="workState"
-              [(ngModel)]="formData.workState"
-              name="workState"
-              placeholder="NY"
-              required
-            >
+            <div class="searchable-dropdown">
+              <div
+                class="dropdown-trigger"
+                [class.has-value]="formData.workState"
+                (click)="openStateDropdown()"
+              >
+                <span class="selected-value" *ngIf="formData.workState">{{ formData.workState }}</span>
+                <span class="placeholder" *ngIf="!formData.workState">Selecciona un estado</span>
+                <span class="dropdown-arrow">
+                  <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                    <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="dropdown-panel" *ngIf="showStateDropdown">
+                <div class="dropdown-search">
+                  <input
+                    type="text"
+                    [(ngModel)]="stateSearchQuery"
+                    name="stateSearch"
+                    placeholder="Buscar estado..."
+                    (input)="filterStates()"
+                    (blur)="closeStateDropdown()"
+                    #stateSearchInput
+                  >
+                  <span class="search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                </div>
+                <div class="dropdown-options">
+                  <div
+                    class="dropdown-option"
+                    *ngFor="let state of filteredStates"
+                    [class.selected]="formData.workState === state"
+                    (mousedown)="selectState(state)"
+                  >
+                    {{ state }}
+                    <span class="check-icon" *ngIf="formData.workState === state">✓</span>
+                  </div>
+                  <div class="dropdown-empty" *ngIf="filteredStates.length === 0">
+                    No se encontraron estados
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -292,8 +356,14 @@
           <div class="section-icon">📍</div>
           <div class="section-title">
             <h2>Direccion en USA</h2>
-            <p>Tu direccion durante el Work & Travel</p>
+            <p>Preferentemente usa una direccion de USA de un familiar o amigo que pueda recibir cartas durante todo 2026. Las cartas del IRS llegan mas rapido a direcciones estadounidenses. Si no tenes ninguna, podes usar tu direccion personal en tu pais.</p>
           </div>
+        </div>
+
+        <!-- Warning about temporary addresses -->
+        <div class="address-warning">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">Evita usar direcciones de empleadores, housings o alquileres temporales: suelen no recibir las cartas o no responder cuando llegan.</span>
         </div>
 
         <div class="form-stack">
@@ -360,40 +430,117 @@
         </div>
 
         <div class="form-stack">
-          <div class="form-group">
-            <label for="bankName">Nombre del Banco *</label>
-            <input
-              type="text"
-              id="bankName"
-              [(ngModel)]="formData.bankName"
-              name="bankName"
-              placeholder="Bank of America"
-              required
-            >
+          <!-- Bank fields (hidden/disabled when check is selected) -->
+          <div class="bank-fields" [class.disabled]="formData.paymentMethod === 'check'">
+            <div class="form-group">
+              <label for="bankName">Nombre del Banco {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
+              <div class="searchable-dropdown">
+                <div
+                  class="dropdown-trigger"
+                  [class.has-value]="formData.bankName"
+                  [class.disabled]="formData.paymentMethod === 'check'"
+                  (click)="formData.paymentMethod !== 'check' && openBankDropdown()"
+                >
+                  <span class="selected-value" *ngIf="formData.bankName">
+                    {{ formData.bankName === 'Otro' && customBankName ? customBankName : formData.bankName }}
+                  </span>
+                  <span class="placeholder" *ngIf="!formData.bankName">Selecciona un banco</span>
+                  <span class="dropdown-arrow">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                </div>
+                <div class="dropdown-panel" *ngIf="showBankDropdown && formData.paymentMethod !== 'check'">
+                  <div class="dropdown-search">
+                    <input
+                      type="text"
+                      [(ngModel)]="bankSearchQuery"
+                      name="bankSearch"
+                      placeholder="Buscar banco..."
+                      (input)="filterBanks()"
+                      (blur)="closeBankDropdown()"
+                      #bankSearchInput
+                    >
+                    <span class="search-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="dropdown-options">
+                    <div
+                      class="dropdown-option"
+                      *ngFor="let bank of filteredBanks"
+                      [class.selected]="formData.bankName === bank"
+                      [class.otro-option]="bank === 'Otro'"
+                      (mousedown)="selectBank(bank)"
+                    >
+                      <span *ngIf="bank === 'Otro'" class="otro-icon">+</span>
+                      {{ bank }}
+                      <span class="check-icon" *ngIf="formData.bankName === bank">✓</span>
+                    </div>
+                    <div class="dropdown-empty" *ngIf="filteredBanks.length === 0">
+                      No se encontraron bancos
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Custom bank name input when "Otro" is selected -->
+              <div class="custom-bank-input" *ngIf="formData.bankName === 'Otro' && formData.paymentMethod !== 'check'">
+                <input
+                  type="text"
+                  [(ngModel)]="customBankName"
+                  name="customBankName"
+                  placeholder="Ingresa el nombre del banco"
+                  (input)="onCustomBankChange()"
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bankRoutingNumber">Routing Number {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
+              <input
+                type="text"
+                id="bankRoutingNumber"
+                [(ngModel)]="formData.bankRoutingNumber"
+                name="bankRoutingNumber"
+                placeholder="123456789"
+                [disabled]="formData.paymentMethod === 'check'"
+                [required]="formData.paymentMethod !== 'check'"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="bankAccountNumber">Account Number {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
+              <input
+                type="text"
+                id="bankAccountNumber"
+                [(ngModel)]="formData.bankAccountNumber"
+                name="bankAccountNumber"
+                placeholder="987654321"
+                [disabled]="formData.paymentMethod === 'check'"
+                [required]="formData.paymentMethod !== 'check'"
+              >
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="bankRoutingNumber">Routing Number *</label>
-            <input
-              type="text"
-              id="bankRoutingNumber"
-              [(ngModel)]="formData.bankRoutingNumber"
-              name="bankRoutingNumber"
-              placeholder="123456789"
-              required
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="bankAccountNumber">Account Number *</label>
-            <input
-              type="text"
-              id="bankAccountNumber"
-              [(ngModel)]="formData.bankAccountNumber"
-              name="bankAccountNumber"
-              placeholder="987654321"
-              required
-            >
+          <!-- Check Payment Option -->
+          <div class="payment-method-option">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [checked]="formData.paymentMethod === 'check'"
+                (change)="formData.paymentMethod = $any($event.target).checked ? 'check' : 'bank_deposit'; onFormChange()"
+                name="paymentMethodCheck"
+              >
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Quiero recibir mi reembolso mediante cheque</span>
+            </label>
+            <div class="payment-warning" *ngIf="formData.paymentMethod === 'check'">
+              <span class="warning-icon">!</span>
+              <span class="warning-text">Recomendamos siempre recibir deposito bancario. El cheque puede traer demoras o inconvenientes en la entrega.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -444,5 +591,16 @@
       <p>Nuestro equipo esta disponible para asistirte</p>
     </div>
     <button type="button" class="btn-help">Contactar soporte</button>
+  </div>
+
+  <!-- Mobile Sticky Action Bar -->
+  <div class="mobile-sticky-actions">
+    <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSavingDraft">
+      {{ isSavingDraft ? 'Guardando...' : 'Borrador' }}
+    </button>
+    <button type="button" class="btn-submit" (click)="onSubmit()" [disabled]="isLoading || !isFormComplete()">
+      <span>{{ isLoading ? 'Enviando...' : 'Enviar' }}</span>
+      <span class="submit-icon">→</span>
+    </button>
   </div>
 </div>

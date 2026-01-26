@@ -31,8 +31,8 @@
         <p>Calculo de comisiones y pagos a clientes</p>
       </div>
       <div class="total-badge" *ngIf="hasLoaded && !errorMessage">
-        <span class="total-count">{{ clientCount }}</span>
-        <span class="total-label">Clientes con Refunds</span>
+        <span class="total-count">{{ clients.length }}</span>
+        <span class="total-label">Clientes Cargados</span>
       </div>
     </div>
 
@@ -206,6 +206,17 @@
         <div class="empty-icon">&#128176;</div>
         <h3>{{ searchQuery ? 'No se encontraron resultados' : 'No hay pagos registrados' }}</h3>
         <p>{{ searchQuery ? 'Intenta con otro nombre' : 'Cuando se registren refunds para los clientes, apareceran aqui' }}</p>
+      </div>
+
+      <!-- Load More Button -->
+      <div class="load-more-section" *ngIf="hasMore && filteredClients.length > 0">
+        <button
+          class="btn-load-more"
+          (click)="loadMorePayments()"
+          [disabled]="isLoadingMore">
+          <span *ngIf="!isLoadingMore">Cargar Mas</span>
+          <span *ngIf="isLoadingMore">Cargando...</span>
+        </button>
       </div>
     </div>
   </main>

@@ -111,7 +111,6 @@ export class AdminAlarms implements OnInit, OnDestroy {
           this.applyFilters();
         },
         error: (error) => {
-          console.error('Error loading alarm dashboard:', error);
           this.errorMessage = getErrorMessage(error, 'Error al cargar alarmas');
         }
       })
@@ -143,8 +142,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
           this.historyItems = items;
           this.applyHistoryFilters();
         },
-        error: (error) => {
-          console.error('Error loading alarm history:', error);
+        error: () => {
+          // Error loading history - silently fail
         }
       })
     );
@@ -223,8 +222,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
             this.loadHistory();
           }
         },
-        error: (error) => {
-          console.error('Error acknowledging alarm:', error);
+        error: () => {
+          // Error acknowledging alarm - silently fail
         }
       })
     );
@@ -258,8 +257,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
           this.closeResolveModal();
           this.loadHistory();
         },
-        error: (error) => {
-          console.error('Error resolving alarm:', error);
+        error: () => {
+          // Error resolving alarm - silently fail
         }
       })
     );
@@ -304,8 +303,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
             reason: data.reason || ''
           };
         },
-        error: (error) => {
-          console.error('Error loading thresholds:', error);
+        error: () => {
+          // Error loading thresholds - silently fail
         }
       })
     );
@@ -327,8 +326,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
           this.closeThresholdsModal();
           this.loadDashboard();
         },
-        error: (error) => {
-          console.error('Error saving thresholds:', error);
+        error: () => {
+          // Error saving thresholds - silently fail
         }
       })
     );
@@ -350,8 +349,8 @@ export class AdminAlarms implements OnInit, OnDestroy {
           this.closeThresholdsModal();
           this.loadDashboard();
         },
-        error: (error) => {
-          console.error('Error resetting thresholds:', error);
+        error: () => {
+          // Error resetting thresholds - silently fail
         }
       })
     );

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, DestroyRef, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { AnimationService } from '../../core/services/animation.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models';
 
 @Component({
@@ -15,13 +17,21 @@ import { Ticket, TicketMessage, TicketStatus, UserRole } from '../../core/models
   templateUrl: './user-messages.html',
   styleUrl: './user-messages.css'
 })
-export class UserMessages implements OnInit {
+export class UserMessages implements OnInit, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private ticketService = inject(TicketService);
   private dataRefreshService = inject(DataRefreshService);
+  private animationService = inject(AnimationService);
+  private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('ticketsList') ticketsList!: ElementRef<HTMLElement>;
+  @ViewChild('messagesPanel') messagesPanel!: ElementRef<HTMLElement>;
+  @ViewChildren('ticketItem') ticketItems!: QueryList<ElementRef<HTMLElement>>;
 
   userEmail: string = '';
   userId: string = '';
@@ -54,7 +64,33 @@ export class UserMessages implements OnInit {
         clearTimeout(this.safetyTimeoutId);
         this.safetyTimeoutId = null;
       }
+      this.animationService.killAnimations();
     });
+  }
+
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate tickets list panel
+    if (this.ticketsList?.nativeElement) {
+      this.animationService.slideIn(this.ticketsList.nativeElement, 'left', { delay: 0.1 });
+    }
+
+    // Animate messages panel
+    if (this.messagesPanel?.nativeElement) {
+      this.animationService.slideIn(this.messagesPanel.nativeElement, 'right', { delay: 0.2 });
+    }
+
+    // Stagger animate ticket items
+    if (this.ticketItems?.length) {
+      const items = this.ticketItems.map(t => t.nativeElement);
+      this.animationService.staggerIn(items, { direction: 'left', stagger: 0.06, delay: 0.3 });
+    }
   }
 
   ngOnInit(): void {
@@ -98,12 +134,62 @@ export class UserMessages implements OnInit {
       }
     });
 
-    // Auto-polling every 60 seconds for new messages
-    // This is a simpler alternative to WebSocket - see PRD for reasoning
-    interval(60000).pipe(
+    // Subscribe to real-time ticket messages via WebSocket
+    this.notificationService.ticketMessage$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, message }) => {
+      // If the message is for the active ticket, add it to the conversation
+      if (this.activeTicket?.id === ticketId) {
+        // Check if message already exists to avoid duplicates
+        const exists = this.messages.some(m => m.id === message.id);
+        if (!exists) {
+          this.messages = [...this.messages, message as TicketMessage];
+          this.scrollToBottom();
+          this.cdr.detectChanges();
+        }
+      } else {
+        // Message is for a different ticket - increment unread count
+        const ticketIndex = this.tickets.findIndex(t => t.id === ticketId);
+        if (ticketIndex !== -1) {
+          const currentUnread = this.tickets[ticketIndex].unreadCount || 0;
+          this.tickets[ticketIndex] = {
+            ...this.tickets[ticketIndex],
+            unreadCount: currentUnread + 1
+          };
+          this.cdr.detectChanges();
+        }
+      }
+    });
+
+    // Subscribe to real-time ticket status changes via WebSocket
+    this.notificationService.ticketStatus$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ ticketId, status }) => {
+      // Update the ticket status in the list
+      const ticketIndex = this.tickets.findIndex(t => t.id === ticketId);
+      if (ticketIndex !== -1) {
+        this.tickets[ticketIndex] = {
+          ...this.tickets[ticketIndex],
+          status: status as TicketStatus
+        };
+      }
+      // Update the active ticket if it's the one being updated
+      if (this.activeTicket?.id === ticketId) {
+        this.activeTicket = {
+          ...this.activeTicket,
+          status: status as TicketStatus
+        };
+      }
+      this.cdr.detectChanges();
+    });
+
+    // Auto-polling every 120 seconds for new messages (fallback when WebSocket disconnected)
+    // Reduced from 60s since WebSocket provides real-time updates
+    interval(120000).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      if (this.hasLoaded && !this.isLoadingInProgress) {
+      // Only poll if WebSocket is not connected
+      if (this.hasLoaded && !this.isLoadingInProgress && !this.notificationService.isConnected) {
         this.refreshActiveTicket();
       }
     });
@@ -147,7 +233,6 @@ export class UserMessages implements OnInit {
       catchError((error: Error) => {
         this.errorMessage = 'Error al cargar los tickets: ' + (error?.message || 'Error desconocido');
         this.isLoading = false;
-        console.error('Error loading tickets:', error);
         return of([] as Ticket[]);
       }),
       finalize(() => {
@@ -165,6 +250,9 @@ export class UserMessages implements OnInit {
         } else {
           this.isLoading = false;
         }
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       }
     });
 
@@ -177,7 +265,6 @@ export class UserMessages implements OnInit {
       if (!this.hasLoaded) {
         this.hasLoaded = true;
         this.cdr.detectChanges();
-        console.warn('UserMessages: Safety timeout triggered - data load exceeded 5 seconds');
       }
       this.safetyTimeoutId = null;
     }, 5000);
@@ -214,7 +301,6 @@ export class UserMessages implements OnInit {
 
   loadMessages(ticketId: string): void {
     if (!ticketId) {
-      console.error('loadMessages called with invalid ticketId');
       return;
     }
 
@@ -223,9 +309,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.getTicket(ticketId).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al cargar los mensajes';
-        console.error('Error loading messages:', error);
         return of(null);
       }),
       finalize(() => {
@@ -252,9 +337,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.addMessage(this.activeTicket.id, { message: trimmedMessage }).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al enviar el mensaje';
-        console.error('Error sending message:', error);
         return of(null);
       }),
       finalize(() => {
@@ -286,9 +370,8 @@ export class UserMessages implements OnInit {
       message: trimmedMessage
     }).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al crear el ticket';
-        console.error('Error creating ticket:', error);
         return of(null);
       }),
       finalize(() => {
@@ -343,9 +426,8 @@ export class UserMessages implements OnInit {
 
     this.ticketService.deleteTicket(this.ticketToDelete.id).pipe(
       takeUntilDestroyed(this.destroyRef),
-      catchError((error: Error) => {
+      catchError(() => {
         this.errorMessage = 'Error al eliminar el ticket';
-        console.error('Error deleting ticket:', error);
         return of(null);
       }),
       finalize(() => {

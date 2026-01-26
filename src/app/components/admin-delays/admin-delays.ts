@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { TaxStatus } from '../../core/models';
+import { FederalStatusNew, StateStatusNew } from '../../core/models';
 import { getErrorMessage } from '../../core/utils/error-handler';
 import * as XLSX from 'xlsx';
 
@@ -19,13 +19,14 @@ interface DelayClient {
   wentThroughVerification: boolean;
   federalDelayDays: number | null;
   stateDelayDays: number | null;
-  federalStatus: TaxStatus | null;
-  stateStatus: TaxStatus | null;
+  federalStatus: FederalStatusNew | null;
+  stateStatus: StateStatusNew | null;
 }
 
 interface DelaysResponse {
   clients: DelayClient[];
-  clientCount: number;
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 @Component({
@@ -42,8 +43,10 @@ export class AdminDelays implements OnInit, OnDestroy {
 
   clients: DelayClient[] = [];
   filteredClients: DelayClient[] = [];
-  clientCount: number = 0;
+  nextCursor: string | null = null;
+  hasMore: boolean = false;
   isLoading: boolean = false;
+  isLoadingMore: boolean = false;
   hasLoaded: boolean = false;
   errorMessage: string = '';
   isExporting: boolean = false;
@@ -67,11 +70,12 @@ export class AdminDelays implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.subscriptions.add(
-      this.http.get<DelaysResponse>(`${environment.apiUrl}/admin/delays`).subscribe({
+      this.http.get<DelaysResponse>(`${environment.apiUrl}/admin/delays?limit=500`).subscribe({
         next: (response) => {
           this.clients = response.clients;
           this.filteredClients = this.clients;
-          this.clientCount = response.clientCount;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
           this.calculateStats();
           this.isLoading = false;
           this.hasLoaded = true;
@@ -82,6 +86,34 @@ export class AdminDelays implements OnInit, OnDestroy {
           this.errorMessage = getErrorMessage(error, 'Error al cargar datos de demoras');
           this.isLoading = false;
           this.hasLoaded = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  loadMoreDelays() {
+    if (!this.hasMore || this.isLoadingMore || !this.nextCursor) return;
+
+    this.isLoadingMore = true;
+
+    this.subscriptions.add(
+      this.http.get<DelaysResponse>(
+        `${environment.apiUrl}/admin/delays?cursor=${this.nextCursor}&limit=500`
+      ).subscribe({
+        next: (response) => {
+          this.clients = [...this.clients, ...response.clients];
+          this.filteredClients = this.searchQuery ? this.filteredClients : this.clients;
+          this.nextCursor = response.nextCursor;
+          this.hasMore = response.hasMore;
+          this.calculateStats();
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading more delays:', error);
+          this.errorMessage = getErrorMessage(error, 'Error al cargar mas demoras');
+          this.isLoadingMore = false;
           this.cdr.detectChanges();
         }
       })

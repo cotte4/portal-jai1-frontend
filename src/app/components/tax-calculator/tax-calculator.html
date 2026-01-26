@@ -83,7 +83,7 @@
   </div>
 
   <!-- Upload State -->
-  <div class="calculator-card" *ngIf="state === 'upload'">
+  <div class="calculator-card" #uploadCard *ngIf="state === 'upload'">
     <div class="card-header">
       <div class="header-icon">📄</div>
       <h1>Calculadora de Reembolso</h1>
@@ -106,7 +106,7 @@
           type="file"
           #fileInput
           hidden
-          accept=".jpg,.jpeg,.png"
+          accept=".jpg,.jpeg,.png,.pdf"
           (change)="onFileSelect($event)"
         >
         
@@ -127,6 +127,7 @@
         <div class="upload-formats">
           <span>JPG</span>
           <span>PNG</span>
+          <span>PDF</span>
         </div>
       </div>
     </div>
@@ -205,11 +206,15 @@
           <span>Generando estimado...</span>
         </div>
       </div>
+
+      <button class="cancel-button" (click)="cancelCalculation()">
+        Cancelar
+      </button>
     </div>
   </div>
 
   <!-- Result State -->
-  <div class="calculator-card result-card" *ngIf="state === 'result'">
+  <div class="calculator-card result-card" #resultCard *ngIf="state === 'result'">
     <div class="result-celebration">
       <div class="confetti confetti-1">🎉</div>
       <div class="confetti confetti-2">✨</div>
@@ -278,12 +283,8 @@
         Calcular con otro documento
       </button>
 
-      <!-- Document auto-save indicator -->
-      <div class="saved-indicator saving" *ngIf="isSavingDocument && uploadedFile">
-        <span class="saved-icon spinning">⏳</span>
-        <span>Guardando W2 automáticamente...</span>
-      </div>
-      <div class="saved-indicator" *ngIf="documentSaved && !isSavingDocument">
+      <!-- Document saved indicator (backend saves W2 automatically during estimate) -->
+      <div class="saved-indicator" *ngIf="documentSaved">
         <span class="saved-icon">✓</span>
         <span>W2 guardado en tus documentos</span>
       </div>

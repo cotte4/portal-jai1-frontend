@@ -125,6 +125,13 @@
               <span class="ticket-date">{{ formatFullDate(ticket.createdAt) }}</span>
             </div>
           </div>
+
+          <!-- Load More Button -->
+          <div class="load-more-container" *ngIf="hasMore && !isLoading">
+            <button class="btn-load-more" (click)="loadMoreTickets()" [disabled]="isLoadingMore">
+              {{ isLoadingMore ? 'Cargando...' : 'Cargar mas tickets' }}
+            </button>
+          </div>
         </div>
       </div>
 

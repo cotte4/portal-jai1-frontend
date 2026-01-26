@@ -9,8 +9,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import {
   AdminClientListItem,
-  TaxStatus,
-  PreFilingStatus,
   CaseStatus,
   FederalStatusNew,
   StateStatusNew,
@@ -89,6 +87,13 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isTogglingCron: boolean = false;
   showMissingDocsInfoModal: boolean = false;
 
+  // Sidebar - collapsed by default on mobile
+  sidebarCollapsed: boolean = typeof window !== 'undefined' && window.innerWidth <= 1024;
+
+  // Dark Mode
+  darkMode: boolean = false;
+  private readonly DARK_MODE_KEY = 'jai1_admin_dark_mode';
+
   // Advanced filters
   showAdvancedFilters: boolean = false;
   advancedFilters: AdvancedFilters = {
@@ -115,6 +120,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: FederalStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
     { value: FederalStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: FederalStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: FederalStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: FederalStatusNew.ISSUES, label: 'Problemas' },
     { value: FederalStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
     { value: FederalStatusNew.TAXES_COMPLETED, label: 'Completado' },
@@ -127,6 +133,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: StateStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
     { value: StateStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: StateStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
+    { value: StateStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: StateStatusNew.ISSUES, label: 'Problemas' },
     { value: StateStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
     { value: StateStatusNew.TAXES_COMPLETED, label: 'Completado' },
@@ -156,6 +163,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    // Load dark mode preference
+    this.loadDarkModePreference();
+
     // Read filters from URL params first
     this.loadFiltersFromUrl();
 
@@ -237,7 +247,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading clients:', error);
         this.errorCode = error?.status ? `HTTP ${error.status}` : 'NETWORK_ERROR';
 
         // Provide more helpful error messages based on status code
@@ -289,8 +298,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingStats = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading season stats:', error);
+      error: () => {
         this.isLoadingStats = false;
         this.cdr.detectChanges();
       }
@@ -317,8 +325,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingMore = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading more clients:', error);
+      error: () => {
         this.errorMessage = 'Error al cargar mas clientes';
         this.isLoadingMore = false;
         this.cdr.detectChanges();
@@ -334,23 +341,23 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.stats.completed = 0;
     this.stats.needsAttention = 0;
 
-    // Single pass through clients using new phase-based status system
+    // Single pass through clients using new phase-based status system (v2)
     for (const client of this.allClients) {
-      const taxesFiled = client.taxesFiled || false;
-      const federalStatus = client.federalStatus;
-      const stateStatus = client.stateStatus;
+      const taxesFiled = client.caseStatus === CaseStatus.TAXES_FILED;
+      const federalStatusNew = client.federalStatusNew;
+      const stateStatusNew = client.stateStatusNew;
 
       if (!taxesFiled) {
         // Pending: not yet filed
         this.stats.pending++;
-      } else if (federalStatus === TaxStatus.DEPOSITED || stateStatus === TaxStatus.DEPOSITED) {
-        // Completed: at least one deposited
+      } else if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED || stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
+        // Completed: at least one completed
         this.stats.completed++;
-      } else if (federalStatus === TaxStatus.REJECTED || stateStatus === TaxStatus.REJECTED) {
-        // Needs Attention: rejected
+      } else if (federalStatusNew === FederalStatusNew.ISSUES || stateStatusNew === StateStatusNew.ISSUES) {
+        // Needs Attention: has issues
         this.stats.needsAttention++;
       } else {
-        // In Review: filed but not yet deposited or rejected
+        // In Review: filed but not yet completed or with issues
         this.stats.inReview++;
       }
     }
@@ -406,15 +413,54 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadSeasonStats();
   }
 
-  // DEPRECATED: Legacy method kept for backward compatibility in templates
-  // New status system uses taxesFiled, federalStatus, stateStatus
-  getStatusLabel(status: any): string {
-    return status || 'Sin Asignar';
+  // V2 status label mapping
+  getStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'Sin Asignar';
+
+    const labels: Record<string, string> = {
+      // FederalStatusNew / StateStatusNew
+      'in_process': 'En Proceso',
+      'in_verification': 'En Verificación',
+      'verification_in_progress': 'Verif. en Progreso',
+      'verification_letter_sent': 'Carta Enviada',
+      'deposit_pending': 'Depósito Pendiente',
+      'check_in_transit': 'Cheque en Camino',
+      'issues': 'Problemas',
+      'taxes_sent': 'Reembolso Enviado',
+      'taxes_completed': 'Completado',
+      // CaseStatus
+      'awaiting_form': 'Esperando Form',
+      'awaiting_docs': 'Esperando Docs',
+      'preparing': 'Preparando',
+      'taxes_filed': 'Presentados',
+      'case_issues': 'Con Problemas',
+    };
+
+    return labels[status] || status;
   }
 
-  // DEPRECATED: Legacy method kept for backward compatibility in templates
-  getStatusClass(status: any): string {
-    return 'status-pending';
+  // V2 status CSS class mapping
+  getStatusClass(status: string | null | undefined): string {
+    if (!status) return 'status-pending';
+
+    const classes: Record<string, string> = {
+      'in_process': 'status-in-progress',
+      'in_verification': 'status-in-progress',
+      'verification_in_progress': 'status-in-progress',
+      'verification_letter_sent': 'status-warning',
+      'deposit_pending': 'status-approved',
+      'check_in_transit': 'status-approved',
+      'issues': 'status-rejected',
+      'taxes_sent': 'status-approved',
+      'taxes_completed': 'status-completed',
+      'awaiting_form': 'status-pending',
+      'awaiting_docs': 'status-pending',
+      'preparing': 'status-in-progress',
+      'taxes_filed': 'status-approved',
+      'case_issues': 'status-rejected',
+    };
+
+    return classes[status] || 'status-pending';
   }
 
   getInitials(firstName: string | undefined, lastName: string | undefined): string {
@@ -451,6 +497,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/alarms']);
   }
 
+  goToJai1gents() {
+    this.router.navigate(['/admin/jai1gents']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 
@@ -481,6 +531,32 @@ export class AdminDashboard implements OnInit, OnDestroy {
     });
   }
 
+  // ===== SIDEBAR =====
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.cdr.detectChanges();
+  }
+
+  // ===== DARK MODE =====
+  toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    this.saveDarkModePreference();
+    this.cdr.detectChanges();
+  }
+
+  private loadDarkModePreference() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedPreference = localStorage.getItem(this.DARK_MODE_KEY);
+      this.darkMode = savedPreference === 'true';
+    }
+  }
+
+  private saveDarkModePreference() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(this.DARK_MODE_KEY, this.darkMode.toString());
+    }
+  }
+
   logout() {
     this.authService.logout().subscribe({
       next: () => {
@@ -490,58 +566,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.router.navigate(['/admin-login']);
       }
     });
-  }
-
-  // ===== NEW STATUS SYSTEM METHODS =====
-
-  getPreFilingStatusLabel(status: PreFilingStatus | null | undefined): string {
-    if (!status) return 'Sin Estado';
-
-    const labels: Record<PreFilingStatus, string> = {
-      [PreFilingStatus.AWAITING_REGISTRATION]: 'Esperando Registro',
-      [PreFilingStatus.AWAITING_DOCUMENTS]: 'Esperando Docs',
-      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'Docs Completos'
-    };
-    return labels[status] || status;
-  }
-
-  getPreFilingStatusClass(status: PreFilingStatus | null | undefined): string {
-    if (!status) return 'status-new';
-
-    const classes: Record<PreFilingStatus, string> = {
-      [PreFilingStatus.AWAITING_REGISTRATION]: 'status-pending',
-      [PreFilingStatus.AWAITING_DOCUMENTS]: 'status-pending',
-      [PreFilingStatus.DOCUMENTATION_COMPLETE]: 'status-approved'
-    };
-    return classes[status] || 'status-pending';
-  }
-
-  getTaxStatusLabel(status: TaxStatus | null | undefined): string {
-    if (!status) return 'Sin Estado';
-
-    const labels: Record<TaxStatus, string> = {
-      [TaxStatus.FILED]: 'Presentado',
-      [TaxStatus.PENDING]: 'Pendiente',
-      [TaxStatus.PROCESSING]: 'Procesando',
-      [TaxStatus.APPROVED]: 'Aprobado',
-      [TaxStatus.REJECTED]: 'Rechazado',
-      [TaxStatus.DEPOSITED]: 'Depositado'
-    };
-    return labels[status] || status;
-  }
-
-  getTaxStatusClass(status: TaxStatus | null | undefined): string {
-    if (!status) return 'status-new';
-
-    const classes: Record<TaxStatus, string> = {
-      [TaxStatus.FILED]: 'status-in-review',
-      [TaxStatus.PENDING]: 'status-pending',
-      [TaxStatus.PROCESSING]: 'status-in-review',
-      [TaxStatus.APPROVED]: 'status-approved',
-      [TaxStatus.REJECTED]: 'status-needs-attention',
-      [TaxStatus.DEPOSITED]: 'status-completed'
-    };
-    return classes[status] || 'status-pending';
   }
 
   // ===== CREDENTIALS MODAL =====
@@ -565,8 +589,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
     if (!value) return;
     navigator.clipboard.writeText(value).then(() => {
       // Optional: show a brief notification
-    }).catch(err => {
-      console.error('Failed to copy:', err);
+    }).catch(() => {
+      // Clipboard operation failed silently
     });
   }
 
@@ -600,6 +624,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     const labels: Record<CaseStatus, string> = {
       [CaseStatus.AWAITING_FORM]: 'Esperando Form',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Docs',
+      [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Docs Enviados',
       [CaseStatus.PREPARING]: 'Preparando',
       [CaseStatus.TAXES_FILED]: 'Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'
@@ -615,6 +640,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
       [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas',
       [FederalStatusNew.TAXES_SENT]: 'Enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -630,6 +656,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
       [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
+      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [StateStatusNew.ISSUES]: 'Problemas',
       [StateStatusNew.TAXES_SENT]: 'Enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -973,7 +1000,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error checking missing documents:', error);
         this.errorMessage = error?.error?.message || 'Error al verificar documentos faltantes';
         this.isCheckingMissingDocs = false;
         this.cdr.detectChanges();
@@ -997,8 +1023,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.isLoadingCronStatus = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading cron status:', error);
+      error: () => {
         this.isLoadingCronStatus = false;
         this.cdr.detectChanges();
       }
@@ -1018,7 +1043,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error toggling cron:', error);
         this.errorMessage = error?.error?.message || 'Error al cambiar estado del cron';
         this.isTogglingCron = false;
         this.cdr.detectChanges();

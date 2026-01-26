@@ -34,6 +34,86 @@
   </div>
 </div>
 
+<!-- Consent Form Modal -->
+<div class="popup-overlay consent-form-modal" *ngIf="showConsentFormModal" (click)="closeConsentForm()">
+  <div class="consent-form-modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeConsentForm()">x</button>
+    <app-consent-form
+      [isModal]="true"
+      (signed)="onConsentFormSigned()"
+      (cancelled)="closeConsentForm()">
+    </app-consent-form>
+  </div>
+</div>
+
+<!-- Payment Instructions Modal -->
+<div class="popup-overlay" *ngIf="showPaymentInstructions" (click)="closePaymentInstructions()">
+  <div class="popup-card payment-instructions-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closePaymentInstructions()">×</button>
+    <div class="popup-icon payment-icon">💳</div>
+    <h2>Instrucciones de Pago</h2>
+
+    <div class="payment-details">
+      <div class="payment-row">
+        <span class="payment-label">Monto:</span>
+        <span class="payment-value highlight">$30 USD</span>
+      </div>
+      <div class="payment-row">
+        <span class="payment-label">Concepto:</span>
+        <span class="payment-value">Pago inicial de compromiso / reserva del servicio</span>
+      </div>
+    </div>
+
+    <div class="payment-methods-section">
+      <h3>Medios de pago disponibles</h3>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">💸</span>
+          <span class="method-name">Zelle</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Email:</strong> pagos&#64;jai1taxes.com</p>
+          <p><strong>Nombre:</strong> JAI1 Tax Services LLC</p>
+        </div>
+      </div>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">🅿️</span>
+          <span class="method-name">PayPal</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Email:</strong> paypal&#64;jai1taxes.com</p>
+        </div>
+      </div>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">🌐</span>
+          <span class="method-name">Western Union / MoneyGram</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Nombre:</strong> JAI1 Tax Services</p>
+          <p><strong>Ciudad:</strong> Miami, FL</p>
+          <p class="note">Contacta soporte para mas detalles</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-reminder">
+      <span class="reminder-icon">📸</span>
+      <p><strong>Que subir:</strong> Screenshot o comprobante del pago realizado</p>
+    </div>
+
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closePaymentInstructions()">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Initial Loading Screen -->
 <div class="initial-loading" *ngIf="!hasLoaded">
   <div class="loading-spinner"></div>
@@ -41,14 +121,18 @@
 </div>
 
 <div class="upload-content" *ngIf="hasLoaded">
-  <!-- Success Screen when all required docs uploaded -->
-  <div class="success-screen" *ngIf="allRequiredDocsUploaded && !showUploadView">
+  <!-- Success Screen when all required docs uploaded AND consent signed -->
+  <div class="success-screen" *ngIf="canComplete && !showUploadView">
     <div class="success-card">
       <div class="success-icon-big">🎉</div>
-      <h1>¡Documentos Completos!</h1>
-      <p class="success-subtitle">Has subido todos los documentos necesarios</p>
+      <h1>¡Todo Listo!</h1>
+      <p class="success-subtitle">Has completado todos los requisitos</p>
 
       <div class="success-checklist">
+        <div class="success-item completed">
+          <span class="item-icon">✓</span>
+          <span>Acuerdo de Consentimiento</span>
+        </div>
         <div class="success-item completed">
           <span class="item-icon">✓</span>
           <span>Documento W2</span>
@@ -59,7 +143,7 @@
         </div>
       </div>
 
-      <p class="success-message">Tu documentación está lista para ser procesada. Nuestro equipo revisará todo y te notificaremos cualquier novedad.</p>
+      <p class="success-message">Tu documentacion esta lista para ser procesada. Nuestro equipo revisara todo y te notificaremos cualquier novedad.</p>
 
       <div class="success-actions">
         <button class="btn-primary-action" (click)="goToDashboard()">
@@ -67,7 +151,7 @@
           <span>→</span>
         </button>
         <button class="btn-secondary-action" (click)="goToTaxForm()">
-          Completar mi Declaración
+          Completar mi Declaracion
         </button>
       </div>
     </div>
@@ -82,29 +166,19 @@
   </div>
 
   <!-- Regular upload view -->
-  <div *ngIf="!allRequiredDocsUploaded || showUploadView">
+  <div *ngIf="!canComplete || showUploadView">
     <!-- Back to success button when viewing docs after completion -->
-    <button class="btn-back-to-success" *ngIf="allRequiredDocsUploaded && showUploadView" (click)="showUploadView = false">
+    <button class="btn-back-to-success" *ngIf="canComplete && showUploadView" (click)="showUploadView = false">
       ← Volver al resumen
     </button>
 
     <!-- Page Title -->
     <div class="page-title">
-      <h1>{{ allRequiredDocsUploaded ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
-      <p>{{ allRequiredDocsUploaded ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
+      <h1>{{ canComplete ? 'Mis Documentos' : 'Subir Documentos' }}</h1>
+      <p>{{ canComplete ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
     </div>
 
-  <!-- Messages -->
-  <div class="message success-message" *ngIf="successMessage">
-    <span class="message-icon">✓</span>
-    {{ successMessage }}
-  </div>
-  <div class="message error-message" *ngIf="errorMessage">
-    <span class="message-icon">⚠</span>
-    {{ errorMessage }}
-  </div>
-
- <!-- Document Type Tabs -->
+  <!-- Document Type Tabs -->
   <div class="document-type-tabs">
     <button
       *ngFor="let type of documentTypes"
@@ -118,19 +192,34 @@
     </button>
   </div>
 
-  <!-- Consent Agreement Section (Mobile) -->
-  <div class="consent-agreement-card">
-    <div class="consent-icon">📋</div>
-    <div class="consent-content">
-      <h3>Acuerdo de consentimiento</h3>
-      <p>Al subir tus documentos, autorizas a JAI1 a procesar tu declaracion de impuestos.</p>
+  <!-- W2 Multiple Upload Hint -->
+  <div class="w2-hint" *ngIf="selectedType === 'w2'">
+    <span class="w2-hint-icon">i</span>
+    <span class="w2-hint-text">Si tenes mas de un W2, podes subir todos aca. Se guardaran todos correctamente.</span>
+  </div>
+
+  <!-- Payment Instructions Info Card (visible when payment_proof tab is selected) -->
+  <div class="payment-info-card" *ngIf="isPaymentProofSelected">
+    <div class="payment-info-header">
+      <span class="payment-info-icon">💵</span>
+      <div class="payment-info-title">
+        <h3>Pago Inicial Requerido</h3>
+        <p class="payment-amount">$30 USD</p>
+      </div>
     </div>
-    <a routerLink="/messages" class="consent-link">Consultar →</a>
+    <p class="payment-info-description">
+      Antes de subir tu comprobante, realiza el pago inicial de <strong>$30 USD</strong> como reserva del servicio.
+    </p>
+    <button class="btn-payment-instructions" (click)="openPaymentInstructions()">
+      <span>Ver instrucciones de pago</span>
+      <span class="btn-arrow">→</span>
+    </button>
   </div>
 
   <!-- Upload Zone -->
   <div
     class="upload-zone"
+    #uploadZone
     [class.drag-over]="dragOver"
     [class.uploading]="isUploading"
     (dragover)="onDragOver($event)"
@@ -148,6 +237,7 @@
     <input
       type="file"
       id="fileInput"
+      #fileInput
       (change)="onFileSelected($event)"
       accept=".pdf,.png,.jpg,.jpeg"
       multiple
@@ -166,10 +256,75 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div class="loading-state" *ngIf="isLoading">
-    <div class="spinner"></div>
-    <p>Cargando documentos...</p>
+  <!-- Consent Form Section - Compact Horizontal -->
+  <div class="consent-form-compact" [class.signed]="isConsentFormSigned">
+    <div class="consent-compact-content">
+      <div class="consent-compact-left">
+        <span class="consent-compact-icon" [class.signed]="isConsentFormSigned">
+          {{ isConsentFormSigned ? '✓' : '✍️' }}
+        </span>
+        <span class="consent-compact-title">Acuerdo de Consentimiento</span>
+        <span class="consent-compact-status" *ngIf="isConsentFormSigned">
+          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+      <button
+        *ngIf="!isConsentFormSigned"
+        class="btn-consent-compact"
+        (click)="openConsentForm()">
+        Firmar
+      </button>
+      <button
+        *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
+        class="btn-consent-compact secondary"
+        (click)="downloadSignedConsentForm()">
+        PDF ⬇️
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="message success-message" *ngIf="successMessage">
+    <span class="message-icon">✓</span>
+    {{ successMessage }}
+  </div>
+  <div class="message error-message" *ngIf="errorMessage">
+    <span class="message-icon">⚠</span>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Skeleton Loading State -->
+  <div class="skeleton-loading" *ngIf="isLoading">
+    <div class="section-header skeleton-header">
+      <div class="skeleton skeleton-title" style="width: 180px; height: 24px;"></div>
+      <div class="skeleton skeleton-text" style="width: 80px; height: 18px;"></div>
+    </div>
+    <div class="files-list skeleton-list">
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 200px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 280px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 180px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 240px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+      <div class="file-card skeleton-file-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+        <div class="file-details">
+          <div class="skeleton skeleton-text" style="width: 160px; height: 18px; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 220px; height: 14px;"></div>
+        </div>
+        <div class="skeleton skeleton-circle" style="width: 36px; height: 36px;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Uploaded Files Section -->
@@ -180,7 +335,7 @@
     </div>
 
     <div class="files-list">
-      <div class="file-card" *ngFor="let file of uploadedFiles; let i = index">
+      <div class="file-card" #fileCard *ngFor="let file of uploadedFiles; let i = index">
         <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
         <div class="file-details">
           <div class="file-name">{{ file.fileName }}</div>

@@ -63,9 +63,10 @@
   <div class="chat-layout" *ngIf="!showNewTicketForm">
     <div class="tickets-sidebar" *ngIf="tickets.length > 1">
       <h3>Conversaciones</h3>
-      <div class="tickets-list">
+      <div class="tickets-list" #ticketsList>
         <div
           class="ticket-item"
+          #ticketItem
           *ngFor="let ticket of tickets"
           [class.active]="activeTicket?.id === ticket.id"
           [class.has-unread]="hasUnread(ticket)"
@@ -86,7 +87,7 @@
     </div>
 
     <!-- Chat Container -->
-    <div class="chat-container" [class.full-width]="tickets.length <= 1">
+    <div class="chat-container" #messagesPanel [class.full-width]="tickets.length <= 1">
       <!-- Loading State -->
       <div class="loading-state" *ngIf="isLoading">
         <div class="spinner"></div>

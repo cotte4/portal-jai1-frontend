@@ -41,7 +41,9 @@ export class ProfileService {
       employer_name: data.employerName,
       turbotax_email: data.turbotaxEmail,
       turbotax_password: data.turbotaxPassword,
-      is_draft: data.isDraft
+      phone: data.phone,
+      is_draft: data.isDraft,
+      payment_method: data.paymentMethod || 'bank_deposit'
     };
 
     // Note: Don't log apiData - contains SSN, bank info, TurboTax credentials
@@ -110,6 +112,21 @@ export class ProfileService {
       { preferredLanguage: language }
     ).pipe(
       timeout(8000),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Mark onboarding as complete in the backend.
+   * This ensures the hasProfile flag is set to true so the user
+   * doesn't see onboarding again on subsequent logins.
+   */
+  markOnboardingComplete(): Observable<{ success: boolean; profileComplete: boolean; message: string }> {
+    return this.http.post<{ success: boolean; profileComplete: boolean; message: string }>(
+      `${this.apiUrl}/profile/mark-onboarding-complete`,
+      {}
+    ).pipe(
+      timeout(10000), // 10 second timeout
       catchError(this.handleError)
     );
   }

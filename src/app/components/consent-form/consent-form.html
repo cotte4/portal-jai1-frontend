@@ -1,0 +1,186 @@
+<!-- Main Content -->
+<div class="consent-container" [class.modal-mode]="isModal">
+  <!-- Header -->
+  <div class="consent-header">
+    <div class="header-logo">
+      <span class="logo-text">JAI-1</span>
+    </div>
+    <h1 class="header-title">ACUERDO POR PRESTACION DE SERVICIOS</h1>
+  </div>
+
+  <!-- Document Content -->
+  <div class="document-wrapper">
+    <div class="document-content">
+      <!-- Introduction with Input Fields -->
+      <div class="document-intro">
+        <p>
+          Entre <strong>JAI-1</strong>, con domicilio electronico en la casilla de correo jai1&#64;memas.agency, en adelante la <strong>empresa</strong>, y
+        </p>
+
+        <!-- Form Fields Section -->
+        <div class="form-fields-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Nombre Completo *</label>
+              <input
+                type="text"
+                id="fullName"
+                [(ngModel)]="formData.fullName"
+                placeholder="Ej: Juan Carlos Perez"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row two-columns">
+            <div class="form-group">
+              <label for="dniPassport">DNI / Pasaporte *</label>
+              <input
+                type="text"
+                id="dniPassport"
+                [(ngModel)]="formData.dniPassport"
+                placeholder="Ej: 12345678"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input
+                type="email"
+                id="email"
+                [(ngModel)]="formData.email"
+                placeholder="Ej: juan@email.com"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row two-columns">
+            <div class="form-group">
+              <label for="street">Direccion (Calle) *</label>
+              <input
+                type="text"
+                id="street"
+                [(ngModel)]="formData.street"
+                placeholder="Ej: Av. Corrientes 1234"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="city">Ciudad *</label>
+              <input
+                type="text"
+                id="city"
+                [(ngModel)]="formData.city"
+                placeholder="Ej: Buenos Aires"
+                class="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <p class="intro-continuation">
+          en adelante el <strong>cliente</strong>, se celebra el presente acuerdo sujeto a las siguientes clausulas y condiciones:
+        </p>
+      </div>
+
+      <!-- Clauses -->
+      <div class="document-clauses">
+        <div class="clause" *ngFor="let clause of clauses">
+          <p>{{ clause }}</p>
+        </div>
+      </div>
+
+      <!-- Closing -->
+      <div class="document-closing">
+        <p>
+          En prueba de conformidad, se firman dos ejemplares de un mismo tenor y a un solo efecto,
+          a los <span class="date-field">{{ formattedDate }}</span>.-
+        </p>
+      </div>
+
+      <!-- Signatures Section -->
+      <div class="signatures-section">
+        <!-- Client Signature -->
+        <div class="signature-block client-signature">
+          <label class="signature-label">FIRMA CLIENTE: *</label>
+          <div class="signature-canvas-wrapper">
+            <canvas
+              #signatureCanvas
+              class="signature-canvas"
+              [class.has-signature]="hasSignature">
+            </canvas>
+            <button
+              class="btn-clear-signature"
+              *ngIf="hasSignature"
+              (click)="clearSignature()"
+              type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Limpiar
+            </button>
+          </div>
+          <p class="signature-hint" *ngIf="!hasSignature">Dibuja tu firma aqui con el mouse o dedo</p>
+        </div>
+
+        <!-- JAI-1 Signatures -->
+        <div class="jai1-signatures">
+          <div class="signature-block">
+            <label class="signature-label">FIRMA JAI-1:</label>
+            <div class="jai1-signature-line">
+              <span class="signature-placeholder">________________</span>
+              <span class="signer-name">Francisco Uria</span>
+            </div>
+          </div>
+
+          <div class="signature-block">
+            <label class="signature-label">FIRMA JAI-1:</label>
+            <div class="jai1-signature-line">
+              <span class="signature-placeholder">________________</span>
+              <span class="signer-name">Lautaro Iglesias</span>
+            </div>
+          </div>
+
+          <div class="signature-block">
+            <label class="signature-label">FIRMA JAI-1:</label>
+            <div class="jai1-signature-line">
+              <span class="signature-placeholder">________________</span>
+              <span class="signer-name">Tomas Bucci</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="consent-footer">
+    <div class="footer-info">
+      <span>www.jai1.tax</span>
+      <span class="separator">|</span>
+      <span>+54 9 2236 68 8497</span>
+      <span class="separator">|</span>
+      <span>jai1&#64;memas.agency</span>
+    </div>
+
+    <div class="footer-actions">
+      <button
+        class="btn-secondary"
+        (click)="cancel()"
+        *ngIf="isModal">
+        Cancelar
+      </button>
+      <button
+        class="btn-primary"
+        [disabled]="!isFormValid || isSigning"
+        (click)="signAgreement()">
+        <span *ngIf="!isSigning">Firmar Acuerdo</span>
+        <span *ngIf="isSigning" class="btn-loading">
+          <span class="spinner-small"></span>
+          Firmando...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

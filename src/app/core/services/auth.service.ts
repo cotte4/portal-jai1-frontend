@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -12,6 +12,49 @@ import {
   AuthResponse,
   RegisterResponse,
 } from '../models';
+
+/** API registration data format (snake_case) */
+interface RegisterApiData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  referral_code?: string;
+}
+
+/** API user response format (can be camelCase or snake_case) */
+interface ApiUserData {
+  id: string;
+  email: string;
+  role: UserRole | string;
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  phone?: string;
+  profilePictureUrl?: string;
+  profile_picture_url?: string;
+  isActive?: boolean;
+  is_active?: boolean;
+  hasProfile?: boolean;
+  lastLoginAt?: string;
+  last_login_at?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+}
+
+/** API auth response format (can be camelCase or snake_case) */
+interface ApiAuthResponse {
+  user: ApiUserData;
+  accessToken?: string;
+  access_token?: string;
+  refreshToken?: string;
+  refresh_token?: string;
+  hasProfile?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -108,6 +151,10 @@ export class AuthService {
     return this.currentUser?.role === UserRole.CLIENT;
   }
 
+  get isJai1gent(): boolean {
+    return this.currentUser?.role === UserRole.JAI1GENT;
+  }
+
   /**
    * Update current user data after profile changes
    * This properly triggers the BehaviorSubject and persists to storage
@@ -123,7 +170,7 @@ export class AuthService {
 
   register(data: RegisterRequest): Observable<RegisterResponse> {
     // Convert to snake_case for API
-    const apiData: any = {
+    const apiData: RegisterApiData = {
       email: data.email,
       password: data.password,
       first_name: data.firstName,
@@ -231,6 +278,7 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleAuthResponse(response: any): void {
     // Guard against invalid response
     if (!response) {
@@ -269,7 +317,8 @@ export class AuthService {
    * Handle Google OAuth callback - stores tokens and updates user state
    * Google OAuth defaults to rememberMe=true since no checkbox is shown
    */
-  handleGoogleAuthCallback(userData: any, hasProfile: boolean): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleGoogleAuthCallback(userData: any, _hasProfile: boolean): void {
     // Default to rememberMe=true for Google OAuth (no checkbox shown)
     this.storage.setRememberMe(true);
 
@@ -283,6 +332,7 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapUserFromApi(apiUser: any): User | null {
     // Guard against undefined or null user data
     if (!apiUser || typeof apiUser !== 'object') {
@@ -292,15 +342,15 @@ export class AuthService {
     return {
       id: apiUser.id,
       email: apiUser.email,
-      role: apiUser.role,
-      firstName: apiUser.firstName || apiUser.first_name,
-      lastName: apiUser.lastName || apiUser.last_name,
+      role: apiUser.role as UserRole,
+      firstName: apiUser.firstName || apiUser.first_name || '',
+      lastName: apiUser.lastName || apiUser.last_name || '',
       phone: apiUser.phone,
       profilePictureUrl: apiUser.profilePictureUrl || apiUser.profile_picture_url,
       isActive: apiUser.isActive ?? apiUser.is_active ?? true,
       lastLoginAt: apiUser.lastLoginAt || apiUser.last_login_at,
-      createdAt: apiUser.createdAt || apiUser.created_at,
-      updatedAt: apiUser.updatedAt || apiUser.updated_at,
+      createdAt: apiUser.createdAt || apiUser.created_at || new Date().toISOString(),
+      updatedAt: apiUser.updatedAt || apiUser.updated_at || new Date().toISOString(),
     };
   }
 
@@ -310,7 +360,7 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse): Observable<never> {
     return throwError(() => error);
   }
 }

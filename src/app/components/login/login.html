@@ -1,7 +1,7 @@
 <div class="login-page">
   <!-- Left Panel - Branding -->
   <div class="brand-panel">
-    <div class="brand-content">
+    <div class="brand-content" #brandContent>
       <!-- Decorative Elements -->
       <div class="decoration decoration-1"></div>
       <div class="decoration decoration-2"></div>
@@ -45,7 +45,7 @@
 
   <!-- Right Panel - Form -->
   <div class="form-panel">
-    <div class="form-wrapper">
+    <div class="form-wrapper" #formWrapper>
       <!-- Mobile Logo -->
       <div class="mobile-logo">
         <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="brand-logo-mobile">
@@ -152,9 +152,21 @@
 
       <!-- Footer -->
       <p class="form-footer">
-        ¿No tenés cuenta? 
+        ¿No tenés cuenta?
         <a (click)="goToRegister()">Creá una gratis</a>
       </p>
+
+      <!-- Install App Button - Only shows when installable -->
+      @if (showInstallButton) {
+        <button type="button" class="btn-install-app" (click)="installApp()">
+          <svg class="install-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Instalá la app</span>
+        </button>
+      }
     </div>
   </div>
 </div>

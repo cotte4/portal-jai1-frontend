@@ -68,6 +68,13 @@
   gap: 4px;
   overflow-y: auto;
   min-height: 0; /* Allow flex item to shrink below content size */
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .nav-link {
@@ -536,6 +543,31 @@
   font-size: 48px;
 }
 
+/* Load More Button */
+.btn-load-more {
+  width: calc(100% - 40px);
+  margin: 16px 20px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  color: #1D345D;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-load-more:hover:not(:disabled) {
+  background: #f0f2f5;
+  border-color: #1D345D;
+}
+
+.btn-load-more:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ==================== PAGE CONTENT ==================== */
 .page-content {
   flex: 1;
@@ -543,8 +575,24 @@
   background: #f5f7fa;
 }
 
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 768px) {
+/* Mobile page content - add bottom padding for nav */
+.mobile-page-content {
+  padding-bottom: var(--content-bottom-padding, 96px);
+}
+
+/* ==================== MOBILE APP LAYOUT ==================== */
+.mobile-layout {
+  flex-direction: column;
+}
+
+.mobile-layout .mobile-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ==================== TABLET (768px - 1023px) ==================== */
+@media (max-width: 1023px) {
   .sidebar {
     position: fixed;
     left: -280px;
@@ -575,7 +623,10 @@
   .btn-menu {
     display: block;
   }
+}
 
+/* ==================== MOBILE (481px - 767px) ==================== */
+@media (max-width: 767px) {
   .topbar {
     padding: var(--spacing-md) var(--page-padding);
     gap: var(--spacing-sm);

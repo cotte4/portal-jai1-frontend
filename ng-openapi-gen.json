@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/ng-openapi-gen/ng-openapi-gen-schema.json",
+  "input": "../portal-jai1-backend/openapi.json",
+  "output": "src/app/core/api",
+  "ignoreUnusedModels": false,
+  "enumStyle": "alias",
+  "indexFile": true,
+  "servicePrefix": "Api",
+  "serviceSuffix": "Service",
+  "modelPrefix": "",
+  "modelSuffix": ""
+}

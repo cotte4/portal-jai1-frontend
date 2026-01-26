@@ -50,8 +50,14 @@ export class AdminLogin {
           this.router.navigate(['/admin/dashboard']);
         } else {
           // Not an admin, clear session and show error
-          this.authService.logout().subscribe();
-          this.errorMessage = 'Acceso denegado. Solo administradores.';
+          this.authService.logout().subscribe({
+            next: () => {
+              this.errorMessage = 'Acceso denegado. Solo administradores.';
+            },
+            error: () => {
+              this.errorMessage = 'Acceso denegado. Solo administradores.';
+            }
+          });
         }
       },
       error: (error) => {

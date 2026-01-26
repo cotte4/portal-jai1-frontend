@@ -2,59 +2,47 @@
 
 export enum UserRole {
   CLIENT = 'client',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  JAI1GENT = 'jai1gent'
 }
 
-export enum TaxStatus {
-  FILED = 'filed',
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  DEPOSITED = 'deposited'
-}
-
-// NEW: Pre-filing workflow status (before taxes are filed)
-export enum PreFilingStatus {
-  AWAITING_REGISTRATION = 'awaiting_registration',
-  AWAITING_DOCUMENTS = 'awaiting_documents',
-  DOCUMENTATION_COMPLETE = 'documentation_complete'
-}
-
-// NEW STATUS SYSTEM (v2): Unified case status
+// Unified case status
 export enum CaseStatus {
   AWAITING_FORM = 'awaiting_form',
   AWAITING_DOCS = 'awaiting_docs',
+  DOCUMENTOS_ENVIADOS = 'documentos_enviados',
   PREPARING = 'preparing',
   TAXES_FILED = 'taxes_filed',
   CASE_ISSUES = 'case_issues'
 }
 
-// NEW STATUS SYSTEM (v2): Enhanced federal status
+// Federal status (post-filing tracking)
 export enum FederalStatusNew {
   IN_PROCESS = 'in_process',
   IN_VERIFICATION = 'in_verification',
   VERIFICATION_IN_PROGRESS = 'verification_in_progress',
   VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  DEPOSIT_PENDING = 'deposit_pending',
   CHECK_IN_TRANSIT = 'check_in_transit',
   ISSUES = 'issues',
   TAXES_SENT = 'taxes_sent',
   TAXES_COMPLETED = 'taxes_completed'
 }
 
-// NEW STATUS SYSTEM (v2): Enhanced state status
+// State status (post-filing tracking)
 export enum StateStatusNew {
   IN_PROCESS = 'in_process',
   IN_VERIFICATION = 'in_verification',
   VERIFICATION_IN_PROGRESS = 'verification_in_progress',
   VERIFICATION_LETTER_SENT = 'verification_letter_sent',
+  DEPOSIT_PENDING = 'deposit_pending',
   CHECK_IN_TRANSIT = 'check_in_transit',
   ISSUES = 'issues',
   TAXES_SENT = 'taxes_sent',
   TAXES_COMPLETED = 'taxes_completed'
 }
 
-// NEW STATUS SYSTEM (v2): Alarm types
+// Alarm types
 export type AlarmLevel = 'warning' | 'critical';
 export type AlarmType = 'possible_verification_federal' | 'possible_verification_state' | 'verification_timeout' | 'letter_sent_timeout';
 export type AlarmResolution = 'active' | 'acknowledged' | 'resolved' | 'auto_resolved';
@@ -148,10 +136,48 @@ export const DEFAULT_ALARM_THRESHOLDS = {
   LETTER_SENT_TIMEOUT: 63,
 };
 
+// Payment method for refund
+export type PaymentMethod = 'bank_deposit' | 'check';
+
 export enum DocumentType {
   W2 = 'w2',
   PAYMENT_PROOF = 'payment_proof',
+  CONSENT_FORM = 'consent_form',
   OTHER = 'other'
+}
+
+// ============= CONSENT FORM =============
+
+export type ConsentFormStatus = 'pending' | 'signed';
+
+export interface ConsentFormStatusResponse {
+  status: ConsentFormStatus;
+  signedAt: string | null;
+  canDownload: boolean;
+}
+
+export interface ConsentFormPrefilledResponse {
+  fullName: string;
+  dniPassport: string | null;
+  street: string | null;
+  city: string | null;
+  email: string;
+  date: {
+    day: number;
+    month: string;
+    year: number;
+  };
+  canSign: boolean;
+  missingFields: string[];
+}
+
+export interface SignConsentFormRequest {
+  signature: string; // base64 PNG
+}
+
+export interface SignConsentFormResponse {
+  success: boolean;
+  downloadUrl: string;
 }
 
 export enum TicketStatus {
@@ -290,7 +316,10 @@ export interface CompleteProfileRequest {
   employerName: string;
   turbotaxEmail?: string;
   turbotaxPassword?: string;
+  phone?: string;
   isDraft: boolean;
+  // Payment method for refund: 'bank_deposit' (default) or 'check'
+  paymentMethod?: PaymentMethod;
 }
 
 // ============= TAX CASE =============
@@ -299,16 +328,9 @@ export interface TaxCase {
   id: string;
   clientProfileId: string;
   taxYear: number;
-  // Phase indicator - separates pre-filing and post-filing
-  taxesFiled?: boolean;
-  taxesFiledAt?: string;
-  // NEW: Pre-filing status (used when taxesFiled = false)
-  preFilingStatus?: PreFilingStatus;
-  // Federal/State status (used when taxesFiled = true)
-  federalStatus?: TaxStatus;
-  stateStatus?: TaxStatus;
+  // Estimated refund
   estimatedRefund?: number;
-  // Computed fields (for backward compatibility - derived from federal/state)
+  // Computed fields (derived from federal/state)
   actualRefund?: number; // federalActualRefund + stateActualRefund
   refundDepositDate?: string; // federalDepositDate || stateDepositDate
   // Separate federal/state tracking (SOURCE OF TRUTH)
@@ -318,15 +340,15 @@ export interface TaxCase {
   stateActualRefund?: number;
   federalDepositDate?: string;
   stateDepositDate?: string;
-  // NEW: Federal status tracking
+  // Federal status tracking
   federalLastComment?: string;
   federalStatusChangedAt?: string;
   federalLastReviewedAt?: string;
-  // NEW: State status tracking
+  // State status tracking
   stateLastComment?: string;
   stateStatusChangedAt?: string;
   stateLastReviewedAt?: string;
-  // NEW STATUS SYSTEM (v2)
+  // Status fields
   caseStatus?: CaseStatus;
   caseStatusChangedAt?: string;
   federalStatusNew?: FederalStatusNew;
@@ -343,6 +365,8 @@ export interface TaxCase {
   bankName?: string;
   bankRoutingNumber?: string;
   bankAccountNumber?: string;
+  // Payment method for refund
+  paymentMethod?: PaymentMethod;
   paymentReceived: boolean;
   commissionPaid: boolean;
   statusUpdatedAt: string;
@@ -409,6 +433,12 @@ export interface AddMessageRequest {
   message: string;
 }
 
+export interface TicketsPaginatedResponse {
+  tickets: Ticket[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 // ============= NOTIFICATIONS =============
 
 export interface Notification {
@@ -463,13 +493,7 @@ export interface AdminClientListItem {
   };
   // SSN (masked)
   ssn?: string | null;
-  // Phase-based status fields (OLD SYSTEM - kept for backward compatibility)
-  taxesFiled?: boolean;
-  taxesFiledAt?: string | null;
-  preFilingStatus?: PreFilingStatus;
-  federalStatus?: TaxStatus;
-  stateStatus?: TaxStatus;
-  // NEW STATUS SYSTEM (v2)
+  // Status fields
   caseStatus?: CaseStatus | null;
   caseStatusChangedAt?: string | null;
   federalStatusNew?: FederalStatusNew | null;
@@ -523,11 +547,6 @@ export interface StatusHistory {
 }
 
 export interface UpdateStatusRequest {
-  taxesFiled?: boolean;
-  taxesFiledAt?: string;
-  preFilingStatus?: PreFilingStatus;
-  federalStatus?: TaxStatus;
-  stateStatus?: TaxStatus;
   comment?: string;
   federalComment?: string;
   stateComment?: string;
@@ -537,7 +556,7 @@ export interface UpdateStatusRequest {
   stateEstimatedDate?: string;
   stateActualRefund?: number;
   stateDepositDate?: string;
-  // NEW STATUS SYSTEM (v2)
+  // Status fields
   caseStatus?: CaseStatus;
   federalStatusNew?: FederalStatusNew;
   stateStatusNew?: StateStatusNew;

@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, retry } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, throwError, retry, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { W2EstimateResponse, W2EstimateHistoryItem } from '../models';
+
+// Timeout for OCR processing (30 seconds - OpenAI Vision can be slow)
+const CALCULATOR_TIMEOUT_MS = 30000;
 
 @Injectable({
   providedIn: 'root'
@@ -54,12 +57,13 @@ export class CalculatorApiService {
       `${this.apiUrl}/calculator/estimate`,
       formData
     ).pipe(
+      timeout(CALCULATOR_TIMEOUT_MS),
       retry({
         count: 2,
         delay: 1000,
         resetOnSuccess: true
       }),
-      catchError(this.handleError)
+      catchError((error) => this.handleError(error))
     );
   }
 
@@ -88,8 +92,19 @@ export class CalculatorApiService {
     );
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse | TimeoutError): Observable<never> {
     console.error('Calculator API error:', error);
+
+    // Handle timeout specifically
+    if (error instanceof TimeoutError) {
+      const timeoutError = new HttpErrorResponse({
+        error: { message: 'El procesamiento tardó demasiado. Por favor, intentá de nuevo.' },
+        status: 408,
+        statusText: 'Request Timeout'
+      });
+      return throwError(() => timeoutError);
+    }
+
     return throwError(() => error);
   }
 }

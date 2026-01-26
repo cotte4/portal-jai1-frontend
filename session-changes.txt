@@ -1,0 +1,142 @@
+SESSION CHANGES - Full Session Summary
+======================================
+Date: January 25, 2026
+
+================================================================================
+1. REFERRAL PROMO CARD ON DASHBOARD
+================================================================================
+- Added orange gradient referral card that appears when all 3 steps are complete
+- Shows "Refiere amigos, genera más" with "¡Aprovechá!" subtitle
+- "Invitá ya" button that navigates to referral program
+- Positioned after IRS tracking card (seguimiento)
+- Order: Money back → Preparación completa → Presentado al IRS → Refiere amigos → Necesitas ayuda
+
+Files: dashboard.html, dashboard.css, dashboard.ts
+
+================================================================================
+2. TAX FORM SUCCESS SCREEN MOBILE FIX
+================================================================================
+- Fixed message being cut off on iPhone 13 Pro
+- Changed overflow: hidden to overflow-y: auto
+- Changed height: 100% to min-height: 100%
+- Added safe area padding for notched devices
+- Added iOS-specific scroll fixes (-webkit-overflow-scrolling: touch)
+
+Files: tax-form.css
+
+================================================================================
+3. PWA (PROGRESSIVE WEB APP) SETUP
+================================================================================
+- Created manifest.json with display: standalone for fullscreen experience
+- Added PWA meta tags to index.html:
+  * apple-mobile-web-app-capable
+  * apple-mobile-web-app-status-bar-style
+  * theme-color
+- Updated angular.json to include manifest in assets
+- Browser UI disappears when app is installed
+
+Files: src/manifest.json, src/index.html, angular.json
+
+================================================================================
+4. INSTALL APP BUTTON ON LOGIN PAGE
+================================================================================
+- Red "Instalá la app" button on login screen
+- Handles both iOS Safari (shows instructions modal) and Chrome (triggers native install prompt)
+- Uses beforeinstallprompt event for Android/Chrome
+- Detects iOS to show appropriate instructions
+
+Files: login.html, login.css, login.ts
+
+================================================================================
+5. INSTALL APP OVERLAY ON DASHBOARD
+================================================================================
+- Beautiful modal overlay appears 2 seconds after login/onboarding
+- Shows benefits of installing the app
+- "Instalar App" button triggers install flow
+- "Dejame de sugerir la app" option to permanently dismiss
+- Preference saved in localStorage (jai1_install_dismissed)
+- Only shows once per session (sessionStorage)
+
+Files: dashboard.html, dashboard.css, dashboard.ts
+
+================================================================================
+6. ADMIN DASHBOARD SIDEBAR NAVIGATION (COMPLETE REDESIGN)
+================================================================================
+- Converted cluttered navbar with many buttons into professional sidebar
+- Grouped navigation sections:
+  * Principal (Dashboard)
+  * Clientes (Demoras, Alarmas, Tickets)
+  * Finanzas (Pagos, Referidos, Cuentas)
+  * Programa (JAI1GENTS)
+  * Herramientas (Recordar Docs with cron toggle)
+- Sidebar footer with admin user info and logout button
+- Desktop: Sidebar always visible
+- Mobile: Sidebar as overlay with hamburger menu toggle
+
+Files: admin-dashboard.html, admin-dashboard.css, admin-dashboard.ts
+
+================================================================================
+7. TOPBAR ACTION BUTTONS STYLING
+================================================================================
+- "Actualizar" button: JAI1 blue gradient with refresh icon
+- "Exportar Excel" button: Green gradient with document icon
+- Both buttons have icon + text
+- Hover effects with shadow and lift animation
+- Loading state with spinning icon
+
+Files: admin-dashboard.html, admin-dashboard.css
+
+================================================================================
+8. DARK MODE FOR ADMIN PORTAL
+================================================================================
+- Dark mode toggle in topbar (next to Exportar Excel)
+- Shows moon/sun icon with "Dark mode" text and On/Off switch
+- User preference saved to localStorage (persists across sessions)
+- Complete dark theme with:
+  * Dark backgrounds (#0f172a, #1e293b)
+  * Purple accent colors (#6366f1)
+  * All UI elements: sidebar, topbar, cards, tables, modals, forms, buttons
+  * Status badges with dark-appropriate colors
+  * Custom scrollbar styling for dark mode
+
+Files: admin-dashboard.html, admin-dashboard.css, admin-dashboard.ts
+
+================================================================================
+9. MOBILE RESPONSIVENESS FOR ADMIN DASHBOARD
+================================================================================
+- Sidebar overlays content on mobile (doesn't push it)
+- Main content takes full viewport width
+- Stats cards: 2 columns on tablet, 1 column on small mobile (<480px)
+- Season stats: 2 columns on tablet, 1 column on small mobile
+- Search/filter bar: stacks vertically on mobile
+- Table: horizontal scroll with touch support
+- Topbar buttons: icons only on mobile (text hidden to save space)
+- Dark mode toggle: icon + switch only on mobile
+- Active filters bar: stacks vertically
+
+Breakpoints:
+- Desktop (>1024px): Sidebar always visible, full layout
+- Tablet (768px-1024px): Sidebar as overlay, 2-column grids
+- Mobile (<768px): Stacked layouts, icons only in topbar
+- Small mobile (<480px): Single column grids
+
+Files: admin-dashboard.css
+
+================================================================================
+ALL FILES MODIFIED:
+================================================================================
+- src/app/components/admin-dashboard/admin-dashboard.ts
+- src/app/components/admin-dashboard/admin-dashboard.html
+- src/app/components/admin-dashboard/admin-dashboard.css
+- src/app/components/dashboard/dashboard.ts
+- src/app/components/dashboard/dashboard.html
+- src/app/components/dashboard/dashboard.css
+- src/app/components/login/login.ts
+- src/app/components/login/login.html
+- src/app/components/login/login.css
+- src/app/components/tax-form/tax-form.css
+- src/index.html
+- src/manifest.json (NEW)
+- angular.json
+- package-lock.json
+- session-changes.txt (NEW)

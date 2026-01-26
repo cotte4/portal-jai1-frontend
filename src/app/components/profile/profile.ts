@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
@@ -6,7 +6,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AnimationService } from '../../core/services/animation.service';
 import { ProfileResponse, Address } from '../../core/models';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 import { timeout, catchError, filter, retry, take } from 'rxjs/operators';
 import { of, Subscription, timer } from 'rxjs';
 
@@ -18,15 +20,21 @@ import { of, Subscription, timer } from 'rxjs';
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Profile implements OnInit, OnDestroy {
+export class Profile implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
+  private animationService = inject(AnimationService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private hasAnimated = false;
+
+  // Animation references
+  @ViewChild('memberCard') memberCard!: ElementRef<HTMLElement>;
+  @ViewChildren('infoSection') infoSections!: QueryList<ElementRef<HTMLElement>>;
 
   // User data
   userName: string = '';
@@ -122,7 +130,6 @@ export class Profile implements OnInit, OnDestroy {
       this.subscriptions.add(
         timer(500).subscribe(() => {
           if (this.isLoading && !this.hasLoadedOnce) {
-            console.log('Profile: Fallback timer triggered, loading profile');
             this.loadProfile();
           }
         })
@@ -143,12 +150,33 @@ export class Profile implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit() {
+    // Animations will be triggered when data loads
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.animationService.killAnimations();
     // Clear safety timeout to prevent memory leaks and errors after component destroy
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
+    }
+  }
+
+  private runEntranceAnimations(): void {
+    if (this.hasAnimated) return;
+    this.hasAnimated = true;
+
+    // Animate member card with scale-in effect
+    if (this.memberCard?.nativeElement) {
+      this.animationService.scaleIn(this.memberCard.nativeElement, { delay: 0.1 });
+    }
+
+    // Stagger animate info sections
+    if (this.infoSections?.length) {
+      const sections = this.infoSections.map(s => s.nativeElement);
+      this.animationService.staggerIn(sections, { direction: 'up', stagger: 0.1, delay: 0.2 });
     }
   }
 
@@ -255,10 +283,9 @@ export class Profile implements OnInit, OnDestroy {
 
     // Try to fetch profile data with retry logic
     this.profileService.getProfile().pipe(
-      timeout(8000), // 8 second timeout
+      timeout(APP_CONSTANTS.API_TIMEOUT_MS),
       retry({ count: 2, delay: 1000 }), // Retry up to 2 times with 1s delay
       catchError((error) => {
-        console.error('Profile: Failed to load after retries', error);
         // Show toast only if it's not a 401 (auth redirect will handle that)
         if (error?.status !== 401) {
           this.toastService.error('Error al cargar el perfil. Intenta recargar la página.');
@@ -294,6 +321,14 @@ export class Profile implements OnInit, OnDestroy {
               routingNumber: profileAny.bank.routingNumber || '',
               accountNumber: profileAny.bank.accountNumber || ''
             };
+          }
+
+          // Load TurboTax credentials (masked from API)
+          if (profileAny.turbotaxEmail !== undefined) {
+            this.turbotaxEmail = profileAny.turbotaxEmail || '';
+          }
+          if (profileAny.turbotaxPassword !== undefined) {
+            this.turbotaxPassword = profileAny.turbotaxPassword || '';
           }
 
           // Cache profile data for faster loads on refresh
@@ -333,6 +368,9 @@ export class Profile implements OnInit, OnDestroy {
         this.profileDataLoaded = true; // API data received - can now show verification status
         this.isLoading = false;
         this.cdr.detectChanges();
+
+        // Run entrance animations after data loads
+        setTimeout(() => this.runEntranceAnimations(), 100);
       },
       error: () => {
         // If we have any data to show, mark as loaded
@@ -345,7 +383,7 @@ export class Profile implements OnInit, OnDestroy {
       }
     });
 
-    // Safety timeout - stop loading states after 8 seconds
+    // Safety timeout - stop loading states after configured timeout
     // Clear any existing timeout before setting a new one
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
@@ -357,11 +395,10 @@ export class Profile implements OnInit, OnDestroy {
         if (this.userName || this.userEmail) {
           this.hasLoadedOnce = true;
         }
-        console.log('Profile: Safety timeout triggered');
         this.cdr.detectChanges();
       }
       this.safetyTimeoutId = null;
-    }, 8000);
+    }, APP_CONSTANTS.SAFETY_TIMEOUT_MS);
   }
 
   private cacheProfileData(): void {
@@ -489,8 +526,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cacheProfileData();
             this.toastService.success('Foto de perfil eliminada');
           },
-          error: (err) => {
-            console.error('Failed to delete profile picture:', err);
+          error: () => {
             this.toastService.error('Error al eliminar la foto');
           }
         })
@@ -541,7 +577,6 @@ export class Profile implements OnInit, OnDestroy {
     // Safety timeout - if no response after 10s, apply changes optimistically
     const safetyTimeout = setTimeout(() => {
       if (this.isSaving) {
-        console.log('Safety timeout: applying changes optimistically');
         this.applyChangesLocally(saveData);
         this.toastService.success('¡Cambios guardados!');
         this.cdr.detectChanges(); // Trigger change detection after timeout
@@ -592,7 +627,6 @@ export class Profile implements OnInit, OnDestroy {
         },
         error: (error) => {
           clearTimeout(safetyTimeout);
-          console.error('Save error:', error);
           this.isSaving = false;
           this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
           this.cdr.detectChanges();
@@ -655,8 +689,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil eliminada');
           },
-          error: (err) => {
-            console.error('Failed to delete profile picture:', err);
+          error: () => {
             this.toastService.error('Error al eliminar la foto');
             this.resetPendingPictureState();
           }
@@ -679,8 +712,7 @@ export class Profile implements OnInit, OnDestroy {
             this.cdr.detectChanges(); // Force UI update
             this.toastService.success('Foto de perfil actualizada');
           },
-          error: (err) => {
-            console.error('Failed to upload profile picture:', err);
+          error: () => {
             this.toastService.error('Error al subir la foto');
             this.resetPendingPictureState();
           }
@@ -722,7 +754,7 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  maskDNI(dni: string): string {
+  maskSSN(dni: string): string {
     if (!dni || dni.length < 4) return 'No especificado';
     return '••••••' + dni.slice(-4);
   }
@@ -891,7 +923,6 @@ export class Profile implements OnInit, OnDestroy {
         error: (error) => {
           this.isSavingSensitive = false;
           this.pendingSensitiveData = null;
-          console.error('Sensitive profile update error:', error);
           this.toastService.error(error?.message || 'Error al actualizar. Intenta de nuevo.');
           this.cdr.detectChanges();
         }
