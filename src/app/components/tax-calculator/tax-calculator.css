@@ -968,8 +968,98 @@
   color: #065f46;
 }
 
+.status-badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .status-badge .badge-icon {
   font-size: 14px;
+}
+
+/* ============================================
+   REQUIRES REVIEW STATE (when $0 result)
+   ============================================ */
+
+.review-required-icon {
+  margin-bottom: 16px;
+}
+
+.warning-icon {
+  font-size: 64px;
+  display: block;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.review-title {
+  color: #1D345D;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.review-message {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.review-subtitle {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+/* Contact Support Button (styled as link) */
+.contact-support-btn {
+  text-decoration: none;
+}
+
+/* Secondary Button */
+.secondary-button {
+  width: 100%;
+  background: transparent;
+  border: 2px solid #e2e8f0;
+  color: #64748b;
+  padding: 14px 32px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.secondary-button:hover {
+  border-color: #1D345D;
+  color: #1D345D;
+  background: #f8fafc;
+}
+
+.info-note {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.info-note a {
+  color: #B21B43;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.info-note a:hover {
+  text-decoration: underline;
 }
 
 /* ============================================

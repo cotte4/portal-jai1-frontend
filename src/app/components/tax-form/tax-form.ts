@@ -322,10 +322,12 @@ export class TaxForm implements OnInit, OnDestroy {
         }
       }
 
-      // Validate ZIP code format
-      const zipPattern = /^\d{5}(-\d{4})?$/;
-      if (!zipPattern.test(this.formData.addressZip)) {
-        this.toastService.warning('El codigo postal debe tener 5 digitos (ej: 12345 o 12345-6789)');
+      // Validate ZIP code format - flexible for international addresses
+      // Accepts: 3-15 alphanumeric characters, allows hyphens and spaces
+      // Examples: 12345 (USA), 1234 (Argentina), 12345-678 (Brazil), M5V 3L9 (Canada)
+      const zipPattern = /^[a-zA-Z0-9\s\-]{3,15}$/;
+      if (!zipPattern.test(this.formData.addressZip.trim())) {
+        this.toastService.warning('El codigo postal debe tener entre 3 y 15 caracteres');
         window.scrollTo(0, 0);
         return;
       }

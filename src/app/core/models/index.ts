@@ -609,6 +609,7 @@ export interface W2EstimateResponse {
   ocrConfidence: OcrConfidence;
   w2FileName: string;
   estimateId: string;
+  requiresReview?: boolean; // True if $0 result (likely OCR error)
 }
 
 export interface W2EstimateHistoryItem {

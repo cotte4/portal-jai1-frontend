@@ -230,6 +230,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
         if (results.profile) {
           this.profileData = results.profile;
+          // Ensure UI updates immediately for OnPush change detection
+          // This is critical for showing actualRefund when admin has set it
+          this.cdr.markForCheck();
         }
         this.documents = results.documents || [];
 
@@ -245,7 +248,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
             box2Federal: estimate.box2Federal,
             box17State: estimate.box17State,
             ocrConfidence: estimate.ocrConfidence,
-            createdAt: estimate.createdAt
+            createdAt: estimate.createdAt,
+            requiresReview: estimate.requiresReview
           });
         }
 
@@ -281,8 +285,16 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     return this.calculatorResult !== null;
   }
 
+  get calculatorRequiresReview(): boolean {
+    return this.calculatorResult?.requiresReview || false;
+  }
+
   get estimatedRefundDisplay(): string {
     if (this.calculatorResult) {
+      // If $0 result (requires review), don't show the amount
+      if (this.calculatorResult.requiresReview) {
+        return 'Pendiente';
+      }
       return `$${this.calculatorResult.estimatedRefund.toLocaleString()}`;
     }
     return '---';

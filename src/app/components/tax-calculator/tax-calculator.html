@@ -17,68 +17,120 @@
   <!-- Already Calculated State (LOCKED - user cannot recalculate) -->
   <div class="calculator-card already-calculated-card" *ngIf="state === 'already-calculated'">
     <div class="result-content">
-      <div class="already-calculated-icon">
-        <div class="check-circle">✓</div>
-      </div>
-
-      <h2 class="result-title">Tu Reembolso Estimado</h2>
-
-      <div class="result-amount">
-        <span class="currency">$</span>
-        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
-        <span class="cents">.00</span>
-      </div>
-
-      <!-- Breakdown Section (if data available) -->
-      <div class="result-breakdown" *ngIf="box2Federal > 0 || box17State > 0">
-        <div class="breakdown-item">
-          <span class="breakdown-label">Federal (Box 2)</span>
-          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+      <!-- NORMAL STATE: Valid result -->
+      <ng-container *ngIf="!requiresReview">
+        <div class="already-calculated-icon">
+          <div class="check-circle">✓</div>
         </div>
-        <div class="breakdown-divider">+</div>
-        <div class="breakdown-item">
-          <span class="breakdown-label">Estatal (Box 17)</span>
-          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
-        </div>
-      </div>
 
-      <!-- Status badges -->
-      <div class="status-badges">
-        <div class="status-badge success">
-          <span class="badge-icon">✓</span>
-          <span>W2 Procesado</span>
-        </div>
-        <div class="status-badge success">
-          <span class="badge-icon">✓</span>
-          <span>Sincronizado</span>
-        </div>
-      </div>
+        <h2 class="result-title">Tu Reembolso Estimado</h2>
 
-      <p class="result-subtitle">
-        Este cálculo está guardado y sincronizado en todos tus dispositivos.
-        Continúa con tu declaración para recibir tu dinero.
-      </p>
-
-      <div class="result-highlights">
-        <div class="highlight">
-          <span class="highlight-icon">🔒</span>
-          <span>Solo puedes calcular una vez por año fiscal</span>
+        <div class="result-amount">
+          <span class="currency">$</span>
+          <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+          <span class="cents">.00</span>
         </div>
-        <div class="highlight">
-          <span class="highlight-icon">📱</span>
-          <span>Disponible en todos tus dispositivos</span>
+
+        <!-- Breakdown Section (if data available) -->
+        <div class="result-breakdown" *ngIf="box2Federal > 0 || box17State > 0">
+          <div class="breakdown-item">
+            <span class="breakdown-label">Federal (Box 2)</span>
+            <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+          </div>
+          <div class="breakdown-divider">+</div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Estatal (Box 17)</span>
+            <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+          </div>
         </div>
-      </div>
 
-      <button class="cta-button" (click)="startProcess()">
-        <span>Continuar con mi declaración</span>
-        <span class="cta-arrow">→</span>
-      </button>
+        <!-- Status badges -->
+        <div class="status-badges">
+          <div class="status-badge success">
+            <span class="badge-icon">✓</span>
+            <span>W2 Procesado</span>
+          </div>
+          <div class="status-badge success">
+            <span class="badge-icon">✓</span>
+            <span>Sincronizado</span>
+          </div>
+        </div>
 
-      <!-- Info note instead of recalculate button -->
-      <p class="info-note">
-        ¿Necesitas corregir tu W2? <a href="/messages">Contacta soporte</a>
-      </p>
+        <p class="result-subtitle">
+          Este cálculo está guardado y sincronizado en todos tus dispositivos.
+          Continúa con tu declaración para recibir tu dinero.
+        </p>
+
+        <div class="result-highlights">
+          <div class="highlight">
+            <span class="highlight-icon">🔒</span>
+            <span>Solo puedes calcular una vez por año fiscal</span>
+          </div>
+          <div class="highlight">
+            <span class="highlight-icon">📱</span>
+            <span>Disponible en todos tus dispositivos</span>
+          </div>
+        </div>
+
+        <button class="cta-button" (click)="startProcess()">
+          <span>Continuar con mi declaración</span>
+          <span class="cta-arrow">→</span>
+        </button>
+
+        <!-- Info note instead of recalculate button -->
+        <p class="info-note">
+          ¿Necesitas corregir tu W2? <a href="/messages">Contacta soporte</a>
+        </p>
+      </ng-container>
+
+      <!-- REQUIRES REVIEW STATE: $0 result - likely OCR error -->
+      <ng-container *ngIf="requiresReview">
+        <div class="review-required-icon">
+          <span class="warning-icon">⚠️</span>
+        </div>
+
+        <h2 class="result-title review-title">Pendiente de revisión</h2>
+
+        <p class="review-message">
+          No pudimos calcular tu reembolso automáticamente. Parece que hubo un problema al procesar tu W2.
+        </p>
+
+        <p class="review-subtitle">
+          Contactanos para que revisemos tu caso y calculemos tu reembolso manualmente.
+        </p>
+
+        <!-- Status badges -->
+        <div class="status-badges">
+          <div class="status-badge warning">
+            <span class="badge-icon">⚠️</span>
+            <span>Requiere revisión</span>
+          </div>
+          <div class="status-badge success">
+            <span class="badge-icon">✓</span>
+            <span>W2 Recibido</span>
+          </div>
+        </div>
+
+        <div class="result-highlights">
+          <div class="highlight">
+            <span class="highlight-icon">📞</span>
+            <span>Nuestro equipo te ayudará</span>
+          </div>
+          <div class="highlight">
+            <span class="highlight-icon">⏱️</span>
+            <span>Respuesta en menos de 24 horas</span>
+          </div>
+        </div>
+
+        <a class="cta-button contact-support-btn" href="/messages">
+          <span>Contactar soporte</span>
+          <span class="cta-arrow">→</span>
+        </a>
+
+        <button class="secondary-button" (click)="startProcess()">
+          Continuar al Dashboard
+        </button>
+      </ng-container>
     </div>
   </div>
 
@@ -215,80 +267,140 @@
 
   <!-- Result State -->
   <div class="calculator-card result-card" #resultCard *ngIf="state === 'result'">
-    <div class="result-celebration">
-      <div class="confetti confetti-1">🎉</div>
-      <div class="confetti confetti-2">✨</div>
-      <div class="confetti confetti-3">💵</div>
-      <div class="confetti confetti-4">🎊</div>
-      <div class="confetti confetti-5">⭐</div>
-    </div>
-
-    <div class="result-content">
-      <div class="result-badge">¡Excelentes noticias!</div>
-      
-      <h2 class="result-title">Tu reembolso estimado es de</h2>
-      
-      <div class="result-amount">
-        <span class="currency">$</span>
-        <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
-        <span class="cents">.00</span>
+    <!-- NORMAL STATE: Valid result with celebration -->
+    <ng-container *ngIf="!requiresReview">
+      <div class="result-celebration">
+        <div class="confetti confetti-1">🎉</div>
+        <div class="confetti confetti-2">✨</div>
+        <div class="confetti confetti-3">💵</div>
+        <div class="confetti confetti-4">🎊</div>
+        <div class="confetti confetti-5">⭐</div>
       </div>
 
-      <p class="result-subtitle">
-        Basado en la información de tu W2, podrías recibir este monto de regreso del IRS
-      </p>
+      <div class="result-content">
+        <div class="result-badge">¡Excelentes noticias!</div>
 
-      <!-- Breakdown Section -->
-      <div class="result-breakdown">
-        <div class="breakdown-item">
-          <span class="breakdown-label">Federal (Box 2)</span>
-          <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+        <h2 class="result-title">Tu reembolso estimado es de</h2>
+
+        <div class="result-amount">
+          <span class="currency">$</span>
+          <span class="amount">{{ estimatedRefund | number:'1.0-0' }}</span>
+          <span class="cents">.00</span>
         </div>
-        <div class="breakdown-divider">+</div>
-        <div class="breakdown-item">
-          <span class="breakdown-label">Estatal (Box 17)</span>
-          <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+
+        <p class="result-subtitle">
+          Basado en la información de tu W2, podrías recibir este monto de regreso del IRS
+        </p>
+
+        <!-- Breakdown Section -->
+        <div class="result-breakdown">
+          <div class="breakdown-item">
+            <span class="breakdown-label">Federal (Box 2)</span>
+            <span class="breakdown-value">{{ formatCurrency(box2Federal) }}</span>
+          </div>
+          <div class="breakdown-divider">+</div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Estatal (Box 17)</span>
+            <span class="breakdown-value">{{ formatCurrency(box17State) }}</span>
+          </div>
+        </div>
+
+        <!-- Confidence Badge -->
+        <div class="confidence-badge" [class]="getConfidenceClass()">
+          <span class="confidence-icon" *ngIf="ocrConfidence === 'high'">✓</span>
+          <span class="confidence-icon" *ngIf="ocrConfidence === 'medium'">○</span>
+          <span class="confidence-icon" *ngIf="ocrConfidence === 'low'">!</span>
+          <span>{{ getConfidenceLabel() }}</span>
+        </div>
+
+        <div class="result-highlights">
+          <div class="highlight">
+            <span class="highlight-icon">⚡</span>
+            <span>Proceso 100% online</span>
+          </div>
+          <div class="highlight">
+            <span class="highlight-icon">📅</span>
+            <span>Recibe tu dinero en 2-3 semanas</span>
+          </div>
+          <div class="highlight">
+            <span class="highlight-icon">💳</span>
+            <span>Depósito directo a tu cuenta</span>
+          </div>
+        </div>
+
+        <button class="cta-button" (click)="startProcess()">
+          <span>¡Quiero mi reembolso!</span>
+          <span class="cta-arrow">→</span>
+        </button>
+
+        <button class="reset-button" (click)="resetCalculator()">
+          Calcular con otro documento
+        </button>
+
+        <!-- Document saved indicator (backend saves W2 automatically during estimate) -->
+        <div class="saved-indicator" *ngIf="documentSaved">
+          <span class="saved-icon">✓</span>
+          <span>W2 guardado en tus documentos</span>
         </div>
       </div>
+    </ng-container>
 
-      <!-- Confidence Badge -->
-      <div class="confidence-badge" [class]="getConfidenceClass()">
-        <span class="confidence-icon" *ngIf="ocrConfidence === 'high'">✓</span>
-        <span class="confidence-icon" *ngIf="ocrConfidence === 'medium'">○</span>
-        <span class="confidence-icon" *ngIf="ocrConfidence === 'low'">!</span>
-        <span>{{ getConfidenceLabel() }}</span>
-      </div>
-
-      <div class="result-highlights">
-        <div class="highlight">
-          <span class="highlight-icon">⚡</span>
-          <span>Proceso 100% online</span>
+    <!-- REQUIRES REVIEW STATE: $0 result - likely OCR error -->
+    <ng-container *ngIf="requiresReview">
+      <div class="result-content">
+        <div class="review-required-icon">
+          <span class="warning-icon">⚠️</span>
         </div>
-        <div class="highlight">
-          <span class="highlight-icon">📅</span>
-          <span>Recibe tu dinero en 2-3 semanas</span>
+
+        <h2 class="result-title review-title">No pudimos calcular tu reembolso</h2>
+
+        <p class="review-message">
+          Parece que hubo un problema al procesar tu W2. Esto puede ocurrir si el documento no está claro o tiene un formato diferente al esperado.
+        </p>
+
+        <p class="review-subtitle">
+          Contactanos para que revisemos tu caso y calculemos tu reembolso manualmente.
+        </p>
+
+        <!-- Status badges -->
+        <div class="status-badges">
+          <div class="status-badge warning">
+            <span class="badge-icon">⚠️</span>
+            <span>Requiere revisión manual</span>
+          </div>
+          <div class="status-badge success">
+            <span class="badge-icon">✓</span>
+            <span>W2 Recibido</span>
+          </div>
         </div>
-        <div class="highlight">
-          <span class="highlight-icon">💳</span>
-          <span>Depósito directo a tu cuenta</span>
+
+        <div class="result-highlights">
+          <div class="highlight">
+            <span class="highlight-icon">📞</span>
+            <span>Nuestro equipo te ayudará personalmente</span>
+          </div>
+          <div class="highlight">
+            <span class="highlight-icon">⏱️</span>
+            <span>Respuesta en menos de 24 horas</span>
+          </div>
+        </div>
+
+        <a class="cta-button contact-support-btn" href="/messages">
+          <span>Contactar soporte</span>
+          <span class="cta-arrow">→</span>
+        </a>
+
+        <button class="secondary-button" (click)="startProcess()">
+          Continuar al Dashboard
+        </button>
+
+        <!-- Document saved indicator -->
+        <div class="saved-indicator" *ngIf="documentSaved">
+          <span class="saved-icon">✓</span>
+          <span>W2 guardado para revisión</span>
         </div>
       </div>
-
-      <button class="cta-button" (click)="startProcess()">
-        <span>¡Quiero mi reembolso!</span>
-        <span class="cta-arrow">→</span>
-      </button>
-
-      <button class="reset-button" (click)="resetCalculator()">
-        Calcular con otro documento
-      </button>
-
-      <!-- Document saved indicator (backend saves W2 automatically during estimate) -->
-      <div class="saved-indicator" *ngIf="documentSaved">
-        <span class="saved-icon">✓</span>
-        <span>W2 guardado en tus documentos</span>
-      </div>
-    </div>
+    </ng-container>
   </div>
 </div>
 
