@@ -136,18 +136,6 @@
   font-size: 24px;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(178, 27, 67, 0.25);
-  overflow: hidden;
-}
-
-.client-avatar-large.has-picture {
-  background: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.client-avatar-large .avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .client-info {
@@ -1554,63 +1542,6 @@ transform: translateX(4px);
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.profile-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.profile-avatar-modal {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 28px;
-  flex-shrink: 0;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(178, 27, 67, 0.25);
-}
-
-.profile-avatar-modal.has-picture {
-  background: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.profile-avatar-modal img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-avatar-modal .avatar-initials {
-  font-size: 28px;
-}
-
-.profile-header-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.profile-header-info .profile-name {
-  color: #1D345D;
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.profile-header-info .profile-email {
-  color: #64748b;
-  font-size: 14px;
 }
 
 .profile-section {
@@ -4204,10 +4135,6 @@ transform: translateX(4px);
   color: #f1f5f9;
 }
 
-.client-detail-container.dark-mode .client-avatar-large.has-picture {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
 .client-detail-container.dark-mode .meta-item {
   background: #334155;
   color: #94a3b8;
@@ -4563,22 +4490,6 @@ transform: translateX(4px);
 
 .client-detail-container.dark-mode .profile-value {
   color: #f1f5f9;
-}
-
-.client-detail-container.dark-mode .profile-modal-header {
-  border-bottom-color: #334155;
-}
-
-.client-detail-container.dark-mode .profile-avatar-modal.has-picture {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.client-detail-container.dark-mode .profile-header-info .profile-name {
-  color: #f1f5f9;
-}
-
-.client-detail-container.dark-mode .profile-header-info .profile-email {
-  color: #94a3b8;
 }
 
 /* Documents Modal Dark Mode */

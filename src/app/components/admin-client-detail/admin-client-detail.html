@@ -38,12 +38,8 @@
   <main class="detail-main" *ngIf="client && !isLoading">
     <!-- Client Info Header -->
     <div class="client-header">
-      <div class="client-avatar-large" [class.has-picture]="client.user.profilePictureUrl">
-        @if (client.user.profilePictureUrl) {
-          <img [src]="client.user.profilePictureUrl" alt="Foto de perfil" class="avatar-image" />
-        } @else {
-          {{ client.user.firstName.charAt(0) || '?' }}{{ client.user.lastName.charAt(0) || '?' }}
-        }
+      <div class="client-avatar-large">
+        {{ client.user.firstName.charAt(0) || '?' }}{{ client.user.lastName.charAt(0) || '?' }}
       </div>
       <div class="client-info">
         <h1>{{ client.user.firstName || 'Sin nombre' }} {{ client.user.lastName || '' }}</h1>
@@ -1131,21 +1127,6 @@
       <div class="modal-body modal-scroll">
         <ng-container *ngIf="client && client.profile">
           <div class="profile-modal-content">
-            <!-- Profile Header with Avatar -->
-            <div class="profile-modal-header">
-              <div class="profile-avatar-modal" [class.has-picture]="client.user.profilePictureUrl">
-                @if (client.user.profilePictureUrl) {
-                  <img [src]="client.user.profilePictureUrl" alt="Foto de perfil" />
-                } @else {
-                  <span class="avatar-initials">{{ client.user.firstName.charAt(0) || '?' }}{{ client.user.lastName.charAt(0) || '?' }}</span>
-                }
-              </div>
-              <div class="profile-header-info">
-                <h4 class="profile-name">{{ client.user.firstName || '' }} {{ client.user.lastName || '' }}</h4>
-                <span class="profile-email">{{ client.user.email }}</span>
-              </div>
-            </div>
-
             <!-- Personal Info -->
             <div class="profile-section">
               <h4>Informacion Personal</h4>
