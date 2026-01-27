@@ -153,6 +153,11 @@
             <span class="steps-icon">📋</span>
             <h3>Progreso del Cliente</h3>
             <span class="steps-count">{{ completedStepsCount }}/4 completados</span>
+            <!-- Visual Review Button - Only shows when all 4 steps complete -->
+            <button class="btn-visual-review" *ngIf="allStepsComplete" (click)="startVisualReview()">
+              <span class="btn-review-icon">🎯</span>
+              <span>REVISION VISUAL</span>
+            </button>
           </div>
           <div class="steps-progress-body">
             <div class="steps-container">
@@ -1325,6 +1330,179 @@
         <button class="btn-scroll-to" (click)="closeDocumentsModal(); scrollToSection('documents')">
           Ver Seccion Completa
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visual Review Game Modal -->
+  <div class="review-game-overlay" *ngIf="showVisualReview" [class.celebrating]="reviewCelebrating">
+    <div class="review-game-container">
+      <!-- Progress Bar -->
+      <div class="review-progress-bar">
+        <div class="review-progress-fill" [style.width.%]="(currentReviewStep / 4) * 100"></div>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="review-step-indicator">
+        <span class="review-step-number">{{ currentReviewStep }}/4</span>
+        <span class="review-step-title">{{ getReviewStepTitle() }}</span>
+      </div>
+
+      <!-- Close Button -->
+      <button class="review-close-btn" (click)="closeVisualReview()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Review Cards Container -->
+      <div class="review-cards-viewport">
+        <div class="review-cards-track" [style.transform]="'translateX(' + (-100 * (currentReviewStep - 1)) + '%)'">
+
+          <!-- Step 1: Formulario -->
+          <div class="review-card" [class.active]="currentReviewStep === 1" [class.completed]="currentReviewStep > 1">
+            <div class="review-card-header">
+              <span class="review-card-icon">📝</span>
+              <h3>Formulario del Cliente</h3>
+            </div>
+            <div class="review-card-content" *ngIf="client && client.profile">
+              <div class="review-data-grid">
+                <div class="review-data-item">
+                  <span class="data-label">Nombre</span>
+                  <span class="data-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+                </div>
+                <div class="review-data-item">
+                  <span class="data-label">SSN</span>
+                  <span class="data-value">{{ client.profile.ssn || 'N/A' }}</span>
+                </div>
+                <div class="review-data-item">
+                  <span class="data-label">Fecha Nacimiento</span>
+                  <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
+                </div>
+                <div class="review-data-item">
+                  <span class="data-label">Telefono</span>
+                  <span class="data-value">{{ client.user.phone || 'N/A' }}</span>
+                </div>
+                <div class="review-data-item">
+                  <span class="data-label">Estado Trabajo</span>
+                  <span class="data-value">{{ client.profile.workState || 'N/A' }}</span>
+                </div>
+                <div class="review-data-item">
+                  <span class="data-label">Empleador</span>
+                  <span class="data-value">{{ client.profile.employerName || 'N/A' }}</span>
+                </div>
+                <div class="review-data-item full-width" *ngIf="client.profile.address">
+                  <span class="data-label">Direccion</span>
+                  <span class="data-value">{{ client.profile.address.street }}, {{ client.profile.address.city }}, {{ client.profile.address.state }} {{ client.profile.address.zip }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: W2 -->
+          <div class="review-card" [class.active]="currentReviewStep === 2" [class.completed]="currentReviewStep > 2">
+            <div class="review-card-header">
+              <span class="review-card-icon">📄</span>
+              <h3>Documento W2</h3>
+            </div>
+            <div class="review-card-content">
+              <div class="review-docs-list">
+                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('w2')">
+                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                  <div class="doc-details">
+                    <span class="doc-name">{{ doc.fileName }}</span>
+                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Comprobante -->
+          <div class="review-card" [class.active]="currentReviewStep === 3" [class.completed]="currentReviewStep > 3">
+            <div class="review-card-header">
+              <span class="review-card-icon">🧾</span>
+              <h3>Comprobante de Pago</h3>
+            </div>
+            <div class="review-card-content">
+              <div class="review-docs-list">
+                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('payment_proof')">
+                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                  <div class="doc-details">
+                    <span class="doc-name">{{ doc.fileName }}</span>
+                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Consentimiento -->
+          <div class="review-card" [class.active]="currentReviewStep === 4" [class.completed]="currentReviewStep > 4">
+            <div class="review-card-header">
+              <span class="review-card-icon">✍️</span>
+              <h3>Formulario de Consentimiento</h3>
+            </div>
+            <div class="review-card-content">
+              <div class="review-docs-list">
+                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('consent_form')">
+                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                  <div class="doc-details">
+                    <span class="doc-name">{{ doc.fileName }}</span>
+                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="review-actions" *ngIf="!reviewCelebrating">
+        <button class="btn-review-back" (click)="previousReviewStep()" [disabled]="currentReviewStep === 1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Atras
+        </button>
+        <button class="btn-review-correct" (click)="approveReviewStep()" [class.pulse]="!reviewStepApproved[currentReviewStep]">
+          <span class="correct-icon">✓</span>
+          <span>{{ currentReviewStep === 4 ? 'FINALIZAR' : 'CORRECTO' }}</span>
+        </button>
+      </div>
+
+      <!-- Celebration Screen -->
+      <div class="review-celebration" *ngIf="reviewCelebrating">
+        <div class="celebration-content">
+          <div class="celebration-icon">🎉</div>
+          <h2>¡Revision Completada!</h2>
+          <p>Todos los documentos han sido verificados</p>
+          <div class="celebration-stats">
+            <div class="stat-item">
+              <span class="stat-value">4/4</span>
+              <span class="stat-label">Documentos OK</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ client?.user?.firstName }}</span>
+              <span class="stat-label">Cliente</span>
+            </div>
+          </div>
+          <button class="btn-celebration-close" (click)="finishVisualReview()">
+            <span>LISTO PARA PREPARAR</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="confetti-container">
+          <div class="confetti" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]"></div>
+        </div>
       </div>
     </div>
   </div>

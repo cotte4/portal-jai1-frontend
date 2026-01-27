@@ -128,6 +128,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Pre-filing status (when all 4 steps are complete)
   selectedPreFilingStatus: string = 'listo_para_preparar';
 
+  // Visual Review Game
+  showVisualReview: boolean = false;
+  currentReviewStep: number = 1;
+  reviewStepApproved: { [key: number]: boolean } = {};
+  reviewCelebrating: boolean = false;
+
   // Notification
   showNotifyModal: boolean = false;
   notifyTitle: string = '';
@@ -711,6 +717,93 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.isStep3Complete) count++;
     if (this.isStep4Complete) count++;
     return count;
+  }
+
+  // ===== VISUAL REVIEW GAME METHODS =====
+
+  /**
+   * Start the visual review game
+   */
+  startVisualReview() {
+    this.showVisualReview = true;
+    this.currentReviewStep = 1;
+    this.reviewStepApproved = {};
+    this.reviewCelebrating = false;
+  }
+
+  /**
+   * Close the visual review without completing
+   */
+  closeVisualReview() {
+    this.showVisualReview = false;
+    this.reviewCelebrating = false;
+  }
+
+  /**
+   * Get the title for current review step
+   */
+  getReviewStepTitle(): string {
+    const titles: { [key: number]: string } = {
+      1: 'Verificando Formulario',
+      2: 'Verificando W2',
+      3: 'Verificando Comprobante',
+      4: 'Verificando Consentimiento'
+    };
+    return titles[this.currentReviewStep] || '';
+  }
+
+  /**
+   * Go to previous review step
+   */
+  previousReviewStep() {
+    if (this.currentReviewStep > 1) {
+      this.currentReviewStep--;
+    }
+  }
+
+  /**
+   * Approve current step and move to next
+   */
+  approveReviewStep() {
+    this.reviewStepApproved[this.currentReviewStep] = true;
+
+    if (this.currentReviewStep < 4) {
+      // Move to next step with a small delay for animation
+      setTimeout(() => {
+        this.currentReviewStep++;
+        this.cdr.markForCheck();
+      }, 300);
+    } else {
+      // All steps completed - show celebration!
+      setTimeout(() => {
+        this.reviewCelebrating = true;
+        this.cdr.markForCheck();
+      }, 300);
+    }
+  }
+
+  /**
+   * Finish the visual review and update status
+   */
+  finishVisualReview() {
+    this.showVisualReview = false;
+    this.reviewCelebrating = false;
+
+    // Auto-set status to "En Preparacion" after successful review
+    if (this.selectedCaseStatus !== CaseStatus.PREPARING) {
+      this.selectedCaseStatus = CaseStatus.PREPARING;
+      this.updateCaseStatus();
+    }
+
+    this.toastService.success('¡Revision completada! Cliente listo para preparar.');
+  }
+
+  /**
+   * Get documents filtered by type for the review
+   */
+  getDocumentsByType(type: string): Document[] {
+    if (!this.client?.documents) return [];
+    return this.client.documents.filter(doc => doc.type === type);
   }
 
   // Status history label transformation
