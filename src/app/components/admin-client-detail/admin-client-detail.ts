@@ -125,6 +125,20 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showDocumentsModal: boolean = false;
   modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
 
+  // Visual Review Game
+  showVisualReview: boolean = false;
+  currentReviewStep: number = 1;
+  reviewStepApproved: { [key: number]: boolean } = {};
+  reviewCelebrating: boolean = false;
+  showFinalDecision: boolean = false;
+
+  // Document Preview
+  previewDocumentId: string | null = null;
+  previewUrl: string | null = null;
+  previewType: 'pdf' | 'image' | 'unsupported' = 'unsupported';
+  isLoadingPreview: boolean = false;
+  currentPreviewDocument: Document | null = null;
+
   // Notification
   showNotifyModal: boolean = false;
   notifyTitle: string = '';
@@ -649,9 +663,258 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     const labels: Record<string, string> = {
       'w2': 'W2',
       'payment_proof': 'Comprobante',
+      'consent_form': 'Consentimiento',
       'other': 'Otro'
     };
     return labels[type] || type;
+  }
+
+  // ===== 4-STEP PROGRESS TRACKING =====
+
+  /**
+   * Step 1: Formulario - Check if profile has been filled out
+   * (has SSN or date of birth filled)
+   */
+  get isStep1Complete(): boolean {
+    if (!this.client?.profile) return false;
+    // Check if essential profile fields are filled
+    return !!(this.client.profile.ssn || this.client.profile.dateOfBirth);
+  }
+
+  /**
+   * Step 2: W2 - Check if client has uploaded at least one W2 document
+   */
+  get isStep2Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'w2');
+  }
+
+  /**
+   * Step 3: Comprobante - Check if client has uploaded payment proof
+   */
+  get isStep3Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'payment_proof');
+  }
+
+  /**
+   * Step 4: Consentimiento - Check if client has uploaded consent form
+   */
+  get isStep4Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'consent_form');
+  }
+
+  /**
+   * Check if all 4 steps are complete
+   */
+  get allStepsComplete(): boolean {
+    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete && this.isStep4Complete;
+  }
+
+  /**
+   * Count of completed steps
+   */
+  get completedStepsCount(): number {
+    let count = 0;
+    if (this.isStep1Complete) count++;
+    if (this.isStep2Complete) count++;
+    if (this.isStep3Complete) count++;
+    if (this.isStep4Complete) count++;
+    return count;
+  }
+
+  // ===== VISUAL REVIEW GAME METHODS =====
+
+  /**
+   * Start the visual review game
+   */
+  startVisualReview() {
+    this.showVisualReview = true;
+    this.currentReviewStep = 1;
+    this.reviewStepApproved = {};
+    this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
+  }
+
+  /**
+   * Close the visual review without completing
+   */
+  closeVisualReview() {
+    this.showVisualReview = false;
+    this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
+  }
+
+  /**
+   * Get the title for current review step
+   */
+  getReviewStepTitle(): string {
+    const titles: { [key: number]: string } = {
+      1: 'Verificando Formulario',
+      2: 'Verificando W2',
+      3: 'Verificando Comprobante',
+      4: 'Verificando Consentimiento'
+    };
+    return titles[this.currentReviewStep] || '';
+  }
+
+  /**
+   * Go to previous review step
+   */
+  previousReviewStep() {
+    if (this.currentReviewStep > 1) {
+      this.currentReviewStep--;
+    }
+  }
+
+  /**
+   * Approve current step and move to next
+   */
+  approveReviewStep() {
+    this.reviewStepApproved[this.currentReviewStep] = true;
+
+    if (this.currentReviewStep < 4) {
+      // Move to next step with a small delay for animation
+      setTimeout(() => {
+        this.currentReviewStep++;
+        this.clearPreview(); // Clear preview when changing steps
+        this.autoSelectFirstDocument(); // Auto-select first doc of new step
+        this.cdr.markForCheck();
+      }, 300);
+    } else {
+      // All steps completed - show final decision
+      setTimeout(() => {
+        this.showFinalDecision = true;
+        this.cdr.markForCheck();
+      }, 300);
+    }
+  }
+
+  /**
+   * Accept the review - set status to "En Preparacion"
+   */
+  acceptReview() {
+    this.showFinalDecision = false;
+    this.reviewCelebrating = true;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Reject the review - set status to "Problemas"
+   */
+  rejectReview() {
+    this.showVisualReview = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
+
+    // Set status to "Problemas"
+    this.selectedCaseStatus = CaseStatus.CASE_ISSUES;
+    this.updateCaseStatus();
+
+    this.toastService.warning('Caso marcado con problemas');
+  }
+
+  /**
+   * Finish the visual review and update status
+   */
+  finishVisualReview() {
+    this.showVisualReview = false;
+    this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
+
+    // Auto-set status to "En Preparacion" after successful review
+    if (this.selectedCaseStatus !== CaseStatus.PREPARING) {
+      this.selectedCaseStatus = CaseStatus.PREPARING;
+      this.updateCaseStatus();
+    }
+
+    this.toastService.success('¡Revision completada! Cliente listo para preparar.');
+  }
+
+  /**
+   * Get documents filtered by type for the review
+   */
+  getDocumentsByType(type: string): Document[] {
+    if (!this.client?.documents) return [];
+    return this.client.documents.filter(doc => doc.type === type);
+  }
+
+  /**
+   * Auto-select first document when entering a document step
+   */
+  autoSelectFirstDocument() {
+    const stepDocTypes: { [key: number]: string } = {
+      2: 'w2',
+      3: 'payment_proof',
+      4: 'consent_form'
+    };
+
+    const docType = stepDocTypes[this.currentReviewStep];
+    if (docType) {
+      const docs = this.getDocumentsByType(docType);
+      if (docs.length > 0) {
+        this.previewDocument(docs[0]);
+      }
+    }
+  }
+
+  /**
+   * Preview a document
+   */
+  previewDocument(doc: Document) {
+    if (this.previewDocumentId === doc.id) return; // Already previewing
+
+    this.previewDocumentId = doc.id;
+    this.currentPreviewDocument = doc;
+    this.isLoadingPreview = true;
+    this.previewUrl = null;
+
+    // Determine preview type based on mime type
+    if (doc.mimeType === 'application/pdf') {
+      this.previewType = 'pdf';
+    } else if (doc.mimeType.startsWith('image/')) {
+      this.previewType = 'image';
+    } else {
+      this.previewType = 'unsupported';
+    }
+
+    // Get the download URL for preview
+    this.documentService.getDownloadUrl(doc.id).subscribe({
+      next: (response) => {
+        this.previewUrl = response.url;
+        this.isLoadingPreview = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.previewType = 'unsupported';
+        this.isLoadingPreview = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Clear the document preview
+   */
+  clearPreview() {
+    this.previewDocumentId = null;
+    this.previewUrl = null;
+    this.previewType = 'unsupported';
+    this.isLoadingPreview = false;
+    this.currentPreviewDocument = null;
+  }
+
+  /**
+   * Download the currently previewed document
+   */
+  downloadPreviewDocument() {
+    if (this.currentPreviewDocument) {
+      this.downloadDocument(this.currentPreviewDocument);
+    }
   }
 
   // Status history label transformation
@@ -931,7 +1194,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [CaseStatus.AWAITING_FORM]: 'Esperando Formulario',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Documentos',
       [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos Enviados',
-      [CaseStatus.PREPARING]: 'Preparando',
+      [CaseStatus.PREPARING]: 'En Preparacion',
       [CaseStatus.TAXES_FILED]: 'Taxes Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'
     };
@@ -1084,11 +1347,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   /**
-   * Get all case status options (admins can select any status)
-   * Invalid transitions will trigger override modal on save
+   * Get filtered case status options for the dropdown
+   * Excludes: awaiting_form, awaiting_docs, documentos_enviados (these are auto-determined by step progress)
    */
   get filteredCaseStatusOptions(): CaseStatus[] {
-    return this.caseStatusOptions;
+    const excludedStatuses = [
+      CaseStatus.AWAITING_FORM,
+      CaseStatus.AWAITING_DOCS,
+      CaseStatus.DOCUMENTOS_ENVIADOS
+    ];
+    return this.caseStatusOptions.filter(status => !excludedStatuses.includes(status));
   }
 
   /**
