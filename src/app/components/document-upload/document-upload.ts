@@ -10,6 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { CalculatorResultService } from '../../core/services/calculator-result.service';
 import { AnimationService } from '../../core/services/animation.service';
 import { ConsentFormService } from '../../core/services/consent-form.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { Document, DocumentType, ConsentFormStatusResponse } from '../../core/models';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 import { ConsentForm } from '../consent-form/consent-form';
@@ -31,6 +32,7 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   private calculatorResultService = inject(CalculatorResultService);
   private animationService = inject(AnimationService);
   private consentFormService = inject(ConsentFormService);
+  private profileService = inject(ProfileService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private hasAnimated = false;
@@ -78,6 +80,9 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   // Consent Form
   consentFormStatus: ConsentFormStatusResponse | null = null;
   showConsentFormModal: boolean = false;
+
+  // Profile/Declaration status
+  isFormComplete: boolean = false;
 
   // Check if payment proof tab is selected
   get isPaymentProofSelected(): boolean {
@@ -181,10 +186,11 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
     this.isLoadingInProgress = true;
     // Keep hasLoaded = false until API completes to show loading spinner
 
-    // Load documents and consent form status in parallel
+    // Load documents, consent form status, and profile in parallel
     forkJoin({
       documents: this.documentService.getDocuments(),
-      consentStatus: this.consentFormService.getStatus()
+      consentStatus: this.consentFormService.getStatus(),
+      profile: this.profileService.getProfile()
     }).pipe(
       finalize(() => {
         this.hasLoaded = true;
@@ -193,9 +199,10 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: ({ documents, consentStatus }) => {
+      next: ({ documents, consentStatus, profile }) => {
         this.uploadedFiles = documents;
         this.consentFormStatus = consentStatus;
+        this.isFormComplete = profile?.profile?.profileComplete === true && profile?.profile?.isDraft === false;
 
         // Populate uploadedTypes from existing documents
         this.uploadedTypes.clear();
@@ -448,7 +455,7 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get canComplete(): boolean {
-    return this.isConsentFormSigned && this.allRequiredDocsUploaded;
+    return this.isFormComplete && this.allRequiredDocsUploaded && this.isConsentFormSigned;
   }
 
   openConsentForm() {
