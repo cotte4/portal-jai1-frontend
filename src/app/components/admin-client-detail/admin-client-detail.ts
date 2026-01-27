@@ -125,9 +125,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showDocumentsModal: boolean = false;
   modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
 
-  // Pre-filing status (when all 4 steps are complete)
-  selectedPreFilingStatus: string = 'listo_para_preparar';
-
   // Visual Review Game
   showVisualReview: boolean = false;
   currentReviewStep: number = 1;

@@ -220,16 +220,6 @@
             </span>
           </div>
           <div class="pre-filing-body">
-            <!-- Show pre-filing status dropdown only when all 4 steps completed -->
-            <div class="pre-filing-field" *ngIf="allStepsComplete">
-              <label>Estado Pre-Presentacion</label>
-              <select [(ngModel)]="selectedPreFilingStatus">
-                <option value="listo_para_preparar">Listo para Preparar</option>
-                <option value="en_preparacion">En Preparacion</option>
-                <option value="problema">Problema</option>
-                <option value="taxes_presentados">Taxes Presentados</option>
-              </select>
-            </div>
             <div class="pre-filing-field">
               <label>Estado</label>
               <select [(ngModel)]="selectedCaseStatus">
