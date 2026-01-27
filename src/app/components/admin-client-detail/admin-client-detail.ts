@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subscription, filter, finalize, timeout, TimeoutError } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -39,6 +40,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private sanitizer = inject(DomSanitizer);
   themeService = inject(ThemeService);
   private subscriptions = new Subscription();
 
@@ -135,6 +137,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Document Preview
   previewDocumentId: string | null = null;
   previewUrl: string | null = null;
+  safePreviewUrl: SafeResourceUrl | null = null;
   previewType: 'pdf' | 'image' | 'unsupported' = 'unsupported';
   isLoadingPreview: boolean = false;
   currentPreviewDocument: Document | null = null;
@@ -886,6 +889,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.documentService.getDownloadUrl(doc.id).subscribe({
       next: (response) => {
         this.previewUrl = response.url;
+        // Sanitize URL for iframe/img src binding
+        this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.url);
         this.isLoadingPreview = false;
         this.cdr.markForCheck();
       },
@@ -903,6 +908,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   clearPreview() {
     this.previewDocumentId = null;
     this.previewUrl = null;
+    this.safePreviewUrl = null;
     this.previewType = 'unsupported';
     this.isLoadingPreview = false;
     this.currentPreviewDocument = null;

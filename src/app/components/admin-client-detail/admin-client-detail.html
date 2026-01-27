@@ -1481,11 +1481,11 @@
             <div class="loading-spinner"></div>
             <p>Cargando documento...</p>
           </div>
-          <div class="preview-content" *ngIf="previewUrl && !isLoadingPreview">
+          <div class="preview-content" *ngIf="safePreviewUrl && !isLoadingPreview">
             <!-- PDF Preview -->
-            <iframe *ngIf="previewType === 'pdf'" [src]="previewUrl" class="preview-iframe"></iframe>
+            <iframe *ngIf="previewType === 'pdf'" [src]="safePreviewUrl" class="preview-iframe"></iframe>
             <!-- Image Preview -->
-            <img *ngIf="previewType === 'image'" [src]="previewUrl" class="preview-image" alt="Document preview"/>
+            <img *ngIf="previewType === 'image'" [src]="safePreviewUrl" class="preview-image" alt="Document preview"/>
             <!-- Unsupported format -->
             <div class="preview-unsupported" *ngIf="previewType === 'unsupported'">
               <span class="unsupported-icon">📎</span>
