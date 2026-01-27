@@ -1479,8 +1479,8 @@
           </div>
         </div>
 
-        <!-- Preview Panel for Steps 1, 3, 4 (inside split layout) -->
-        <div class="review-preview-panel" *ngIf="currentReviewStep >= 2 && !isPreviewFullscreen" [class.fullscreen]="isPreviewFullscreen">
+        <!-- Preview Panel for Steps 3, 4 (or fullscreen from any step) -->
+        <div class="review-preview-panel" *ngIf="currentReviewStep >= 3 || isPreviewFullscreen" [class.fullscreen]="isPreviewFullscreen">
           <!-- Verification Panel - Collapsible Client Info -->
           <div class="verification-panel" [class.collapsed]="!verificationPanelExpanded">
             <div class="verification-header" (click)="toggleVerificationPanel()">
