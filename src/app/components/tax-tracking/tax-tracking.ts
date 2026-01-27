@@ -7,7 +7,7 @@ import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ConfettiService } from '../../core/services/confetti.service';
 import { AnimationService } from '../../core/services/animation.service';
 import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew } from '../../core/models';
-import { interval, Subscription, filter, skip, finalize } from 'rxjs';
+import { interval, Subscription, filter, skip, finalize, Subject, takeUntil } from 'rxjs';
 import {
   mapFederalStatusToDisplay,
   mapStateStatusToDisplay,
@@ -74,6 +74,14 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
 
   // Estatal track steps
   estatalSteps: TrackingStep[] = [];
+
+  // Refund confirmation state
+  isConfirmingFederal = false;
+  isConfirmingState = false;
+  federalFee: number | null = null;
+  stateFee: number | null = null;
+  copiedToClipboard = false;
+  showPaymentSection = false;
 
   ngOnInit() {
     this.loadTrackingData();
@@ -624,5 +632,183 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
 
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  // ============ REFUND CONFIRMATION ============
+
+  /**
+   * Returns true if federal refund can be confirmed
+   * (deposit date set, actual amount exists, not yet confirmed)
+   */
+  get canConfirmFederal(): boolean {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return false;
+
+    return !!(
+      taxCase.federalDepositDate &&
+      taxCase.federalActualRefund &&
+      Number(taxCase.federalActualRefund) > 0 &&
+      !taxCase.federalRefundReceived
+    );
+  }
+
+  /**
+   * Returns true if state refund can be confirmed
+   * (deposit date set, actual amount exists, not yet confirmed)
+   */
+  get canConfirmState(): boolean {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return false;
+
+    return !!(
+      taxCase.stateDepositDate &&
+      taxCase.stateActualRefund &&
+      Number(taxCase.stateActualRefund) > 0 &&
+      !taxCase.stateRefundReceived
+    );
+  }
+
+  /**
+   * Returns true if federal refund has been confirmed
+   */
+  get federalConfirmed(): boolean {
+    return this.profileData?.taxCase?.federalRefundReceived || false;
+  }
+
+  /**
+   * Returns true if state refund has been confirmed
+   */
+  get stateConfirmed(): boolean {
+    return this.profileData?.taxCase?.stateRefundReceived || false;
+  }
+
+  /**
+   * Returns true if any refund has been confirmed but not paid
+   */
+  get hasUnpaidFee(): boolean {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return false;
+
+    const hasConfirmedRefund = !!(taxCase.federalRefundReceived || taxCase.stateRefundReceived);
+    return hasConfirmedRefund && !taxCase.commissionPaid;
+  }
+
+  /**
+   * Calculate total fee owed (11% of confirmed refunds)
+   */
+  get totalFeeOwed(): number {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return 0;
+
+    let total = 0;
+    if (taxCase.federalRefundReceived && taxCase.federalActualRefund) {
+      total += Number(taxCase.federalActualRefund) * 0.11;
+    }
+    if (taxCase.stateRefundReceived && taxCase.stateActualRefund) {
+      total += Number(taxCase.stateActualRefund) * 0.11;
+    }
+    return Math.round(total * 100) / 100;
+  }
+
+  /**
+   * Confirm receipt of federal refund
+   */
+  confirmFederalRefund(): void {
+    if (this.isConfirmingFederal || !this.canConfirmFederal) return;
+
+    this.isConfirmingFederal = true;
+    this.cdr.detectChanges();
+
+    this.profileService.confirmRefundReceived('federal').pipe(
+      finalize(() => {
+        this.isConfirmingFederal = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (response) => {
+        this.federalFee = response.fee;
+        this.showPaymentSection = true;
+
+        // Update local data
+        if (this.profileData?.taxCase) {
+          this.profileData.taxCase.federalRefundReceived = true;
+          this.profileData.taxCase.federalRefundReceivedAt = response.confirmedAt;
+        }
+
+        this.notificationService.emitLocalNotification(
+          '¡Recibo Confirmado!',
+          `Has confirmado recibir tu reembolso federal. Comisión: $${response.fee.toLocaleString()}`,
+          NotificationType.STATUS_CHANGE
+        );
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.notificationService.emitLocalNotification(
+          'Error',
+          err.message || 'No se pudo confirmar el reembolso',
+          NotificationType.PROBLEM_ALERT
+        );
+      }
+    });
+  }
+
+  /**
+   * Confirm receipt of state refund
+   */
+  confirmStateRefund(): void {
+    if (this.isConfirmingState || !this.canConfirmState) return;
+
+    this.isConfirmingState = true;
+    this.cdr.detectChanges();
+
+    this.profileService.confirmRefundReceived('state').pipe(
+      finalize(() => {
+        this.isConfirmingState = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (response) => {
+        this.stateFee = response.fee;
+        this.showPaymentSection = true;
+
+        // Update local data
+        if (this.profileData?.taxCase) {
+          this.profileData.taxCase.stateRefundReceived = true;
+          this.profileData.taxCase.stateRefundReceivedAt = response.confirmedAt;
+        }
+
+        this.notificationService.emitLocalNotification(
+          '¡Recibo Confirmado!',
+          `Has confirmado recibir tu reembolso estatal. Comisión: $${response.fee.toLocaleString()}`,
+          NotificationType.STATUS_CHANGE
+        );
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.notificationService.emitLocalNotification(
+          'Error',
+          err.message || 'No se pudo confirmar el reembolso',
+          NotificationType.PROBLEM_ALERT
+        );
+      }
+    });
+  }
+
+  /**
+   * Copy Zelle email to clipboard
+   */
+  copyZelleEmail(): void {
+    const email = 'jai1@memas.agency';
+    navigator.clipboard.writeText(email).then(() => {
+      this.copiedToClipboard = true;
+      this.cdr.detectChanges();
+
+      setTimeout(() => {
+        this.copiedToClipboard = false;
+        this.cdr.detectChanges();
+      }, 2000);
+    });
   }
 }

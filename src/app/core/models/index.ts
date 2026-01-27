@@ -369,6 +369,16 @@ export interface TaxCase {
   paymentMethod?: PaymentMethod;
   paymentReceived: boolean;
   commissionPaid: boolean;
+  // Separate refund receipt confirmation
+  federalRefundReceived?: boolean;
+  stateRefundReceived?: boolean;
+  federalRefundReceivedAt?: string;
+  stateRefundReceivedAt?: string;
+  // Separate commission paid tracking
+  federalCommissionPaid?: boolean;
+  stateCommissionPaid?: boolean;
+  federalCommissionPaidAt?: string;
+  stateCommissionPaidAt?: string;
   statusUpdatedAt: string;
   adminStep?: number;
   hasProblem: boolean;
