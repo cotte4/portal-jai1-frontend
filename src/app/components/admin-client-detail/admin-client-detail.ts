@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, finalize, timeout, TimeoutError } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
 import { TicketService } from '../../core/services/ticket.service';
@@ -1116,14 +1116,24 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   private executeCaseStatusUpdate(updateData: UpdateStatusRequest) {
     this.isSavingPreFiling = true;
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
+    this.cdr.markForCheck();
+
+    this.adminService.updateStatus(this.clientId, updateData).pipe(
+      timeout(30000), // 30 second timeout
+      finalize(() => {
         this.isSavingPreFiling = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
         this.toastService.success('Estado del caso actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingPreFiling = false;
+        if (error instanceof TimeoutError) {
+          this.toastService.error('La solicitud tardo demasiado. Intente de nuevo.');
+          return;
+        }
         if (!this.handleStatusUpdateError(error, 'case', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado'));
         }
@@ -1133,15 +1143,25 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   private executeFederalStatusUpdate(updateData: UpdateStatusRequest) {
     this.isSavingFederal = true;
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
+    this.cdr.markForCheck();
+
+    this.adminService.updateStatus(this.clientId, updateData).pipe(
+      timeout(30000), // 30 second timeout
+      finalize(() => {
         this.isSavingFederal = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
         this.federalComment = '';
         this.toastService.success('Estado Federal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingFederal = false;
+        if (error instanceof TimeoutError) {
+          this.toastService.error('La solicitud tardo demasiado. Intente de nuevo.');
+          return;
+        }
         if (!this.handleStatusUpdateError(error, 'federal', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado federal'));
         }
@@ -1151,15 +1171,25 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   private executeStateStatusUpdate(updateData: UpdateStatusRequest) {
     this.isSavingState = true;
-    this.adminService.updateStatus(this.clientId, updateData).subscribe({
-      next: () => {
+    this.cdr.markForCheck();
+
+    this.adminService.updateStatus(this.clientId, updateData).pipe(
+      timeout(30000), // 30 second timeout
+      finalize(() => {
         this.isSavingState = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
         this.stateComment = '';
         this.toastService.success('Estado Estatal (v2) actualizado');
         this.loadClientData();
       },
       error: (error) => {
-        this.isSavingState = false;
+        if (error instanceof TimeoutError) {
+          this.toastService.error('La solicitud tardo demasiado. Intente de nuevo.');
+          return;
+        }
         if (!this.handleStatusUpdateError(error, 'state', updateData)) {
           this.toastService.error(getErrorMessage(error, 'Error al actualizar estado estatal'));
         }
