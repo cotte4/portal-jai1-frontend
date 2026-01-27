@@ -1479,11 +1479,172 @@
           </div>
         </div>
 
-        <!-- Right: Document Preview Panel (visible on steps 2, 3, 4) -->
-        <div class="review-preview-panel" *ngIf="currentReviewStep >= 2" [class.fullscreen]="isPreviewFullscreen">
-          <!-- Verification Panel - Collapsible Client Info for W2 Comparison -->
+        <!-- BENTO GRID LAYOUT for Step 2 (W2 Verification) -->
+        <div class="bento-grid-container" *ngIf="currentReviewStep === 2 && !isPreviewFullscreen">
+          <!-- Cell 1: Datos del Cliente (Row 1, Col 1) -->
+          <div class="bento-cell bento-client-data">
+            <div class="bento-cell-header">
+              <span class="bento-cell-icon">📋</span>
+              <span class="bento-cell-title">Datos del Cliente</span>
+              <button class="btn-copy-ssn bento-ssn-copy" (click)="copySSNToClipboard(); $event.stopPropagation()" [class.copied]="ssnCopied" title="Copiar SSN">
+                <svg *ngIf="!ssnCopied" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <svg *ngIf="ssnCopied" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </button>
+            </div>
+            <div class="bento-client-grid">
+              <div class="bento-data-item bento-ssn-item">
+                <span class="bento-label">SSN</span>
+                <span class="bento-value mono">{{ getMaskedSSN() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Nombre</span>
+                <span class="bento-value">{{ getClientFullName() }}</span>
+              </div>
+              <div class="bento-data-item bento-full-width">
+                <span class="bento-label">Direccion</span>
+                <span class="bento-value small">{{ getClientFullAddress() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Empleador</span>
+                <span class="bento-value">{{ getEmployerName() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Estado Trabajo</span>
+                <span class="bento-value highlight">{{ getWorkState() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cell 2: Campos Clave W2 (Row 2, Col 1) -->
+          <div class="bento-cell bento-w2-fields">
+            <div class="bento-cell-header">
+              <span class="bento-cell-icon">📊</span>
+              <span class="bento-cell-title">Campos Clave W2</span>
+              <span class="bento-ocr-badge" *ngIf="w2EstimateData?.hasEstimate" [class]="getOcrConfidenceClass(w2EstimateData?.estimate?.ocrConfidence || 'low')">
+                {{ getOcrConfidenceLabel(w2EstimateData?.estimate?.ocrConfidence || 'low') }}
+              </span>
+            </div>
+
+            <!-- Loading State -->
+            <div class="bento-loading" *ngIf="isLoadingW2Estimate">
+              <div class="bento-spinner"></div>
+              <span>Cargando OCR...</span>
+            </div>
+
+            <!-- No OCR Data -->
+            <div class="bento-empty" *ngIf="!isLoadingW2Estimate && (!w2EstimateData || !w2EstimateData.hasEstimate)">
+              <span class="bento-empty-icon">⚠️</span>
+              <span>Sin datos OCR disponibles</span>
+            </div>
+
+            <!-- W2 Fields Checklist -->
+            <div class="bento-w2-checklist" *ngIf="!isLoadingW2Estimate && w2EstimateData?.hasEstimate && w2EstimateData?.estimate">
+              <div class="bento-check-item" (click)="toggleW2FieldVerified('box2Federal')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.box2Federal">
+                  <svg *ngIf="w2FieldsVerified.box2Federal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Box 2: Federal Tax</span>
+                  <span class="bento-check-value">{{ w2EstimateData?.estimate?.box2Federal | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-check-item" (click)="toggleW2FieldVerified('box17State')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.box17State">
+                  <svg *ngIf="w2FieldsVerified.box17State" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Box 17: State Tax</span>
+                  <span class="bento-check-value">{{ w2EstimateData?.estimate?.box17State | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-check-item bento-total" (click)="toggleW2FieldVerified('estimatedRefund')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.estimatedRefund">
+                  <svg *ngIf="w2FieldsVerified.estimatedRefund" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Reembolso Estimado</span>
+                  <span class="bento-check-value total">{{ w2EstimateData?.estimate?.estimatedRefund | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-verify-status" [class.complete]="allW2FieldsVerified">
+                <span>{{ allW2FieldsVerified ? '✓ Verificado' : '○ Verifica campos' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cell 3: Document Preview (Row 1-2, Col 2) - spans both rows -->
+          <div class="bento-cell bento-document-preview">
+            <!-- Mini Toolbar -->
+            <div class="bento-preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
+              <div class="bento-toolbar-group">
+                <button class="bento-toolbar-btn" (click)="zoomOut()" [disabled]="previewZoom <= 50" title="Zoom -">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <span class="bento-zoom-label" (click)="resetZoom()">{{ previewZoom }}%</span>
+                <button class="bento-toolbar-btn" (click)="zoomIn()" [disabled]="previewZoom >= 200" title="Zoom +">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+              </div>
+              <div class="bento-toolbar-group" *ngIf="previewType === 'image'">
+                <button class="bento-toolbar-btn" (click)="rotatePreview()" title="Rotar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </button>
+              </div>
+              <div class="bento-toolbar-group">
+                <button class="bento-toolbar-btn" (click)="togglePreviewFullscreen()" title="Pantalla completa">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
+                <button class="bento-toolbar-btn" (click)="downloadPreviewDocument()" title="Descargar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="bento-preview-area">
+              <div class="bento-preview-placeholder" *ngIf="!previewUrl && !isLoadingPreview">
+                <span class="placeholder-icon">👁️</span>
+                <p>Selecciona un W2 para ver</p>
+              </div>
+              <div class="bento-preview-loading" *ngIf="isLoadingPreview">
+                <div class="bento-spinner large"></div>
+                <p>Cargando...</p>
+              </div>
+              <div class="bento-preview-content" *ngIf="safePreviewUrl && !isLoadingPreview">
+                <div class="bento-preview-wrapper" *ngIf="previewType === 'pdf'" [style.transform]="getPreviewTransform()">
+                  <iframe [src]="safePreviewUrl" class="bento-preview-iframe"></iframe>
+                </div>
+                <div class="bento-preview-wrapper" *ngIf="previewType === 'image'" [style.transform]="getPreviewTransform()">
+                  <img [src]="safePreviewUrl" class="bento-preview-image" alt="W2 Preview"/>
+                </div>
+                <div class="bento-preview-unsupported" *ngIf="previewType === 'unsupported'">
+                  <span>📎</span>
+                  <p>Vista previa no disponible</p>
+                  <button class="btn-download-bento" (click)="downloadPreviewDocument()">Descargar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STANDARD PREVIEW PANEL for Steps 3 & 4 (non-bento layout) -->
+        <div class="review-preview-panel" *ngIf="currentReviewStep >= 3 || isPreviewFullscreen" [class.fullscreen]="isPreviewFullscreen">
+          <!-- Verification Panel - Collapsible Client Info -->
           <div class="verification-panel" *ngIf="!isPreviewFullscreen" [class.collapsed]="!verificationPanelExpanded">
-            <!-- Panel Header (always visible, clickable to toggle) -->
             <div class="verification-header" (click)="toggleVerificationPanel()">
               <div class="verification-header-left">
                 <span class="verification-icon">📋</span>
@@ -1495,10 +1656,7 @@
                 </svg>
               </button>
             </div>
-
-            <!-- Panel Content (collapsible) -->
             <div class="verification-content" *ngIf="verificationPanelExpanded">
-              <!-- SSN with Copy Button -->
               <div class="verification-item verification-ssn">
                 <span class="verification-label">SSN</span>
                 <div class="verification-value-row">
@@ -1514,26 +1672,18 @@
                   </button>
                 </div>
               </div>
-
-              <!-- Full Name -->
               <div class="verification-item">
                 <span class="verification-label">Nombre Completo</span>
                 <span class="verification-value">{{ getClientFullName() }}</span>
               </div>
-
-              <!-- Address -->
               <div class="verification-item verification-address">
                 <span class="verification-label">Direccion</span>
                 <span class="verification-value">{{ getClientFullAddress() }}</span>
               </div>
-
-              <!-- Employer Name -->
               <div class="verification-item">
                 <span class="verification-label">Empleador</span>
                 <span class="verification-value">{{ getEmployerName() }}</span>
               </div>
-
-              <!-- Work State -->
               <div class="verification-item">
                 <span class="verification-label">Estado donde Trabajo</span>
                 <span class="verification-value highlight">{{ getWorkState() }}</span>
@@ -1541,140 +1691,46 @@
             </div>
           </div>
 
-          <!-- Key W2 Fields Panel - Only visible on step 2 (W2 verification) -->
-          <div class="w2-fields-panel" *ngIf="currentReviewStep === 2 && !isPreviewFullscreen">
-            <div class="w2-fields-header">
-              <span class="w2-fields-icon">📊</span>
-              <span class="w2-fields-title">Campos Clave W2</span>
-              <span class="w2-fields-badge" *ngIf="w2EstimateData?.hasEstimate" [class]="getOcrConfidenceClass(w2EstimateData?.estimate?.ocrConfidence || 'low')">
-                OCR: {{ getOcrConfidenceLabel(w2EstimateData?.estimate?.ocrConfidence || 'low') }}
-              </span>
-            </div>
-
-            <!-- Loading State -->
-            <div class="w2-fields-loading" *ngIf="isLoadingW2Estimate">
-              <div class="w2-loading-spinner"></div>
-              <span>Cargando datos OCR...</span>
-            </div>
-
-            <!-- No OCR Data State -->
-            <div class="w2-fields-empty" *ngIf="!isLoadingW2Estimate && (!w2EstimateData || !w2EstimateData.hasEstimate)">
-              <span class="w2-empty-icon">⚠️</span>
-              <span class="w2-empty-text">Sin datos OCR</span>
-              <span class="w2-empty-hint">El W2 no fue procesado por la calculadora</span>
-            </div>
-
-            <!-- W2 Fields Checklist -->
-            <div class="w2-fields-content" *ngIf="!isLoadingW2Estimate && w2EstimateData?.hasEstimate && w2EstimateData?.estimate">
-              <!-- Box 2: Federal Income Tax Withheld -->
-              <div class="w2-field-item" (click)="toggleW2FieldVerified('box2Federal')">
-                <div class="w2-field-checkbox" [class.checked]="w2FieldsVerified.box2Federal">
-                  <svg *ngIf="w2FieldsVerified.box2Federal" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div class="w2-field-info">
-                  <span class="w2-field-label">Box 2: Federal Tax Withheld</span>
-                  <span class="w2-field-value">{{ w2EstimateData?.estimate?.box2Federal | currency:'USD':'symbol':'1.2-2' }}</span>
-                </div>
-              </div>
-
-              <!-- Box 17: State Income Tax Withheld -->
-              <div class="w2-field-item" (click)="toggleW2FieldVerified('box17State')">
-                <div class="w2-field-checkbox" [class.checked]="w2FieldsVerified.box17State">
-                  <svg *ngIf="w2FieldsVerified.box17State" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div class="w2-field-info">
-                  <span class="w2-field-label">Box 17: State Tax Withheld</span>
-                  <span class="w2-field-value">{{ w2EstimateData?.estimate?.box17State | currency:'USD':'symbol':'1.2-2' }}</span>
-                </div>
-              </div>
-
-              <!-- Estimated Refund (calculated) -->
-              <div class="w2-field-item w2-field-total" (click)="toggleW2FieldVerified('estimatedRefund')">
-                <div class="w2-field-checkbox" [class.checked]="w2FieldsVerified.estimatedRefund">
-                  <svg *ngIf="w2FieldsVerified.estimatedRefund" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div class="w2-field-info">
-                  <span class="w2-field-label">Reembolso Estimado</span>
-                  <span class="w2-field-value total">{{ w2EstimateData?.estimate?.estimatedRefund | currency:'USD':'symbol':'1.2-2' }}</span>
-                </div>
-              </div>
-
-              <!-- Verification Status -->
-              <div class="w2-verification-status" [class.complete]="allW2FieldsVerified">
-                <span class="status-icon">{{ allW2FieldsVerified ? '✓' : '○' }}</span>
-                <span class="status-text">{{ allW2FieldsVerified ? 'Campos verificados' : 'Verifica los campos contra el W2' }}</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Preview Toolbar -->
           <div class="preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
-            <!-- Zoom Controls -->
             <div class="toolbar-group">
               <button class="toolbar-btn" (click)="zoomOut()" [disabled]="previewZoom <= 50" title="Reducir zoom">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  <line x1="8" y1="11" x2="14" y2="11"/>
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
                 </svg>
               </button>
               <span class="zoom-indicator" (click)="resetZoom()" title="Click para resetear">{{ previewZoom }}%</span>
               <button class="toolbar-btn" (click)="zoomIn()" [disabled]="previewZoom >= 200" title="Aumentar zoom">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  <line x1="11" y1="8" x2="11" y2="14"/>
-                  <line x1="8" y1="11" x2="14" y2="11"/>
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
                 </svg>
               </button>
             </div>
-
-            <!-- Rotate (only for images) -->
             <div class="toolbar-group" *ngIf="previewType === 'image'">
               <button class="toolbar-btn" (click)="rotatePreview()" title="Rotar 90 grados">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="1 4 1 10 7 10"/>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
                 </svg>
               </button>
             </div>
-
-            <!-- Fullscreen & Download -->
             <div class="toolbar-group">
               <button class="toolbar-btn" (click)="togglePreviewFullscreen()" [title]="isPreviewFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'">
                 <svg *ngIf="!isPreviewFullscreen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 3 21 3 21 9"/>
-                  <polyline points="9 21 3 21 3 15"/>
-                  <line x1="21" y1="3" x2="14" y2="10"/>
-                  <line x1="3" y1="21" x2="10" y2="14"/>
+                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
                 </svg>
                 <svg *ngIf="isPreviewFullscreen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="4 14 10 14 10 20"/>
-                  <polyline points="20 10 14 10 14 4"/>
-                  <line x1="14" y1="10" x2="21" y2="3"/>
-                  <line x1="3" y1="21" x2="10" y2="14"/>
+                  <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>
                 </svg>
               </button>
               <button class="toolbar-btn" (click)="downloadPreviewDocument()" title="Descargar documento">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
               </button>
             </div>
-
-            <!-- Fullscreen Close Button (only in fullscreen) -->
             <button class="toolbar-btn-close" *ngIf="isPreviewFullscreen" (click)="exitPreviewFullscreen()" title="Cerrar pantalla completa">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           </div>
@@ -1690,15 +1746,12 @@
             <p>Cargando documento...</p>
           </div>
           <div class="preview-content" *ngIf="safePreviewUrl && !isLoadingPreview">
-            <!-- PDF Preview with zoom -->
             <div class="preview-wrapper" *ngIf="previewType === 'pdf'" [style.transform]="getPreviewTransform()">
               <iframe [src]="safePreviewUrl" class="preview-iframe"></iframe>
             </div>
-            <!-- Image Preview with zoom and rotation -->
             <div class="preview-wrapper" *ngIf="previewType === 'image'" [style.transform]="getPreviewTransform()">
               <img [src]="safePreviewUrl" class="preview-image" alt="Document preview"/>
             </div>
-            <!-- Unsupported format -->
             <div class="preview-unsupported" *ngIf="previewType === 'unsupported'">
               <span class="unsupported-icon">📎</span>
               <p>Vista previa no disponible</p>
