@@ -1336,7 +1336,7 @@
 
   <!-- Visual Review Game Modal -->
   <div class="review-game-overlay" *ngIf="showVisualReview" [class.celebrating]="reviewCelebrating">
-    <div class="review-game-container">
+    <div class="review-game-container" [class.bento-mode]="currentReviewStep === 2">
       <!-- Progress Bar -->
       <div class="review-progress-bar">
         <div class="review-progress-fill" [style.width.%]="(currentReviewStep / 4) * 100"></div>

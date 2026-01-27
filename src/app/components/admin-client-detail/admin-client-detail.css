@@ -2017,6 +2017,13 @@ transform: translateX(4px);
   position: relative;
 }
 
+/* Expanded container for bento grid (step 2) */
+.review-game-container.bento-mode {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: 95vw;
+}
+
 /* Progress Bar */
 .review-progress-bar {
   height: 6px;
