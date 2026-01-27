@@ -329,12 +329,14 @@ export class ReferralService {
 
   /**
    * Get referral status label in Spanish
+   * Simplified: Only shows pending, successful, or expired
+   * Intermediate statuses (tax_form_submitted, awaiting_refund) map to 'Pendiente'
    */
   getStatusLabel(status: ReferralRecord['status']): string {
     const labels: Record<ReferralRecord['status'], string> = {
       pending: 'Pendiente',
-      tax_form_submitted: 'Formulario enviado',
-      awaiting_refund: 'Esperando reembolso',
+      tax_form_submitted: 'Pendiente', // Simplified: intermediate status shown as pending
+      awaiting_refund: 'Pendiente',    // Simplified: intermediate status shown as pending
       successful: 'Exitoso',
       expired: 'Expirado'
     };
