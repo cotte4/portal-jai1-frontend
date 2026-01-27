@@ -147,6 +147,65 @@
 
       <!-- Pre-Filing Phase UI -->
       <div class="pre-filing-section" *ngIf="!taxesFiled">
+        <!-- 4-Step Progress Indicator -->
+        <div class="steps-progress-card">
+          <div class="steps-progress-header">
+            <span class="steps-icon">📋</span>
+            <h3>Progreso del Cliente</h3>
+            <span class="steps-count">{{ completedStepsCount }}/4 completados</span>
+          </div>
+          <div class="steps-progress-body">
+            <div class="steps-container">
+              <!-- Step 1: Formulario -->
+              <div class="step-item" [class.completed]="isStep1Complete">
+                <div class="step-circle" [class.completed]="isStep1Complete">
+                  <svg *ngIf="isStep1Complete" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span *ngIf="!isStep1Complete">1</span>
+                </div>
+                <span class="step-label">Formulario</span>
+              </div>
+              <div class="step-connector" [class.completed]="isStep1Complete"></div>
+
+              <!-- Step 2: W2 -->
+              <div class="step-item" [class.completed]="isStep2Complete">
+                <div class="step-circle" [class.completed]="isStep2Complete">
+                  <svg *ngIf="isStep2Complete" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span *ngIf="!isStep2Complete">2</span>
+                </div>
+                <span class="step-label">W2</span>
+              </div>
+              <div class="step-connector" [class.completed]="isStep2Complete"></div>
+
+              <!-- Step 3: Comprobante -->
+              <div class="step-item" [class.completed]="isStep3Complete">
+                <div class="step-circle" [class.completed]="isStep3Complete">
+                  <svg *ngIf="isStep3Complete" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span *ngIf="!isStep3Complete">3</span>
+                </div>
+                <span class="step-label">Comprobante</span>
+              </div>
+              <div class="step-connector" [class.completed]="isStep3Complete"></div>
+
+              <!-- Step 4: Consentimiento -->
+              <div class="step-item" [class.completed]="isStep4Complete">
+                <div class="step-circle" [class.completed]="isStep4Complete">
+                  <svg *ngIf="isStep4Complete" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span *ngIf="!isStep4Complete">4</span>
+                </div>
+                <span class="step-label">Consentimiento</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="pre-filing-card">
           <div class="pre-filing-header">
             <span class="pre-filing-icon">📝</span>
@@ -156,10 +215,19 @@
             </span>
           </div>
           <div class="pre-filing-body">
+            <!-- Show pre-filing status dropdown only when all 4 steps completed -->
+            <div class="pre-filing-field" *ngIf="allStepsComplete">
+              <label>Estado Pre-Presentacion</label>
+              <select [(ngModel)]="selectedPreFilingStatus">
+                <option value="listo_para_preparar">Listo para Preparar</option>
+                <option value="en_preparacion">En Preparacion</option>
+                <option value="problema">Problema</option>
+                <option value="taxes_presentados">Taxes Presentados</option>
+              </select>
+            </div>
             <div class="pre-filing-field">
               <label>Estado</label>
               <select [(ngModel)]="selectedCaseStatus">
-                <option [ngValue]="null">Sin estado</option>
                 <option *ngFor="let status of filteredCaseStatusOptions; trackBy: trackByIndex" [ngValue]="status">
                   {{ getCaseStatusLabel(status) }}
                 </option>

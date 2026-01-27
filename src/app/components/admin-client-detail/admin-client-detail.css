@@ -1841,8 +1841,132 @@ transform: translateX(4px);
 
 .pre-filing-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 20px;
+}
+
+/* ==================== 4-STEP PROGRESS INDICATOR ==================== */
+.steps-progress-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.steps-progress-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.steps-icon {
+  font-size: 24px;
+}
+
+.steps-progress-header h3 {
+  flex: 1;
+  font-size: 16px;
+  color: #1D345D;
+  margin: 0;
+  font-weight: 600;
+}
+
+.steps-count {
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #e8f0ff;
+  color: #1D345D;
+}
+
+.steps-progress-body {
+  padding: 0 10px;
+}
+
+.steps-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  border: 3px solid #d0d0d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+  transition: all 0.3s ease;
+}
+
+.step-circle.completed {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  border-color: #4caf50;
+  color: white;
+}
+
+.step-circle.completed svg {
+  stroke: white;
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step-item.completed .step-label {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.step-connector {
+  flex: 1;
+  height: 3px;
+  background: #e0e0e0;
+  margin: 18px 8px 0;
+  min-width: 30px;
+  max-width: 60px;
+  border-radius: 2px;
+  transition: background 0.3s ease;
+}
+
+.step-connector.completed {
+  background: #4caf50;
+}
+
+/* Pre-filing cards grid layout */
+.pre-filing-section .pre-filing-card,
+.pre-filing-section .mark-filed-card {
+  grid-column: auto;
+}
+
+@media (min-width: 768px) {
+  .pre-filing-section {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .steps-progress-card {
+    grid-column: span 2;
+  }
 }
 
 .pre-filing-card,
@@ -3691,6 +3815,83 @@ transform: translateX(4px);
 .client-detail-container.dark-mode .history-comment {
   background: rgba(59, 130, 246, 0.1);
   border-left-color: #3b82f6;
+}
+
+/* Step Progress Dark Mode */
+.client-detail-container.dark-mode .steps-progress-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.client-detail-container.dark-mode .steps-progress-header h3 {
+  color: #f1f5f9;
+}
+
+.client-detail-container.dark-mode .steps-count {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.client-detail-container.dark-mode .step-circle {
+  background: #334155;
+  border-color: #475569;
+  color: #94a3b8;
+}
+
+.client-detail-container.dark-mode .step-circle.completed {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: #22c55e;
+  color: white;
+}
+
+.client-detail-container.dark-mode .step-label {
+  color: #94a3b8;
+}
+
+.client-detail-container.dark-mode .step-item.completed .step-label {
+  color: #4ade80;
+}
+
+.client-detail-container.dark-mode .step-connector {
+  background: #475569;
+}
+
+.client-detail-container.dark-mode .step-connector.completed {
+  background: #22c55e;
+}
+
+/* Pre-filing Card Dark Mode */
+.client-detail-container.dark-mode .pre-filing-card,
+.client-detail-container.dark-mode .mark-filed-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.client-detail-container.dark-mode .pre-filing-header h3,
+.client-detail-container.dark-mode .mark-filed-header h3 {
+  color: #f1f5f9;
+}
+
+.client-detail-container.dark-mode .pre-filing-field label {
+  color: #94a3b8;
+}
+
+.client-detail-container.dark-mode .pre-filing-field select,
+.client-detail-container.dark-mode .mark-filed-field input {
+  background: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.client-detail-container.dark-mode .pre-filing-field select:focus,
+.client-detail-container.dark-mode .mark-filed-field input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.client-detail-container.dark-mode .mark-filed-description {
+  color: #94a3b8;
 }
 
 .client-detail-container.dark-mode .comment-text {

@@ -125,6 +125,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showDocumentsModal: boolean = false;
   modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
 
+  // Pre-filing status (when all 4 steps are complete)
+  selectedPreFilingStatus: string = 'listo_para_preparar';
+
   // Notification
   showNotifyModal: boolean = false;
   notifyTitle: string = '';
@@ -649,9 +652,65 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     const labels: Record<string, string> = {
       'w2': 'W2',
       'payment_proof': 'Comprobante',
+      'consent_form': 'Consentimiento',
       'other': 'Otro'
     };
     return labels[type] || type;
+  }
+
+  // ===== 4-STEP PROGRESS TRACKING =====
+
+  /**
+   * Step 1: Formulario - Check if profile has been filled out
+   * (has SSN or date of birth filled)
+   */
+  get isStep1Complete(): boolean {
+    if (!this.client?.profile) return false;
+    // Check if essential profile fields are filled
+    return !!(this.client.profile.ssn || this.client.profile.dateOfBirth);
+  }
+
+  /**
+   * Step 2: W2 - Check if client has uploaded at least one W2 document
+   */
+  get isStep2Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'w2');
+  }
+
+  /**
+   * Step 3: Comprobante - Check if client has uploaded payment proof
+   */
+  get isStep3Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'payment_proof');
+  }
+
+  /**
+   * Step 4: Consentimiento - Check if client has uploaded consent form
+   */
+  get isStep4Complete(): boolean {
+    if (!this.client?.documents) return false;
+    return this.client.documents.some(doc => doc.type === 'consent_form');
+  }
+
+  /**
+   * Check if all 4 steps are complete
+   */
+  get allStepsComplete(): boolean {
+    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete && this.isStep4Complete;
+  }
+
+  /**
+   * Count of completed steps
+   */
+  get completedStepsCount(): number {
+    let count = 0;
+    if (this.isStep1Complete) count++;
+    if (this.isStep2Complete) count++;
+    if (this.isStep3Complete) count++;
+    if (this.isStep4Complete) count++;
+    return count;
   }
 
   // Status history label transformation
@@ -931,7 +990,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [CaseStatus.AWAITING_FORM]: 'Esperando Formulario',
       [CaseStatus.AWAITING_DOCS]: 'Esperando Documentos',
       [CaseStatus.DOCUMENTOS_ENVIADOS]: 'Documentos Enviados',
-      [CaseStatus.PREPARING]: 'Preparando',
+      [CaseStatus.PREPARING]: 'En Preparacion',
       [CaseStatus.TAXES_FILED]: 'Taxes Presentados',
       [CaseStatus.CASE_ISSUES]: 'Problemas'
     };
@@ -1084,11 +1143,16 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   }
 
   /**
-   * Get all case status options (admins can select any status)
-   * Invalid transitions will trigger override modal on save
+   * Get filtered case status options for the dropdown
+   * Excludes: awaiting_form, awaiting_docs, documentos_enviados (these are auto-determined by step progress)
    */
   get filteredCaseStatusOptions(): CaseStatus[] {
-    return this.caseStatusOptions;
+    const excludedStatuses = [
+      CaseStatus.AWAITING_FORM,
+      CaseStatus.AWAITING_DOCS,
+      CaseStatus.DOCUMENTOS_ENVIADOS
+    ];
+    return this.caseStatusOptions.filter(status => !excludedStatuses.includes(status));
   }
 
   /**
