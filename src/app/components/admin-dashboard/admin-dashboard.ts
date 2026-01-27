@@ -7,6 +7,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
+import { ThemeService } from '../../core/services/theme.service';
 import {
   AdminClientListItem,
   CaseStatus,
@@ -32,6 +33,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
+  themeService = inject(ThemeService);
   private subscriptions = new Subscription();
   private isInitialLoad = true; // Prevents URL sync on initial load from URL
   private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -90,9 +92,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
   // Sidebar - collapsed by default on mobile
   sidebarCollapsed: boolean = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
-  // Dark Mode
-  darkMode: boolean = false;
-  private readonly DARK_MODE_KEY = 'jai1_admin_dark_mode';
+  // Dark Mode - now managed by ThemeService
+  get darkMode(): boolean {
+    return this.themeService.darkMode();
+  }
 
   // Advanced filters
   showAdvancedFilters: boolean = false;
@@ -163,8 +166,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    // Load dark mode preference
-    this.loadDarkModePreference();
+    // Dark mode is now automatically managed by ThemeService
 
     // Read filters from URL params first
     this.loadFiltersFromUrl();
@@ -539,22 +541,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // ===== DARK MODE =====
   toggleDarkMode() {
-    this.darkMode = !this.darkMode;
-    this.saveDarkModePreference();
+    this.themeService.toggleDarkMode();
     this.cdr.detectChanges();
-  }
-
-  private loadDarkModePreference() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const savedPreference = localStorage.getItem(this.DARK_MODE_KEY);
-      this.darkMode = savedPreference === 'true';
-    }
-  }
-
-  private saveDarkModePreference() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem(this.DARK_MODE_KEY, this.darkMode.toString());
-    }
   }
 
   logout() {
