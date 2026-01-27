@@ -197,12 +197,12 @@ export enum NotificationType {
 export enum ProblemType {
   MISSING_DOCUMENTS = 'missing_documents',
   INCORRECT_INFORMATION = 'incorrect_information',
-  IRS_VERIFICATION = 'irs_verification',
   BANK_ISSUE = 'bank_issue',
   STATE_ISSUE = 'state_issue',
   FEDERAL_ISSUE = 'federal_issue',
   CLIENT_UNRESPONSIVE = 'client_unresponsive',
   OTHER = 'other'
+  // NOTE: IRS_VERIFICATION removed - verification is handled via status, not problem flags
 }
 
 // ============= AUTH =============

@@ -310,18 +310,23 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedFederalStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
                   {{ getFederalStatusNewLabel(status) }}
                 </option>
               </select>
+              <span class="status-hint" *ngIf="getStatusDescription(selectedFederalStatusNew)">
+                {{ getStatusDescription(selectedFederalStatusNew) }}
+              </span>
             </div>
             <div class="track-field">
-              <label>Fecha Estimada</label>
-              <input type="date" [(ngModel)]="federalEstimatedDate">
+              <label>Fecha Estimada <span class="auto-calc-badge" title="Calculado automaticamente: fecha de presentacion + 6 semanas">Auto</span></label>
+              <input type="date" [ngModel]="federalEstimatedDate" [readonly]="true" class="readonly-field" title="Calculado automaticamente al marcar taxes como presentados">
+              <span class="field-hint">+6 semanas desde presentacion</span>
             </div>
             <div class="track-field">
-              <label>Monto Real ($)</label>
+              <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
               <input type="number" [(ngModel)]="federalActualRefund" placeholder="0.00" step="0.01">
+              <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
               <label>Fecha Deposito</label>
@@ -351,18 +356,23 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
                   {{ getStateStatusNewLabel(status) }}
                 </option>
               </select>
+              <span class="status-hint" *ngIf="getStatusDescription(selectedStateStatusNew)">
+                {{ getStatusDescription(selectedStateStatusNew) }}
+              </span>
             </div>
             <div class="track-field">
-              <label>Fecha Estimada</label>
-              <input type="date" [(ngModel)]="stateEstimatedDate">
+              <label>Fecha Estimada <span class="auto-calc-badge" title="Calculado automaticamente: fecha de presentacion + 9 semanas">Auto</span></label>
+              <input type="date" [ngModel]="stateEstimatedDate" [readonly]="true" class="readonly-field" title="Calculado automaticamente al marcar taxes como presentados">
+              <span class="field-hint">+9 semanas desde presentacion</span>
             </div>
             <div class="track-field">
-              <label>Monto Real ($)</label>
+              <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
               <input type="number" [(ngModel)]="stateActualRefund" placeholder="0.00" step="0.01">
+              <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
               <label>Fecha Deposito</label>

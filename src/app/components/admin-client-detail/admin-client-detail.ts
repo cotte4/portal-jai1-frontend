@@ -559,10 +559,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   getProblemTypeLabel(type: ProblemType | null): string {
     if (!type) return '';
+    // NOTE: IRS_VERIFICATION removed - verification is handled via status, not problem flags
     const labels: Record<ProblemType, string> = {
       [ProblemType.MISSING_DOCUMENTS]: 'Documentos faltantes',
       [ProblemType.INCORRECT_INFORMATION]: 'Informacion incorrecta',
-      [ProblemType.IRS_VERIFICATION]: 'Verificacion IRS',
       [ProblemType.BANK_ISSUE]: 'Problema bancario',
       [ProblemType.STATE_ISSUE]: 'Problema estatal',
       [ProblemType.FEDERAL_ISSUE]: 'Problema federal',
@@ -1237,6 +1237,31 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'
     };
     return labels[status] || status;
+  }
+
+  /**
+   * Get description/tooltip for post-filing statuses
+   * Key distinctions per engineer spec:
+   * - in_verification: IRS flagged it, JAI1 hasn't acted yet
+   * - verification_in_progress: JAI1 has taken action, waiting for agency response
+   * - check_in_transit: Physical check being mailed
+   * - deposit_pending: Client got refund but hasn't paid JAI1 fee
+   * - taxes_sent: Refund has been sent/deposited
+   */
+  getStatusDescription(status: string | null): string {
+    if (!status) return '';
+    const descriptions: Record<string, string> = {
+      'in_process': 'El IRS/Estado está procesando la declaración',
+      'in_verification': 'IRS/Estado marcó para verificación - JAI1 aún NO ha actuado',
+      'verification_in_progress': 'JAI1 YA tomó acción (carta/documentos enviados) - esperando respuesta',
+      'verification_letter_sent': 'Se envió carta de verificación al cliente',
+      'check_in_transit': 'Cheque físico en camino al cliente',
+      'deposit_pending': 'Cliente recibió reembolso pero NO ha pagado comisión JAI1',
+      'taxes_sent': 'Reembolso enviado/depositado',
+      'taxes_completed': 'Proceso completado - cliente recibió y pagó',
+      'issues': 'Problema que requiere atención especial'
+    };
+    return descriptions[status] || '';
   }
 
   getAlarmLevelClass(level: string): string {
