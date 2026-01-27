@@ -1356,115 +1356,158 @@
         </svg>
       </button>
 
-      <!-- Review Cards Container -->
-      <div class="review-cards-viewport">
-        <div class="review-cards-track" [style.transform]="'translateX(' + (-100 * (currentReviewStep - 1)) + '%)'">
+      <!-- Review Main Content (Split Layout) -->
+      <div class="review-split-layout">
+        <!-- Left: Review Cards -->
+        <div class="review-cards-panel">
+          <div class="review-cards-viewport">
+            <div class="review-cards-track" [style.transform]="'translateX(' + (-100 * (currentReviewStep - 1)) + '%)'">
 
-          <!-- Step 1: Formulario -->
-          <div class="review-card" [class.active]="currentReviewStep === 1" [class.completed]="currentReviewStep > 1">
-            <div class="review-card-header">
-              <span class="review-card-icon">📝</span>
-              <h3>Formulario del Cliente</h3>
-            </div>
-            <div class="review-card-content" *ngIf="client && client.profile">
-              <div class="review-data-grid">
-                <div class="review-data-item">
-                  <span class="data-label">Nombre</span>
-                  <span class="data-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+              <!-- Step 1: Formulario -->
+              <div class="review-card" [class.active]="currentReviewStep === 1" [class.completed]="currentReviewStep > 1">
+                <div class="review-card-header">
+                  <span class="review-card-icon">📝</span>
+                  <h3>Formulario del Cliente</h3>
                 </div>
-                <div class="review-data-item">
-                  <span class="data-label">SSN</span>
-                  <span class="data-value">{{ client.profile.ssn || 'N/A' }}</span>
-                </div>
-                <div class="review-data-item">
-                  <span class="data-label">Fecha Nacimiento</span>
-                  <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
-                </div>
-                <div class="review-data-item">
-                  <span class="data-label">Telefono</span>
-                  <span class="data-value">{{ client.user.phone || 'N/A' }}</span>
-                </div>
-                <div class="review-data-item">
-                  <span class="data-label">Estado Trabajo</span>
-                  <span class="data-value">{{ client.profile.workState || 'N/A' }}</span>
-                </div>
-                <div class="review-data-item">
-                  <span class="data-label">Empleador</span>
-                  <span class="data-value">{{ client.profile.employerName || 'N/A' }}</span>
-                </div>
-                <div class="review-data-item full-width" *ngIf="client.profile.address">
-                  <span class="data-label">Direccion</span>
-                  <span class="data-value">{{ client.profile.address.street }}, {{ client.profile.address.city }}, {{ client.profile.address.state }} {{ client.profile.address.zip }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 2: W2 -->
-          <div class="review-card" [class.active]="currentReviewStep === 2" [class.completed]="currentReviewStep > 2">
-            <div class="review-card-header">
-              <span class="review-card-icon">📄</span>
-              <h3>Documento W2</h3>
-            </div>
-            <div class="review-card-content">
-              <div class="review-docs-list">
-                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('w2')">
-                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
-                  <div class="doc-details">
-                    <span class="doc-name">{{ doc.fileName }}</span>
-                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                <div class="review-card-content" *ngIf="client && client.profile">
+                  <div class="review-data-grid">
+                    <div class="review-data-item">
+                      <span class="data-label">Nombre</span>
+                      <span class="data-value">{{ client.user.firstName }} {{ client.user.lastName }}</span>
+                    </div>
+                    <div class="review-data-item">
+                      <span class="data-label">SSN</span>
+                      <span class="data-value">{{ client.profile.ssn || 'N/A' }}</span>
+                    </div>
+                    <div class="review-data-item">
+                      <span class="data-label">Fecha Nacimiento</span>
+                      <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
+                    </div>
+                    <div class="review-data-item">
+                      <span class="data-label">Telefono</span>
+                      <span class="data-value">{{ client.user.phone || 'N/A' }}</span>
+                    </div>
+                    <div class="review-data-item">
+                      <span class="data-label">Estado Trabajo</span>
+                      <span class="data-value">{{ client.profile.workState || 'N/A' }}</span>
+                    </div>
+                    <div class="review-data-item">
+                      <span class="data-label">Empleador</span>
+                      <span class="data-value">{{ client.profile.employerName || 'N/A' }}</span>
+                    </div>
+                    <div class="review-data-item full-width" *ngIf="client.profile.address">
+                      <span class="data-label">Direccion</span>
+                      <span class="data-value">{{ client.profile.address.street }}, {{ client.profile.address.city }}, {{ client.profile.address.state }} {{ client.profile.address.zip }}</span>
+                    </div>
                   </div>
-                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Step 3: Comprobante -->
-          <div class="review-card" [class.active]="currentReviewStep === 3" [class.completed]="currentReviewStep > 3">
-            <div class="review-card-header">
-              <span class="review-card-icon">🧾</span>
-              <h3>Comprobante de Pago</h3>
-            </div>
-            <div class="review-card-content">
-              <div class="review-docs-list">
-                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('payment_proof')">
-                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
-                  <div class="doc-details">
-                    <span class="doc-name">{{ doc.fileName }}</span>
-                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+              <!-- Step 2: W2 -->
+              <div class="review-card" [class.active]="currentReviewStep === 2" [class.completed]="currentReviewStep > 2">
+                <div class="review-card-header">
+                  <span class="review-card-icon">📄</span>
+                  <h3>Documento W2</h3>
+                </div>
+                <div class="review-card-content">
+                  <div class="review-docs-list">
+                    <div class="review-doc-item"
+                         *ngFor="let doc of getDocumentsByType('w2')"
+                         [class.selected]="previewDocumentId === doc.id"
+                         (click)="previewDocument(doc)">
+                      <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                      <div class="doc-details">
+                        <span class="doc-name">{{ doc.fileName }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                      <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
+                    </div>
                   </div>
-                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
+                  <p class="preview-hint" *ngIf="getDocumentsByType('w2').length > 0">Click en documento para ver preview →</p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Step 4: Consentimiento -->
-          <div class="review-card" [class.active]="currentReviewStep === 4" [class.completed]="currentReviewStep > 4">
-            <div class="review-card-header">
-              <span class="review-card-icon">✍️</span>
-              <h3>Formulario de Consentimiento</h3>
-            </div>
-            <div class="review-card-content">
-              <div class="review-docs-list">
-                <div class="review-doc-item" *ngFor="let doc of getDocumentsByType('consent_form')">
-                  <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
-                  <div class="doc-details">
-                    <span class="doc-name">{{ doc.fileName }}</span>
-                    <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+              <!-- Step 3: Comprobante -->
+              <div class="review-card" [class.active]="currentReviewStep === 3" [class.completed]="currentReviewStep > 3">
+                <div class="review-card-header">
+                  <span class="review-card-icon">🧾</span>
+                  <h3>Comprobante de Pago</h3>
+                </div>
+                <div class="review-card-content">
+                  <div class="review-docs-list">
+                    <div class="review-doc-item"
+                         *ngFor="let doc of getDocumentsByType('payment_proof')"
+                         [class.selected]="previewDocumentId === doc.id"
+                         (click)="previewDocument(doc)">
+                      <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                      <div class="doc-details">
+                        <span class="doc-name">{{ doc.fileName }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                      <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
+                    </div>
                   </div>
-                  <button class="btn-view-doc" (click)="downloadDocument(doc)">Ver</button>
+                  <p class="preview-hint" *ngIf="getDocumentsByType('payment_proof').length > 0">Click en documento para ver preview →</p>
                 </div>
               </div>
+
+              <!-- Step 4: Consentimiento -->
+              <div class="review-card" [class.active]="currentReviewStep === 4" [class.completed]="currentReviewStep > 4">
+                <div class="review-card-header">
+                  <span class="review-card-icon">✍️</span>
+                  <h3>Formulario de Consentimiento</h3>
+                </div>
+                <div class="review-card-content">
+                  <div class="review-docs-list">
+                    <div class="review-doc-item"
+                         *ngFor="let doc of getDocumentsByType('consent_form')"
+                         [class.selected]="previewDocumentId === doc.id"
+                         (click)="previewDocument(doc)">
+                      <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
+                      <div class="doc-details">
+                        <span class="doc-name">{{ doc.fileName }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                      <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
+                    </div>
+                  </div>
+                  <p class="preview-hint" *ngIf="getDocumentsByType('consent_form').length > 0">Click en documento para ver preview →</p>
+                </div>
+              </div>
+
             </div>
           </div>
+        </div>
 
+        <!-- Right: Document Preview Panel (visible on steps 2, 3, 4) -->
+        <div class="review-preview-panel" *ngIf="currentReviewStep >= 2">
+          <div class="preview-container" *ngIf="!previewUrl && !isLoadingPreview">
+            <div class="preview-placeholder">
+              <span class="preview-placeholder-icon">👁️</span>
+              <p>Selecciona un documento para ver preview</p>
+            </div>
+          </div>
+          <div class="preview-loading" *ngIf="isLoadingPreview">
+            <div class="loading-spinner"></div>
+            <p>Cargando documento...</p>
+          </div>
+          <div class="preview-content" *ngIf="previewUrl && !isLoadingPreview">
+            <!-- PDF Preview -->
+            <iframe *ngIf="previewType === 'pdf'" [src]="previewUrl" class="preview-iframe"></iframe>
+            <!-- Image Preview -->
+            <img *ngIf="previewType === 'image'" [src]="previewUrl" class="preview-image" alt="Document preview"/>
+            <!-- Unsupported format -->
+            <div class="preview-unsupported" *ngIf="previewType === 'unsupported'">
+              <span class="unsupported-icon">📎</span>
+              <p>Vista previa no disponible</p>
+              <button class="btn-download-preview" (click)="downloadPreviewDocument()">Descargar Archivo</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="review-actions" *ngIf="!reviewCelebrating">
+      <!-- Action Buttons (during review) -->
+      <div class="review-actions" *ngIf="!reviewCelebrating && !showFinalDecision">
         <button class="btn-review-back" (click)="previousReviewStep()" [disabled]="currentReviewStep === 1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="15 18 9 12 15 6"/>
@@ -1473,8 +1516,33 @@
         </button>
         <button class="btn-review-correct" (click)="approveReviewStep()" [class.pulse]="!reviewStepApproved[currentReviewStep]">
           <span class="correct-icon">✓</span>
-          <span>{{ currentReviewStep === 4 ? 'FINALIZAR' : 'CORRECTO' }}</span>
+          <span>CORRECTO</span>
         </button>
+      </div>
+
+      <!-- Final Decision Screen (after all 4 steps approved) -->
+      <div class="review-final-decision" *ngIf="showFinalDecision && !reviewCelebrating">
+        <div class="final-decision-content">
+          <div class="decision-icon">⚖️</div>
+          <h2>Decision Final</h2>
+          <p>Has verificado los 4 documentos del cliente</p>
+          <div class="decision-buttons">
+            <button class="btn-decision-reject" (click)="rejectReview()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              <span>PROBLEMA DETECTADO</span>
+            </button>
+            <button class="btn-decision-accept" (click)="acceptReview()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>ACEPTAR</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Celebration Screen -->

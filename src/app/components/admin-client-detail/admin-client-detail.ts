@@ -133,6 +133,14 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   currentReviewStep: number = 1;
   reviewStepApproved: { [key: number]: boolean } = {};
   reviewCelebrating: boolean = false;
+  showFinalDecision: boolean = false;
+
+  // Document Preview
+  previewDocumentId: string | null = null;
+  previewUrl: string | null = null;
+  previewType: 'pdf' | 'image' | 'unsupported' = 'unsupported';
+  isLoadingPreview: boolean = false;
+  currentPreviewDocument: Document | null = null;
 
   // Notification
   showNotifyModal: boolean = false;
@@ -729,6 +737,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.currentReviewStep = 1;
     this.reviewStepApproved = {};
     this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
   }
 
   /**
@@ -737,6 +747,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   closeVisualReview() {
     this.showVisualReview = false;
     this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
   }
 
   /**
@@ -771,15 +783,41 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       // Move to next step with a small delay for animation
       setTimeout(() => {
         this.currentReviewStep++;
+        this.clearPreview(); // Clear preview when changing steps
+        this.autoSelectFirstDocument(); // Auto-select first doc of new step
         this.cdr.markForCheck();
       }, 300);
     } else {
-      // All steps completed - show celebration!
+      // All steps completed - show final decision
       setTimeout(() => {
-        this.reviewCelebrating = true;
+        this.showFinalDecision = true;
         this.cdr.markForCheck();
       }, 300);
     }
+  }
+
+  /**
+   * Accept the review - set status to "En Preparacion"
+   */
+  acceptReview() {
+    this.showFinalDecision = false;
+    this.reviewCelebrating = true;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Reject the review - set status to "Problemas"
+   */
+  rejectReview() {
+    this.showVisualReview = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
+
+    // Set status to "Problemas"
+    this.selectedCaseStatus = CaseStatus.CASE_ISSUES;
+    this.updateCaseStatus();
+
+    this.toastService.warning('Caso marcado con problemas');
   }
 
   /**
@@ -788,6 +826,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   finishVisualReview() {
     this.showVisualReview = false;
     this.reviewCelebrating = false;
+    this.showFinalDecision = false;
+    this.clearPreview();
 
     // Auto-set status to "En Preparacion" after successful review
     if (this.selectedCaseStatus !== CaseStatus.PREPARING) {
@@ -804,6 +844,80 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   getDocumentsByType(type: string): Document[] {
     if (!this.client?.documents) return [];
     return this.client.documents.filter(doc => doc.type === type);
+  }
+
+  /**
+   * Auto-select first document when entering a document step
+   */
+  autoSelectFirstDocument() {
+    const stepDocTypes: { [key: number]: string } = {
+      2: 'w2',
+      3: 'payment_proof',
+      4: 'consent_form'
+    };
+
+    const docType = stepDocTypes[this.currentReviewStep];
+    if (docType) {
+      const docs = this.getDocumentsByType(docType);
+      if (docs.length > 0) {
+        this.previewDocument(docs[0]);
+      }
+    }
+  }
+
+  /**
+   * Preview a document
+   */
+  previewDocument(doc: Document) {
+    if (this.previewDocumentId === doc.id) return; // Already previewing
+
+    this.previewDocumentId = doc.id;
+    this.currentPreviewDocument = doc;
+    this.isLoadingPreview = true;
+    this.previewUrl = null;
+
+    // Determine preview type based on mime type
+    if (doc.mimeType === 'application/pdf') {
+      this.previewType = 'pdf';
+    } else if (doc.mimeType.startsWith('image/')) {
+      this.previewType = 'image';
+    } else {
+      this.previewType = 'unsupported';
+    }
+
+    // Get the download URL for preview
+    this.documentService.getDownloadUrl(doc.id).subscribe({
+      next: (response) => {
+        this.previewUrl = response.url;
+        this.isLoadingPreview = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.previewType = 'unsupported';
+        this.isLoadingPreview = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Clear the document preview
+   */
+  clearPreview() {
+    this.previewDocumentId = null;
+    this.previewUrl = null;
+    this.previewType = 'unsupported';
+    this.isLoadingPreview = false;
+    this.currentPreviewDocument = null;
+  }
+
+  /**
+   * Download the currently previewed document
+   */
+  downloadPreviewDocument() {
+    if (this.currentPreviewDocument) {
+      this.downloadDocument(this.currentPreviewDocument);
+    }
   }
 
   // Status history label transformation
