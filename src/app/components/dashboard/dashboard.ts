@@ -11,13 +11,15 @@ import { CalculatorApiService } from '../../core/services/calculator-api.service
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { AnimationService } from '../../core/services/animation.service';
 import { ConfettiService } from '../../core/services/confetti.service';
+import { ConsentFormService } from '../../core/services/consent-form.service';
 import {
   ProfileResponse,
   Document,
   DocumentType,
   CaseStatus,
   FederalStatusNew,
-  StateStatusNew
+  StateStatusNew,
+  ConsentFormStatus
 } from '../../core/models';
 import {
   isFederalApproved,
@@ -45,6 +47,7 @@ interface DashboardCacheData {
   profileData: ProfileResponse | null;
   documents: Document[];
   calculatorResult: CalculatorResult | null;
+  consentStatus: ConsentFormStatus | null;
   cachedAt: number;
   userId: string;
 }
@@ -67,6 +70,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private animationService = inject(AnimationService);
   private confettiService = inject(ConfettiService);
+  private consentFormService = inject(ConsentFormService);
   private subscriptions = new Subscription();
 
   @ViewChild('welcomeSection') welcomeSection!: ElementRef<HTMLElement>;
@@ -77,6 +81,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   profileData: ProfileResponse | null = null;
   documents: Document[] = [];
   calculatorResult: CalculatorResult | null = null;
+  consentStatus: ConsentFormStatus | null = null;
   hasLoaded: boolean = false; // True after first load completes
   errorMessage: string = '';
   private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
@@ -194,7 +199,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    // Load profile, documents, and calculator result in parallel with timeout protection
+    // Load profile, documents, calculator result, and consent status in parallel with timeout protection
     forkJoin({
       profile: this.profileService.getProfile().pipe(
         timeout(8000),
@@ -205,6 +210,10 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         catchError(() => of([] as Document[]))
       ),
       calculatorResult: this.calculatorApiService.getLatestEstimate().pipe(
+        timeout(5000),
+        catchError(() => of(null))
+      ),
+      consentStatus: this.consentFormService.getStatus().pipe(
         timeout(5000),
         catchError(() => of(null))
       )
@@ -238,6 +247,11 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
             ocrConfidence: estimate.ocrConfidence,
             createdAt: estimate.createdAt
           });
+        }
+
+        // Set consent status from API response
+        if (results.consentStatus) {
+          this.consentStatus = (results.consentStatus as any).status || null;
         }
 
         // Cache dashboard data for faster loads on refresh
@@ -324,8 +338,13 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     return this.hasPaymentProof;
   }
 
+  get isStep4Complete(): boolean {
+    // Step 4 complete = Consent form signed
+    return this.consentStatus === 'signed';
+  }
+
   get allStepsComplete(): boolean {
-    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete;
+    return this.isStep1Complete && this.isStep2Complete && this.isStep3Complete && this.isStep4Complete;
   }
 
   get stepsCompletedCount(): number {
@@ -333,6 +352,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (this.isStep1Complete) count++;
     if (this.isStep2Complete) count++;
     if (this.isStep3Complete) count++;
+    if (this.isStep4Complete) count++;
     return count;
   }
 
@@ -393,7 +413,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get showIRSProgress(): boolean {
-    // Only show IRS progress if user has completed all 3 steps or taxes are already filed
+    // Only show IRS progress if user has completed all 4 steps or taxes are already filed
     return this.allStepsComplete || this.isSentToIRS;
   }
 
@@ -771,6 +791,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       if (cacheData.calculatorResult) {
         this.calculatorResult = cacheData.calculatorResult;
       }
+      if (cacheData.consentStatus) {
+        this.consentStatus = cacheData.consentStatus;
+      }
       return true; // Cache was successfully loaded
     } catch {
       return false;
@@ -785,6 +808,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       profileData: this.profileData,
       documents: this.documents,
       calculatorResult: this.calculatorResult,
+      consentStatus: this.consentStatus,
       cachedAt: Date.now(),
       userId: userId
     };

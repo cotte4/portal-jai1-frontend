@@ -45,6 +45,13 @@
         <div class="skeleton skeleton-text" style="width: 70%; height: 14px; margin-bottom: 20px;"></div>
         <div class="skeleton skeleton-rect" style="width: 100%; height: 44px;"></div>
       </div>
+      <div class="bento-card skeleton-card">
+        <div class="skeleton skeleton-circle" style="width: 48px; height: 48px; margin-bottom: 16px;"></div>
+        <div class="skeleton skeleton-title" style="width: 80%; height: 20px; margin-bottom: 12px;"></div>
+        <div class="skeleton skeleton-text" style="width: 100%; height: 14px; margin-bottom: 8px;"></div>
+        <div class="skeleton skeleton-text" style="width: 70%; height: 14px; margin-bottom: 20px;"></div>
+        <div class="skeleton skeleton-rect" style="width: 100%; height: 44px;"></div>
+      </div>
     </div>
   </div>
 }
@@ -133,11 +140,11 @@
     <div class="progress-section">
       <div class="progress-header">
         <span class="progress-title">Tu progreso</span>
-        <span class="progress-percent">{{ stepsCompletedCount }}/3 completados</span>
+        <span class="progress-percent">{{ stepsCompletedCount }}/4 completados</span>
       </div>
       <div class="progress-bar-container">
         <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="(stepsCompletedCount / 3) * 100"></div>
+          <div class="progress-bar-fill" [style.width.%]="(stepsCompletedCount / 4) * 100"></div>
         </div>
         <div class="progress-steps-indicators">
           <div class="progress-step-dot" [class.completed]="isStep1Complete" [class.active]="!isStep1Complete">
@@ -148,6 +155,9 @@
           </div>
           <div class="progress-step-dot" [class.completed]="isStep3Complete" [class.active]="isStep1Complete && isStep2Complete && !isStep3Complete">
             @if (isStep3Complete) { <span class="dot-check">✓</span> }
+          </div>
+          <div class="progress-step-dot" [class.completed]="isStep4Complete" [class.active]="isStep1Complete && isStep2Complete && isStep3Complete && !isStep4Complete">
+            @if (isStep4Complete) { <span class="dot-check">✓</span> }
           </div>
         </div>
       </div>
@@ -246,7 +256,7 @@
       <!-- Step 3: Subí tu comprobante de pago -->
       <div class="step-card" #bentoCard
            [class.completed]="isStep3Complete"
-           [class.attention]="isStep1Complete && isStep2Complete && !isStep3Complete">
+           [class.attention]="isStep1Complete && isStep2Complete && !isStep3Complete && !isStep4Complete">
         @if (isStep3Complete) {
           <div class="step-completed-row">
             <div class="step-check">
@@ -272,6 +282,41 @@
           </div>
           <button class="step-btn" (click)="navigateTo('/documents')">
             Subir comprobante
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        }
+      </div>
+
+      <!-- Step 4: Firmá el consentimiento -->
+      <div class="step-card" #bentoCard
+           [class.completed]="isStep4Complete"
+           [class.attention]="isStep1Complete && isStep2Complete && isStep3Complete && !isStep4Complete">
+        @if (isStep4Complete) {
+          <div class="step-completed-row">
+            <div class="step-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <span class="step-completed-text">Consentimiento firmado</span>
+          </div>
+        } @else {
+          <div class="step-header">
+            <div class="step-number">4</div>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="step-body">
+            <h3 class="step-title">Firmá el consentimiento</h3>
+            <p class="step-desc">Firmá el formulario de consentimiento para autorizar el proceso de tu declaración</p>
+          </div>
+          <button class="step-btn" (click)="navigateTo('/consent-form')">
+            Firmar ahora
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>

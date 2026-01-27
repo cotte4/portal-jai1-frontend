@@ -151,7 +151,7 @@
 /* ==================== BENTO GRID ==================== */
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
@@ -960,7 +960,7 @@
 /* ==================== STEP CARDS - HORIZONTAL ON DESKTOP ==================== */
 .steps-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
@@ -1237,16 +1237,16 @@
   }
 
   .bento-grid .bento-card:last-child {
-    grid-column: span 2;
+    grid-column: span 1;
   }
 
-  /* Steps: 2 columns on tablet, 3rd step full width */
+  /* Steps: 2 columns on tablet (2x2 grid for 4 steps) */
   .steps-list {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .steps-list .step-card:last-child {
-    grid-column: span 2;
+    grid-column: span 1;
   }
 }
 
