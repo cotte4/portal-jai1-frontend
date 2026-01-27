@@ -7,8 +7,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: var(--mobile-header-height, 56px);
+  /* Use min-height so safe area padding ADDS to total height */
+  min-height: var(--mobile-header-height, 56px);
   padding: 0 12px;
+  /* iOS safe area: push content below the notch/status bar */
+  padding-top: env(safe-area-inset-top, 0px);
+  box-sizing: content-box; /* padding adds to height, not included in it */
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
