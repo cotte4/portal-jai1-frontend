@@ -1479,56 +1479,8 @@
           </div>
         </div>
 
-        <!-- Preview Panel for Steps 3, 4 (or fullscreen from any step) -->
+        <!-- Preview Panel for Steps 3, 4 (or fullscreen from any step) - Document only -->
         <div class="review-preview-panel" *ngIf="currentReviewStep >= 3 || isPreviewFullscreen" [class.fullscreen]="isPreviewFullscreen">
-          <!-- Verification Panel - Collapsible Client Info -->
-          <div class="verification-panel" [class.collapsed]="!verificationPanelExpanded">
-            <div class="verification-header" (click)="toggleVerificationPanel()">
-              <div class="verification-header-left">
-                <span class="verification-icon">📋</span>
-                <span class="verification-title">Datos del Cliente</span>
-              </div>
-              <button class="verification-toggle" [class.expanded]="verificationPanelExpanded">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-            </div>
-            <div class="verification-content" *ngIf="verificationPanelExpanded">
-              <div class="verification-item verification-ssn">
-                <span class="verification-label">SSN</span>
-                <div class="verification-value-row">
-                  <span class="verification-value highlight">{{ getMaskedSSN() }}</span>
-                  <button class="btn-copy-ssn" (click)="copySSNToClipboard(); $event.stopPropagation()" [class.copied]="ssnCopied" title="Copiar SSN completo">
-                    <svg *ngIf="!ssnCopied" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
-                    <svg *ngIf="ssnCopied" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="verification-item">
-                <span class="verification-label">Nombre Completo</span>
-                <span class="verification-value">{{ getClientFullName() }}</span>
-              </div>
-              <div class="verification-item verification-address">
-                <span class="verification-label">Direccion</span>
-                <span class="verification-value">{{ getClientFullAddress() }}</span>
-              </div>
-              <div class="verification-item">
-                <span class="verification-label">Empleador</span>
-                <span class="verification-value">{{ getEmployerName() }}</span>
-              </div>
-              <div class="verification-item">
-                <span class="verification-label">Estado donde Trabajo</span>
-                <span class="verification-value highlight">{{ getWorkState() }}</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Preview Toolbar -->
           <div class="preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
             <div class="toolbar-group">
