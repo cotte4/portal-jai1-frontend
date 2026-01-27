@@ -183,12 +183,9 @@ export class AuthService {
       apiData.referral_code = data.referralCode;
     }
 
+    // Don't call handleAuthResponse - user needs to verify email first
+    // The register component will redirect to verify-email-sent page
     return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, apiData).pipe(
-      tap((response) => {
-        // Log the user in immediately after registration
-        this.storage.setRememberMe(true); // Default to remember for new registrations
-        this.handleAuthResponse(response);
-      }),
       catchError((error) => this.handleError(error))
     );
   }

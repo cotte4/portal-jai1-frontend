@@ -100,14 +100,10 @@ export class Register {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Registro exitoso! Revisa tu email para verificar tu cuenta.';
-        this.cdr.detectChanges();
 
-        // Store email for verification page and redirect
+        // Store email for verification page and redirect immediately
         sessionStorage.setItem('pendingVerificationEmail', this.email);
-        setTimeout(() => {
-          this.router.navigate(['/verify-email-sent']);
-        }, 1500);
+        this.router.navigate(['/verify-email-sent']);
       },
       error: (error) => {
         this.isLoading = false;
