@@ -8,6 +8,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeService } from '../../core/services/theme.service';
 import {
   AdminClientDetail as ClientDetail,
   CaseStatus,
@@ -38,7 +39,18 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  // Dark Mode - managed by ThemeService
+  get darkMode(): boolean {
+    return this.themeService.darkMode();
+  }
+
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
+    this.cdr.markForCheck();
+  }
 
   clientId: string = '';
   client: ClientDetail | null = null;
@@ -107,6 +119,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   // Document tabs
   selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
+
+  // Profile and Documents Modal
+  showProfileModal: boolean = false;
+  showDocumentsModal: boolean = false;
+  modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
 
   // Notification
   showNotifyModal: boolean = false;
@@ -424,6 +441,22 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.router.navigate(['/admin/dashboard']);
   }
 
+  scrollToSection(section: 'profile' | 'documents') {
+    const elementId = section === 'profile' ? 'profile-section' : 'documents-section';
+    const element = document.getElementById(elementId);
+    if (element) {
+      // Account for sticky header (approx 70px) + some breathing room
+      const headerOffset = 90;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }
+
   // Problem Modal Methods
   openProblemModal() {
     this.showProblemModal = true;
@@ -583,6 +616,42 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'other') {
     this.selectedDocumentTab = tab;
+  }
+
+  // ===== PROFILE MODAL METHODS =====
+
+  openProfileModal() {
+    this.showProfileModal = true;
+  }
+
+  closeProfileModal() {
+    this.showProfileModal = false;
+  }
+
+  // ===== DOCUMENTS MODAL METHODS =====
+
+  openDocumentsModal() {
+    this.modalDocumentTab = 'all';
+    this.showDocumentsModal = true;
+  }
+
+  closeDocumentsModal() {
+    this.showDocumentsModal = false;
+  }
+
+  get modalFilteredDocuments(): Document[] {
+    if (!this.client?.documents) return [];
+    if (this.modalDocumentTab === 'all') return this.client.documents;
+    return this.client.documents.filter(doc => doc.type === this.modalDocumentTab);
+  }
+
+  getDocumentTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      'w2': 'W2',
+      'payment_proof': 'Comprobante',
+      'other': 'Otro'
+    };
+    return labels[type] || type;
   }
 
   // Status history label transformation

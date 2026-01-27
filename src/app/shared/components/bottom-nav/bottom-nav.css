@@ -10,13 +10,16 @@
   /* Use min-height + padding so safe area ADDS to the total height */
   min-height: var(--bottom-nav-height, 64px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: rgba(255, 255, 255, 0.95);
+  /* Solid background to ensure it fills properly */
+  background: #ffffff;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   z-index: 1000;
   /* Ensure the nav extends to the bottom edge of the screen */
   box-sizing: content-box;
+  /* Prevent touch events from causing scroll on the nav itself */
+  touch-action: none;
 }
 
 /* Nav Item */

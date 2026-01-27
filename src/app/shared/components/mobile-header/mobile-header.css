@@ -173,6 +173,9 @@
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .menu-panel.open {
@@ -300,6 +303,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
 }
 
 .menu-nav-item {
@@ -338,7 +342,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin: auto 12px 12px 12px;
+  margin: 12px;
   margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   padding: 14px 16px;
   background: white;
@@ -346,6 +350,7 @@
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s ease;
+  flex-shrink: 0;
 }
 
 .btn-logout:active {
