@@ -1358,8 +1358,8 @@
 
       <!-- Review Main Content (Split Layout) -->
       <div class="review-split-layout">
-        <!-- Left: Review Cards -->
-        <div class="review-cards-panel">
+        <!-- Left: Review Cards (Steps 1, 3, 4 only - hidden on step 2 for bento grid) -->
+        <div class="review-cards-panel" *ngIf="currentReviewStep !== 2">
           <div class="review-cards-viewport">
             <div class="review-cards-track" [style.transform]="'translateX(' + (-100 * (currentReviewStep - 1)) + '%)'">
 
@@ -1588,6 +1588,20 @@
 
           <!-- Cell 3: Document Preview (Row 1-2, Col 2) - spans both rows -->
           <div class="bento-cell bento-document-preview">
+            <!-- W2 Document Selector Header -->
+            <div class="bento-doc-selector">
+              <span class="bento-doc-selector-label">📄 W2 Documento</span>
+              <div class="bento-doc-tabs">
+                <button class="bento-doc-tab"
+                        *ngFor="let doc of getDocumentsByType('w2'); let i = index"
+                        [class.active]="previewDocumentId === doc.id"
+                        (click)="previewDocument(doc)">
+                  {{ i + 1 }}. {{ doc.fileName | slice:0:20 }}{{ doc.fileName.length > 20 ? '...' : '' }}
+                </button>
+              </div>
+              <span class="bento-doc-count">{{ getDocumentsByType('w2').length }} archivo(s)</span>
+            </div>
+
             <!-- Mini Toolbar -->
             <div class="bento-preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
               <div class="bento-toolbar-group">
