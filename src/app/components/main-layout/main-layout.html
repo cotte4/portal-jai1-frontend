@@ -4,10 +4,15 @@
     <aside class="sidebar" [class.open]="sidebarOpen">
       <!-- Sidebar Header -->
       <div class="sidebar-header">
-        <div class="logo" (click)="navigateWithRefresh('/dashboard')" style="cursor: pointer;">
-          <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="sidebar-logo">
+        <div class="sidebar-header-top">
+          <div class="logo" (click)="navigateWithRefresh('/dashboard')" style="cursor: pointer;">
+            <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="sidebar-logo">
+          </div>
+          <button class="btn-close-sidebar" (click)="sidebarOpen = false">✕</button>
         </div>
-        <button class="btn-close-sidebar" (click)="sidebarOpen = false">✕</button>
+        <div class="sidebar-welcome">
+          Bienvenido, <strong>{{ userName || 'Usuario' }}</strong> 👋
+        </div>
       </div>
 
       <!-- Navigation -->
@@ -94,9 +99,7 @@
       <header class="topbar">
         <button class="btn-menu" (click)="sidebarOpen = true">☰</button>
 
-        <div class="welcome-text">
-          Bienvenido, <strong>{{ userName || 'Usuario' }}</strong> 👋
-        </div>
+        <div class="topbar-spacer"></div>
 
         <div class="topbar-right">
           <button class="btn-notifications" (click)="toggleNotificationsPanel()">

@@ -69,7 +69,7 @@
 <div class="success-screen" *ngIf="!hasLoadedProfile && !showSuccessScreen">
   <div class="success-container">
     <div class="loading-spinner"></div>
-    <p class="success-subtitle">Cargando tu informacion...</p>
+    <p class="success-subtitle">Cargando tu información...</p>
   </div>
 </div>
 
@@ -84,7 +84,7 @@
 
     <!-- Message -->
     <h1 class="success-title">Tu formulario ya fue enviado</h1>
-    <p class="success-subtitle">Ya completaste tu informacion fiscal. Si necesitas modificar algo, contacta a nuestro equipo de soporte.</p>
+    <p class="success-subtitle">Ya completaste tu información fiscal. Si necesitas modificar algo, contacta a nuestro equipo de soporte.</p>
 
     <!-- Status Cards -->
     <div class="completed-status-list">
@@ -94,7 +94,7 @@
       </div>
       <div class="completed-status-item">
         <span class="status-check">✓</span>
-        <span>Informacion personal enviada</span>
+        <span>Información personal enviada</span>
       </div>
       <div class="completed-status-item">
         <span class="status-check">✓</span>
@@ -107,7 +107,7 @@
       <div class="next-step-icon">💡</div>
       <div class="next-step-content">
         <h3>Necesitas hacer cambios?</h3>
-        <p>Por seguridad, los cambios en tu informacion fiscal deben ser solicitados a traves de soporte</p>
+        <p>Por seguridad, los cambios en tu información fiscal deben ser solicitados a traves de soporte</p>
       </div>
     </div>
 
@@ -129,8 +129,8 @@
   <!-- Page Header with Title and Actions -->
   <div class="page-header">
     <div class="page-title">
-      <h1>Formulario de Informacion Fiscal</h1>
-      <p>Completa tu informacion personal y tributaria</p>
+      <h1>Formulario de Información Fiscal</h1>
+      <p>Completa tu información personal y tributaria</p>
     </div>
     <div class="header-actions">
       <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSavingDraft">
@@ -210,14 +210,14 @@
         <div class="section-header">
           <div class="section-icon">👤</div>
           <div class="section-title">
-            <h2>Informacion Personal</h2>
-            <p>Datos basicos para tu declaracion</p>
+            <h2>Información Personal</h2>
+            <p>Datos básicos para tu declaración</p>
           </div>
         </div>
 
         <div class="form-stack">
           <div class="form-group">
-            <label for="ssn">Numero de Seguro Social (SSN) *</label>
+            <label for="ssn">Número de Seguro Social (SSN) *</label>
             <input
               type="text"
               id="ssn"
@@ -241,8 +241,8 @@
 
           <!-- Phone Number Field with Country Code -->
           <div class="form-group">
-            <label for="phoneNumber">Numero de celular *</label>
-            <p class="field-description">Ingresa tu numero de WhatsApp para que podamos contactarte sobre tu declaracion</p>
+            <label for="phoneNumber">Número de celular *</label>
+            <p class="field-description">Ingresa tu número de WhatsApp para que podamos contactarte sobre tu declaración</p>
             <div class="phone-input-wrapper" [class.has-error]="phoneError">
               <select
                 [(ngModel)]="formData.phoneCountryCode"
@@ -276,7 +276,7 @@
         <div class="section-header">
           <div class="section-icon">💼</div>
           <div class="section-title">
-            <h2>Informacion de Empleo</h2>
+            <h2>Información de Empleo</h2>
             <p>Detalles sobre tu trabajo en USA</p>
           </div>
         </div>
@@ -355,20 +355,20 @@
         <div class="section-header">
           <div class="section-icon">📍</div>
           <div class="section-title">
-            <h2>Direccion en USA</h2>
-            <p>Preferentemente usa una direccion de USA de un familiar o amigo que pueda recibir cartas durante todo 2026. Las cartas del IRS llegan mas rapido a direcciones estadounidenses. Si no tenes ninguna, podes usar tu direccion personal en tu pais.</p>
+            <h2>Dirección en USA</h2>
+            <p>Preferentemente usa una dirección de USA de un familiar o amigo que pueda recibir cartas durante todo 2026. Las cartas del IRS llegan mas rapido a direcciónes estadounidenses. Si no tenes ninguna, podes usar tu dirección personal en tu pais.</p>
           </div>
         </div>
 
         <!-- Warning about temporary addresses -->
         <div class="address-warning">
           <span class="warning-icon">⚠️</span>
-          <span class="warning-text">Evita usar direcciones de empleadores, housings o alquileres temporales: suelen no recibir las cartas o no responder cuando llegan.</span>
+          <span class="warning-text">Evita usar direcciónes de empleadores, housings o alquileres temporales: suelen no recibir las cartas o no responder cuando llegan.</span>
         </div>
 
         <div class="form-stack">
           <div class="form-group">
-            <label for="addressStreet">Direccion *</label>
+            <label for="addressStreet">Dirección *</label>
             <input
               type="text"
               id="addressStreet"
@@ -405,7 +405,7 @@
             </div>
 
             <div class="form-group">
-              <label for="addressZip">Codigo Postal *</label>
+              <label for="addressZip">Código Postal *</label>
               <input
                 type="text"
                 id="addressZip"
@@ -425,7 +425,7 @@
         <div class="section-header">
           <div class="section-icon">🏦</div>
           <div class="section-title">
-            <h2>Informacion Bancaria</h2>
+            <h2>Información Bancaria</h2>
             <p>Datos para depositar tu reembolso</p>
           </div>
         </div>
@@ -500,7 +500,7 @@
             </div>
 
             <div class="form-group">
-              <label for="bankRoutingNumber">Routing Number {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
+              <label for="bankRoutingNumber">Número de Ruta (Routing Number) {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
               <input
                 type="text"
                 id="bankRoutingNumber"
@@ -513,7 +513,7 @@
             </div>
 
             <div class="form-group">
-              <label for="bankAccountNumber">Account Number {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
+              <label for="bankAccountNumber">Número de Cuenta (Account Number) {{ formData.paymentMethod !== 'check' ? '*' : '' }}</label>
               <input
                 type="text"
                 id="bankAccountNumber"
@@ -570,7 +570,7 @@
         </div>
 
         <div class="form-group">
-          <label for="turbotaxPassword">Contrasena de TurboTax</label>
+          <label for="turbotaxPassword">Contraseña de TurboTax</label>
           <input
             type="password"
             id="turbotaxPassword"

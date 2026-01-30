@@ -1179,20 +1179,21 @@
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 200px);
-  padding: 24px;
+  padding: 40px;
   animation: fadeIn 0.5s ease;
 }
 
 .success-card {
   background: white;
   border-radius: 24px;
-  padding: 48px 40px;
-  max-width: 480px;
+  padding: 48px 44px;
+  max-width: 520px;
   width: 100%;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   animation: popIn 0.6s ease;
   border: 1px solid rgba(29, 52, 93, 0.08);
+  margin: auto;
 }
 
 .success-icon-big {
