@@ -362,21 +362,21 @@ export class TaxForm implements OnInit, OnDestroy {
     const fullPhoneNumber = phoneDigitsOnly ? this.formData.phoneCountryCode + phoneDigitsOnly : undefined;
 
     const request: CompleteProfileRequest = {
-      ssn: this.formData.ssn || undefined,
-      dateOfBirth: this.formData.dateOfBirth || undefined,
+      ssn: this.formData.ssn || '',
+      dateOfBirth: this.formData.dateOfBirth || '',
       address: {
-        street: this.formData.addressStreet || undefined,
-        city: this.formData.addressCity || undefined,
-        state: this.formData.addressState || undefined,
-        zip: this.formData.addressZip || undefined
+        street: this.formData.addressStreet || '',
+        city: this.formData.addressCity || '',
+        state: this.formData.addressState || '',
+        zip: this.formData.addressZip || ''
       },
       bank: {
-        name: (this.formData.bankName === 'Otro' ? this.customBankName.trim() : this.formData.bankName) || undefined,
-        routingNumber: this.formData.bankRoutingNumber || undefined,
-        accountNumber: this.formData.bankAccountNumber || undefined
+        name: (this.formData.bankName === 'Otro' ? this.customBankName.trim() : this.formData.bankName) || '',
+        routingNumber: this.formData.bankRoutingNumber || '',
+        accountNumber: this.formData.bankAccountNumber || ''
       },
-      workState: this.formData.workState || undefined,
-      employerName: this.formData.employerName || undefined,
+      workState: this.formData.workState || '',
+      employerName: this.formData.employerName || '',
       turbotaxEmail: this.formData.turbotaxEmail || undefined,
       turbotaxPassword: this.formData.turbotaxPassword || undefined,
       phone: fullPhoneNumber,
