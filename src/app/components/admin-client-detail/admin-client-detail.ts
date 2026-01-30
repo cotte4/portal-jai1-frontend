@@ -1484,9 +1484,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [FederalStatusNew.IN_PROCESS]: 'En Proceso',
       [FederalStatusNew.IN_VERIFICATION]: 'En Verificación',
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
-      [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
-      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas',
       [FederalStatusNew.TAXES_SENT]: 'Reembolso Enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -1500,9 +1498,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [StateStatusNew.IN_PROCESS]: 'En Proceso',
       [StateStatusNew.IN_VERIFICATION]: 'En Verificación',
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
-      [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
-      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [StateStatusNew.ISSUES]: 'Problemas',
       [StateStatusNew.TAXES_SENT]: 'Reembolso Enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -1525,14 +1521,44 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       'in_process': 'El IRS/Estado está procesando la declaración',
       'in_verification': 'IRS/Estado marcó para verificación - JAI1 aún NO ha actuado',
       'verification_in_progress': 'JAI1 YA tomó acción (carta/documentos enviados) - esperando respuesta',
-      'verification_letter_sent': 'Se envió carta de verificación al cliente',
       'check_in_transit': 'Cheque físico en camino al cliente',
-      'deposit_pending': 'Cliente recibió reembolso pero NO ha pagado comisión JAI1',
-      'taxes_sent': 'Reembolso enviado/depositado',
+      'taxes_sent': 'Reembolso enviado - cliente debe pagar comisión JAI1',
       'taxes_completed': 'Proceso completado - cliente recibió y pagó',
       'issues': 'Problema que requiere atención especial'
     };
     return descriptions[status] || '';
+  }
+
+  /**
+   * Returns what the client sees for a given status.
+   * Multiple admin statuses map to the same client view.
+   */
+  getClientVisibleLabel(status: string | null): string {
+    if (!status) return '';
+    // These are the ACTUAL labels the client sees (matches backend mapFederalStatusToClientDisplay)
+    const clientLabels: Record<string, string> = {
+      'in_process': 'Taxes en proceso',
+      'in_verification': 'En verificación',
+      'verification_in_progress': 'En verificación',
+      'check_in_transit': 'Cheque en camino',
+      'taxes_sent': 'Reembolso enviado',
+      'taxes_completed': 'Taxes finalizados',
+      'issues': 'Problemas - contactar soporte'
+    };
+    return clientLabels[status] || '';
+  }
+
+  /**
+   * Whether this status is purely for admin organization
+   * (client sees the same thing as another status in the group).
+   */
+  isAdminOnlyStatus(status: string | null): boolean {
+    if (!status) return false;
+    // Only verification_in_progress is admin-only (client sees same "En verificación" as in_verification)
+    const adminOnly = [
+      'verification_in_progress'
+    ];
+    return adminOnly.includes(status);
   }
 
   getAlarmLevelClass(level: string): string {

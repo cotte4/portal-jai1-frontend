@@ -121,11 +121,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: FederalStatusNew.IN_PROCESS, label: 'En Proceso' },
     { value: FederalStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
     { value: FederalStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
-    { value: FederalStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: FederalStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
-    { value: FederalStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: FederalStatusNew.ISSUES, label: 'Problemas' },
-    { value: FederalStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
+    { value: FederalStatusNew.TAXES_SENT, label: 'Reembolso Enviado' },
     { value: FederalStatusNew.TAXES_COMPLETED, label: 'Completado' },
   ];
 
@@ -134,11 +132,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { value: StateStatusNew.IN_PROCESS, label: 'En Proceso' },
     { value: StateStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
     { value: StateStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
-    { value: StateStatusNew.VERIFICATION_LETTER_SENT, label: 'Carta Enviada' },
     { value: StateStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
-    { value: StateStatusNew.DEPOSIT_PENDING, label: 'Deposito Pendiente' },
     { value: StateStatusNew.ISSUES, label: 'Problemas' },
-    { value: StateStatusNew.TAXES_SENT, label: 'Impuestos Enviados' },
+    { value: StateStatusNew.TAXES_SENT, label: 'Reembolso Enviado' },
     { value: StateStatusNew.TAXES_COMPLETED, label: 'Completado' },
   ];
 
@@ -424,8 +420,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       'in_process': 'En Proceso',
       'in_verification': 'En Verificación',
       'verification_in_progress': 'Verif. en Progreso',
-      'verification_letter_sent': 'Carta Enviada',
-      'deposit_pending': 'Depósito Pendiente',
       'check_in_transit': 'Cheque en Camino',
       'issues': 'Problemas',
       'taxes_sent': 'Reembolso Enviado',
@@ -449,8 +443,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       'in_process': 'status-in-progress',
       'in_verification': 'status-in-progress',
       'verification_in_progress': 'status-in-progress',
-      'verification_letter_sent': 'status-warning',
-      'deposit_pending': 'status-approved',
       'check_in_transit': 'status-approved',
       'issues': 'status-rejected',
       'taxes_sent': 'status-approved',
@@ -626,9 +618,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [FederalStatusNew.IN_PROCESS]: 'En Proceso',
       [FederalStatusNew.IN_VERIFICATION]: 'Verificación',
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
-      [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
-      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas',
       [FederalStatusNew.TAXES_SENT]: 'Enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
@@ -642,9 +632,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       [StateStatusNew.IN_PROCESS]: 'En Proceso',
       [StateStatusNew.IN_VERIFICATION]: 'Verificación',
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
-      [StateStatusNew.VERIFICATION_LETTER_SENT]: 'Carta Enviada',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
-      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito Pendiente',
       [StateStatusNew.ISSUES]: 'Problemas',
       [StateStatusNew.TAXES_SENT]: 'Enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'

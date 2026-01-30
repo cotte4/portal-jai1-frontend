@@ -180,25 +180,24 @@ export class ReferralProgram implements OnInit, OnDestroy, AfterViewInit {
 
   // Onboarding methods
   checkOnboardingStatus() {
-    // Check backend for onboarding status
+    // Check backend for onboarding status (backend is source of truth)
     this.referralService.getReferralOnboardingStatus().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        // If backend says completed, don't show onboarding
         if (response.completed) {
           this.showOnboarding = false;
-          // Also set localStorage for consistency
           localStorage.setItem(REFERRAL_ONBOARDING_KEY, 'true');
         } else {
-          // Check localStorage as fallback (for offline scenarios)
-          const localCompleted = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
-          this.showOnboarding = !localCompleted;
+          // Backend says not completed — always show onboarding
+          // Clear stale localStorage to prevent desync
+          localStorage.removeItem(REFERRAL_ONBOARDING_KEY);
+          this.showOnboarding = true;
         }
         this.cdr.detectChanges();
       },
       error: () => {
-        // On error, fallback to localStorage check
+        // On network error, fallback to localStorage check
         const localCompleted = localStorage.getItem(REFERRAL_ONBOARDING_KEY);
         this.showOnboarding = !localCompleted;
         this.cdr.detectChanges();

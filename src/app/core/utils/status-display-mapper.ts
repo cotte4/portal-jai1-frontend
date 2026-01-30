@@ -22,11 +22,9 @@ export function mapFederalStatusToDisplay(
     case FederalStatusNew.TAXES_COMPLETED:
     case FederalStatusNew.CHECK_IN_TRANSIT:
     case FederalStatusNew.TAXES_SENT:
-    case FederalStatusNew.DEPOSIT_PENDING:
     case 'taxes_completed':
     case 'check_in_transit':
     case 'taxes_sent':
-    case 'deposit_pending':
       return 'completed';
 
     // Rejected/Issue states
@@ -38,11 +36,9 @@ export function mapFederalStatusToDisplay(
     case FederalStatusNew.IN_PROCESS:
     case FederalStatusNew.IN_VERIFICATION:
     case FederalStatusNew.VERIFICATION_IN_PROGRESS:
-    case FederalStatusNew.VERIFICATION_LETTER_SENT:
     case 'in_process':
     case 'in_verification':
     case 'verification_in_progress':
-    case 'verification_letter_sent':
       return 'active';
 
     default:
@@ -66,11 +62,9 @@ export function mapStateStatusToDisplay(
     case StateStatusNew.TAXES_COMPLETED:
     case StateStatusNew.CHECK_IN_TRANSIT:
     case StateStatusNew.TAXES_SENT:
-    case StateStatusNew.DEPOSIT_PENDING:
     case 'taxes_completed':
     case 'check_in_transit':
     case 'taxes_sent':
-    case 'deposit_pending':
       return 'completed';
 
     // Rejected/Issue states
@@ -82,11 +76,9 @@ export function mapStateStatusToDisplay(
     case StateStatusNew.IN_PROCESS:
     case StateStatusNew.IN_VERIFICATION:
     case StateStatusNew.VERIFICATION_IN_PROGRESS:
-    case StateStatusNew.VERIFICATION_LETTER_SENT:
     case 'in_process':
     case 'in_verification':
     case 'verification_in_progress':
-    case 'verification_letter_sent':
       return 'active';
 
     default:
@@ -140,11 +132,9 @@ export function isFederalApproved(status: FederalStatusNew | string | null | und
     status === FederalStatusNew.TAXES_COMPLETED ||
     status === FederalStatusNew.CHECK_IN_TRANSIT ||
     status === FederalStatusNew.TAXES_SENT ||
-    status === FederalStatusNew.DEPOSIT_PENDING ||
     status === 'taxes_completed' ||
     status === 'check_in_transit' ||
-    status === 'taxes_sent' ||
-    status === 'deposit_pending'
+    status === 'taxes_sent'
   );
 }
 
@@ -182,11 +172,9 @@ export function isStateApproved(status: StateStatusNew | string | null | undefin
     status === StateStatusNew.TAXES_COMPLETED ||
     status === StateStatusNew.CHECK_IN_TRANSIT ||
     status === StateStatusNew.TAXES_SENT ||
-    status === StateStatusNew.DEPOSIT_PENDING ||
     status === 'taxes_completed' ||
     status === 'check_in_transit' ||
-    status === 'taxes_sent' ||
-    status === 'deposit_pending'
+    status === 'taxes_sent'
   );
 }
 

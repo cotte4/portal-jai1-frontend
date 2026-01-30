@@ -686,8 +686,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const status = this.taxCase.federalStatusNew;
     // Progress based on federal status
     if (status === FederalStatusNew.TAXES_COMPLETED) return 100;
-    if (status === FederalStatusNew.TAXES_SENT || status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 80;
-    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === FederalStatusNew.TAXES_SENT || status === FederalStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS) return 50;
     if (status === FederalStatusNew.IN_PROCESS) return 33;
     if (status === FederalStatusNew.ISSUES) return 33;
     return 0;
@@ -701,8 +701,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const status = this.taxCase.stateStatusNew;
     // Progress based on state status
     if (status === StateStatusNew.TAXES_COMPLETED) return 100;
-    if (status === StateStatusNew.TAXES_SENT || status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 80;
-    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 50;
+    if (status === StateStatusNew.TAXES_SENT || status === StateStatusNew.CHECK_IN_TRANSIT) return 80;
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS) return 50;
     if (status === StateStatusNew.IN_PROCESS) return 33;
     if (status === StateStatusNew.ISSUES) return 33;
     return 0;
@@ -714,8 +714,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const status = this.taxCase.federalStatusNew;
     if (status === FederalStatusNew.TAXES_COMPLETED) return 'Completado';
     if (status === FederalStatusNew.TAXES_SENT) return 'Enviado';
-    if (status === FederalStatusNew.DEPOSIT_PENDING || status === FederalStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
-    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS || status === FederalStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === FederalStatusNew.CHECK_IN_TRANSIT) return 'Cheque en camino';
+    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS) return 'En verificación';
     if (status === FederalStatusNew.IN_PROCESS) return 'En proceso';
     if (status === FederalStatusNew.ISSUES) return 'Con problemas';
     return 'Pendiente';
@@ -727,8 +727,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const status = this.taxCase.stateStatusNew;
     if (status === StateStatusNew.TAXES_COMPLETED) return 'Completado';
     if (status === StateStatusNew.TAXES_SENT) return 'Enviado';
-    if (status === StateStatusNew.DEPOSIT_PENDING || status === StateStatusNew.CHECK_IN_TRANSIT) return 'Depósito pendiente';
-    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS || status === StateStatusNew.VERIFICATION_LETTER_SENT) return 'En verificación';
+    if (status === StateStatusNew.CHECK_IN_TRANSIT) return 'Cheque en camino';
+    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS) return 'En verificación';
     if (status === StateStatusNew.IN_PROCESS) return 'En proceso';
     if (status === StateStatusNew.ISSUES) return 'Con problemas';
     return 'Pendiente';
@@ -873,9 +873,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       [FederalStatusNew.IN_PROCESS]: 'Taxes en proceso',
       [FederalStatusNew.IN_VERIFICATION]: 'En verificación',
       [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
-      [FederalStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
-      [FederalStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [FederalStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [FederalStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [FederalStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -894,9 +892,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       [StateStatusNew.IN_PROCESS]: 'Taxes en proceso',
       [StateStatusNew.IN_VERIFICATION]: 'En verificación',
       [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
-      [StateStatusNew.VERIFICATION_LETTER_SENT]: 'En verificación',
       [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
-      [StateStatusNew.DEPOSIT_PENDING]: 'Depósito pendiente',
       [StateStatusNew.ISSUES]: 'Problemas - contactar soporte',
       [StateStatusNew.TAXES_SENT]: 'Reembolso enviado',
       [StateStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
@@ -940,10 +936,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       }
       if (federalStatusNew === FederalStatusNew.IN_VERIFICATION ||
           federalStatusNew === FederalStatusNew.VERIFICATION_IN_PROGRESS ||
-          federalStatusNew === FederalStatusNew.VERIFICATION_LETTER_SENT ||
           stateStatusNew === StateStatusNew.IN_VERIFICATION ||
-          stateStatusNew === StateStatusNew.VERIFICATION_IN_PROGRESS ||
-          stateStatusNew === StateStatusNew.VERIFICATION_LETTER_SENT) {
+          stateStatusNew === StateStatusNew.VERIFICATION_IN_PROGRESS) {
         return 'En verificación';
       }
       if (federalStatusNew || stateStatusNew) {

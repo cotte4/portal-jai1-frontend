@@ -426,7 +426,6 @@ export class AdminAlarms implements OnInit, OnDestroy {
       in_process: 'En Proceso',
       in_verification: 'En Verificacion',
       verification_in_progress: 'Verificacion en Progreso',
-      verification_letter_sent: 'Carta Enviada',
       check_in_transit: 'Cheque en Camino',
       issues: 'Problemas',
       taxes_sent: 'Reembolso Enviado',

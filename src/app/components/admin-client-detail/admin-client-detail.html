@@ -311,11 +311,16 @@
               <select [(ngModel)]="selectedFederalStatusNew">
                 <option [ngValue]="null">Sin estado</option>
                 <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
-                  {{ getFederalStatusNewLabel(status) }}
+                  {{ getFederalStatusNewLabel(status) }}{{ isAdminOnlyStatus(status) ? ' (interno)' : '' }}
                 </option>
               </select>
               <span class="status-hint" *ngIf="getStatusDescription(selectedFederalStatusNew)">
                 {{ getStatusDescription(selectedFederalStatusNew) }}
+              </span>
+              <span class="client-visibility-hint" *ngIf="getClientVisibleLabel(selectedFederalStatusNew)">
+                <span class="visibility-icon" [class.admin-only]="isAdminOnlyStatus(selectedFederalStatusNew)">{{ isAdminOnlyStatus(selectedFederalStatusNew) ? '🔒' : '👁' }}</span>
+                Cliente ve: "{{ getClientVisibleLabel(selectedFederalStatusNew) }}"
+                <span class="admin-only-tag" *ngIf="isAdminOnlyStatus(selectedFederalStatusNew)"> — solo organizacion interna</span>
               </span>
             </div>
             <div class="track-field">
@@ -357,11 +362,16 @@
               <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
                 <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
-                  {{ getStateStatusNewLabel(status) }}
+                  {{ getStateStatusNewLabel(status) }}{{ isAdminOnlyStatus(status) ? ' (interno)' : '' }}
                 </option>
               </select>
               <span class="status-hint" *ngIf="getStatusDescription(selectedStateStatusNew)">
                 {{ getStatusDescription(selectedStateStatusNew) }}
+              </span>
+              <span class="client-visibility-hint" *ngIf="getClientVisibleLabel(selectedStateStatusNew)">
+                <span class="visibility-icon" [class.admin-only]="isAdminOnlyStatus(selectedStateStatusNew)">{{ isAdminOnlyStatus(selectedStateStatusNew) ? '🔒' : '👁' }}</span>
+                Cliente ve: "{{ getClientVisibleLabel(selectedStateStatusNew) }}"
+                <span class="admin-only-tag" *ngIf="isAdminOnlyStatus(selectedStateStatusNew)"> — solo organizacion interna</span>
               </span>
             </div>
             <div class="track-field">

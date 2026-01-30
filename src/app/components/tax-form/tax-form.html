@@ -224,6 +224,7 @@
               [(ngModel)]="formData.ssn"
               name="ssn"
               placeholder="XXX-XX-XXXX"
+              maxlength="11"
               required
             >
           </div>
@@ -341,6 +342,7 @@
               [(ngModel)]="formData.employerName"
               name="employerName"
               placeholder="Nombre de la empresa"
+              maxlength="200"
               required
             >
           </div>
@@ -375,6 +377,7 @@
               [(ngModel)]="formData.addressStreet"
               name="addressStreet"
               placeholder="123 Main Street"
+              maxlength="200"
               required
             >
           </div>
@@ -387,6 +390,7 @@
               [(ngModel)]="formData.addressCity"
               name="addressCity"
               placeholder="New York"
+              maxlength="100"
               required
             >
           </div>
@@ -400,6 +404,7 @@
                 [(ngModel)]="formData.addressState"
                 name="addressState"
                 placeholder="NY"
+                maxlength="50"
                 required
               >
             </div>
@@ -494,6 +499,7 @@
                   [(ngModel)]="customBankName"
                   name="customBankName"
                   placeholder="Ingresa el nombre del banco"
+                  maxlength="100"
                   (input)="onCustomBankChange()"
                 >
               </div>
@@ -507,6 +513,7 @@
                 [(ngModel)]="formData.bankRoutingNumber"
                 name="bankRoutingNumber"
                 placeholder="123456789"
+                maxlength="9"
                 [disabled]="formData.paymentMethod === 'check'"
                 [required]="formData.paymentMethod !== 'check'"
               >
@@ -520,6 +527,7 @@
                 [(ngModel)]="formData.bankAccountNumber"
                 name="bankAccountNumber"
                 placeholder="987654321"
+                maxlength="30"
                 [disabled]="formData.paymentMethod === 'check'"
                 [required]="formData.paymentMethod !== 'check'"
               >
@@ -566,6 +574,7 @@
             [(ngModel)]="formData.turbotaxEmail"
             name="turbotaxEmail"
             placeholder="tu@email.com"
+            maxlength="255"
           >
         </div>
 
@@ -577,6 +586,7 @@
             [(ngModel)]="formData.turbotaxPassword"
             name="turbotaxPassword"
             placeholder="••••••••"
+            maxlength="200"
           >
         </div>
       </div>

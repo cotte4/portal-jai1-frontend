@@ -30,6 +30,13 @@
         <span class="notif-badge">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
       }
     </button>
+    <button class="btn-profile-menu" (click)="toggleProfilePanel()" aria-label="Menu">
+      @if (userProfilePicture) {
+        <img [src]="userProfilePicture" alt="Profile" class="header-avatar-img" />
+      } @else {
+        <span class="header-avatar-initials">{{ userInitials }}</span>
+      }
+    </button>
   </div>
 </header>
 

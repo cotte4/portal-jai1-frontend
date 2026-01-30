@@ -23,16 +23,17 @@
 /* Header Sections */
 .header-left,
 .header-right {
-  width: 48px;
   display: flex;
   align-items: center;
 }
 
 .header-left {
+  width: 48px;
   justify-content: flex-start;
 }
 
 .header-right {
+  gap: 6px;
   justify-content: flex-end;
 }
 
@@ -143,6 +144,41 @@
   align-items: center;
   justify-content: center;
   border: 2px solid white;
+}
+
+/* Profile Menu Button (always visible in header-right) */
+.btn-profile-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #f0f2f5;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-profile-menu:active {
+  transform: scale(0.95);
+  background: #e4e6e9;
+}
+
+.header-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.header-avatar-initials {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1D345D;
+  line-height: 1;
 }
 
 /* ==================== MENU PANEL (Slide-in) ==================== */
