@@ -2015,6 +2015,7 @@ transform: translateX(4px);
   flex-direction: column;
   padding: 20px;
   position: relative;
+  overflow-y: auto;
 }
 
 /* Expanded container for bento grid (step 2) */
@@ -2022,6 +2023,7 @@ transform: translateX(4px);
   max-width: 95vw;
   max-height: 95vh;
   width: 95vw;
+  overflow-y: auto;
 }
 
 /* Progress Bar */
@@ -3198,6 +3200,7 @@ transform: translateX(4px);
 .review-cards-viewport {
   flex: 1;
   overflow: hidden;
+  overflow-y: auto;
   border-radius: 20px;
 }
 
@@ -3698,12 +3701,17 @@ transform: translateX(4px);
   box-shadow: 0 8px 25px rgba(34, 197, 94, 0.5);
 }
 
-/* Action Buttons */
+/* Action Buttons - sticky at bottom so always visible */
 .review-actions {
   display: flex;
   justify-content: center;
   gap: 16px;
   margin-top: 20px;
+  position: sticky;
+  bottom: 0;
+  padding: 16px 0;
+  background: linear-gradient(to top, #0f172a 60%, transparent);
+  z-index: 10;
 }
 
 .btn-review-back {

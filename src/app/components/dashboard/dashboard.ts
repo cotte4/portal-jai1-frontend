@@ -176,10 +176,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // Animate refund counter if available
-      if (this.refundValue?.nativeElement && this.calculatorResult?.estimatedRefund) {
+      // Use actualRefund (from IRS) when available, otherwise use estimated from calculator
+      const refundAmount = this.actualRefund || this.calculatorResult?.estimatedRefund;
+      if (this.refundValue?.nativeElement && refundAmount) {
         this.animationService.counterUp(
           this.refundValue.nativeElement,
-          this.calculatorResult.estimatedRefund,
+          refundAmount,
           { prefix: '$', decimals: 0, duration: 1 }
         );
       }

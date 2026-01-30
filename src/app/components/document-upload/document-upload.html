@@ -73,8 +73,20 @@
           <span class="method-name">Zelle</span>
         </div>
         <div class="method-details">
-          <p><strong>Email:</strong> pagos&#64;jai1taxes.com</p>
-          <p><strong>Nombre:</strong> JAI1 Tax Services LLC</p>
+          <p><strong>Email:</strong> jai1&#64;memas.agency</p>
+          <p><strong>Nombre:</strong> Lautaro Iglesias</p>
+        </div>
+      </div>
+
+      <div class="payment-method">
+        <div class="method-header">
+          <span class="method-icon">🏦</span>
+          <span class="method-name">Transferencia en pesos argentinos</span>
+        </div>
+        <div class="method-details">
+          <p><strong>Monto:</strong> $43.000 ARS</p>
+          <p><strong>CBU:</strong> 0000003100079017160623</p>
+          <p><strong>Nombre:</strong> Lautaro Iglesias</p>
         </div>
       </div>
 
@@ -84,19 +96,8 @@
           <span class="method-name">PayPal</span>
         </div>
         <div class="method-details">
-          <p><strong>Email:</strong> paypal&#64;jai1taxes.com</p>
-        </div>
-      </div>
-
-      <div class="payment-method">
-        <div class="method-header">
-          <span class="method-icon">🌐</span>
-          <span class="method-name">Western Union / MoneyGram</span>
-        </div>
-        <div class="method-details">
-          <p><strong>Nombre:</strong> JAI1 Tax Services</p>
-          <p><strong>Ciudad:</strong> Miami, FL</p>
-          <p class="note">Contacta soporte para mas detalles</p>
+          <p><strong>Email:</strong> lautigle&#64;gmail.com</p>
+          <p><strong>Nombre:</strong> Lautaro Iglesias</p>
         </div>
       </div>
     </div>
@@ -220,6 +221,33 @@
     </button>
   </div>
 
+  <!-- Consent Form Section - Compact Horizontal (above upload for visibility) -->
+  <div class="consent-form-compact" [class.signed]="isConsentFormSigned">
+    <div class="consent-compact-content">
+      <div class="consent-compact-left">
+        <span class="consent-compact-icon" [class.signed]="isConsentFormSigned">
+          {{ isConsentFormSigned ? '✓' : '✍️' }}
+        </span>
+        <span class="consent-compact-title">Acuerdo de Consentimiento</span>
+        <span class="consent-compact-status" *ngIf="isConsentFormSigned">
+          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+      <button
+        *ngIf="!isConsentFormSigned"
+        class="btn-consent-compact"
+        (click)="openConsentForm()">
+        Firmar
+      </button>
+      <button
+        *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
+        class="btn-consent-compact secondary"
+        (click)="downloadSignedConsentForm()">
+        PDF ⬇️
+      </button>
+    </div>
+  </div>
+
   <!-- Upload Zone -->
   <div
     class="upload-zone"
@@ -257,33 +285,6 @@
         <span class="info-icon">💾</span>
         <span>Maximo 25MB por archivo</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Consent Form Section - Compact Horizontal -->
-  <div class="consent-form-compact" [class.signed]="isConsentFormSigned">
-    <div class="consent-compact-content">
-      <div class="consent-compact-left">
-        <span class="consent-compact-icon" [class.signed]="isConsentFormSigned">
-          {{ isConsentFormSigned ? '✓' : '✍️' }}
-        </span>
-        <span class="consent-compact-title">Acuerdo de Consentimiento</span>
-        <span class="consent-compact-status" *ngIf="isConsentFormSigned">
-          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}
-        </span>
-      </div>
-      <button
-        *ngIf="!isConsentFormSigned"
-        class="btn-consent-compact"
-        (click)="openConsentForm()">
-        Firmar
-      </button>
-      <button
-        *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
-        class="btn-consent-compact secondary"
-        (click)="downloadSignedConsentForm()">
-        PDF ⬇️
-      </button>
     </div>
   </div>
 
