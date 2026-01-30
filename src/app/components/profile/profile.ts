@@ -30,6 +30,7 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private hasAnimated = false;
 
   // Animation references
@@ -161,6 +162,11 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
+    }
+    // Clear save timeout to prevent memory leaks
+    if (this.saveTimeoutId) {
+      clearTimeout(this.saveTimeoutId);
+      this.saveTimeoutId = null;
     }
   }
 
@@ -575,19 +581,27 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
     };
 
     // Safety timeout - if no response after 10s, apply changes optimistically
-    const safetyTimeout = setTimeout(() => {
+    // Clear any existing save timeout before setting a new one
+    if (this.saveTimeoutId) {
+      clearTimeout(this.saveTimeoutId);
+    }
+    this.saveTimeoutId = setTimeout(() => {
       if (this.isSaving) {
         this.applyChangesLocally(saveData);
         this.toastService.success('¡Cambios guardados!');
         this.cdr.detectChanges(); // Trigger change detection after timeout
       }
+      this.saveTimeoutId = null;
     }, 10000);
 
     // Add subscription to tracked subscriptions so it survives navigation/refresh
     this.subscriptions.add(
       this.profileService.updateUserInfo(saveData).subscribe({
         next: (response) => {
-          clearTimeout(safetyTimeout);
+          if (this.saveTimeoutId) {
+            clearTimeout(this.saveTimeoutId);
+            this.saveTimeoutId = null;
+          }
 
           // Update from response
           this.userName = `${response.user.firstName} ${response.user.lastName}`.trim();
@@ -626,7 +640,10 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
           this.cdr.detectChanges();
         },
         error: (error) => {
-          clearTimeout(safetyTimeout);
+          if (this.saveTimeoutId) {
+            clearTimeout(this.saveTimeoutId);
+            this.saveTimeoutId = null;
+          }
           this.isSaving = false;
           this.toastService.error(error?.message || 'Error al guardar. Intenta de nuevo.');
           this.cdr.detectChanges();

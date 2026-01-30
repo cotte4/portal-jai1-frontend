@@ -19,11 +19,6 @@ export class CalculatorApiService {
    * Store the current file being processed
    */
   setCurrentFile(file: File): void {
-    console.log('=== CALCULATOR SERVICE: Storing file ===', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
     this.currentFile = file;
   }
 
@@ -38,18 +33,10 @@ export class CalculatorApiService {
    * Clear the current file reference
    */
   clearCurrentFile(): void {
-    console.log('=== CALCULATOR SERVICE: Clearing file ===');
     this.currentFile = null;
   }
 
   estimateRefund(file: File): Observable<W2EstimateResponse> {
-    console.log('=== CALCULATOR SERVICE: Sending file to API ===', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      apiUrl: `${this.apiUrl}/calculator/estimate`
-    });
-
     const formData = new FormData();
     formData.append('w2File', file);
 

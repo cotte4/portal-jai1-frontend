@@ -17,6 +17,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           : serverMessage;
 
         switch (error.status) {
+          case 0:
+            errorMessage = 'Network error. Please check your connection.';
+            break;
           case 400:
             errorMessage = extractedMessage || 'Invalid request';
             break;
@@ -48,7 +51,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       console.error('HTTP Error:', {
         status: error.status,
         message: errorMessage,
-        url: req.url
+        url: req.url.split('?')[0]
       });
 
       return throwError(() => ({

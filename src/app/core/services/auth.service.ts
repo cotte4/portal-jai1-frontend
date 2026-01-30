@@ -351,6 +351,16 @@ export class AuthService {
     };
   }
 
+  /**
+   * Clear auth state without navigating.
+   * Used by the auth interceptor to clean up tokens after a failed refresh
+   * before it handles the redirect itself (with loop prevention).
+   */
+  forceLogout(): void {
+    this.storage.clearAuth();
+    this.currentUserSubject.next(null);
+  }
+
   private clearSession(): void {
     this.storage.clearAuth();
     this.currentUserSubject.next(null);

@@ -39,6 +39,8 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   // PWA Install
   showInstallButton: boolean = false;
   private deferredPrompt: any = null;
+  private beforeInstallHandler: ((e: Event) => void) | null = null;
+  private appInstalledHandler: (() => void) | null = null;
 
   private readonly REMEMBER_EMAIL_KEY = 'jai1_remembered_email';
 
@@ -87,19 +89,21 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
-    window.addEventListener('beforeinstallprompt', (e: Event) => {
+    this.beforeInstallHandler = (e: Event) => {
       e.preventDefault();
       this.deferredPrompt = e;
       this.showInstallButton = true;
       this.cdr.detectChanges();
-    });
+    };
+    window.addEventListener('beforeinstallprompt', this.beforeInstallHandler);
 
     // Hide button if app gets installed
-    window.addEventListener('appinstalled', () => {
+    this.appInstalledHandler = () => {
       this.showInstallButton = false;
       this.deferredPrompt = null;
       this.cdr.detectChanges();
-    });
+    };
+    window.addEventListener('appinstalled', this.appInstalledHandler);
   }
 
   ngAfterViewInit() {
@@ -115,6 +119,15 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.animationService.killAnimations();
+    // Remove window event listeners to prevent memory leaks
+    if (this.beforeInstallHandler) {
+      window.removeEventListener('beforeinstallprompt', this.beforeInstallHandler);
+      this.beforeInstallHandler = null;
+    }
+    if (this.appInstalledHandler) {
+      window.removeEventListener('appinstalled', this.appInstalledHandler);
+      this.appInstalledHandler = null;
+    }
   }
 
   onLogin() {

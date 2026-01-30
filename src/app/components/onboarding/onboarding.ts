@@ -279,13 +279,6 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   showResult() {
-    console.log('=== ONBOARDING: Showing result ===', {
-      estimatedRefund: this.estimatedRefund,
-      box2Federal: this.box2Federal,
-      box17State: this.box17State,
-      ocrConfidence: this.ocrConfidence
-    });
-
     this.calculatorState = 'result';
     this.cdr.detectChanges(); // Trigger change detection for OnPush strategy
 
@@ -308,7 +301,6 @@ export class Onboarding implements OnInit, OnDestroy {
   }
 
   goToDashboard() {
-    console.log('=== ONBOARDING: User clicked "Ir al Dashboard" ===');
     this.completeOnboardingAndNavigate();
   }
 
@@ -320,37 +312,30 @@ export class Onboarding implements OnInit, OnDestroy {
   private completeOnboardingAndNavigate() {
     // Prevent double-clicks
     if (this.isCompletingOnboarding) {
-      console.log('=== ONBOARDING: Already completing, ignoring duplicate click ===');
       return;
     }
 
-    console.log('=== ONBOARDING: Starting completion flow ===');
     this.isCompletingOnboarding = true;
     this.cdr.detectChanges();
 
     // Set localStorage immediately for fast UI response
     this.storage.setOnboardingCompleted();
-    console.log('=== ONBOARDING: localStorage marked as complete ===');
 
     // Call backend to persist the onboarding complete status
     // This ensures Google login users don't see onboarding again
     // IMPORTANT: Backend will also sync estimated refund from W2Estimate to TaxCase
     this.onboardingSubscription = this.profileService.markOnboardingComplete().subscribe({
-      next: (response) => {
-        console.log('=== ONBOARDING: Backend marked complete successfully ===', response);
+      next: () => {
         // Success - navigate to dashboard
         this.ngZone.run(() => {
-          console.log('=== ONBOARDING: Navigating to /dashboard ===');
           this.router.navigate(['/dashboard']);
         });
       },
-      error: (error) => {
+      error: () => {
         // Even if API fails, navigate to dashboard (localStorage is set)
         // User might see onboarding again on next Google login, but UX is preserved for now
-        console.error('=== ONBOARDING: Failed to mark complete in backend ===', error);
         this.isCompletingOnboarding = false;
         this.ngZone.run(() => {
-          console.log('=== ONBOARDING: Navigating to /dashboard (despite error) ===');
           this.router.navigate(['/dashboard']);
         });
       }

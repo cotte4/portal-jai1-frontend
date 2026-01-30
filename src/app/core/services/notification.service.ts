@@ -36,6 +36,7 @@ export class NotificationService {
 
   private pollingSubscription: Subscription | null = null;
   private fetchSubscription: Subscription | null = null;
+  private pingIntervalId: ReturnType<typeof setInterval> | null = null;
   private knownNotificationIds = new Set<string>();
 
   private nextCursor: string | null = null;
@@ -167,8 +168,7 @@ export class NotificationService {
       });
 
       // Connection successful
-      this.socket.on('connected', (data) => {
-        console.log('WebSocket connected:', data);
+      this.socket.on('connected', () => {
         this.isWebSocketConnected = true;
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000; // Reset reconnect delay
@@ -176,19 +176,16 @@ export class NotificationService {
 
       // Handle incoming notifications
       this.socket.on('notification', (notification: Notification) => {
-        console.log('Received real-time notification:', notification);
         this.handleIncomingNotification(notification);
       });
 
       // Handle ticket message events
       this.socket.on('ticket:message', (data: { ticketId: string; message: any }) => {
-        console.log('Received ticket message:', data);
         this.ticketMessageSubject.next(data);
       });
 
       // Handle ticket status change events
       this.socket.on('ticket:status', (data: { ticketId: string; status: string }) => {
-        console.log('Received ticket status change:', data);
         this.ticketStatusSubject.next(data);
       });
 
@@ -225,7 +222,7 @@ export class NotificationService {
       });
 
       // Ping/pong for keep-alive
-      setInterval(() => {
+      this.pingIntervalId = setInterval(() => {
         if (this.socket?.connected) {
           this.socket.emit('ping');
         }
@@ -272,6 +269,10 @@ export class NotificationService {
    * Disconnect WebSocket
    */
   private disconnectWebSocket(): void {
+    if (this.pingIntervalId) {
+      clearInterval(this.pingIntervalId);
+      this.pingIntervalId = null;
+    }
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;

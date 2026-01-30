@@ -205,71 +205,75 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   silentRefresh() {
-    this.profileService.getProfile().subscribe({
-      next: (data) => {
-        // Check for taxes filed change (new filing)
-        const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
-        if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
-          this.onTaxesFiled();
+    this.subscriptions.add(
+      this.profileService.getProfile().subscribe({
+        next: (data) => {
+          // Check for taxes filed change (new filing)
+          const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
+          if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
+            this.onTaxesFiled();
+          }
+
+          // Get v2 status fields only
+          const currentFederalStatus = data.taxCase?.federalStatusNew;
+          const currentStateStatus = data.taxCase?.stateStatusNew;
+
+          // Check for Federal status changes
+          this.checkFederalStatusChange(currentFederalStatus);
+
+          // Check for State status changes
+          this.checkStateStatusChange(currentStateStatus);
+
+          this.previousCaseStatus = data.taxCase?.caseStatus;
+          this.previousTaxesFiled = currentTaxesFiled;
+          this.previousFederalStatus = currentFederalStatus;
+          this.previousStateStatus = currentStateStatus;
+          this.profileData = data;
+          this.buildSteps();
+          this.lastRefresh = new Date();
+          this.cdr.detectChanges();
         }
-
-        // Get v2 status fields only
-        const currentFederalStatus = data.taxCase?.federalStatusNew;
-        const currentStateStatus = data.taxCase?.stateStatusNew;
-
-        // Check for Federal status changes
-        this.checkFederalStatusChange(currentFederalStatus);
-
-        // Check for State status changes
-        this.checkStateStatusChange(currentStateStatus);
-
-        this.previousCaseStatus = data.taxCase?.caseStatus;
-        this.previousTaxesFiled = currentTaxesFiled;
-        this.previousFederalStatus = currentFederalStatus;
-        this.previousStateStatus = currentStateStatus;
-        this.profileData = data;
-        this.buildSteps();
-        this.lastRefresh = new Date();
-        this.cdr.detectChanges();
-      }
-    });
+      })
+    );
   }
 
   manualRefresh() {
     this.isRefreshing = true;
-    this.profileService.getProfile().subscribe({
-      next: (data) => {
-        // Check for taxes filed change (new filing)
-        const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
-        if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
-          this.onTaxesFiled();
+    this.subscriptions.add(
+      this.profileService.getProfile().subscribe({
+        next: (data) => {
+          // Check for taxes filed change (new filing)
+          const currentTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
+          if (this.previousTaxesFiled === false && currentTaxesFiled === true) {
+            this.onTaxesFiled();
+          }
+
+          // Get v2 status fields only
+          const currentFederalStatus = data.taxCase?.federalStatusNew;
+          const currentStateStatus = data.taxCase?.stateStatusNew;
+
+          // Check for Federal status changes
+          this.checkFederalStatusChange(currentFederalStatus);
+
+          // Check for State status changes
+          this.checkStateStatusChange(currentStateStatus);
+
+          this.previousCaseStatus = data.taxCase?.caseStatus;
+          this.previousTaxesFiled = currentTaxesFiled;
+          this.previousFederalStatus = currentFederalStatus;
+          this.previousStateStatus = currentStateStatus;
+          this.profileData = data;
+          this.buildSteps();
+          this.lastRefresh = new Date();
+          this.isRefreshing = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isRefreshing = false;
+          this.cdr.detectChanges();
         }
-
-        // Get v2 status fields only
-        const currentFederalStatus = data.taxCase?.federalStatusNew;
-        const currentStateStatus = data.taxCase?.stateStatusNew;
-
-        // Check for Federal status changes
-        this.checkFederalStatusChange(currentFederalStatus);
-
-        // Check for State status changes
-        this.checkStateStatusChange(currentStateStatus);
-
-        this.previousCaseStatus = data.taxCase?.caseStatus;
-        this.previousTaxesFiled = currentTaxesFiled;
-        this.previousFederalStatus = currentFederalStatus;
-        this.previousStateStatus = currentStateStatus;
-        this.profileData = data;
-        this.buildSteps();
-        this.lastRefresh = new Date();
-        this.isRefreshing = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isRefreshing = false;
-        this.cdr.detectChanges();
-      }
-    });
+      })
+    );
   }
 
   private onTaxesFiled() {

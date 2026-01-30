@@ -1566,11 +1566,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       updateData.federalComment = this.federalComment;
     }
 
-    console.log('[FRONTEND] updateFederalStatusNew - Sending update:', {
-      selectedFederalStatusNew: this.selectedFederalStatusNew,
-      updateData: JSON.stringify(updateData)
-    });
-
     this.executeFederalStatusUpdate(updateData);
   }
 
@@ -1592,11 +1587,6 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.stateComment) {
       updateData.stateComment = this.stateComment;
     }
-
-    console.log('[FRONTEND] updateStateStatusNew - Sending update:', {
-      selectedStateStatusNew: this.selectedStateStatusNew,
-      updateData: JSON.stringify(updateData)
-    });
 
     this.executeStateStatusUpdate(updateData);
   }

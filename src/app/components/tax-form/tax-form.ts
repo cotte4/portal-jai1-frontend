@@ -362,21 +362,21 @@ export class TaxForm implements OnInit, OnDestroy {
     const fullPhoneNumber = phoneDigitsOnly ? this.formData.phoneCountryCode + phoneDigitsOnly : undefined;
 
     const request: CompleteProfileRequest = {
-      ssn: this.formData.ssn,
-      dateOfBirth: this.formData.dateOfBirth,
+      ssn: this.formData.ssn || undefined,
+      dateOfBirth: this.formData.dateOfBirth || undefined,
       address: {
-        street: this.formData.addressStreet,
-        city: this.formData.addressCity,
-        state: this.formData.addressState,
-        zip: this.formData.addressZip
+        street: this.formData.addressStreet || undefined,
+        city: this.formData.addressCity || undefined,
+        state: this.formData.addressState || undefined,
+        zip: this.formData.addressZip || undefined
       },
       bank: {
-        name: this.formData.bankName === 'Otro' ? this.customBankName.trim() : this.formData.bankName,
-        routingNumber: this.formData.bankRoutingNumber,
-        accountNumber: this.formData.bankAccountNumber
+        name: (this.formData.bankName === 'Otro' ? this.customBankName.trim() : this.formData.bankName) || undefined,
+        routingNumber: this.formData.bankRoutingNumber || undefined,
+        accountNumber: this.formData.bankAccountNumber || undefined
       },
-      workState: this.formData.workState,
-      employerName: this.formData.employerName,
+      workState: this.formData.workState || undefined,
+      employerName: this.formData.employerName || undefined,
       turbotaxEmail: this.formData.turbotaxEmail || undefined,
       turbotaxPassword: this.formData.turbotaxPassword || undefined,
       phone: fullPhoneNumber,

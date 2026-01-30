@@ -96,6 +96,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private deferredPrompt: any = null;
   private readonly INSTALL_DISMISSED_KEY = 'jai1_install_dismissed';
   private readonly INSTALL_OVERLAY_SHOWN_KEY = 'jai1_install_overlay_shown_session';
+  private beforeInstallHandler: ((e: Event) => void) | null = null;
+  private appInstalledHandler: (() => void) | null = null;
 
   ngOnInit() {
     this.loadData();
@@ -138,6 +140,15 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (this.safetyTimeoutId) {
       clearTimeout(this.safetyTimeoutId);
       this.safetyTimeoutId = null;
+    }
+    // Remove window event listeners to prevent memory leaks
+    if (this.beforeInstallHandler) {
+      window.removeEventListener('beforeinstallprompt', this.beforeInstallHandler);
+      this.beforeInstallHandler = null;
+    }
+    if (this.appInstalledHandler) {
+      window.removeEventListener('appinstalled', this.appInstalledHandler);
+      this.appInstalledHandler = null;
     }
   }
 
@@ -980,18 +991,20 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     }
 
     // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
-    window.addEventListener('beforeinstallprompt', (e: Event) => {
+    this.beforeInstallHandler = (e: Event) => {
       e.preventDefault();
       this.deferredPrompt = e;
       this.showOverlayAfterDelay();
-    });
+    };
+    window.addEventListener('beforeinstallprompt', this.beforeInstallHandler);
 
     // Hide if app gets installed
-    window.addEventListener('appinstalled', () => {
+    this.appInstalledHandler = () => {
       this.showInstallOverlay = false;
       this.deferredPrompt = null;
       this.cdr.detectChanges();
-    });
+    };
+    window.addEventListener('appinstalled', this.appInstalledHandler);
   }
 
   private showOverlayAfterDelay() {

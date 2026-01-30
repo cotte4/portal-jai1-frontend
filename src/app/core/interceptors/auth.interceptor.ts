@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError, Observable, Subject, filter, take } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, switchMap, throwError, Observable, Subject, filter, take, EMPTY } from 'rxjs';
 import { StorageService } from '../services/storage.service';
 import { AuthService } from '../services/auth.service';
 
@@ -11,6 +12,7 @@ let refreshTokenSubject = new Subject<string | null>();
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const storage = inject(StorageService);
   const authService = inject(AuthService);
+  const router = inject(Router);
 
   // Skip auth header for auth endpoints (except logout and refresh)
   const isAuthEndpoint = req.url.includes('/auth/') &&
@@ -37,13 +39,18 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
       const refreshToken = storage.getRefreshToken();
 
       // Only handle 401 errors with refresh token available
-      if (error.status !== 401 || !refreshToken || req.url.includes('/auth/refresh')) {
+      // If no refresh token or the refresh request itself failed, force logout
+      if (error.status !== 401) {
         return throwError(() => error);
+      }
+
+      if (!refreshToken || req.url.includes('/auth/refresh')) {
+        return forceLogout(authService, router, error);
       }
 
       if (isRefreshing) {
         // Another request is already refreshing - wait for it to complete
-        return waitForRefreshAndRetry(req, next, refreshTokenSubject);
+        return waitForRefreshAndRetry(req, next, refreshTokenSubject, authService, router);
       }
 
       // Start the refresh process
@@ -60,7 +67,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           refreshTokenSubject.complete();
 
           if (!newToken) {
-            return throwError(() => error);
+            return forceLogout(authService, router, error);
           }
 
           return retryWithNewToken(req, next, newToken);
@@ -70,7 +77,9 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
           // Notify waiting requests that refresh failed
           refreshTokenSubject.next(null);
           refreshTokenSubject.complete();
-          return throwError(() => refreshError);
+          // AuthService.refreshToken() already calls clearSession(),
+          // but ensure redirect happens even if that path didn't navigate
+          return forceLogout(authService, router, refreshError);
         })
       );
     })
@@ -78,20 +87,44 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
 };
 
 /**
+ * Clear auth state and redirect to /login.
+ * Returns EMPTY so the observable completes silently (the page is navigating away).
+ * Avoids redirect loops by checking the current URL.
+ */
+function forceLogout(
+  authService: AuthService,
+  router: Router,
+  _error: HttpErrorResponse | Error
+): Observable<never> {
+  // AuthService.forceLogout clears tokens + user subject
+  authService.forceLogout();
+
+  // Only navigate if not already on /login to prevent redirect loops
+  const currentUrl = router.url;
+  if (!currentUrl.startsWith('/login')) {
+    router.navigate(['/login']);
+  }
+
+  return EMPTY;
+}
+
+/**
  * Wait for an ongoing refresh to complete, then retry the request
  */
 function waitForRefreshAndRetry(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
-  tokenSubject: Subject<string | null>
+  tokenSubject: Subject<string | null>,
+  authService: AuthService,
+  router: Router
 ): Observable<any> {
   return tokenSubject.pipe(
     filter(token => token !== undefined), // Wait for actual value (not initial)
     take(1),
     switchMap(token => {
       if (!token) {
-        // Refresh failed, propagate error
-        return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' }));
+        // Refresh failed - force logout and redirect
+        return forceLogout(authService, router, new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' }));
       }
       return retryWithNewToken(req, next, token);
     })
