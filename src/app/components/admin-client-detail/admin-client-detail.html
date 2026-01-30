@@ -426,7 +426,7 @@
           <div class="form-preview" *ngIf="client.profile">
             <!-- Personal Info -->
             <div class="form-group-preview">
-              <h3>Informacion Personal</h3>
+              <h3>Información Personal</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Nombre Completo</span>
@@ -441,7 +441,7 @@
                   <span class="info-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Telefono</span>
+                  <span class="info-label">Teléfono</span>
                   <span class="info-value">{{ client.user.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -449,10 +449,10 @@
 
             <!-- Address -->
             <div class="form-group-preview" *ngIf="client.profile.address">
-              <h3>Direccion</h3>
+              <h3>Dirección</h3>
               <div class="info-grid">
                 <div class="info-item full-width">
-                  <span class="info-label">Direccion</span>
+                  <span class="info-label">Dirección</span>
                   <span class="info-value">{{ client.profile.address.street || 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
@@ -464,7 +464,7 @@
                   <span class="info-value">{{ client.profile.address.state || 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Codigo Postal</span>
+                  <span class="info-label">Código Postal</span>
                   <span class="info-value">{{ client.profile.address.zip || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -472,7 +472,7 @@
 
             <!-- Employment -->
             <div class="form-group-preview">
-              <h3>Informacion de Empleo</h3>
+              <h3>Información de Empleo</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Estado donde trabajo</span>
@@ -487,7 +487,7 @@
 
             <!-- Bank Info -->
             <div class="form-group-preview" *ngIf="client.profile.bank">
-              <h3>Informacion Bancaria</h3>
+              <h3>Información Bancaria</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Banco</span>
@@ -917,7 +917,7 @@
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" [(ngModel)]="notifySendEmail" />
-            <span>Enviar tambien por email</span>
+            <span>Enviar también por email</span>
           </label>
         </div>
       </div>
@@ -1139,7 +1139,7 @@
           <div class="profile-modal-content">
             <!-- Personal Info -->
             <div class="profile-section">
-              <h4>Informacion Personal</h4>
+              <h4>Información Personal</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Nombre Completo</span>
@@ -1158,7 +1158,7 @@
                   <span class="profile-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
-                  <span class="profile-label">Telefono</span>
+                  <span class="profile-label">Teléfono</span>
                   <span class="profile-value">{{ client.user.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -1166,10 +1166,10 @@
 
             <!-- Address -->
             <div class="profile-section" *ngIf="client.profile.address">
-              <h4>Direccion</h4>
+              <h4>Dirección</h4>
               <div class="profile-grid">
                 <div class="profile-item full-width">
-                  <span class="profile-label">Direccion</span>
+                  <span class="profile-label">Dirección</span>
                   <span class="profile-value">{{ client.profile.address.street || 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
@@ -1181,7 +1181,7 @@
                   <span class="profile-value">{{ client.profile.address.state || 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
-                  <span class="profile-label">Codigo Postal</span>
+                  <span class="profile-label">Código Postal</span>
                   <span class="profile-value">{{ client.profile.address.zip || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -1189,7 +1189,7 @@
 
             <!-- Employment -->
             <div class="profile-section">
-              <h4>Informacion de Empleo</h4>
+              <h4>Información de Empleo</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Estado donde trabajo</span>
@@ -1204,7 +1204,7 @@
 
             <!-- Bank Info -->
             <div class="profile-section" *ngIf="client.profile.bank">
-              <h4>Informacion Bancaria</h4>
+              <h4>Información Bancaria</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Banco</span>
@@ -1384,7 +1384,7 @@
                       <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
                     </div>
                     <div class="review-data-item">
-                      <span class="data-label">Telefono</span>
+                      <span class="data-label">Teléfono</span>
                       <span class="data-value">{{ client.user.phone || 'N/A' }}</span>
                     </div>
                     <div class="review-data-item">
@@ -1396,7 +1396,7 @@
                       <span class="data-value">{{ client.profile.employerName || 'N/A' }}</span>
                     </div>
                     <div class="review-data-item full-width" *ngIf="client.profile.address">
-                      <span class="data-label">Direccion</span>
+                      <span class="data-label">Dirección</span>
                       <span class="data-value">{{ client.profile.address.street }}, {{ client.profile.address.city }}, {{ client.profile.address.state }} {{ client.profile.address.zip }}</span>
                     </div>
                   </div>
@@ -1570,7 +1570,7 @@
                 <span class="bento-value">{{ getClientFullName() }}</span>
               </div>
               <div class="bento-data-item bento-full-width">
-                <span class="bento-label">Direccion</span>
+                <span class="bento-label">Dirección</span>
                 <span class="bento-value small">{{ getClientFullAddress() }}</span>
               </div>
               <div class="bento-data-item">

@@ -19,7 +19,7 @@
       [class.active]="activeTab === 'invite-codes'"
       (click)="setTab('invite-codes')"
     >
-      Codigos de Invitacion ({{ unusedCodesCount }} disponibles)
+      Códigos de Invitación ({{ unusedCodesCount }} disponibles)
     </button>
   </div>
 
@@ -56,7 +56,7 @@
                 <tr>
                   <th>Nombre</th>
                   <th>Email</th>
-                  <th>Codigo</th>
+                  <th>Código</th>
                   <th>Referidos</th>
                   <th>Ganancias</th>
                   <th>Tier</th>
@@ -101,7 +101,7 @@
         <!-- Actions Bar -->
         <div class="actions-bar">
           <button class="btn-generate" (click)="openGenerateModal()">
-            + Generar Codigos
+            + Generar Códigos
           </button>
           <select [(ngModel)]="inviteCodesFilter" (change)="onFilterChange()">
             <option value="all">Todos</option>
@@ -118,9 +118,9 @@
           </div>
         } @else if (inviteCodes.length === 0) {
           <div class="empty-state">
-            <p>No hay codigos de invitacion.</p>
+            <p>No hay códigos de invitación.</p>
             <button class="btn-generate-empty" (click)="openGenerateModal()">
-              Generar primeros codigos
+              Generar primeros códigos
             </button>
           </div>
         } @else {
@@ -128,7 +128,7 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Codigo</th>
+                  <th>Código</th>
                   <th>Creado por</th>
                   <th>Fecha</th>
                   <th>Estado</th>
@@ -180,14 +180,14 @@
     <div class="modal-overlay" (click)="closeGenerateModal()">
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Generar Codigos de Invitacion</h2>
+          <h2>Generar Códigos de Invitación</h2>
           <button class="btn-close" (click)="closeGenerateModal()">X</button>
         </div>
 
         @if (generatedCodes.length === 0) {
           <div class="modal-body">
             <div class="input-group">
-              <label>Cantidad de codigos</label>
+              <label>Cantidad de códigos</label>
               <input
                 type="number"
                 [(ngModel)]="generateCount"
@@ -195,7 +195,7 @@
                 max="100"
                 placeholder="5"
               >
-              <span class="hint">Maximo 100 codigos por vez</span>
+              <span class="hint">Maximo 100 códigos por vez</span>
             </div>
           </div>
 
@@ -209,13 +209,13 @@
               @if (isGenerating) {
                 Generando...
               } @else {
-                Generar {{ generateCount }} codigos
+                Generar {{ generateCount }} códigos
               }
             </button>
           </div>
         } @else {
           <div class="modal-body">
-            <p class="success-message">Se generaron {{ generatedCodes.length }} codigos!</p>
+            <p class="success-message">Se generaron {{ generatedCodes.length }} códigos!</p>
             <div class="codes-list">
               @for (code of generatedCodes; track code) {
                 <div class="generated-code">

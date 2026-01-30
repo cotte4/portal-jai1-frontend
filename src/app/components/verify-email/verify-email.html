@@ -9,20 +9,20 @@
 
       <!-- Logo -->
       <div class="logo-container">
-        <span class="logo-j">J</span><span class="logo-slash">/</span><span class="logo-ai">AI1</span>
+        <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="brand-logo">
       </div>
 
       <!-- Main Text -->
-      <h1 class="brand-title">Verificacion<br><span class="highlight">de email.</span></h1>
+      <h1 class="brand-title">Verificación<br><span class="highlight">de email.</span></h1>
 
       <p class="brand-subtitle">
-        Estamos verificando tu direccion de correo electronico para activar tu cuenta.
+        Estamos verificando tu dirección de correo electronico para activar tu cuenta.
       </p>
 
       <!-- Trust Badge -->
       <div class="trust-badge">
         <span class="badge-icon">&#10003;</span>
-        <span>Tu informacion esta protegida con encriptacion</span>
+        <span>Tu información esta protegida con encriptacion</span>
       </div>
     </div>
   </div>
@@ -32,7 +32,7 @@
     <div class="form-wrapper">
       <!-- Mobile Logo -->
       <div class="mobile-logo">
-        <span class="logo-j">J</span><span class="logo-slash">/</span><span class="logo-ai">AI1</span>
+        <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="brand-logo-mobile">
       </div>
 
       <!-- Loading State -->
@@ -71,7 +71,7 @@
       <!-- Error State -->
       @if (errorMessage && !isLoading && !isVerified) {
         <!-- Back Link -->
-        <a class="back-link" (click)="goToLogin()">
+        <a href="javascript:void(0)" class="back-link" (click)="goToLogin()">
           <span class="back-arrow">&larr;</span>
           Volver al inicio de sesion
         </a>
@@ -85,15 +85,15 @@
           </div>
 
           <div class="error-header">
-            <h2>Verificacion fallida</h2>
+            <h2>Verificación fallida</h2>
             <p>{{ errorMessage }}</p>
           </div>
 
           <!-- Resend Form -->
           @if (showResendForm) {
             <div class="resend-form">
-              <h4>Reenviar verificacion</h4>
-              <p>Ingresa tu email para recibir un nuevo enlace de verificacion.</p>
+              <h4>Reenviar verificación</h4>
+              <p>Ingresa tu email para recibir un nuevo enlace de verificación.</p>
 
               @if (resendError) {
                 <div class="error-alert">
@@ -134,7 +134,7 @@
                   <span class="spinner"></span>
                   <span>Enviando...</span>
                 } @else {
-                  <span>Reenviar verificacion</span>
+                  <span>Reenviar verificación</span>
                 }
               </button>
             </div>

@@ -31,7 +31,7 @@
     } @else if (dashboard) {
       <!-- Referral Code Card -->
       <section class="referral-code-card">
-        <h2>Tu codigo de referido</h2>
+        <h2>Tu código de referido</h2>
         <div class="code-display">
           <span class="code">{{ dashboard.referral_code }}</span>
           <button class="btn-copy" (click)="copyReferralCode()" [class.copied]="copySuccess">
@@ -39,9 +39,9 @@
           </button>
         </div>
         <button class="btn-share" (click)="shareCode()">
-          Compartir codigo
+          Compartir código
         </button>
-        <p class="code-hint">Comparte este codigo con tus amigos para ganar comisiones</p>
+        <p class="code-hint">Comparte este código con tus amigos para ganar comisiones</p>
       </section>
 
       <!-- Stats Grid -->
@@ -113,10 +113,10 @@
 
       <!-- Recent Referrals -->
       <section class="referrals-card">
-        <h3>Ultimos referidos</h3>
+        <h3>Últimos referidos</h3>
         @if (dashboard.recent_referrals.length === 0) {
           <div class="empty-state">
-            <p>Aun no tienes referidos. Comparte tu codigo para empezar a ganar!</p>
+            <p>Aun no tienes referidos. Comparte tu código para empezar a ganar!</p>
           </div>
         } @else {
           <div class="referrals-list">
