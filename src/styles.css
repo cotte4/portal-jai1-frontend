@@ -205,9 +205,13 @@ html, body {
 
 /* ==================== GLOBAL MOBILE FIXES ==================== */
 /* Prevent overflow on all elements */
-img, video, iframe, embed, object {
+video, iframe, embed, object {
   max-width: 100%;
   height: auto;
+}
+
+img {
+  max-width: 100%;
 }
 
 /* Better tap targets on mobile */

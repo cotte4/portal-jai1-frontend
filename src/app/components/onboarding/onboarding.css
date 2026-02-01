@@ -98,15 +98,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 36px;
   margin-bottom: 32px;
-  letter-spacing: -1px;
 }
 
-.logo-j { color: #1D345D; }
-.logo-slash { color: #B21B43; margin: 0 4px; }
-.logo-ai { color: #B21B43; }
+.brand-logo {
+  height: 56px;
+  width: auto;
+}
 
 /* ==================== CARDS BASE ==================== */
 .welcome-card,
