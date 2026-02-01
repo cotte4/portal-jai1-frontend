@@ -1,7 +1,9 @@
 /* ==================== REGISTER PAGE ==================== */
 .register-page {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
@@ -12,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px;
+  padding: 40px 60px;
   position: relative;
   overflow: hidden;
 }
@@ -83,22 +85,21 @@
 .logo-container {
   display: flex;
   align-items: center;
-  font-weight: 800;
-  font-size: 42px;
-  margin-bottom: 48px;
-  letter-spacing: -1px;
+  margin-bottom: 32px;
 }
 
-.logo-j { color: white; }
-.logo-slash { color: #B21B43; margin: 0 4px; }
-.logo-ai { color: #B21B43; }
+.brand-logo {
+  height: 64px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
 
 /* Brand Title */
 .brand-title {
-  font-size: 48px;
+  font-size: 40px;
   font-weight: 700;
   line-height: 1.15;
-  margin: 0 0 24px 0;
+  margin: 0 0 16px 0;
   letter-spacing: -1px;
 }
 
@@ -110,10 +111,10 @@
 }
 
 .brand-subtitle {
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.6;
   opacity: 0.85;
-  margin: 0 0 40px 0;
+  margin: 0 0 24px 0;
   font-weight: 400;
 }
 
@@ -121,22 +122,22 @@
 .features-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 16px;
+  gap: 12px;
+  font-size: 15px;
   font-weight: 500;
   opacity: 0.95;
 }
 
 .feature-check {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   background: linear-gradient(135deg, #059669, #10b981);
   border-radius: 50%;
   display: flex;
@@ -151,10 +152,10 @@
 .trust-indicator {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px 24px;
+  gap: 14px;
+  padding: 16px 20px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -206,10 +207,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 24px 40px;
   background: #f8f9fb;
-  min-height: 100vh;
   overflow-y: auto;
+  max-height: 100%;
 }
 
 .form-wrapper {
@@ -228,29 +229,29 @@
   display: none;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 32px;
   margin-bottom: 32px;
-  letter-spacing: -1px;
 }
 
-.mobile-logo .logo-j { color: #1D345D; }
+.brand-logo-mobile {
+  height: 60px;
+  width: auto;
+}
 
 /* Form Header */
 .form-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 
 .form-header h2 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #1D345D;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 .form-header p {
-  font-size: 15px;
+  font-size: 13px;
   color: #64748b;
   margin: 0;
 }
@@ -259,21 +260,21 @@
 .auth-tabs {
   display: flex;
   background: #e8eaed;
-  border-radius: 14px;
-  padding: 5px;
-  margin-bottom: 24px;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
 }
 
 .auth-tab {
   flex: 1;
-  padding: 14px 20px;
+  padding: 10px 16px;
   border: none;
   background: transparent;
   color: #64748b;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 9px;
   transition: all 0.25s ease;
 }
 
@@ -343,25 +344,25 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
 }
 
 /* Input Row */
 .input-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
 }
 
 /* Input Group */
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .input-group label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #1D345D;
   margin-left: 4px;
@@ -375,18 +376,18 @@
 
 .input-icon {
   position: absolute;
-  left: 14px;
-  font-size: 16px;
+  left: 12px;
+  font-size: 14px;
   opacity: 0.6;
   pointer-events: none;
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 14px 14px 14px 44px;
+  padding: 11px 12px 11px 38px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: inherit;
   background: white;
   transition: all 0.25s ease;
@@ -423,13 +424,13 @@
 
 /* Terms Checkbox */
 .terms-check {
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .custom-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   position: relative;
 }
@@ -441,17 +442,17 @@
 }
 
 .checkmark {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   background: white;
   border: 2px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .custom-checkbox input:checked ~ .checkmark {
@@ -467,9 +468,9 @@
 }
 
 .terms-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #64748b;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .terms-link {
@@ -490,17 +491,17 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 16px 24px;
+  padding: 12px 24px;
   background: linear-gradient(135deg, #B21B43 0%, #8a1433 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 16px rgba(178, 27, 67, 0.3);
-  margin-top: 8px;
+  margin-top: 2px;
 }
 
 .btn-register:hover:not(:disabled) {
@@ -542,9 +543,9 @@
 /* Form Footer */
 .form-footer {
   text-align: center;
-  margin-top: 24px;
+  margin-top: 12px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .form-footer a {
@@ -802,7 +803,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 28px 0;
+  margin: 12px 0;
 }
 
 .divider::before,
@@ -830,12 +831,12 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 10px 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: white;
   color: #334155;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
