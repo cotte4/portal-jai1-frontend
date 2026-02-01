@@ -4,7 +4,7 @@
     <button class="btn-back" (click)="goBack()">
       <- Volver
     </button>
-    <h1>Informacion de Pago</h1>
+    <h1>Información de Pago</h1>
   </header>
 
   <!-- Main Content -->
@@ -82,17 +82,17 @@
                 pattern="\d{9}"
                 required
               >
-              <span class="input-hint">El numero de 9 digitos de tu banco</span>
+              <span class="input-hint">El número de 9 digitos de tu banco</span>
             </div>
 
             <div class="input-group">
-              <label for="accountNumber">Numero de cuenta *</label>
+              <label for="accountNumber">Número de cuenta *</label>
               <input
                 type="text"
                 id="accountNumber"
                 [(ngModel)]="bankAccountNumber"
                 name="accountNumber"
-                placeholder="Tu numero de cuenta"
+                placeholder="Tu número de cuenta"
                 required
               >
             </div>
@@ -103,7 +103,7 @@
         @if (paymentMethod === 'zelle') {
           <div class="form-section">
             <h3>Datos de Zelle</h3>
-            <p class="section-hint">Ingresa el email o telefono asociado a tu cuenta Zelle</p>
+            <p class="section-hint">Ingresa el email o teléfono asociado a tu cuenta Zelle</p>
 
             <div class="input-group">
               <label for="zelleEmail">Email de Zelle</label>
@@ -121,7 +121,7 @@
             </div>
 
             <div class="input-group">
-              <label for="zellePhone">Telefono de Zelle</label>
+              <label for="zellePhone">Teléfono de Zelle</label>
               <input
                 type="tel"
                 id="zellePhone"
@@ -136,7 +136,7 @@
         <!-- Security Notice -->
         <div class="security-notice">
           <span class="notice-icon">*</span>
-          <p>Tu informacion de pago esta protegida con encriptacion de nivel bancario.</p>
+          <p>Tu información de pago esta protegida con encriptacion de nivel bancario.</p>
         </div>
 
         <!-- Submit Button -->
@@ -149,7 +149,7 @@
             <span class="spinner-btn"></span>
             <span>Guardando...</span>
           } @else {
-            <span>Guardar informacion de pago</span>
+            <span>Guardar información de pago</span>
           }
         </button>
       </form>

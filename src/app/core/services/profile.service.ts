@@ -132,6 +132,30 @@ export class ProfileService {
   }
 
   /**
+   * Confirm receipt of federal or state refund
+   * Called when client confirms they received their money
+   */
+  confirmRefundReceived(type: 'federal' | 'state'): Observable<{
+    message: string;
+    refundAmount: number;
+    fee: number;
+    confirmedAt: string;
+  }> {
+    return this.http.post<{
+      message: string;
+      refundAmount: number;
+      fee: number;
+      confirmedAt: string;
+    }>(
+      `${this.apiUrl}/refund/confirm`,
+      { type }
+    ).pipe(
+      timeout(10000),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
    * Update sensitive profile fields (SSN, bank info, TurboTax credentials)
    * Only available for users who have already completed their profile
    */

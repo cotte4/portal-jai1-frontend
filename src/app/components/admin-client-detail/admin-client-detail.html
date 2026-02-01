@@ -310,18 +310,23 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedFederalStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredFederalStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
                   {{ getFederalStatusNewLabel(status) }}
                 </option>
               </select>
+              <span class="status-hint" *ngIf="getStatusDescription(selectedFederalStatusNew)">
+                {{ getStatusDescription(selectedFederalStatusNew) }}
+              </span>
             </div>
             <div class="track-field">
-              <label>Fecha Estimada</label>
-              <input type="date" [(ngModel)]="federalEstimatedDate">
+              <label>Fecha Estimada <span class="auto-calc-badge" title="Calculado automaticamente: fecha de presentacion + 6 semanas">Auto</span></label>
+              <input type="date" [ngModel]="federalEstimatedDate" [readonly]="true" class="readonly-field" title="Calculado automaticamente al marcar taxes como presentados">
+              <span class="field-hint">+6 semanas desde presentacion</span>
             </div>
             <div class="track-field">
-              <label>Monto Real ($)</label>
+              <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
               <input type="number" [(ngModel)]="federalActualRefund" placeholder="0.00" step="0.01">
+              <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
               <label>Fecha Deposito</label>
@@ -351,18 +356,23 @@
               <label>Estado</label>
               <select [(ngModel)]="selectedStateStatusNew">
                 <option [ngValue]="null">Sin estado</option>
-                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status">
+                <option *ngFor="let status of filteredStateStatusOptions; trackBy: trackByIndex" [ngValue]="status" [title]="getStatusDescription(status)">
                   {{ getStateStatusNewLabel(status) }}
                 </option>
               </select>
+              <span class="status-hint" *ngIf="getStatusDescription(selectedStateStatusNew)">
+                {{ getStatusDescription(selectedStateStatusNew) }}
+              </span>
             </div>
             <div class="track-field">
-              <label>Fecha Estimada</label>
-              <input type="date" [(ngModel)]="stateEstimatedDate">
+              <label>Fecha Estimada <span class="auto-calc-badge" title="Calculado automaticamente: fecha de presentacion + 9 semanas">Auto</span></label>
+              <input type="date" [ngModel]="stateEstimatedDate" [readonly]="true" class="readonly-field" title="Calculado automaticamente al marcar taxes como presentados">
+              <span class="field-hint">+9 semanas desde presentacion</span>
             </div>
             <div class="track-field">
-              <label>Monto Real ($)</label>
+              <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
               <input type="number" [(ngModel)]="stateActualRefund" placeholder="0.00" step="0.01">
+              <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
               <label>Fecha Deposito</label>
@@ -416,7 +426,7 @@
           <div class="form-preview" *ngIf="client.profile">
             <!-- Personal Info -->
             <div class="form-group-preview">
-              <h3>Informacion Personal</h3>
+              <h3>Información Personal</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Nombre Completo</span>
@@ -431,7 +441,7 @@
                   <span class="info-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Telefono</span>
+                  <span class="info-label">Teléfono</span>
                   <span class="info-value">{{ client.user.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -439,10 +449,10 @@
 
             <!-- Address -->
             <div class="form-group-preview" *ngIf="client.profile.address">
-              <h3>Direccion</h3>
+              <h3>Dirección</h3>
               <div class="info-grid">
                 <div class="info-item full-width">
-                  <span class="info-label">Direccion</span>
+                  <span class="info-label">Dirección</span>
                   <span class="info-value">{{ client.profile.address.street || 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
@@ -454,7 +464,7 @@
                   <span class="info-value">{{ client.profile.address.state || 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Codigo Postal</span>
+                  <span class="info-label">Código Postal</span>
                   <span class="info-value">{{ client.profile.address.zip || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -462,7 +472,7 @@
 
             <!-- Employment -->
             <div class="form-group-preview">
-              <h3>Informacion de Empleo</h3>
+              <h3>Información de Empleo</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Estado donde trabajo</span>
@@ -477,7 +487,7 @@
 
             <!-- Bank Info -->
             <div class="form-group-preview" *ngIf="client.profile.bank">
-              <h3>Informacion Bancaria</h3>
+              <h3>Información Bancaria</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Banco</span>
@@ -907,7 +917,7 @@
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" [(ngModel)]="notifySendEmail" />
-            <span>Enviar tambien por email</span>
+            <span>Enviar también por email</span>
           </label>
         </div>
       </div>
@@ -1129,7 +1139,7 @@
           <div class="profile-modal-content">
             <!-- Personal Info -->
             <div class="profile-section">
-              <h4>Informacion Personal</h4>
+              <h4>Información Personal</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Nombre Completo</span>
@@ -1148,7 +1158,7 @@
                   <span class="profile-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
-                  <span class="profile-label">Telefono</span>
+                  <span class="profile-label">Teléfono</span>
                   <span class="profile-value">{{ client.user.phone || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -1156,10 +1166,10 @@
 
             <!-- Address -->
             <div class="profile-section" *ngIf="client.profile.address">
-              <h4>Direccion</h4>
+              <h4>Dirección</h4>
               <div class="profile-grid">
                 <div class="profile-item full-width">
-                  <span class="profile-label">Direccion</span>
+                  <span class="profile-label">Dirección</span>
                   <span class="profile-value">{{ client.profile.address.street || 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
@@ -1171,7 +1181,7 @@
                   <span class="profile-value">{{ client.profile.address.state || 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
-                  <span class="profile-label">Codigo Postal</span>
+                  <span class="profile-label">Código Postal</span>
                   <span class="profile-value">{{ client.profile.address.zip || 'No proporcionado' }}</span>
                 </div>
               </div>
@@ -1179,7 +1189,7 @@
 
             <!-- Employment -->
             <div class="profile-section">
-              <h4>Informacion de Empleo</h4>
+              <h4>Información de Empleo</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Estado donde trabajo</span>
@@ -1194,7 +1204,7 @@
 
             <!-- Bank Info -->
             <div class="profile-section" *ngIf="client.profile.bank">
-              <h4>Informacion Bancaria</h4>
+              <h4>Información Bancaria</h4>
               <div class="profile-grid">
                 <div class="profile-item">
                   <span class="profile-label">Banco</span>
@@ -1326,7 +1336,7 @@
 
   <!-- Visual Review Game Modal -->
   <div class="review-game-overlay" *ngIf="showVisualReview" [class.celebrating]="reviewCelebrating">
-    <div class="review-game-container">
+    <div class="review-game-container" [class.bento-mode]="currentReviewStep === 2">
       <!-- Progress Bar -->
       <div class="review-progress-bar">
         <div class="review-progress-fill" [style.width.%]="(currentReviewStep / 4) * 100"></div>
@@ -1346,10 +1356,10 @@
         </svg>
       </button>
 
-      <!-- Review Main Content (Split Layout) -->
-      <div class="review-split-layout">
+      <!-- Review Main Content - NORMAL SPLIT LAYOUT (Steps 1, 3, 4) -->
+      <div class="review-split-layout" *ngIf="currentReviewStep !== 2 || isPreviewFullscreen">
         <!-- Left: Review Cards -->
-        <div class="review-cards-panel">
+        <div class="review-cards-panel" *ngIf="!isPreviewFullscreen">
           <div class="review-cards-viewport">
             <div class="review-cards-track" [style.transform]="'translateX(' + (-100 * (currentReviewStep - 1)) + '%)'">
 
@@ -1374,7 +1384,7 @@
                       <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
                     </div>
                     <div class="review-data-item">
-                      <span class="data-label">Telefono</span>
+                      <span class="data-label">Teléfono</span>
                       <span class="data-value">{{ client.user.phone || 'N/A' }}</span>
                     </div>
                     <div class="review-data-item">
@@ -1386,7 +1396,7 @@
                       <span class="data-value">{{ client.profile.employerName || 'N/A' }}</span>
                     </div>
                     <div class="review-data-item full-width" *ngIf="client.profile.address">
-                      <span class="data-label">Direccion</span>
+                      <span class="data-label">Dirección</span>
                       <span class="data-value">{{ client.profile.address.street }}, {{ client.profile.address.city }}, {{ client.profile.address.state }} {{ client.profile.address.zip }}</span>
                     </div>
                   </div>
@@ -1469,8 +1479,44 @@
           </div>
         </div>
 
-        <!-- Right: Document Preview Panel (visible on steps 2, 3, 4) -->
-        <div class="review-preview-panel" *ngIf="currentReviewStep >= 2">
+        <!-- Preview Panel for Steps 3, 4 (or fullscreen from any step) - Document only -->
+        <div class="review-preview-panel" *ngIf="currentReviewStep >= 3 || isPreviewFullscreen" [class.fullscreen]="isPreviewFullscreen">
+          <!-- Preview Toolbar -->
+          <div class="preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
+            <div class="toolbar-group">
+              <button class="toolbar-btn" (click)="zoomOut()" [disabled]="previewZoom <= 50" title="Reducir zoom">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+              </button>
+              <span class="zoom-indicator" (click)="resetZoom()" title="Click para resetear">{{ previewZoom }}%</span>
+              <button class="toolbar-btn" (click)="zoomIn()" [disabled]="previewZoom >= 200" title="Aumentar zoom">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+              </button>
+            </div>
+            <div class="toolbar-group" *ngIf="previewType === 'image'">
+              <button class="toolbar-btn" (click)="rotatePreview()" title="Rotar 90 grados">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                </svg>
+              </button>
+            </div>
+            <div class="toolbar-group">
+              <button class="toolbar-btn" (click)="togglePreviewFullscreen()" title="Pantalla completa">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              </button>
+              <button class="toolbar-btn" (click)="downloadPreviewDocument()" title="Descargar documento">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <div class="preview-container" *ngIf="!previewUrl && !isLoadingPreview">
             <div class="preview-placeholder">
               <span class="preview-placeholder-icon">👁️</span>
@@ -1481,12 +1527,13 @@
             <div class="loading-spinner"></div>
             <p>Cargando documento...</p>
           </div>
-          <div class="preview-content" *ngIf="previewUrl && !isLoadingPreview">
-            <!-- PDF Preview -->
-            <iframe *ngIf="previewType === 'pdf'" [src]="previewUrl" class="preview-iframe"></iframe>
-            <!-- Image Preview -->
-            <img *ngIf="previewType === 'image'" [src]="previewUrl" class="preview-image" alt="Document preview"/>
-            <!-- Unsupported format -->
+          <div class="preview-content" *ngIf="safePreviewUrl && !isLoadingPreview">
+            <div class="preview-wrapper" *ngIf="previewType === 'pdf'" [style.transform]="getPreviewTransform()">
+              <iframe [src]="safePreviewUrl" class="preview-iframe"></iframe>
+            </div>
+            <div class="preview-wrapper" *ngIf="previewType === 'image'" [style.transform]="getPreviewTransform()">
+              <img [src]="safePreviewUrl" class="preview-image" alt="Document preview"/>
+            </div>
             <div class="preview-unsupported" *ngIf="previewType === 'unsupported'">
               <span class="unsupported-icon">📎</span>
               <p>Vista previa no disponible</p>
@@ -1495,6 +1542,182 @@
           </div>
         </div>
       </div>
+
+      <!-- BENTO GRID LAYOUT for Step 2 (W2 Verification) - SEPARATE from split layout -->
+      <div class="bento-grid-container" *ngIf="currentReviewStep === 2 && !isPreviewFullscreen">
+          <!-- Cell 1: Datos del Cliente (Row 1, Col 1) -->
+          <div class="bento-cell bento-client-data">
+            <div class="bento-cell-header">
+              <span class="bento-cell-icon">📋</span>
+              <span class="bento-cell-title">Datos del Cliente</span>
+              <button class="btn-copy-ssn bento-ssn-copy" (click)="copySSNToClipboard(); $event.stopPropagation()" [class.copied]="ssnCopied" title="Copiar SSN">
+                <svg *ngIf="!ssnCopied" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <svg *ngIf="ssnCopied" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </button>
+            </div>
+            <div class="bento-client-grid">
+              <div class="bento-data-item bento-ssn-item">
+                <span class="bento-label">SSN</span>
+                <span class="bento-value mono">{{ getMaskedSSN() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Nombre</span>
+                <span class="bento-value">{{ getClientFullName() }}</span>
+              </div>
+              <div class="bento-data-item bento-full-width">
+                <span class="bento-label">Dirección</span>
+                <span class="bento-value small">{{ getClientFullAddress() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Empleador</span>
+                <span class="bento-value">{{ getEmployerName() }}</span>
+              </div>
+              <div class="bento-data-item">
+                <span class="bento-label">Estado Trabajo</span>
+                <span class="bento-value highlight">{{ getWorkState() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cell 2: Campos Clave W2 (Row 2, Col 1) -->
+          <div class="bento-cell bento-w2-fields">
+            <div class="bento-cell-header">
+              <span class="bento-cell-icon">📊</span>
+              <span class="bento-cell-title">Campos Clave W2</span>
+              <span class="bento-ocr-badge" *ngIf="w2EstimateData?.hasEstimate" [class]="getOcrConfidenceClass(w2EstimateData?.estimate?.ocrConfidence || 'low')">
+                {{ getOcrConfidenceLabel(w2EstimateData?.estimate?.ocrConfidence || 'low') }}
+              </span>
+            </div>
+
+            <!-- Loading State -->
+            <div class="bento-loading" *ngIf="isLoadingW2Estimate">
+              <div class="bento-spinner"></div>
+              <span>Cargando OCR...</span>
+            </div>
+
+            <!-- No OCR Data -->
+            <div class="bento-empty" *ngIf="!isLoadingW2Estimate && (!w2EstimateData || !w2EstimateData.hasEstimate)">
+              <span class="bento-empty-icon">⚠️</span>
+              <span>Sin datos OCR disponibles</span>
+            </div>
+
+            <!-- W2 Fields Checklist -->
+            <div class="bento-w2-checklist" *ngIf="!isLoadingW2Estimate && w2EstimateData?.hasEstimate && w2EstimateData?.estimate">
+              <div class="bento-check-item" (click)="toggleW2FieldVerified('box2Federal')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.box2Federal">
+                  <svg *ngIf="w2FieldsVerified.box2Federal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Box 2: Federal Tax</span>
+                  <span class="bento-check-value">{{ w2EstimateData?.estimate?.box2Federal | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-check-item" (click)="toggleW2FieldVerified('box17State')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.box17State">
+                  <svg *ngIf="w2FieldsVerified.box17State" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Box 17: State Tax</span>
+                  <span class="bento-check-value">{{ w2EstimateData?.estimate?.box17State | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-check-item bento-total" (click)="toggleW2FieldVerified('estimatedRefund')">
+                <div class="bento-checkbox" [class.checked]="w2FieldsVerified.estimatedRefund">
+                  <svg *ngIf="w2FieldsVerified.estimatedRefund" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div class="bento-check-info">
+                  <span class="bento-check-label">Reembolso Estimado</span>
+                  <span class="bento-check-value total">{{ w2EstimateData?.estimate?.estimatedRefund | currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <div class="bento-verify-status" [class.complete]="allW2FieldsVerified">
+                <span>{{ allW2FieldsVerified ? '✓ Verificado' : '○ Verifica campos' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cell 3: Document Preview (Row 1-2, Col 2) - spans both rows -->
+          <div class="bento-cell bento-document-preview">
+            <!-- W2 Document Selector Header -->
+            <div class="bento-doc-selector">
+              <span class="bento-doc-selector-label">📄 W2 Documento</span>
+              <div class="bento-doc-tabs">
+                <button class="bento-doc-tab"
+                        *ngFor="let doc of getDocumentsByType('w2'); let i = index"
+                        [class.active]="previewDocumentId === doc.id"
+                        (click)="previewDocument(doc)">
+                  {{ i + 1 }}. {{ doc.fileName | slice:0:20 }}{{ doc.fileName.length > 20 ? '...' : '' }}
+                </button>
+              </div>
+              <span class="bento-doc-count">{{ getDocumentsByType('w2').length }} archivo(s)</span>
+            </div>
+
+            <!-- Mini Toolbar -->
+            <div class="bento-preview-toolbar" *ngIf="safePreviewUrl && !isLoadingPreview">
+              <div class="bento-toolbar-group">
+                <button class="bento-toolbar-btn" (click)="zoomOut()" [disabled]="previewZoom <= 50" title="Zoom -">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <span class="bento-zoom-label" (click)="resetZoom()">{{ previewZoom }}%</span>
+                <button class="bento-toolbar-btn" (click)="zoomIn()" [disabled]="previewZoom >= 200" title="Zoom +">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+              </div>
+              <div class="bento-toolbar-group" *ngIf="previewType === 'image'">
+                <button class="bento-toolbar-btn" (click)="rotatePreview()" title="Rotar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </button>
+              </div>
+              <div class="bento-toolbar-group">
+                <button class="bento-toolbar-btn" (click)="togglePreviewFullscreen()" title="Pantalla completa">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
+                <button class="bento-toolbar-btn" (click)="downloadPreviewDocument()" title="Descargar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="bento-preview-area">
+              <div class="bento-preview-placeholder" *ngIf="!previewUrl && !isLoadingPreview">
+                <span class="placeholder-icon">👁️</span>
+                <p>Selecciona un W2 para ver</p>
+              </div>
+              <div class="bento-preview-loading" *ngIf="isLoadingPreview">
+                <div class="bento-spinner large"></div>
+                <p>Cargando...</p>
+              </div>
+              <div class="bento-preview-content" *ngIf="safePreviewUrl && !isLoadingPreview">
+                <div class="bento-preview-wrapper" *ngIf="previewType === 'pdf'" [style.transform]="getPreviewTransform()">
+                  <iframe [src]="safePreviewUrl" class="bento-preview-iframe"></iframe>
+                </div>
+                <div class="bento-preview-wrapper" *ngIf="previewType === 'image'" [style.transform]="getPreviewTransform()">
+                  <img [src]="safePreviewUrl" class="bento-preview-image" alt="W2 Preview"/>
+                </div>
+                <div class="bento-preview-unsupported" *ngIf="previewType === 'unsupported'">
+                  <span>📎</span>
+                  <p>Vista previa no disponible</p>
+                  <button class="btn-download-bento" (click)="downloadPreviewDocument()">Descargar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       <!-- Action Buttons (during review) -->
       <div class="review-actions" *ngIf="!reviewCelebrating && !showFinalDecision">

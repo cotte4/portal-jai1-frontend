@@ -28,11 +28,28 @@
 
 .sidebar-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
+  flex-direction: column;
+  padding: 20px 24px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   flex-shrink: 0;
+}
+
+.sidebar-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-welcome {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin-top: 14px;
+  font-weight: 400;
+}
+
+.sidebar-welcome strong {
+  color: white;
+  font-weight: 600;
 }
 
 .logo {
@@ -278,7 +295,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 24px;
+  padding: 12px 24px;
   background: white;
   border-bottom: 1px solid #e8eaed;
   flex-shrink: 0;
@@ -297,6 +314,10 @@
 
 .btn-menu:hover {
   background: #f0f2f5;
+}
+
+.topbar-spacer {
+  flex: 1;
 }
 
 .welcome-text {
@@ -572,6 +593,7 @@
 .page-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #f5f7fa;
 }
 
@@ -649,6 +671,11 @@
   .sidebar-header {
     padding: var(--spacing-md) var(--spacing-lg);
     flex-shrink: 0;
+  }
+
+  .sidebar-welcome {
+    font-size: 13px;
+    margin-top: 10px;
   }
 
   .sidebar-nav {

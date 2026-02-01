@@ -638,3 +638,314 @@
     font-size: 24px;
   }
 }
+
+/* ==================== TABS ==================== */
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #1D345D;
+}
+
+.tab-btn.active {
+  color: #1D345D;
+  border-bottom-color: #1D345D;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 11px;
+}
+
+.total-badge.unpaid {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.total-badge.unpaid .total-count {
+  color: #92400e;
+}
+
+/* ==================== UNPAID SUMMARY CARDS ==================== */
+.summary-card.warning {
+  border-color: #f59e0b;
+}
+
+.summary-icon.warning-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.summary-icon.federal-icon {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+}
+
+.summary-icon.state-icon {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+}
+
+/* ==================== UNPAID CLIENTS LIST ==================== */
+.unpaid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.unpaid-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unpaid-card:hover {
+  border-color: #1D345D;
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.1);
+}
+
+.unpaid-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-phone {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.total-unpaid {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.unpaid-label {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unpaid-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.unpaid-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.refund-row {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 20px;
+  align-items: center;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.refund-type {
+  display: flex;
+  align-items: center;
+}
+
+.type-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.refund-type.federal .type-badge {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+}
+
+.refund-type.state .type-badge {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  color: white;
+}
+
+.refund-details {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.refund-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.refund-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.refund-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.refund-value.commission {
+  color: #059669;
+}
+
+.refund-value.date {
+  color: #6b7280;
+}
+
+.refund-action {
+  display: flex;
+  align-items: center;
+}
+
+.btn-mark-paid {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-mark-paid:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-mark-paid:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.paid-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.check-icon {
+  font-size: 16px;
+}
+
+/* ==================== RESPONSIVE UNPAID ==================== */
+@media (max-width: 1024px) {
+  .refund-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .refund-type {
+    justify-content: flex-start;
+  }
+
+  .refund-details {
+    gap: 16px;
+  }
+
+  .refund-action {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabs-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .unpaid-card-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .total-unpaid {
+    align-items: flex-start;
+  }
+
+  .unpaid-amount {
+    font-size: 20px;
+  }
+
+  .refund-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

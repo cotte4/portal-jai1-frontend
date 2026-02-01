@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subscription, filter, finalize, timeout, TimeoutError } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -39,6 +40,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private sanitizer = inject(DomSanitizer);
   themeService = inject(ThemeService);
   private subscriptions = new Subscription();
 
@@ -132,12 +134,47 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   reviewCelebrating: boolean = false;
   showFinalDecision: boolean = false;
 
+  // W2 Estimate data for visual review key fields checklist
+  w2EstimateData: {
+    hasEstimate: boolean;
+    estimate: {
+      id: string;
+      box2Federal: number;
+      box17State: number;
+      estimatedRefund: number;
+      w2FileName: string;
+      ocrConfidence: 'high' | 'medium' | 'low';
+      createdAt: string;
+    } | null;
+  } | null = null;
+  isLoadingW2Estimate: boolean = false;
+  // Key W2 fields verification checkboxes
+  w2FieldsVerified: {
+    box2Federal: boolean;
+    box17State: boolean;
+    estimatedRefund: boolean;
+  } = {
+    box2Federal: false,
+    box17State: false,
+    estimatedRefund: false
+  };
+
   // Document Preview
   previewDocumentId: string | null = null;
   previewUrl: string | null = null;
+  safePreviewUrl: SafeResourceUrl | null = null;
   previewType: 'pdf' | 'image' | 'unsupported' = 'unsupported';
   isLoadingPreview: boolean = false;
   currentPreviewDocument: Document | null = null;
+
+  // Preview Viewer Controls
+  previewZoom: number = 100;
+  previewRotation: number = 0;
+  isPreviewFullscreen: boolean = false;
+
+  // Verification Panel (for visual review)
+  verificationPanelExpanded: boolean = true;
+  ssnCopied: boolean = false;
 
   // Notification
   showNotifyModal: boolean = false;
@@ -556,10 +593,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
   getProblemTypeLabel(type: ProblemType | null): string {
     if (!type) return '';
+    // NOTE: IRS_VERIFICATION removed - verification is handled via status, not problem flags
     const labels: Record<ProblemType, string> = {
       [ProblemType.MISSING_DOCUMENTS]: 'Documentos faltantes',
       [ProblemType.INCORRECT_INFORMATION]: 'Informacion incorrecta',
-      [ProblemType.IRS_VERIFICATION]: 'Verificacion IRS',
       [ProblemType.BANK_ISSUE]: 'Problema bancario',
       [ProblemType.STATE_ISSUE]: 'Problema estatal',
       [ProblemType.FEDERAL_ISSUE]: 'Problema federal',
@@ -735,7 +772,74 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.reviewStepApproved = {};
     this.reviewCelebrating = false;
     this.showFinalDecision = false;
+    this.verificationPanelExpanded = true; // Default expanded on document steps
+    this.ssnCopied = false;
     this.clearPreview();
+    // Reset W2 fields verification
+    this.w2FieldsVerified = {
+      box2Federal: false,
+      box17State: false,
+      estimatedRefund: false
+    };
+    // Load W2 estimate data for key fields checklist
+    this.loadW2EstimateData();
+  }
+
+  /**
+   * Load W2 estimate data for key fields checklist in visual review
+   */
+  loadW2EstimateData() {
+    this.isLoadingW2Estimate = true;
+    this.w2EstimateData = null;
+
+    this.adminService.getW2Estimate(this.clientId).subscribe({
+      next: (data) => {
+        this.w2EstimateData = data;
+        this.isLoadingW2Estimate = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.w2EstimateData = { hasEstimate: false, estimate: null };
+        this.isLoadingW2Estimate = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Toggle W2 field verification checkbox
+   */
+  toggleW2FieldVerified(field: 'box2Federal' | 'box17State' | 'estimatedRefund') {
+    this.w2FieldsVerified[field] = !this.w2FieldsVerified[field];
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Check if all W2 fields are verified
+   */
+  get allW2FieldsVerified(): boolean {
+    return this.w2FieldsVerified.box2Federal &&
+           this.w2FieldsVerified.box17State &&
+           this.w2FieldsVerified.estimatedRefund;
+  }
+
+  /**
+   * Get OCR confidence label in Spanish
+   */
+  getOcrConfidenceLabel(confidence: 'high' | 'medium' | 'low'): string {
+    const labels = {
+      high: 'Alta',
+      medium: 'Media',
+      low: 'Baja'
+    };
+    return labels[confidence] || confidence;
+  }
+
+  /**
+   * Get OCR confidence CSS class
+   */
+  getOcrConfidenceClass(confidence: 'high' | 'medium' | 'low'): string {
+    return `confidence-${confidence}`;
   }
 
   /**
@@ -886,6 +990,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.documentService.getDownloadUrl(doc.id).subscribe({
       next: (response) => {
         this.previewUrl = response.url;
+        // Sanitize URL for iframe/img src binding
+        this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.url);
         this.isLoadingPreview = false;
         this.cdr.markForCheck();
       },
@@ -903,9 +1009,82 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   clearPreview() {
     this.previewDocumentId = null;
     this.previewUrl = null;
+    this.safePreviewUrl = null;
     this.previewType = 'unsupported';
     this.isLoadingPreview = false;
     this.currentPreviewDocument = null;
+    // Reset viewer controls
+    this.previewZoom = 100;
+    this.previewRotation = 0;
+    this.isPreviewFullscreen = false;
+  }
+
+  // ===== PREVIEW VIEWER CONTROL METHODS =====
+
+  /**
+   * Zoom in the preview (max 200%)
+   */
+  zoomIn() {
+    if (this.previewZoom < 200) {
+      this.previewZoom = Math.min(200, this.previewZoom + 25);
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Zoom out the preview (min 50%)
+   */
+  zoomOut() {
+    if (this.previewZoom > 50) {
+      this.previewZoom = Math.max(50, this.previewZoom - 25);
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Reset zoom to 100%
+   */
+  resetZoom() {
+    this.previewZoom = 100;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Rotate the preview image 90 degrees clockwise
+   */
+  rotatePreview() {
+    this.previewRotation = (this.previewRotation + 90) % 360;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Toggle fullscreen mode for the preview panel
+   */
+  togglePreviewFullscreen() {
+    this.isPreviewFullscreen = !this.isPreviewFullscreen;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Exit fullscreen mode (for escape key or close button)
+   */
+  exitPreviewFullscreen() {
+    this.isPreviewFullscreen = false;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Get the transform style for the preview content
+   */
+  getPreviewTransform(): string {
+    const transforms: string[] = [];
+    if (this.previewZoom !== 100) {
+      transforms.push(`scale(${this.previewZoom / 100})`);
+    }
+    if (this.previewRotation !== 0) {
+      transforms.push(`rotate(${this.previewRotation}deg)`);
+    }
+    return transforms.length > 0 ? transforms.join(' ') : 'none';
   }
 
   /**
@@ -915,6 +1094,104 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.currentPreviewDocument) {
       this.downloadDocument(this.currentPreviewDocument);
     }
+  }
+
+  // ===== VERIFICATION PANEL METHODS =====
+
+  /**
+   * Toggle the verification panel expanded/collapsed state
+   */
+  toggleVerificationPanel() {
+    this.verificationPanelExpanded = !this.verificationPanelExpanded;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Get masked SSN (shows only last 4 digits)
+   * Format: ***-**-1234
+   */
+  getMaskedSSN(): string {
+    const ssn = this.client?.profile?.ssn;
+    if (!ssn) return 'No disponible';
+    // SSN format is typically XXX-XX-XXXX or XXXXXXXXX
+    const cleanSSN = ssn.replace(/\D/g, '');
+    if (cleanSSN.length >= 4) {
+      return `***-**-${cleanSSN.slice(-4)}`;
+    }
+    return '***-**-****';
+  }
+
+  /**
+   * Get the full (unmasked) SSN for copying
+   */
+  getFullSSN(): string {
+    return this.client?.profile?.ssn || '';
+  }
+
+  /**
+   * Copy SSN to clipboard
+   */
+  async copySSNToClipboard() {
+    const ssn = this.getFullSSN();
+    if (!ssn) {
+      this.toastService.warning('No hay SSN disponible para copiar');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(ssn);
+      this.ssnCopied = true;
+      this.toastService.success('SSN copiado al portapapeles');
+      this.cdr.markForCheck();
+
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        this.ssnCopied = false;
+        this.cdr.markForCheck();
+      }, 2000);
+    } catch (err) {
+      this.toastService.error('Error al copiar SSN');
+    }
+  }
+
+  /**
+   * Get client full name for verification panel
+   */
+  getClientFullName(): string {
+    if (!this.client?.user) return 'No disponible';
+    const firstName = this.client.user.firstName || '';
+    const lastName = this.client.user.lastName || '';
+    return `${firstName} ${lastName}`.trim() || 'No disponible';
+  }
+
+  /**
+   * Get client full address for verification panel
+   */
+  getClientFullAddress(): string {
+    const address = this.client?.profile?.address;
+    if (!address) return 'No disponible';
+
+    const parts = [];
+    if (address.street) parts.push(address.street);
+    if (address.city) parts.push(address.city);
+    if (address.state) parts.push(address.state);
+    if (address.zip) parts.push(address.zip);
+
+    return parts.length > 0 ? parts.join(', ') : 'No disponible';
+  }
+
+  /**
+   * Get employer name for verification panel
+   */
+  getEmployerName(): string {
+    return this.client?.profile?.employerName || 'No disponible';
+  }
+
+  /**
+   * Get work state for verification panel
+   */
+  getWorkState(): string {
+    return this.client?.profile?.workState || 'No disponible';
   }
 
   // Status history label transformation
@@ -1231,6 +1508,31 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       [StateStatusNew.TAXES_COMPLETED]: 'Completado'
     };
     return labels[status] || status;
+  }
+
+  /**
+   * Get description/tooltip for post-filing statuses
+   * Key distinctions per engineer spec:
+   * - in_verification: IRS flagged it, JAI1 hasn't acted yet
+   * - verification_in_progress: JAI1 has taken action, waiting for agency response
+   * - check_in_transit: Physical check being mailed
+   * - deposit_pending: Client got refund but hasn't paid JAI1 fee
+   * - taxes_sent: Refund has been sent/deposited
+   */
+  getStatusDescription(status: string | null): string {
+    if (!status) return '';
+    const descriptions: Record<string, string> = {
+      'in_process': 'El IRS/Estado está procesando la declaración',
+      'in_verification': 'IRS/Estado marcó para verificación - JAI1 aún NO ha actuado',
+      'verification_in_progress': 'JAI1 YA tomó acción (carta/documentos enviados) - esperando respuesta',
+      'verification_letter_sent': 'Se envió carta de verificación al cliente',
+      'check_in_transit': 'Cheque físico en camino al cliente',
+      'deposit_pending': 'Cliente recibió reembolso pero NO ha pagado comisión JAI1',
+      'taxes_sent': 'Reembolso enviado/depositado',
+      'taxes_completed': 'Proceso completado - cliente recibió y pagó',
+      'issues': 'Problema que requiere atención especial'
+    };
+    return descriptions[status] || '';
   }
 
   getAlarmLevelClass(level: string): string {

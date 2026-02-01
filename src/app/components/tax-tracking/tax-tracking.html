@@ -13,7 +13,7 @@
     <div class="header-content">
       <div class="header-icon">📍</div>
       <div class="header-text">
-        <h1>Seguimiento de tu Declaracion</h1>
+        <h1>Seguimiento de tu Declaración</h1>
         <p>Conoce el estado de tu proceso Federal y Estatal</p>
       </div>
     </div>
@@ -22,7 +22,7 @@
         <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
         <span>{{ isRefreshing ? 'Actualizando...' : 'Actualizar' }}</span>
       </button>
-      <span class="last-update">Ultima actualizacion: {{ lastRefreshFormatted }}</span>
+      <span class="last-update">Última actualización: {{ lastRefreshFormatted }}</span>
     </div>
   </div>
 
@@ -217,7 +217,7 @@
           </div>
           <div class="preparing-content">
             <span class="preparing-title">Estamos trabajando en tu caso</span>
-            <span class="preparing-text">Estamos revisando tu informacion y preparando tu declaracion. Te avisaremos cuando haya novedades.</span>
+            <span class="preparing-text">Estamos revisando tu información y preparando tu declaración. Te avisaremos cuando haya novedades.</span>
           </div>
         </div>
       }
@@ -348,6 +348,146 @@
         </div>
       </div>
     </div>
+
+    <!-- REFUND CONFIRMATION SECTION -->
+    @if (canConfirmFederal || canConfirmState || hasUnpaidFee) {
+      <div class="refund-confirmation-section">
+        <div class="confirmation-header">
+          <span class="confirmation-icon">💰</span>
+          <h2>Confirmacion de Reembolso</h2>
+        </div>
+
+        <!-- Federal Confirmation Card -->
+        @if (canConfirmFederal || federalConfirmed) {
+          <div class="confirmation-card" [class.confirmed]="federalConfirmed">
+            <div class="card-track-badge federal">Federal</div>
+            <div class="confirmation-content">
+              <div class="refund-info">
+                <span class="refund-label">Monto depositado:</span>
+                <span class="refund-amount">${{ (profileData?.taxCase?.federalActualRefund || 0).toLocaleString() }}</span>
+              </div>
+              @if (federalConfirmed) {
+                <div class="confirmed-badge">
+                  <span class="confirmed-icon">✓</span>
+                  <span>Recibido confirmado</span>
+                </div>
+              } @else {
+                <button
+                  class="btn-confirm"
+                  (click)="confirmFederalRefund()"
+                  [disabled]="isConfirmingFederal"
+                >
+                  @if (isConfirmingFederal) {
+                    <span class="btn-spinner"></span>
+                    <span>Confirmando...</span>
+                  } @else {
+                    <span>✓ Confirmo que recibi mi reembolso federal</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- State Confirmation Card -->
+        @if (canConfirmState || stateConfirmed) {
+          <div class="confirmation-card" [class.confirmed]="stateConfirmed">
+            <div class="card-track-badge state">Estatal</div>
+            <div class="confirmation-content">
+              <div class="refund-info">
+                <span class="refund-label">Monto depositado:</span>
+                <span class="refund-amount">${{ (profileData?.taxCase?.stateActualRefund || 0).toLocaleString() }}</span>
+              </div>
+              @if (stateConfirmed) {
+                <div class="confirmed-badge">
+                  <span class="confirmed-icon">✓</span>
+                  <span>Recibido confirmado</span>
+                </div>
+              } @else {
+                <button
+                  class="btn-confirm"
+                  (click)="confirmStateRefund()"
+                  [disabled]="isConfirmingState"
+                >
+                  @if (isConfirmingState) {
+                    <span class="btn-spinner"></span>
+                    <span>Confirmando...</span>
+                  } @else {
+                    <span>✓ Confirmo que recibi mi reembolso estatal</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Payment Section (shows after confirmation) -->
+        @if (hasUnpaidFee) {
+          <div class="payment-section">
+            <div class="payment-header">
+              <span class="payment-icon">📋</span>
+              <h3>Pago de Comision JAI1</h3>
+            </div>
+
+            <div class="fee-summary">
+              <div class="fee-row">
+                <span>Comision JAI1 (11%):</span>
+                <span class="fee-amount">${{ totalFeeOwed.toLocaleString() }}</span>
+              </div>
+            </div>
+
+            <div class="payment-methods">
+              <!-- Zelle (Primary) -->
+              <div class="payment-method primary">
+                <div class="method-header">
+                  <span class="method-badge recommended">Recomendado</span>
+                  <span class="method-name">Zelle</span>
+                </div>
+                <div class="method-content">
+                  <div class="zelle-info">
+                    <span class="zelle-label">Enviar a:</span>
+                    <div class="zelle-email-container">
+                      <span class="zelle-email">jai1&#64;memas.agency</span>
+                      <button class="btn-copy" (click)="copyZelleEmail()">
+                        @if (copiedToClipboard) {
+                          <span class="copy-success">✓ Copiado</span>
+                        } @else {
+                          <span>📋 Copiar</span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  <p class="method-note">Usa tu app de banco para enviar el pago por Zelle</p>
+                </div>
+              </div>
+
+              <!-- Other Methods (Expandable) -->
+              <details class="other-methods">
+                <summary class="other-methods-toggle">
+                  <span>Otros métodos de pago</span>
+                  <span class="toggle-icon">▼</span>
+                </summary>
+                <div class="other-methods-content">
+                  <div class="payment-method secondary">
+                    <span class="method-name">Transferencia Bancaria</span>
+                    <p class="method-note">Contactanos para obtener los datos bancarios</p>
+                  </div>
+                  <div class="payment-method secondary">
+                    <span class="method-name">Stripe / Tarjeta</span>
+                    <p class="method-note">Proximamente disponible</p>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <div class="payment-notice">
+              <span class="notice-icon">ℹ️</span>
+              <span class="notice-text">Una vez realizado el pago, nuestro equipo verificara la transaccion y actualizara tu estado.</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
 
   <!-- Help Section -->

@@ -9,6 +9,7 @@ export interface CalculatorResult {
   box17State?: number;
   ocrConfidence?: string;
   fromBackend?: boolean; // True if synced from backend (cross-device)
+  requiresReview?: boolean; // True if $0 result (likely OCR error, needs manual review)
 }
 
 @Injectable({
@@ -54,6 +55,7 @@ export class CalculatorResultService {
     box17State?: number;
     ocrConfidence?: string;
     createdAt?: string;
+    requiresReview?: boolean;
   }): void {
     const result: CalculatorResult = {
       estimatedRefund: backendEstimate.estimatedRefund,
@@ -62,7 +64,8 @@ export class CalculatorResultService {
       box2Federal: backendEstimate.box2Federal,
       box17State: backendEstimate.box17State,
       ocrConfidence: backendEstimate.ocrConfidence,
-      fromBackend: true
+      fromBackend: true,
+      requiresReview: backendEstimate.requiresReview
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(result));
     this.resultSubject.next(result);

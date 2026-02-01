@@ -56,6 +56,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
   box17State = 0;
   ocrConfidence: OcrConfidence = 'high';
   errorMessage = '';
+  requiresReview = false; // True if $0 result (needs manual review)
 
   // Document save states (backend now saves W2 automatically during estimate)
   documentSaved = false;
@@ -144,6 +145,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
       this.box2Federal = cachedResult.box2Federal || 0;
       this.box17State = cachedResult.box17State || 0;
       this.ocrConfidence = (cachedResult.ocrConfidence as OcrConfidence) || 'high';
+      this.requiresReview = cachedResult.requiresReview || false;
       this.savedCalculatorResult = cachedResult;
       this.state = 'already-calculated';
       this.cdr.detectChanges();
@@ -180,7 +182,8 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
             box2Federal: estimate.box2Federal,
             box17State: estimate.box17State,
             ocrConfidence: estimate.ocrConfidence,
-            createdAt: estimate.createdAt
+            createdAt: estimate.createdAt,
+            requiresReview: estimate.requiresReview
           });
 
           // Populate component state with backend data
@@ -188,6 +191,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
           this.box2Federal = estimate.box2Federal || 0;
           this.box17State = estimate.box17State || 0;
           this.ocrConfidence = estimate.ocrConfidence || 'high';
+          this.requiresReview = estimate.requiresReview || false;
           this.savedCalculatorResult = this.calculatorResultService.getResult();
 
           // Show already-calculated state - user cannot recalculate
@@ -308,6 +312,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
         this.box17State = response.box17State;
         this.estimatedRefund = response.estimatedRefund;
         this.ocrConfidence = response.ocrConfidence;
+        this.requiresReview = response.requiresReview || false;
 
         setTimeout(() => {
           this.showResult();
@@ -394,7 +399,13 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isDemo) {
       this.calculatorResultService.saveResult(
         this.estimatedRefund,
-        this.uploadedFile?.name
+        this.uploadedFile?.name,
+        {
+          box2Federal: this.box2Federal,
+          box17State: this.box17State,
+          ocrConfidence: this.ocrConfidence,
+          requiresReview: this.requiresReview
+        }
       );
 
       // Backend now saves the W2 document automatically during estimate
@@ -416,6 +427,7 @@ export class TaxCalculator implements OnInit, OnDestroy, AfterViewInit {
     this.box17State = 0;
     this.ocrConfidence = 'high';
     this.errorMessage = '';
+    this.requiresReview = false;
     this.documentSaved = false;
     this.isFromDocuments = false;
     this.isDemo = false;

@@ -499,6 +499,27 @@ export class AdminService {
     );
   }
 
+  /**
+   * Get W2 estimate data for a client (for visual review key fields checklist)
+   */
+  getW2Estimate(clientId: string): Observable<{
+    hasEstimate: boolean;
+    estimate: {
+      id: string;
+      box2Federal: number;
+      box17State: number;
+      estimatedRefund: number;
+      w2FileName: string;
+      ocrConfidence: 'high' | 'medium' | 'low';
+      createdAt: string;
+    } | null;
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/admin/clients/${clientId}/w2-estimate`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

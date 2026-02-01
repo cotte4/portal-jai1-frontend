@@ -211,8 +211,8 @@
         <!-- Edit Address -->
         <div class="edit-form">
           <div class="form-group">
-            <label>Direccion</label>
-            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y numero" />
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="editForm.street" placeholder="Calle y número" />
           </div>
 
           <div class="form-row">
@@ -227,7 +227,7 @@
           </div>
 
           <div class="form-group">
-            <label>Codigo postal</label>
+            <label>Código postal</label>
             <input type="text" [(ngModel)]="editForm.zip" placeholder="ZIP Code" />
           </div>
         </div>
@@ -246,7 +246,7 @@
             <div class="empty-address">
               <span class="empty-icon">🏠</span>
               <span>No has agregado tu domicilio</span>
-              <button class="btn-add-address" (click)="toggleEdit()">Agregar direccion</button>
+              <button class="btn-add-address" (click)="toggleEdit()">Agregar dirección</button>
             </div>
           }
         </div>
@@ -260,7 +260,7 @@
         <div class="section-header">
           <div class="section-title-group">
             <span class="section-icon">🔒</span>
-            <h2>Informacion Fiscal</h2>
+            <h2>Información Fiscal</h2>
           </div>
           <button class="btn-edit" (click)="toggleSensitiveSection('tax')" [disabled]="isSavingSensitive">
             @if (editingSensitiveSection === 'tax') {
@@ -274,7 +274,7 @@
         @if (editingSensitiveSection === 'tax') {
           <div class="edit-form sensitive-form">
             <div class="form-group">
-              <label>Numero de Seguro Social (SSN)</label>
+              <label>Número de Seguro Social (SSN)</label>
               <input
                 type="text"
                 [value]="sensitiveForm.ssn"
@@ -313,7 +313,7 @@
         <div class="section-header">
           <div class="section-title-group">
             <span class="section-icon">🏦</span>
-            <h2>Informacion Bancaria</h2>
+            <h2>Información Bancaria</h2>
           </div>
           <button class="btn-edit" (click)="toggleSensitiveSection('bank')" [disabled]="isSavingSensitive">
             @if (editingSensitiveSection === 'bank') {
@@ -336,7 +336,7 @@
             </div>
 
             <div class="form-group">
-              <label>Numero de Ruta (Routing Number)</label>
+              <label>Número de Ruta (Routing Number)</label>
               <input
                 type="text"
                 [value]="sensitiveForm.bankRoutingNumber"
@@ -349,12 +349,12 @@
             </div>
 
             <div class="form-group">
-              <label>Numero de Cuenta</label>
+              <label>Número de Cuenta</label>
               <input
                 type="text"
                 [value]="sensitiveForm.bankAccountNumber"
                 (input)="formatAccountInput($event)"
-                placeholder="Tu numero de cuenta"
+                placeholder="Tu número de cuenta"
                 maxlength="17"
                 autocomplete="off"
               />
@@ -382,13 +382,13 @@
           </div>
           <div class="info-card">
             <div class="info-row">
-              <span class="info-label">Numero de Ruta</span>
+              <span class="info-label">Número de Ruta</span>
               <span class="info-value masked-value">{{ bankInfo.routingNumber || 'No especificado' }}</span>
             </div>
           </div>
           <div class="info-card">
             <div class="info-row">
-              <span class="info-label">Numero de Cuenta</span>
+              <span class="info-label">Número de Cuenta</span>
               <span class="info-value masked-value">{{ bankInfo.accountNumber || 'No especificado' }}</span>
             </div>
           </div>
@@ -425,11 +425,11 @@
             </div>
 
             <div class="form-group">
-              <label>Contrasena de TurboTax</label>
+              <label>Contraseña de TurboTax</label>
               <input
                 type="password"
                 [(ngModel)]="sensitiveForm.turbotaxPassword"
-                placeholder="Nueva contrasena"
+                placeholder="Nueva contraseña"
                 autocomplete="new-password"
               />
               <span class="field-hint">Deja vacio para mantener la actual</span>
@@ -456,7 +456,7 @@
           </div>
           <div class="info-card">
             <div class="info-row">
-              <span class="info-label">Contrasena TurboTax</span>
+              <span class="info-label">Contraseña TurboTax</span>
               <span class="info-value masked-value">{{ turbotaxPassword || 'No especificada' }}</span>
             </div>
           </div>
@@ -470,7 +470,7 @@
         <div class="confirm-dialog" (click)="$event.stopPropagation()">
           <div class="confirm-icon">⚠️</div>
           <h3>Confirmar cambios</h3>
-          <p>Estas a punto de actualizar informacion sensible de tu perfil. Esta accion quedara registrada por seguridad.</p>
+          <p>Estas a punto de actualizar información sensible de tu perfil. Esta accion quedara registrada por seguridad.</p>
           <p class="confirm-warning">¿Estas seguro de que deseas continuar?</p>
           <div class="confirm-actions">
             <button class="btn-confirm-cancel" (click)="cancelConfirmDialog()">Cancelar</button>

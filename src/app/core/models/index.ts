@@ -197,12 +197,12 @@ export enum NotificationType {
 export enum ProblemType {
   MISSING_DOCUMENTS = 'missing_documents',
   INCORRECT_INFORMATION = 'incorrect_information',
-  IRS_VERIFICATION = 'irs_verification',
   BANK_ISSUE = 'bank_issue',
   STATE_ISSUE = 'state_issue',
   FEDERAL_ISSUE = 'federal_issue',
   CLIENT_UNRESPONSIVE = 'client_unresponsive',
   OTHER = 'other'
+  // NOTE: IRS_VERIFICATION removed - verification is handled via status, not problem flags
 }
 
 // ============= AUTH =============
@@ -369,6 +369,16 @@ export interface TaxCase {
   paymentMethod?: PaymentMethod;
   paymentReceived: boolean;
   commissionPaid: boolean;
+  // Separate refund receipt confirmation
+  federalRefundReceived?: boolean;
+  stateRefundReceived?: boolean;
+  federalRefundReceivedAt?: string;
+  stateRefundReceivedAt?: string;
+  // Separate commission paid tracking
+  federalCommissionPaid?: boolean;
+  stateCommissionPaid?: boolean;
+  federalCommissionPaidAt?: string;
+  stateCommissionPaidAt?: string;
   statusUpdatedAt: string;
   adminStep?: number;
   hasProblem: boolean;
@@ -599,6 +609,7 @@ export interface W2EstimateResponse {
   ocrConfidence: OcrConfidence;
   w2FileName: string;
   estimateId: string;
+  requiresReview?: boolean; // True if $0 result (likely OCR error)
 }
 
 export interface W2EstimateHistoryItem {
