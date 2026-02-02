@@ -330,7 +330,7 @@
             </div>
             <div class="track-field">
               <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
-              <input type="number" [(ngModel)]="federalActualRefund" placeholder="0.00" step="0.01">
+              <input type="number" [(ngModel)]="federalActualRefund" (ngModelChange)="federalRefundDirty = true" placeholder="0.00" step="0.01" min="0">
               <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
@@ -381,7 +381,7 @@
             </div>
             <div class="track-field">
               <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
-              <input type="number" [(ngModel)]="stateActualRefund" placeholder="0.00" step="0.01">
+              <input type="number" [(ngModel)]="stateActualRefund" (ngModelChange)="stateRefundDirty = true" placeholder="0.00" step="0.01" min="0">
               <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">

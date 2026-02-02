@@ -110,6 +110,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   stateEstimatedDate: string = '';
   federalActualRefund: number | null = null;
   stateActualRefund: number | null = null;
+  federalRefundDirty: boolean = false;
+  stateRefundDirty: boolean = false;
   federalDepositDate: string = '';
   stateDepositDate: string = '';
 
@@ -261,8 +263,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           // Load federal/state tracking data (v2)
           this.federalEstimatedDate = taxCase.federalEstimatedDate ? this.formatDateForInput(taxCase.federalEstimatedDate) : '';
           this.stateEstimatedDate = taxCase.stateEstimatedDate ? this.formatDateForInput(taxCase.stateEstimatedDate) : '';
-          this.federalActualRefund = taxCase.federalActualRefund || null;
-          this.stateActualRefund = taxCase.stateActualRefund || null;
+          this.federalActualRefund = taxCase.federalActualRefund != null ? Number(taxCase.federalActualRefund) : null;
+          this.stateActualRefund = taxCase.stateActualRefund != null ? Number(taxCase.stateActualRefund) : null;
+          this.federalRefundDirty = false;
+          this.stateRefundDirty = false;
           this.federalDepositDate = taxCase.federalDepositDate ? this.formatDateForInput(taxCase.federalDepositDate) : '';
           this.stateDepositDate = taxCase.stateDepositDate ? this.formatDateForInput(taxCase.stateDepositDate) : '';
           // Load comment fields
@@ -1582,7 +1586,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.federalEstimatedDate) {
       updateData.federalEstimatedDate = this.federalEstimatedDate;
     }
-    if (this.federalActualRefund !== null) {
+    if (this.federalRefundDirty && this.federalActualRefund !== null) {
       updateData.federalActualRefund = this.federalActualRefund;
     }
     if (this.federalDepositDate) {
@@ -1604,7 +1608,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.stateEstimatedDate) {
       updateData.stateEstimatedDate = this.stateEstimatedDate;
     }
-    if (this.stateActualRefund !== null) {
+    if (this.stateRefundDirty && this.stateActualRefund !== null) {
       updateData.stateActualRefund = this.stateActualRefund;
     }
     if (this.stateDepositDate) {
