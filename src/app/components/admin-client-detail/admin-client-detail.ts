@@ -210,6 +210,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showMarkPaidConfirm: boolean = false;
   showMarkFiledConfirm: boolean = false;
 
+  // Per-track commission
+  showFederalCommissionConfirm: boolean = false;
+  showStateCommissionConfirm: boolean = false;
+  isMarkingFederalCommission: boolean = false;
+  isMarkingStateCommission: boolean = false;
+
   // Status transition validation
   validTransitions: ValidTransitionsResponse | null = null;
   validCaseStatusTransitions: string[] = [];
@@ -389,6 +395,65 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Legacy method - now opens confirmation modal
   markPaid() {
     this.openMarkPaidConfirm();
+  }
+
+  // Per-track commission methods
+  get federalCommissionAmount(): number {
+    const refund = this.client?.taxCases?.[0]?.federalActualRefund || 0;
+    return Math.round(refund * 0.11 * 100) / 100;
+  }
+
+  get stateCommissionAmount(): number {
+    const refund = this.client?.taxCases?.[0]?.stateActualRefund || 0;
+    return Math.round(refund * 0.11 * 100) / 100;
+  }
+
+  openFederalCommissionConfirm() {
+    this.showFederalCommissionConfirm = true;
+  }
+
+  cancelFederalCommission() {
+    this.showFederalCommissionConfirm = false;
+  }
+
+  confirmFederalCommission() {
+    this.showFederalCommissionConfirm = false;
+    this.isMarkingFederalCommission = true;
+    this.adminService.markCommissionPaid(this.clientId, 'federal').subscribe({
+      next: () => {
+        this.isMarkingFederalCommission = false;
+        this.toastService.success('Comisión federal marcada como pagada');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isMarkingFederalCommission = false;
+        this.toastService.error(getErrorMessage(error, 'Error al marcar comisión federal'));
+      }
+    });
+  }
+
+  openStateCommissionConfirm() {
+    this.showStateCommissionConfirm = true;
+  }
+
+  cancelStateCommission() {
+    this.showStateCommissionConfirm = false;
+  }
+
+  confirmStateCommission() {
+    this.showStateCommissionConfirm = false;
+    this.isMarkingStateCommission = true;
+    this.adminService.markCommissionPaid(this.clientId, 'state').subscribe({
+      next: () => {
+        this.isMarkingStateCommission = false;
+        this.toastService.success('Comisión estatal marcada como pagada');
+        this.loadClientData();
+      },
+      error: (error) => {
+        this.isMarkingStateCommission = false;
+        this.toastService.error(getErrorMessage(error, 'Error al marcar comisión estatal'));
+      }
+    });
   }
 
   deleteClient() {

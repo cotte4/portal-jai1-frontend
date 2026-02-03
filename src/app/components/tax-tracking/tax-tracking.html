@@ -49,7 +49,7 @@
         <div class="card-content">
           <span class="card-label">Progreso Total</span>
           <div class="progress-display">
-            <span class="progress-value">{{ overallProgressPercent }}%</span>
+            <span class="progress-value">Paso {{ currentMajorStep }} de 3</span>
             <div class="mini-progress">
               <div class="mini-progress-fill" [style.width.%]="overallProgressPercent"></div>
             </div>
@@ -99,13 +99,11 @@
   <!-- Skeleton Loading State -->
   @if (isLoading) {
     <div class="tracking-skeleton">
-      <!-- Skeleton: Section Title -->
       <div class="skeleton-section">
         <div class="skeleton-row" style="margin-bottom: 20px;">
           <div class="skeleton skeleton-circle" style="width: 32px; height: 32px;"></div>
           <div class="skeleton skeleton-title" style="width: 120px; height: 20px;"></div>
         </div>
-        <!-- Skeleton: Steps -->
         <div class="skeleton-steps">
           <div class="skeleton-step">
             <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
@@ -124,52 +122,19 @@
         </div>
       </div>
 
-      <!-- Skeleton: Federal/State Tracks -->
-      <div class="skeleton-tracks">
-        <div class="skeleton-track">
-          <div class="skeleton-row" style="margin-bottom: 16px;">
-            <div class="skeleton skeleton-circle" style="width: 28px; height: 28px;"></div>
-            <div class="skeleton skeleton-title" style="width: 100px; height: 18px;"></div>
-          </div>
-          <div class="skeleton-step">
-            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
-            <div class="skeleton-step-content">
-              <div class="skeleton skeleton-text" style="width: 120px; height: 16px; margin-bottom: 6px;"></div>
-              <div class="skeleton skeleton-text" style="width: 160px; height: 12px;"></div>
-            </div>
-          </div>
-          <div class="skeleton-step">
-            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
-            <div class="skeleton-step-content">
-              <div class="skeleton skeleton-text" style="width: 140px; height: 16px; margin-bottom: 6px;"></div>
-              <div class="skeleton skeleton-text" style="width: 180px; height: 12px;"></div>
-            </div>
-          </div>
+      <div class="skeleton-section" style="margin-top: 24px;">
+        <div class="skeleton-row" style="margin-bottom: 16px;">
+          <div class="skeleton skeleton-circle" style="width: 32px; height: 32px;"></div>
+          <div class="skeleton skeleton-title" style="width: 160px; height: 20px;"></div>
         </div>
-        <div class="skeleton-track">
-          <div class="skeleton-row" style="margin-bottom: 16px;">
-            <div class="skeleton skeleton-circle" style="width: 28px; height: 28px;"></div>
-            <div class="skeleton skeleton-title" style="width: 80px; height: 18px;"></div>
-          </div>
-          <div class="skeleton-step">
-            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
-            <div class="skeleton-step-content">
-              <div class="skeleton skeleton-text" style="width: 130px; height: 16px; margin-bottom: 6px;"></div>
-              <div class="skeleton skeleton-text" style="width: 170px; height: 12px;"></div>
-            </div>
-          </div>
-          <div class="skeleton-step">
-            <div class="skeleton skeleton-circle" style="width: 40px; height: 40px;"></div>
-            <div class="skeleton-step-content">
-              <div class="skeleton skeleton-text" style="width: 110px; height: 16px; margin-bottom: 6px;"></div>
-              <div class="skeleton skeleton-text" style="width: 150px; height: 12px;"></div>
-            </div>
-          </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
+          <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
         </div>
       </div>
     </div>
   } @else {
-    <!-- SHARED STEPS (Steps 1-2) -->
+    <!-- ===== STEP 1: ETAPA INICIAL (Shared Steps) ===== -->
     <div class="shared-timeline" #sharedTrack>
       <div class="timeline-section-title">
         <span class="section-icon">📄</span>
@@ -223,205 +188,157 @@
       }
     </div>
 
-    <!-- BRANCH SPLIT VISUAL -->
-    <div class="branch-split">
-      <div class="split-line"></div>
-      <div class="split-icon">↓</div>
-      <div class="split-line"></div>
+    <!-- ===== 3-STEP HORIZONTAL PROGRESS INDICATOR ===== -->
+    <div class="major-steps-indicator">
+      <div class="major-step" [class.active]="currentMajorStep === 1" [class.completed]="currentMajorStep > 1">
+        <div class="major-dot">
+          @if (currentMajorStep > 1) {
+            <span>✓</span>
+          } @else {
+            <span>1</span>
+          }
+        </div>
+        <span class="major-label">Inicial</span>
+      </div>
+      <div class="major-connector" [class.filled]="currentMajorStep > 1"></div>
+      <div class="major-step" [class.active]="currentMajorStep === 2" [class.completed]="currentMajorStep > 2">
+        <div class="major-dot">
+          @if (currentMajorStep > 2) {
+            <span>✓</span>
+          } @else {
+            <span>2</span>
+          }
+        </div>
+        <span class="major-label">Observaciones</span>
+      </div>
+      <div class="major-connector" [class.filled]="currentMajorStep > 2"></div>
+      <div class="major-step" [class.active]="currentMajorStep === 3" [class.completed]="currentMajorStep >= 3">
+        <div class="major-dot">
+          @if (currentMajorStep >= 3) {
+            <span>✓</span>
+          } @else {
+            <span>3</span>
+          }
+        </div>
+        <span class="major-label">Completado</span>
+      </div>
     </div>
 
-    <!-- DUAL TRACK - Federal & Estatal Side by Side -->
-    <div class="dual-track">
-      <!-- FEDERAL TRACK (Left) -->
-      <div class="track federal-track" #federalTrack>
-        <div class="track-header federal">
-          <span class="track-icon">🦅</span>
-          <h2>Federal</h2>
-          <div class="track-progress">
-            <span>{{ federalProgressPercent }}%</span>
-            <div class="track-progress-bar">
-              <div class="track-progress-fill" [style.width.%]="federalProgressPercent"></div>
-            </div>
-          </div>
+    <!-- ===== STEP 2: OBSERVACIONES (Federal & State Cards) ===== -->
+    @if (currentMajorStep >= 2) {
+      <div class="observaciones-section" #observacionesSection>
+        <div class="timeline-section-title">
+          <span class="section-icon">📋</span>
+          <span>Observaciones</span>
         </div>
 
-        <div class="track-timeline">
-          <div class="track-line">
-            <div class="track-line-fill" [style.height.%]="federalProgressPercent"></div>
-          </div>
-          <div class="track-steps">
-            @for (step of federalSteps; track step.id; let i = $index) {
-              <div
-                class="track-step"
-                [class.completed]="step.status === 'completed'"
-                [class.active]="step.status === 'active'"
-                [class.rejected]="step.status === 'rejected'"
-                [class.pending]="step.status === 'pending'"
-              >
-                <div class="step-dot">
-                  @if (step.status === 'completed') {
-                    <span class="dot-icon">✓</span>
-                  } @else if (step.status === 'rejected') {
-                    <span class="dot-icon rejected">✗</span>
-                  } @else if (step.status === 'active') {
-                    <span class="dot-icon active">●</span>
-                  } @else {
-                    <span class="dot-number">{{ i + 1 }}</span>
-                  }
-                </div>
-                <div class="step-card">
-                  <div class="step-card-header">
-                    <span class="card-icon">{{ step.icon }}</span>
-                    <span class="card-title">{{ step.title }}</span>
+        <div class="obs-grid">
+          <!-- Federal Card -->
+          <div class="obs-card" [class.obs-pending]="federalCategory === 'pending'" [class.obs-in-progress]="federalCategory === 'in_progress'" [class.obs-completed]="federalCategory === 'completed'" [class.obs-issues]="federalCategory === 'issues'">
+            <div class="obs-card-header">
+              <span class="obs-track-icon">🦅</span>
+              <span class="obs-track-title">Federal</span>
+              <span class="obs-status-pill" [class.pill-pending]="federalCategory === 'pending'" [class.pill-in-progress]="federalCategory === 'in_progress'" [class.pill-completed]="federalCategory === 'completed'" [class.pill-issues]="federalCategory === 'issues'">
+                {{ federalStatusLabel }}
+              </span>
+            </div>
+
+            <!-- Admin comment -->
+            @if (federalLastComment) {
+              <div class="obs-comment">
+                <span class="obs-comment-icon">💬</span>
+                <span>{{ federalLastComment }}</span>
+              </div>
+            }
+
+            <!-- Refund amount if available -->
+            @if (federalRefundAmount > 0) {
+              <div class="obs-refund-info">
+                <span class="obs-refund-label">Monto:</span>
+                <span class="obs-refund-amount">${{ federalRefundAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Refund confirmation (moved from old section) -->
+            @if (canConfirmFederal || federalConfirmed) {
+              <div class="obs-refund">
+                @if (federalConfirmed) {
+                  <div class="confirmed-badge">
+                    <span class="confirmed-icon">✓</span>
+                    <span>Recibido confirmado</span>
                   </div>
-                  <p class="card-desc">{{ step.description }}</p>
-                  <div class="card-footer">
-                    <span class="card-detail" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
-                      {{ step.detail }}
-                    </span>
-                    @if (step.date) {
-                      <span class="card-date">{{ step.date }}</span>
+                } @else {
+                  <button
+                    class="btn-confirm"
+                    (click)="confirmFederalRefund()"
+                    [disabled]="isConfirmingFederal"
+                  >
+                    @if (isConfirmingFederal) {
+                      <span class="btn-spinner"></span>
+                      <span>Confirmando...</span>
+                    } @else {
+                      <span>✓ Confirmo que recibi mi reembolso</span>
                     }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- State Card -->
+          <div class="obs-card" [class.obs-pending]="stateCategory === 'pending'" [class.obs-in-progress]="stateCategory === 'in_progress'" [class.obs-completed]="stateCategory === 'completed'" [class.obs-issues]="stateCategory === 'issues'">
+            <div class="obs-card-header">
+              <span class="obs-track-icon">🗽</span>
+              <span class="obs-track-title">Estatal</span>
+              <span class="obs-status-pill" [class.pill-pending]="stateCategory === 'pending'" [class.pill-in-progress]="stateCategory === 'in_progress'" [class.pill-completed]="stateCategory === 'completed'" [class.pill-issues]="stateCategory === 'issues'">
+                {{ stateStatusLabel }}
+              </span>
+            </div>
+
+            <!-- Admin comment -->
+            @if (stateLastComment) {
+              <div class="obs-comment">
+                <span class="obs-comment-icon">💬</span>
+                <span>{{ stateLastComment }}</span>
+              </div>
+            }
+
+            <!-- Refund amount if available -->
+            @if (stateRefundAmount > 0) {
+              <div class="obs-refund-info">
+                <span class="obs-refund-label">Monto:</span>
+                <span class="obs-refund-amount">${{ stateRefundAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Refund confirmation (moved from old section) -->
+            @if (canConfirmState || stateConfirmed) {
+              <div class="obs-refund">
+                @if (stateConfirmed) {
+                  <div class="confirmed-badge">
+                    <span class="confirmed-icon">✓</span>
+                    <span>Recibido confirmado</span>
                   </div>
-                </div>
+                } @else {
+                  <button
+                    class="btn-confirm"
+                    (click)="confirmStateRefund()"
+                    [disabled]="isConfirmingState"
+                  >
+                    @if (isConfirmingState) {
+                      <span class="btn-spinner"></span>
+                      <span>Confirmando...</span>
+                    } @else {
+                      <span>✓ Confirmo que recibi mi reembolso</span>
+                    }
+                  </button>
+                }
               </div>
             }
           </div>
         </div>
-      </div>
 
-      <!-- ESTATAL TRACK (Right) -->
-      <div class="track estatal-track" #stateTrack>
-        <div class="track-header estatal">
-          <span class="track-icon">🗽</span>
-          <h2>Estatal</h2>
-          <div class="track-progress">
-            <span>{{ estatalProgressPercent }}%</span>
-            <div class="track-progress-bar">
-              <div class="track-progress-fill estatal" [style.width.%]="estatalProgressPercent"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="track-timeline">
-          <div class="track-line estatal">
-            <div class="track-line-fill estatal" [style.height.%]="estatalProgressPercent"></div>
-          </div>
-          <div class="track-steps">
-            @for (step of estatalSteps; track step.id; let i = $index) {
-              <div
-                class="track-step"
-                [class.completed]="step.status === 'completed'"
-                [class.active]="step.status === 'active'"
-                [class.rejected]="step.status === 'rejected'"
-                [class.pending]="step.status === 'pending'"
-              >
-                <div class="step-dot estatal">
-                  @if (step.status === 'completed') {
-                    <span class="dot-icon">✓</span>
-                  } @else if (step.status === 'rejected') {
-                    <span class="dot-icon rejected">✗</span>
-                  } @else if (step.status === 'active') {
-                    <span class="dot-icon active">●</span>
-                  } @else {
-                    <span class="dot-number">{{ i + 1 }}</span>
-                  }
-                </div>
-                <div class="step-card">
-                  <div class="step-card-header">
-                    <span class="card-icon">{{ step.icon }}</span>
-                    <span class="card-title">{{ step.title }}</span>
-                  </div>
-                  <p class="card-desc">{{ step.description }}</p>
-                  <div class="card-footer">
-                    <span class="card-detail" [class.success]="step.status === 'completed'" [class.error]="step.status === 'rejected'">
-                      {{ step.detail }}
-                    </span>
-                    @if (step.date) {
-                      <span class="card-date">{{ step.date }}</span>
-                    }
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- REFUND CONFIRMATION SECTION -->
-    @if (canConfirmFederal || canConfirmState || hasUnpaidFee) {
-      <div class="refund-confirmation-section">
-        <div class="confirmation-header">
-          <span class="confirmation-icon">💰</span>
-          <h2>Confirmacion de Reembolso</h2>
-        </div>
-
-        <!-- Federal Confirmation Card -->
-        @if (canConfirmFederal || federalConfirmed) {
-          <div class="confirmation-card" [class.confirmed]="federalConfirmed">
-            <div class="card-track-badge federal">Federal</div>
-            <div class="confirmation-content">
-              <div class="refund-info">
-                <span class="refund-label">Monto depositado:</span>
-                <span class="refund-amount">${{ (profileData?.taxCase?.federalActualRefund || 0).toLocaleString() }}</span>
-              </div>
-              @if (federalConfirmed) {
-                <div class="confirmed-badge">
-                  <span class="confirmed-icon">✓</span>
-                  <span>Recibido confirmado</span>
-                </div>
-              } @else {
-                <button
-                  class="btn-confirm"
-                  (click)="confirmFederalRefund()"
-                  [disabled]="isConfirmingFederal"
-                >
-                  @if (isConfirmingFederal) {
-                    <span class="btn-spinner"></span>
-                    <span>Confirmando...</span>
-                  } @else {
-                    <span>✓ Confirmo que recibi mi reembolso federal</span>
-                  }
-                </button>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- State Confirmation Card -->
-        @if (canConfirmState || stateConfirmed) {
-          <div class="confirmation-card" [class.confirmed]="stateConfirmed">
-            <div class="card-track-badge state">Estatal</div>
-            <div class="confirmation-content">
-              <div class="refund-info">
-                <span class="refund-label">Monto depositado:</span>
-                <span class="refund-amount">${{ (profileData?.taxCase?.stateActualRefund || 0).toLocaleString() }}</span>
-              </div>
-              @if (stateConfirmed) {
-                <div class="confirmed-badge">
-                  <span class="confirmed-icon">✓</span>
-                  <span>Recibido confirmado</span>
-                </div>
-              } @else {
-                <button
-                  class="btn-confirm"
-                  (click)="confirmStateRefund()"
-                  [disabled]="isConfirmingState"
-                >
-                  @if (isConfirmingState) {
-                    <span class="btn-spinner"></span>
-                    <span>Confirmando...</span>
-                  } @else {
-                    <span>✓ Confirmo que recibi mi reembolso estatal</span>
-                  }
-                </button>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Payment Section (shows after confirmation) -->
+        <!-- Payment Section (shows after confirmation, inside observaciones) -->
         @if (hasUnpaidFee) {
           <div class="payment-section">
             <div class="payment-header">
@@ -437,7 +354,6 @@
             </div>
 
             <div class="payment-methods">
-              <!-- Zelle (Primary) -->
               <div class="payment-method primary">
                 <div class="method-header">
                   <span class="method-badge recommended">Recomendado</span>
@@ -461,7 +377,6 @@
                 </div>
               </div>
 
-              <!-- Other Methods (Expandable) -->
               <details class="other-methods">
                 <summary class="other-methods-toggle">
                   <span>Otros métodos de pago</span>
@@ -484,6 +399,21 @@
               <span class="notice-icon">ℹ️</span>
               <span class="notice-text">Una vez realizado el pago, nuestro equipo verificara la transaccion y actualizara tu estado.</span>
             </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ===== STEP 3: COMPLETADO ===== -->
+    @if (isFullyCompleted) {
+      <div class="completado-section" #completadoSection>
+        <div class="completado-icon">🎉</div>
+        <h2 class="completado-title">¡Proceso Completado!</h2>
+        <p class="completado-message">Tus reembolsos Federal y Estatal han sido depositados exitosamente.</p>
+        @if (actualRefund) {
+          <div class="completado-amount">
+            <span class="completado-amount-label">Monto Total Recibido</span>
+            <span class="completado-amount-value">${{ actualRefund.toLocaleString() }}</span>
           </div>
         }
       </div>

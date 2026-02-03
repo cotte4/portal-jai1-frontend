@@ -7,6 +7,109 @@ import { FederalStatusNew, StateStatusNew, CaseStatus } from '../models';
 export type DisplayStatus = 'pending' | 'active' | 'completed' | 'rejected';
 
 /**
+ * Observation category for card styling in the 3-stage tracking view
+ */
+export type ObservationCategory = 'pending' | 'in_progress' | 'completed' | 'issues';
+
+/**
+ * Maps FederalStatusNew to a Spanish UI label for the client-facing tracking
+ */
+export function mapFederalStatusToSpanishLabel(status: FederalStatusNew | string | null | undefined): string {
+  if (!status) return 'Pendiente';
+
+  switch (status) {
+    case FederalStatusNew.IN_PROCESS:
+    case 'in_process':
+      return 'En proceso';
+    case FederalStatusNew.IN_VERIFICATION:
+    case 'in_verification':
+      return 'En verificación';
+    case FederalStatusNew.VERIFICATION_IN_PROGRESS:
+    case 'verification_in_progress':
+      return 'Verificación en progreso';
+    case 'verification_letter_sent':
+      return 'Carta de verificación enviada';
+    case FederalStatusNew.CHECK_IN_TRANSIT:
+    case 'check_in_transit':
+      return 'Cheque en camino';
+    case 'deposit_pending':
+      return 'Depósito pendiente';
+    case FederalStatusNew.ISSUES:
+    case 'issues':
+      return 'Problemas detectados';
+    case FederalStatusNew.TAXES_SENT:
+    case 'taxes_sent':
+      return 'Reembolso enviado';
+    case FederalStatusNew.TAXES_COMPLETED:
+    case 'taxes_completed':
+      return 'Completado';
+    default:
+      return 'Pendiente';
+  }
+}
+
+/**
+ * Maps StateStatusNew to a Spanish UI label for the client-facing tracking
+ */
+export function mapStateStatusToSpanishLabel(status: StateStatusNew | string | null | undefined): string {
+  if (!status) return 'Pendiente';
+
+  switch (status) {
+    case StateStatusNew.IN_PROCESS:
+    case 'in_process':
+      return 'En proceso';
+    case StateStatusNew.IN_VERIFICATION:
+    case 'in_verification':
+      return 'En verificación';
+    case StateStatusNew.VERIFICATION_IN_PROGRESS:
+    case 'verification_in_progress':
+      return 'Verificación en progreso';
+    case 'verification_letter_sent':
+      return 'Carta de verificación enviada';
+    case StateStatusNew.CHECK_IN_TRANSIT:
+    case 'check_in_transit':
+      return 'Cheque en camino';
+    case 'deposit_pending':
+      return 'Depósito pendiente';
+    case StateStatusNew.ISSUES:
+    case 'issues':
+      return 'Problemas detectados';
+    case StateStatusNew.TAXES_SENT:
+    case 'taxes_sent':
+      return 'Reembolso enviado';
+    case StateStatusNew.TAXES_COMPLETED:
+    case 'taxes_completed':
+      return 'Completado';
+    default:
+      return 'Pendiente';
+  }
+}
+
+/**
+ * Categorizes a federal or state status into an ObservationCategory for card styling
+ */
+export function getStatusCategory(status: FederalStatusNew | StateStatusNew | string | null | undefined): ObservationCategory {
+  if (!status) return 'pending';
+
+  switch (status) {
+    case 'taxes_completed':
+      return 'completed';
+    case 'issues':
+      return 'issues';
+    case 'in_process':
+    case 'in_verification':
+    case 'verification_in_progress':
+    case 'verification_letter_sent':
+    case 'check_in_transit':
+    case 'deposit_pending':
+    case 'taxes_sent':
+      return 'in_progress';
+    default:
+      return 'pending';
+  }
+}
+
+/**
  * Maps Federal status to display status
  *
  * @param status - FederalStatusNew enum value or string

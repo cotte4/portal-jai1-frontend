@@ -414,6 +414,65 @@
       </div>
     </section>
 
+    <!-- Per-Track Commission Cards -->
+    <div class="commission-cards" *ngIf="client.taxCases && client.taxCases.length > 0">
+      <!-- Federal Commission -->
+      <div class="commission-card" [class.commission-paid]="client.taxCases[0].federalCommissionPaid">
+        <div class="commission-header">
+          <span class="commission-track-label">Federal</span>
+          <span class="commission-badge" [class.badge-paid]="client.taxCases[0].federalCommissionPaid" [class.badge-unpaid]="!client.taxCases[0].federalCommissionPaid">
+            {{ client.taxCases[0].federalCommissionPaid ? 'Pagada' : 'Pendiente' }}
+          </span>
+        </div>
+        <div class="commission-amount">
+          <span class="commission-label">Comisión (11%)</span>
+          <span class="commission-value">{{ federalCommissionAmount | currency:'USD' }}</span>
+        </div>
+        <div class="commission-refund-info" *ngIf="client.taxCases[0].federalActualRefund">
+          <span class="commission-refund-label">Reembolso federal:</span>
+          <span class="commission-refund-value">{{ client.taxCases[0].federalActualRefund | currency:'USD' }}</span>
+        </div>
+        <button class="btn-commission-mark" (click)="openFederalCommissionConfirm()" [disabled]="isMarkingFederalCommission || client.taxCases[0].federalCommissionPaid" *ngIf="!client.taxCases[0].federalCommissionPaid">
+          @if (isMarkingFederalCommission) {
+            <span class="spinner"></span> Procesando...
+          } @else {
+            Marcar Pagada
+          }
+        </button>
+        <div class="commission-paid-date" *ngIf="client.taxCases[0].federalCommissionPaidAt">
+          Pagada el {{ client.taxCases[0].federalCommissionPaidAt | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+
+      <!-- State Commission -->
+      <div class="commission-card" [class.commission-paid]="client.taxCases[0].stateCommissionPaid">
+        <div class="commission-header">
+          <span class="commission-track-label">Estatal</span>
+          <span class="commission-badge" [class.badge-paid]="client.taxCases[0].stateCommissionPaid" [class.badge-unpaid]="!client.taxCases[0].stateCommissionPaid">
+            {{ client.taxCases[0].stateCommissionPaid ? 'Pagada' : 'Pendiente' }}
+          </span>
+        </div>
+        <div class="commission-amount">
+          <span class="commission-label">Comisión (11%)</span>
+          <span class="commission-value">{{ stateCommissionAmount | currency:'USD' }}</span>
+        </div>
+        <div class="commission-refund-info" *ngIf="client.taxCases[0].stateActualRefund">
+          <span class="commission-refund-label">Reembolso estatal:</span>
+          <span class="commission-refund-value">{{ client.taxCases[0].stateActualRefund | currency:'USD' }}</span>
+        </div>
+        <button class="btn-commission-mark" (click)="openStateCommissionConfirm()" [disabled]="isMarkingStateCommission || client.taxCases[0].stateCommissionPaid" *ngIf="!client.taxCases[0].stateCommissionPaid">
+          @if (isMarkingStateCommission) {
+            <span class="spinner"></span> Procesando...
+          } @else {
+            Marcar Pagada
+          }
+        </button>
+        <div class="commission-paid-date" *ngIf="client.taxCases[0].stateCommissionPaidAt">
+          Pagada el {{ client.taxCases[0].stateCommissionPaidAt | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </div>
+
     <!-- Action Buttons -->
     <div class="action-buttons">
       <button class="btn-action btn-paid" (click)="markPaid()" [disabled]="isMarkingPaid" *ngIf="client.taxCases && client.taxCases.length > 0 && !client.taxCases[0].paymentReceived">
@@ -421,7 +480,7 @@
           <span class="spinner"></span>
           <span>Procesando...</span>
         } @else {
-          Marcar Pago Recibido
+          Marcar Todo Pagado
         }
       </button>
       <button class="btn-action btn-delete" (click)="deleteClient()" [disabled]="isDeleting">
@@ -1060,6 +1119,46 @@
         <button class="btn-cancel" (click)="cancelMarkPaid()">Cancelar</button>
         <button class="btn-confirm-action" (click)="confirmMarkPaid()" [disabled]="isMarkingPaid">
           {{ isMarkingPaid ? 'Procesando...' : 'Confirmar Pago' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Federal Commission Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showFederalCommissionConfirm" (click)="cancelFederalCommission()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Comisión Federal</h3>
+        <button class="modal-close" (click)="cancelFederalCommission()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Marcar la comisión federal como pagada?</p>
+        <p class="confirm-warning">Monto: {{ federalCommissionAmount | currency:'USD' }} (11% de {{ client?.taxCases?.[0]?.federalActualRefund | currency:'USD' }})</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelFederalCommission()">Cancelar</button>
+        <button class="btn-confirm-action" (click)="confirmFederalCommission()" [disabled]="isMarkingFederalCommission">
+          {{ isMarkingFederalCommission ? 'Procesando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- State Commission Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showStateCommissionConfirm" (click)="cancelStateCommission()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Comisión Estatal</h3>
+        <button class="modal-close" (click)="cancelStateCommission()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-question">¿Marcar la comisión estatal como pagada?</p>
+        <p class="confirm-warning">Monto: {{ stateCommissionAmount | currency:'USD' }} (11% de {{ client?.taxCases?.[0]?.stateActualRefund | currency:'USD' }})</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelStateCommission()">Cancelar</button>
+        <button class="btn-confirm-action" (click)="confirmStateCommission()" [disabled]="isMarkingStateCommission">
+          {{ isMarkingStateCommission ? 'Procesando...' : 'Confirmar' }}
         </button>
       </div>
     </div>
