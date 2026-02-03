@@ -698,18 +698,21 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Calculate total fee owed (11% of confirmed refunds)
+   * Calculate total fee owed (using stored per-track commission rates)
    */
   get totalFeeOwed(): number {
     const taxCase = this.profileData?.taxCase;
     if (!taxCase) return 0;
 
+    const fedRate = taxCase.federalCommissionRate || 0.11;
+    const stateRate = taxCase.stateCommissionRate || 0.11;
+
     let total = 0;
     if (taxCase.federalRefundReceived && taxCase.federalActualRefund) {
-      total += Number(taxCase.federalActualRefund) * 0.11;
+      total += Number(taxCase.federalActualRefund) * fedRate;
     }
     if (taxCase.stateRefundReceived && taxCase.stateActualRefund) {
-      total += Number(taxCase.stateActualRefund) * 0.11;
+      total += Number(taxCase.stateActualRefund) * stateRate;
     }
     return Math.round(total * 100) / 100;
   }

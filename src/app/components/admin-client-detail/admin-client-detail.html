@@ -334,6 +334,13 @@
               <span class="field-hint">Ingrese al presentar taxes</span>
             </div>
             <div class="track-field">
+              <label>Comision</label>
+              <select [(ngModel)]="federalCommissionRate">
+                <option [ngValue]="0.11">11% (Normal)</option>
+                <option [ngValue]="0.22">22% (Verificacion)</option>
+              </select>
+            </div>
+            <div class="track-field">
               <label>Fecha Deposito</label>
               <input type="date" [(ngModel)]="federalDepositDate">
             </div>
@@ -383,6 +390,13 @@
               <label>Monto Real ($) <span class="entry-hint" title="Ingresar al momento de presentar los taxes">*</span></label>
               <input type="number" [(ngModel)]="stateActualRefund" (ngModelChange)="stateRefundDirty = true" placeholder="0.00" step="0.01" min="0">
               <span class="field-hint">Ingrese al presentar taxes</span>
+            </div>
+            <div class="track-field">
+              <label>Comision</label>
+              <select [(ngModel)]="stateCommissionRate">
+                <option [ngValue]="0.11">11% (Normal)</option>
+                <option [ngValue]="0.22">22% (Verificacion)</option>
+              </select>
             </div>
             <div class="track-field">
               <label>Fecha Deposito</label>

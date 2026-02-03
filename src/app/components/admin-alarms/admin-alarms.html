@@ -1,4 +1,4 @@
-<div class="alarms-page">
+<div class="alarms-page" [class.dark-mode]="darkMode">
   <!-- Header -->
   <header class="page-header">
     <div class="header-left">
@@ -13,6 +13,29 @@
       </div>
     </div>
     <div class="header-actions">
+      <div class="sync-indicator">
+        <span class="sync-time">{{ formatRelativeTime(lastSyncAt) }}</span>
+        <button
+          class="sync-all-btn"
+          (click)="triggerFullSync()"
+          [disabled]="isSyncing"
+          title="Sincronizar todas las alarmas"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isSyncing">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          {{ isSyncing ? 'Sincronizando...' : 'Sincronizar todo' }}
+        </button>
+      </div>
+      <button class="help-toggle" (click)="toggleHelp()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ showHelp ? 'Ocultar ayuda' : 'Ayuda' }}
+      </button>
       <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6M1 20v-6h6"/>
@@ -22,6 +45,91 @@
       </button>
     </div>
   </header>
+
+  <!-- Help Banner -->
+  <div class="help-banner" *ngIf="showHelp">
+    <div class="help-section">
+      <h3>Que es esto?</h3>
+      <p>Este sistema monitorea cuanto tiempo llevan los casos del IRS/estado en ciertos estados. Si un caso tarda demasiado, se genera una alarma para que tomes accion.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>Tipos de alarma</h3>
+      <div class="help-item">
+        <span class="help-badge warning">Posible Verificacion (Federal)</span>
+        <p>El IRS lleva mas de {{ defaults.POSSIBLE_VERIFICATION_FEDERAL }} dias procesando el caso. Puede indicar que entro en verificacion.</p>
+      </div>
+      <div class="help-item">
+        <span class="help-badge warning">Posible Verificacion (Estatal)</span>
+        <p>El estado lleva mas de {{ defaults.POSSIBLE_VERIFICATION_STATE }} dias procesando. Mismo concepto.</p>
+      </div>
+      <div class="help-item">
+        <span class="help-badge critical">Verificacion Excedida</span>
+        <p>CRITICO: El caso lleva mas de {{ defaults.VERIFICATION_TIMEOUT }} dias en verificacion activa. Requiere seguimiento urgente.</p>
+      </div>
+      <div class="help-item">
+        <span class="help-badge warning">Carta Sin Respuesta</span>
+        <p>Se envio una carta al IRS/estado hace mas de {{ defaults.LETTER_SENT_TIMEOUT }} dias sin respuesta.</p>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h3>Flujo de trabajo</h3>
+      <div class="help-workflow">
+        <div class="workflow-step">
+          <span class="resolution-badge resolution-active">Activa</span>
+          <span>La alarma fue detectada. Necesitas revisarla.</span>
+        </div>
+        <div class="workflow-step">
+          <span class="resolution-badge resolution-acknowledged">Vista</span>
+          <span>Marcaste que la viste. El caso sigue en seguimiento.</span>
+        </div>
+        <div class="workflow-step">
+          <span class="resolution-badge resolution-resolved">Resuelta</span>
+          <span>Tomaste accion y la cerraste manualmente.</span>
+        </div>
+        <div class="workflow-step">
+          <span class="resolution-badge resolution-auto">Auto-resuelta</span>
+          <span>El estado del caso cambio y la alarma ya no aplica.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h3>Umbrales por defecto</h3>
+      <table class="thresholds-legend">
+        <thead>
+          <tr>
+            <th>Alarma</th>
+            <th>Dias</th>
+            <th>Nivel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Posible Verificacion (Federal)</td>
+            <td>{{ defaults.POSSIBLE_VERIFICATION_FEDERAL }}</td>
+            <td><span class="help-badge warning small">Advertencia</span></td>
+          </tr>
+          <tr>
+            <td>Posible Verificacion (Estatal)</td>
+            <td>{{ defaults.POSSIBLE_VERIFICATION_STATE }}</td>
+            <td><span class="help-badge warning small">Advertencia</span></td>
+          </tr>
+          <tr>
+            <td>Verificacion Excedida</td>
+            <td>{{ defaults.VERIFICATION_TIMEOUT }}</td>
+            <td><span class="help-badge critical small">Critica</span></td>
+          </tr>
+          <tr>
+            <td>Carta Sin Respuesta</td>
+            <td>{{ defaults.LETTER_SENT_TIMEOUT }}</td>
+            <td><span class="help-badge warning small">Advertencia</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- Stats Cards -->
   <div class="stats-row" *ngIf="hasLoaded">
@@ -184,6 +292,9 @@
               <span class="alarm-meta">
                 {{ alarm.track === 'federal' ? 'Federal' : 'Estatal' }} -
                 {{ alarm.daysSinceStatusChange }} dias (umbral: {{ alarm.threshold }})
+              </span>
+              <span class="action-hint" *ngIf="getAlarmActionHint(alarm.type)">
+                {{ getAlarmActionHint(alarm.type) }}
               </span>
             </div>
           </div>

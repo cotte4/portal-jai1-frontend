@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { FederalStatusNew, StateStatusNew } from '../../core/models';
 import { getErrorMessage } from '../../core/utils/error-handler';
+import { ThemeService } from '../../core/services/theme.service';
 import * as XLSX from 'xlsx';
 
 interface DelayClient {
@@ -17,6 +18,8 @@ interface DelayClient {
   federalDepositDate: string | null;
   stateDepositDate: string | null;
   wentThroughVerification: boolean;
+  federalVerification: boolean;
+  stateVerification: boolean;
   federalDelayDays: number | null;
   stateDelayDays: number | null;
   federalStatus: FederalStatusNew | null;
@@ -39,7 +42,10 @@ export class AdminDelays implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   clients: DelayClient[] = [];
   filteredClients: DelayClient[] = [];
@@ -59,7 +65,11 @@ export class AdminDelays implements OnInit, OnDestroy {
   // Stats
   avgFederalDelay: number = 0;
   avgStateDelay: number = 0;
-  verificationCount: number = 0;
+  federalVerificationCount: number = 0;
+  stateVerificationCount: number = 0;
+
+  // Help banner
+  showHelp: boolean = false;
 
   ngOnInit() {
     this.loadDelaysData();
@@ -137,7 +147,8 @@ export class AdminDelays implements OnInit, OnDestroy {
       ? Math.round(stateDelays.reduce((a, b) => a + b, 0) / stateDelays.length)
       : 0;
 
-    this.verificationCount = this.clients.filter(c => c.wentThroughVerification).length;
+    this.federalVerificationCount = this.clients.filter(c => c.federalVerification).length;
+    this.stateVerificationCount = this.clients.filter(c => c.stateVerification).length;
   }
 
   getInitials(name: string): string {
@@ -166,6 +177,10 @@ export class AdminDelays implements OnInit, OnDestroy {
     if (days <= 14) return 'delay-fast';
     if (days <= 30) return 'delay-normal';
     return 'delay-slow';
+  }
+
+  toggleHelp() {
+    this.showHelp = !this.showHelp;
   }
 
   viewClient(clientId: string) {
@@ -204,7 +219,8 @@ export class AdminDelays implements OnInit, OnDestroy {
       'Presentacion': client.taxesFiledAt ? this.formatDate(client.taxesFiledAt) : '---',
       'Recibo Federal': client.federalDepositDate ? this.formatDate(client.federalDepositDate) : '---',
       'Recibo Estatal': client.stateDepositDate ? this.formatDate(client.stateDepositDate) : '---',
-      'Verificacion': client.wentThroughVerification ? 'Si' : 'No',
+      'Verif. Federal': client.federalVerification ? 'Si' : 'No',
+      'Verif. Estatal': client.stateVerification ? 'Si' : 'No',
       'Demora Federal': client.federalDelayDays ?? '---',
       'Demora Estatal': client.stateDelayDays ?? '---'
     }));

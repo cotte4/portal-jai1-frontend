@@ -8,6 +8,7 @@ import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../core/utils/error-handler';
 import { AdminService } from '../../core/services/admin.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface ClientAccount {
   id: string;
@@ -40,7 +41,10 @@ export class AdminAccounts implements OnInit, OnDestroy {
   private adminService = inject(AdminService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   accounts: ClientAccount[] = [];
   filteredAccounts: ClientAccount[] = [];

@@ -594,3 +594,172 @@
     max-width: 100%;
   }
 }
+
+/* ==================== DARK MODE ==================== */
+
+.admin-container.dark-mode {
+  background: #0f172a;
+}
+
+.admin-container.dark-mode .admin-header {
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+
+.admin-container.dark-mode .btn-back {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.admin-container.dark-mode .btn-back:hover {
+  border-color: #6366f1;
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .btn-refresh {
+  background: #6366f1;
+}
+
+.admin-container.dark-mode .btn-refresh:hover:not(:disabled) {
+  background: #4f46e5;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.admin-container.dark-mode .btn-refresh:disabled {
+  background: #334155;
+}
+
+.admin-container.dark-mode .page-header h1 {
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .page-header p {
+  color: #94a3b8;
+}
+
+.admin-container.dark-mode .search-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .search-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.admin-container.dark-mode .search-input::placeholder {
+  color: #64748b;
+}
+
+.admin-container.dark-mode .accounts-section {
+  background: #1e293b;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-container.dark-mode .accounts-table thead {
+  background: #0f172a;
+}
+
+.admin-container.dark-mode .accounts-table th {
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+
+.admin-container.dark-mode .accounts-table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.admin-container.dark-mode .accounts-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-container.dark-mode .accounts-table td {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.admin-container.dark-mode .user-name {
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .user-email {
+  color: #64748b;
+}
+
+.admin-container.dark-mode .credential-cell {
+  background: #334155;
+}
+
+.admin-container.dark-mode .credential-cell.clickable:hover {
+  background: #475569;
+}
+
+.admin-container.dark-mode .credential-cell.copied {
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.admin-container.dark-mode .credential-cell.revealed {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #6366f1;
+}
+
+.admin-container.dark-mode .credential-value {
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .loading-state {
+  background: #1e293b;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-container.dark-mode .loading-state p {
+  color: #94a3b8;
+}
+
+.admin-container.dark-mode .spinner {
+  border-color: #334155;
+  border-top-color: #6366f1;
+}
+
+.admin-container.dark-mode .empty-state {
+  color: #94a3b8;
+}
+
+.admin-container.dark-mode .empty-state h3 {
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .empty-state p {
+  color: #64748b;
+}
+
+.admin-container.dark-mode .pagination-section {
+  border-top-color: #334155;
+}
+
+.admin-container.dark-mode .loaded-count {
+  color: #94a3b8;
+}
+
+.admin-container.dark-mode .more-available {
+  color: #64748b;
+}
+
+.admin-container.dark-mode .btn-load-more {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.admin-container.dark-mode .btn-load-more:hover:not(:disabled) {
+  background: #6366f1;
+  color: #f1f5f9;
+}
+
+.admin-container.dark-mode .error-banner {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.admin-container.dark-mode .error-message {
+  color: #fca5a5;
+}

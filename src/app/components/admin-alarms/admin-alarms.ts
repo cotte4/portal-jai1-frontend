@@ -13,9 +13,11 @@ import {
   AlarmLevel,
   ThresholdsResponse,
   SetThresholdsRequest,
-  DEFAULT_ALARM_THRESHOLDS
+  DEFAULT_ALARM_THRESHOLDS,
+  StatusAlarm
 } from '../../core/models';
 import { getErrorMessage } from '../../core/utils/error-handler';
+import { ThemeService } from '../../core/services/theme.service';
 
 type TabType = 'active' | 'history';
 
@@ -29,7 +31,10 @@ export class AdminAlarms implements OnInit, OnDestroy {
   private router = inject(Router);
   private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   // Tab state
   activeTab: TabType = 'active';
@@ -76,8 +81,17 @@ export class AdminAlarms implements OnInit, OnDestroy {
   // Default thresholds for reference
   defaults = DEFAULT_ALARM_THRESHOLDS;
 
+  // Help banner
+  showHelp = false;
+
+  // Sync status
+  lastSyncAt: string | null = null;
+  syncStats: { casesProcessed: number; alarmsTriggered: number; alarmsAutoResolved: number; errors: number } | null = null;
+  isSyncing = false;
+
   ngOnInit() {
     this.loadDashboard();
+    this.loadSyncStatus();
   }
 
   // ===== TAB NAVIGATION =====
@@ -356,7 +370,91 @@ export class AdminAlarms implements OnInit, OnDestroy {
     );
   }
 
+  // ===== SYNC STATUS =====
+
+  loadSyncStatus() {
+    this.subscriptions.add(
+      this.adminService.getAlarmSyncStatus().subscribe({
+        next: (status) => {
+          this.lastSyncAt = status.lastSyncAt;
+          this.syncStats = {
+            casesProcessed: status.casesProcessed,
+            alarmsTriggered: status.alarmsTriggered,
+            alarmsAutoResolved: status.alarmsAutoResolved,
+            errors: status.errors,
+          };
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          // Silently fail — sync status is non-critical
+        }
+      })
+    );
+  }
+
+  triggerFullSync() {
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+    this.cdr.detectChanges();
+
+    this.subscriptions.add(
+      this.adminService.triggerAlarmSyncAll().pipe(
+        finalize(() => {
+          this.isSyncing = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: (status) => {
+          this.lastSyncAt = status.lastSyncAt;
+          this.syncStats = {
+            casesProcessed: status.casesProcessed,
+            alarmsTriggered: status.alarmsTriggered,
+            alarmsAutoResolved: status.alarmsAutoResolved,
+            errors: status.errors,
+          };
+          // Refresh dashboard after sync
+          this.loadDashboard();
+          if (this.hasLoadedHistory) {
+            this.loadHistory();
+          }
+        },
+        error: () => {
+          // Silently fail
+        }
+      })
+    );
+  }
+
+  toggleHelp() {
+    this.showHelp = !this.showHelp;
+  }
+
   // ===== HELPERS =====
+
+  getAlarmActionHint(type: string): string {
+    const hints: Record<string, string> = {
+      possible_verification_federal: 'Verificar con el IRS si entro en verificacion',
+      possible_verification_state: 'Verificar con el estado si entro en verificacion',
+      verification_timeout: 'Llamar al IRS/estado para pedir actualizacion del caso',
+      letter_sent_timeout: 'Hacer seguimiento de la carta enviada',
+    };
+    return hints[type] || '';
+  }
+
+  formatRelativeTime(dateStr: string | null): string {
+    if (!dateStr) return 'Nunca sincronizado';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Hace un momento';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    return `Hace ${diffDays}d`;
+  }
 
   getInitials(name: string): string {
     const parts = name.split(' ');

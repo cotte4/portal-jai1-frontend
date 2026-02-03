@@ -364,6 +364,40 @@ export class AdminService {
     );
   }
 
+  /**
+   * Get the status of the last alarm sync run
+   */
+  getAlarmSyncStatus(): Observable<{
+    lastSyncAt: string | null;
+    casesProcessed: number;
+    alarmsTriggered: number;
+    alarmsAutoResolved: number;
+    errors: number;
+    isRunning: boolean;
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/admin/alarms/sync-status`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
+  /**
+   * Manually trigger a full alarm sync for all eligible cases
+   */
+  triggerAlarmSyncAll(): Observable<{
+    lastSyncAt: string | null;
+    casesProcessed: number;
+    alarmsTriggered: number;
+    alarmsAutoResolved: number;
+    errors: number;
+    isRunning: boolean;
+  }> {
+    return this.http.post<any>(`${this.apiUrl}/admin/alarms/sync-all`, {}).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
   // ============= CLIENT CREDENTIALS (SECURE ACCESS) =============
 
   /**

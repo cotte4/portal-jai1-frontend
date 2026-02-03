@@ -962,11 +962,24 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // ===== MISSING DOCUMENTS CHECK =====
 
+  showMissingDocsConfirm: boolean = false;
+
   checkMissingDocuments() {
     if (this.isCheckingMissingDocs) return;
+    this.showMissingDocsConfirm = true;
+    this.cdr.detectChanges();
+  }
 
+  cancelMissingDocsCheck() {
+    this.showMissingDocsConfirm = false;
+    this.cdr.detectChanges();
+  }
+
+  confirmMissingDocsCheck() {
+    this.showMissingDocsConfirm = false;
     this.isCheckingMissingDocs = true;
     this.missingDocsResult = null;
+    this.cdr.detectChanges();
 
     this.adminService.checkMissingDocuments(3, 3).subscribe({
       next: (result) => {

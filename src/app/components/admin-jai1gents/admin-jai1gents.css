@@ -523,3 +523,216 @@
     min-width: 700px;
   }
 }
+
+/* ==================== DARK MODE ==================== */
+.admin-page.dark-mode {
+  background: #0f172a;
+}
+
+.admin-page.dark-mode .page-header {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .page-header h1 {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .btn-back {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .btn-back:hover {
+  background: #475569;
+}
+
+.admin-page.dark-mode .tabs {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .tab {
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .tab:hover {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .tab.active {
+  color: #f472b6;
+  border-bottom-color: #f472b6;
+}
+
+.admin-page.dark-mode .page-content {
+  background: transparent;
+}
+
+.admin-page.dark-mode .search-bar input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.admin-page.dark-mode .search-bar input:focus {
+  border-color: #6366f1;
+}
+
+.admin-page.dark-mode .btn-search {
+  background: #6366f1;
+}
+
+.admin-page.dark-mode .actions-bar select {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.admin-page.dark-mode .table-container {
+  background: #1e293b;
+}
+
+.admin-page.dark-mode .data-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .data-table td {
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.admin-page.dark-mode .data-table tr.used {
+  background: #0f172a;
+}
+
+.admin-page.dark-mode .name-cell {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .email-cell {
+  color: #94a3b8 !important;
+}
+
+.admin-page.dark-mode .code-cell .code-badge,
+.admin-page.dark-mode .code-display {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
+.admin-page.dark-mode .earnings-cell {
+  color: #4ade80 !important;
+}
+
+.admin-page.dark-mode .payment-status.ok {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .payment-status.pending {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.admin-page.dark-mode .status-badge.available {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .status-badge.used {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .btn-copy-small {
+  background: #334155;
+  color: #a5b4fc;
+}
+
+.admin-page.dark-mode .btn-copy-small:hover {
+  background: #475569;
+}
+
+.admin-page.dark-mode .loading-state,
+.admin-page.dark-mode .empty-state {
+  background: #1e293b;
+}
+
+.admin-page.dark-mode .spinner {
+  border-color: #334155;
+  border-top-color: #6366f1;
+}
+
+.admin-page.dark-mode .empty-state p {
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.admin-page.dark-mode .modal {
+  background: #1e293b;
+}
+
+.admin-page.dark-mode .modal-header {
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .modal-header h2 {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .btn-close {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .modal-body label {
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .modal-body input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.admin-page.dark-mode .modal-body input:focus {
+  border-color: #6366f1;
+}
+
+.admin-page.dark-mode .modal-body .hint {
+  color: #64748b;
+}
+
+.admin-page.dark-mode .success-message {
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .generated-code {
+  background: #0f172a;
+}
+
+.admin-page.dark-mode .generated-code span {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .btn-copy-inline {
+  background: #6366f1;
+}
+
+.admin-page.dark-mode .modal-footer {
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .btn-cancel {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .btn-copy-all {
+  background: #6366f1;
+}

@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Ticket, TicketMessage, TicketStatus, UserRole, TicketsPaginatedResponse } from '../../core/models';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-admin-tickets',
@@ -23,7 +24,10 @@ export class AdminTickets implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   // Expose enum to template
   readonly TicketStatus = TicketStatus;

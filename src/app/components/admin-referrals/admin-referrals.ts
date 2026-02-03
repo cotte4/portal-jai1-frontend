@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../core/utils/error-handler';
+import { ThemeService } from '../../core/services/theme.service';
 import * as XLSX from 'xlsx';
 
 interface ReferrerSummary {
@@ -13,7 +14,7 @@ interface ReferrerSummary {
   name: string;
   email: string;
   referralCode: string;
-  successfulReferrals: number;
+  totalReferrals: number;
   discountPercent: number;
   tier: number;
 }
@@ -35,7 +36,10 @@ export class AdminReferrals implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   referrers: ReferrerSummary[] = [];
   filteredReferrers: ReferrerSummary[] = [];
@@ -182,7 +186,7 @@ export class AdminReferrals implements OnInit, OnDestroy {
       'Nombre': referrer.name,
       'Email': referrer.email,
       'Codigo': referrer.referralCode,
-      'Referidos Exitosos': referrer.successfulReferrals,
+      'Referidos Exitosos': referrer.totalReferrals,
       'Descuento': `${referrer.discountPercent}%`,
       'Tier': this.getTierLabel(referrer.tier)
     }));

@@ -1,4 +1,4 @@
-<div class="admin-container">
+<div class="admin-container" [class.dark-mode]="darkMode">
   <!-- Header -->
   <header class="admin-header">
     <div class="header-content">
@@ -11,6 +11,14 @@
         <span class="admin-badge">Pagos</span>
       </div>
       <div class="header-right">
+        <button class="help-toggle" (click)="toggleHelp()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          {{ showHelp ? 'Ocultar ayuda' : 'Ayuda' }}
+        </button>
         <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting || clients.length === 0">
           {{ isExporting ? 'Exportando...' : 'Exportar Excel' }}
         </button>
@@ -37,6 +45,90 @@
       <div class="total-badge unpaid" *ngIf="unpaidHasLoaded && !errorMessage && activeTab === 'unpaid'">
         <span class="total-count">{{ unpaidTotals.clientCount }}</span>
         <span class="total-label">Pendientes de Pago</span>
+      </div>
+    </div>
+
+    <!-- Help Banner -->
+    <div class="help-banner" *ngIf="showHelp">
+      <div class="help-section">
+        <h3>Que es esto?</h3>
+        <p>Esta vista muestra todos los reembolsos (refunds) de los clientes y el calculo automatico de comisiones. Permite hacer seguimiento de cuanto recibe cada cliente y cuanto corresponde de comision.</p>
+      </div>
+
+      <div class="help-section">
+        <h3>Pestanas</h3>
+        <div class="help-columns">
+          <div class="help-column-item">
+            <strong>Todos los Pagos</strong>
+            <span>Vista completa de todos los clientes con sus montos de reembolso federal/estatal, comision calculada por caso, y lo que le corresponde recibir al cliente.</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Comisiones Pendientes</strong>
+            <span>Clientes que ya confirmaron haber recibido su reembolso pero todavia no se cobro la comision. Desde aqui podes marcar cada comision como pagada.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h3>Que significa cada columna</h3>
+        <div class="help-columns">
+          <div class="help-column-item">
+            <strong>Federal / State Taxes</strong>
+            <span>Monto del reembolso federal y estatal que recibe el cliente del IRS y del estado.</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Total Taxes</strong>
+            <span>Suma de ambos reembolsos (federal + estatal).</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Comision Fed. / Est.</strong>
+            <span>Porcentaje del reembolso federal y estatal que corresponde como comision (11% o 22% segun el caso).</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Total Comision</strong>
+            <span>Suma de ambas comisiones. Este es el monto total a cobrar por cliente.</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Cliente Recibe</strong>
+            <span>Lo que le queda al cliente despues de descontar la comision (Total Taxes - Total Comision).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h3>Estados de pago</h3>
+        <div class="color-legend">
+          <div class="legend-item">
+            <span class="legend-badge status-pending">Pendiente</span>
+            <span class="legend-text">El cliente aun no recibio el deposito de su reembolso.</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge status-deposited">Deposito Recibido</span>
+            <span class="legend-text">El cliente confirmo que recibio el deposito. Falta cobrar comision.</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge status-paid">Comision Pagada</span>
+            <span class="legend-text">La comision ya fue cobrada. Caso cerrado.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h3>Tarjetas de resumen</h3>
+        <div class="help-columns">
+          <div class="help-column-item">
+            <strong>Total Taxes (Refunds)</strong>
+            <span>Suma de todos los reembolsos federales y estatales de todos los clientes.</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Total Comision</strong>
+            <span>Suma de todas las comisiones. Este es el ingreso bruto total.</span>
+          </div>
+          <div class="help-column-item">
+            <strong>Total a Clientes</strong>
+            <span>Suma de lo que reciben todos los clientes despues de descontar comisiones.</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -81,7 +173,7 @@
         </div>
         <div class="summary-content">
           <div class="summary-value">{{ formatCurrency(totals.totalCommission) }}</div>
-          <div class="summary-label">Total Comision (11%)</div>
+          <div class="summary-label">Total Comision</div>
         </div>
       </div>
 
@@ -330,7 +422,7 @@
                   <span class="refund-value">{{ formatCurrency(client.federal.refundAmount) }}</span>
                 </div>
                 <div class="refund-info">
-                  <span class="refund-label">Comision (11%):</span>
+                  <span class="refund-label">Comision:</span>
                   <span class="refund-value commission">{{ formatCurrency(client.federal.commission) }}</span>
                 </div>
                 <div class="refund-info">
@@ -364,7 +456,7 @@
                   <span class="refund-value">{{ formatCurrency(client.state.refundAmount) }}</span>
                 </div>
                 <div class="refund-info">
-                  <span class="refund-label">Comision (11%):</span>
+                  <span class="refund-label">Comision:</span>
                   <span class="refund-value commission">{{ formatCurrency(client.state.commission) }}</span>
                 </div>
                 <div class="refund-info">

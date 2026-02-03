@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../core/utils/error-handler';
+import { ThemeService } from '../../core/services/theme.service';
 import * as XLSX from 'xlsx';
 
 interface PaymentClient {
@@ -100,7 +101,10 @@ export class AdminPayments implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
   private subscriptions = new Subscription();
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   // Tab state
   activeTab: 'all' | 'unpaid' = 'all';
@@ -143,6 +147,9 @@ export class AdminPayments implements OnInit, OnDestroy {
   isExporting: boolean = false;
   markingPaidClientId: string | null = null;
   markingPaidType: 'federal' | 'state' | null = null;
+
+  // Help banner
+  showHelp: boolean = false;
 
   ngOnInit() {
     this.loadPaymentsSummary();
@@ -348,6 +355,11 @@ export class AdminPayments implements OnInit, OnDestroy {
     if (client.commissionPaid) return 'Comision Pagada';
     if (client.federalDepositDate || client.stateDepositDate) return 'Deposito Recibido';
     return 'Pendiente';
+  }
+
+  toggleHelp() {
+    this.showHelp = !this.showHelp;
+    this.cdr.detectChanges();
   }
 
   viewClient(clientId: string) {

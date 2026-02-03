@@ -15,6 +15,7 @@ import {
   InviteCode,
 } from '../../core/services/jai1gent.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-admin-jai1gents',
@@ -28,6 +29,9 @@ export class AdminJai1gents implements OnInit {
   private jai1gentService = inject(Jai1gentService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
+
+  get darkMode() { return this.themeService.darkMode(); }
 
   // Tab state
   activeTab: 'jai1gents' | 'invite-codes' = 'jai1gents';

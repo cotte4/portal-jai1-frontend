@@ -105,6 +105,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   federalComment: string = '';
   stateComment: string = '';
 
+  // Commission rates
+  federalCommissionRate: number = 0.11;
+  stateCommissionRate: number = 0.11;
+
   // Federal/State tracking (v2 only)
   federalEstimatedDate: string = '';
   stateEstimatedDate: string = '';
@@ -267,6 +271,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           this.stateActualRefund = taxCase.stateActualRefund != null ? Number(taxCase.stateActualRefund) : null;
           this.federalRefundDirty = false;
           this.stateRefundDirty = false;
+          // Load commission rates
+          this.federalCommissionRate = taxCase.federalCommissionRate != null ? Number(taxCase.federalCommissionRate) : 0.11;
+          this.stateCommissionRate = taxCase.stateCommissionRate != null ? Number(taxCase.stateCommissionRate) : 0.11;
           this.federalDepositDate = taxCase.federalDepositDate ? this.formatDateForInput(taxCase.federalDepositDate) : '';
           this.stateDepositDate = taxCase.stateDepositDate ? this.formatDateForInput(taxCase.stateDepositDate) : '';
           // Load comment fields
@@ -1595,6 +1602,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.federalComment) {
       updateData.federalComment = this.federalComment;
     }
+    // Always send commission rate
+    updateData.federalCommissionRate = this.federalCommissionRate;
 
     this.executeFederalStatusUpdate(updateData);
   }
@@ -1617,6 +1626,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.stateComment) {
       updateData.stateComment = this.stateComment;
     }
+    // Always send commission rate
+    updateData.stateCommissionRate = this.stateCommissionRate;
 
     this.executeStateStatusUpdate(updateData);
   }

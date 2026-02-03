@@ -1,4 +1,4 @@
-<div class="delays-container">
+<div class="delays-container" [class.dark-mode]="darkMode">
   <!-- Header -->
   <header class="page-header">
     <div class="header-left">
@@ -6,6 +6,14 @@
       <h1>Vista de Demoras</h1>
     </div>
     <div class="header-right">
+      <button class="help-toggle" (click)="toggleHelp()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ showHelp ? 'Ocultar ayuda' : 'Ayuda' }}
+      </button>
       <button class="btn-export" (click)="exportToExcel()" [disabled]="isExporting || clients.length === 0">
         {{ isExporting ? 'Exportando...' : 'Exportar Excel' }}
       </button>
@@ -14,6 +22,76 @@
       </button>
     </div>
   </header>
+
+  <!-- Help Banner -->
+  <div class="help-banner" *ngIf="showHelp">
+    <div class="help-section">
+      <h3>Que es esto?</h3>
+      <p>Esta vista muestra cuanto tiempo tarda cada cliente en recibir su reembolso despues de que se presentaron los taxes. Te permite identificar demoras inusuales y hacer seguimiento.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>Que significa cada columna</h3>
+      <div class="help-columns">
+        <div class="help-column-item">
+          <strong>Docs Completos</strong>
+          <span>Fecha en que el cliente completo toda la documentacion necesaria.</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Presentacion</strong>
+          <span>Fecha en que se presentaron los taxes al IRS/estado.</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Recibo Federal / Estatal</strong>
+          <span>Fecha en que se deposito el reembolso federal o estatal.</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Verificacion</strong>
+          <span>Indica si el caso paso por verificacion del IRS (puede causar demoras significativas).</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Demora Federal / Estatal</strong>
+          <span>Dias entre la presentacion y el deposito del reembolso. Si no hay deposito aun, muestra "---".</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h3>Colores de demora</h3>
+      <div class="color-legend">
+        <div class="legend-item">
+          <span class="legend-badge delay-fast">14 dias</span>
+          <span class="legend-text">Rapido - Dentro de lo esperado (hasta 14 dias)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-badge delay-normal">25 dias</span>
+          <span class="legend-text">Normal - Dentro del rango habitual (15-30 dias)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-badge delay-slow">45 dias</span>
+          <span class="legend-text">Lento - Demora inusual, verificar con IRS/estado (mas de 30 dias)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h3>Estadisticas</h3>
+      <div class="help-columns">
+        <div class="help-column-item">
+          <strong>Clientes Cargados</strong>
+          <span>Total de clientes con taxes presentados en esta vista.</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Promedio Demora</strong>
+          <span>Promedio de dias entre presentacion y deposito (solo clientes con deposito recibido).</span>
+        </div>
+        <div class="help-column-item">
+          <strong>Atravesaron Verificacion</strong>
+          <span>Cantidad de clientes cuyo caso paso por verificacion del IRS o estado.</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Stats Cards -->
   <div class="stats-row" *ngIf="hasLoaded && !errorMessage">
@@ -30,8 +108,12 @@
       <div class="stat-label">Promedio Demora Estatal</div>
     </div>
     <div class="stat-card highlight">
-      <div class="stat-value">{{ verificationCount }}</div>
-      <div class="stat-label">Atravesaron Verificación</div>
+      <div class="stat-value">{{ federalVerificationCount }}</div>
+      <div class="stat-label">Verif. Federal</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-value">{{ stateVerificationCount }}</div>
+      <div class="stat-label">Verif. Estatal</div>
     </div>
   </div>
 
@@ -99,7 +181,8 @@
             <th>Presentacion</th>
             <th>Recibo Federal</th>
             <th>Recibo Estatal</th>
-            <th>Verificación</th>
+            <th>Verif. Fed.</th>
+            <th>Verif. Est.</th>
             <th>Demora Federal</th>
             <th>Demora Estatal</th>
             <th>Acciones</th>
@@ -118,8 +201,13 @@
             <td>{{ formatDate(client.federalDepositDate) }}</td>
             <td>{{ formatDate(client.stateDepositDate) }}</td>
             <td class="col-verification">
-              <span class="badge" [class.badge-yes]="client.wentThroughVerification" [class.badge-no]="!client.wentThroughVerification">
-                {{ client.wentThroughVerification ? 'Si' : 'No' }}
+              <span class="badge" [class.badge-yes]="client.federalVerification" [class.badge-no]="!client.federalVerification">
+                {{ client.federalVerification ? 'Si' : 'No' }}
+              </span>
+            </td>
+            <td class="col-verification">
+              <span class="badge" [class.badge-yes]="client.stateVerification" [class.badge-no]="!client.stateVerification">
+                {{ client.stateVerification ? 'Si' : 'No' }}
               </span>
             </td>
             <td class="col-delay">

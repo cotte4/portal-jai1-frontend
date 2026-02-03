@@ -375,6 +375,9 @@ export interface TaxCase {
   stateCommissionPaid?: boolean;
   federalCommissionPaidAt?: string;
   stateCommissionPaidAt?: string;
+  // Per-track commission rates
+  federalCommissionRate?: number;
+  stateCommissionRate?: number;
   statusUpdatedAt: string;
   adminStep?: number;
   hasProblem: boolean;
@@ -566,6 +569,9 @@ export interface UpdateStatusRequest {
   caseStatus?: CaseStatus;
   federalStatusNew?: FederalStatusNew;
   stateStatusNew?: StateStatusNew;
+  // Commission rates
+  federalCommissionRate?: number;
+  stateCommissionRate?: number;
   // Force transition override
   forceTransition?: boolean;
   overrideReason?: string;
