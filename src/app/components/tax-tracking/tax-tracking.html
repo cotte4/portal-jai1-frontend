@@ -238,9 +238,11 @@
             <div class="obs-card-header">
               <span class="obs-track-icon">🦅</span>
               <span class="obs-track-title">Federal</span>
-              <span class="obs-status-pill" [class.pill-pending]="federalCategory === 'pending'" [class.pill-in-progress]="federalCategory === 'in_progress'" [class.pill-completed]="federalCategory === 'completed'" [class.pill-issues]="federalCategory === 'issues'">
-                {{ federalStatusLabel }}
-              </span>
+            </div>
+
+            <div class="obs-status-row" [class.status-pending]="federalCategory === 'pending'" [class.status-in-progress]="federalCategory === 'in_progress'" [class.status-completed]="federalCategory === 'completed'" [class.status-issues]="federalCategory === 'issues'">
+              <span class="obs-status-label">Estado:</span>
+              <span class="obs-status-value">{{ federalStatusLabel }}</span>
             </div>
 
             <!-- Admin comment -->
@@ -256,6 +258,14 @@
               <div class="obs-refund-info">
                 <span class="obs-refund-label">Monto:</span>
                 <span class="obs-refund-amount">${{ federalRefundAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Fee row: shows after client confirms refund received -->
+            @if (federalConfirmed && federalFeeAmount > 0) {
+              <div class="obs-fee-row" [class.fee-paid]="isFederalCommissionPaid">
+                <span class="obs-fee-label">{{ isFederalCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
+                <span class="obs-fee-amount">${{ federalFeeAmount.toLocaleString() }}</span>
               </div>
             }
 
@@ -290,9 +300,11 @@
             <div class="obs-card-header">
               <span class="obs-track-icon">🗽</span>
               <span class="obs-track-title">Estatal</span>
-              <span class="obs-status-pill" [class.pill-pending]="stateCategory === 'pending'" [class.pill-in-progress]="stateCategory === 'in_progress'" [class.pill-completed]="stateCategory === 'completed'" [class.pill-issues]="stateCategory === 'issues'">
-                {{ stateStatusLabel }}
-              </span>
+            </div>
+
+            <div class="obs-status-row" [class.status-pending]="stateCategory === 'pending'" [class.status-in-progress]="stateCategory === 'in_progress'" [class.status-completed]="stateCategory === 'completed'" [class.status-issues]="stateCategory === 'issues'">
+              <span class="obs-status-label">Estado:</span>
+              <span class="obs-status-value">{{ stateStatusLabel }}</span>
             </div>
 
             <!-- Admin comment -->
@@ -308,6 +320,14 @@
               <div class="obs-refund-info">
                 <span class="obs-refund-label">Monto:</span>
                 <span class="obs-refund-amount">${{ stateRefundAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Fee row: shows after client confirms refund received -->
+            @if (stateConfirmed && stateFeeAmount > 0) {
+              <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
+                <span class="obs-fee-label">{{ isStateCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
+                <span class="obs-fee-amount">${{ stateFeeAmount.toLocaleString() }}</span>
               </div>
             }
 
