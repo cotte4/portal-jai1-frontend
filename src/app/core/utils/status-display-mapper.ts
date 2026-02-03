@@ -13,36 +13,39 @@ export type ObservationCategory = 'pending' | 'in_progress' | 'completed' | 'iss
 
 /**
  * Maps FederalStatusNew to a Spanish UI label for the client-facing tracking
+ * Interno statuses collapse to their parent labels
  */
 export function mapFederalStatusToSpanishLabel(status: FederalStatusNew | string | null | undefined): string {
   if (!status) return 'Pendiente';
 
   switch (status) {
-    case FederalStatusNew.IN_PROCESS:
-    case 'in_process':
-      return 'En proceso';
-    case FederalStatusNew.IN_VERIFICATION:
-    case 'in_verification':
-      return 'En verificación';
-    case FederalStatusNew.VERIFICATION_IN_PROGRESS:
-    case 'verification_in_progress':
-      return 'Verificación en progreso';
-    case 'verification_letter_sent':
-      return 'Carta de verificación enviada';
-    case FederalStatusNew.CHECK_IN_TRANSIT:
-    case 'check_in_transit':
-      return 'Cheque en camino';
-    case 'deposit_pending':
-      return 'Depósito pendiente';
-    case FederalStatusNew.ISSUES:
-    case 'issues':
-      return 'Problemas detectados';
-    case FederalStatusNew.TAXES_SENT:
-    case 'taxes_sent':
-      return 'Reembolso enviado';
-    case FederalStatusNew.TAXES_COMPLETED:
-    case 'taxes_completed':
-      return 'Completado';
+    case FederalStatusNew.TAXES_EN_PROCESO:
+    case 'taxes_en_proceso':
+      return 'Taxes en proceso';
+    case FederalStatusNew.EN_VERIFICACION:
+    case 'en_verificacion':
+      return 'En verificacion';
+    case FederalStatusNew.VERIFICACION_EN_PROGRESO:
+    case 'verificacion_en_progreso':
+      return 'En verificacion'; // interno → parent label
+    case FederalStatusNew.PROBLEMAS:
+    case 'problemas':
+      return 'Problemas';
+    case FederalStatusNew.VERIFICACION_RECHAZADA:
+    case 'verificacion_rechazada':
+      return 'Verificacion rechazada';
+    case FederalStatusNew.DEPOSITO_DIRECTO:
+    case 'deposito_directo':
+      return 'Reembolso enviado'; // interno → parent label
+    case FederalStatusNew.CHEQUE_EN_CAMINO:
+    case 'cheque_en_camino':
+      return 'Reembolso enviado'; // interno → parent label
+    case FederalStatusNew.COMISION_PENDIENTE:
+    case 'comision_pendiente':
+      return 'Comision pendiente de pago';
+    case FederalStatusNew.TAXES_COMPLETADOS:
+    case 'taxes_completados':
+      return 'Taxes completados';
     default:
       return 'Pendiente';
   }
@@ -50,36 +53,39 @@ export function mapFederalStatusToSpanishLabel(status: FederalStatusNew | string
 
 /**
  * Maps StateStatusNew to a Spanish UI label for the client-facing tracking
+ * Interno statuses collapse to their parent labels
  */
 export function mapStateStatusToSpanishLabel(status: StateStatusNew | string | null | undefined): string {
   if (!status) return 'Pendiente';
 
   switch (status) {
-    case StateStatusNew.IN_PROCESS:
-    case 'in_process':
-      return 'En proceso';
-    case StateStatusNew.IN_VERIFICATION:
-    case 'in_verification':
-      return 'En verificación';
-    case StateStatusNew.VERIFICATION_IN_PROGRESS:
-    case 'verification_in_progress':
-      return 'Verificación en progreso';
-    case 'verification_letter_sent':
-      return 'Carta de verificación enviada';
-    case StateStatusNew.CHECK_IN_TRANSIT:
-    case 'check_in_transit':
-      return 'Cheque en camino';
-    case 'deposit_pending':
-      return 'Depósito pendiente';
-    case StateStatusNew.ISSUES:
-    case 'issues':
-      return 'Problemas detectados';
-    case StateStatusNew.TAXES_SENT:
-    case 'taxes_sent':
-      return 'Reembolso enviado';
-    case StateStatusNew.TAXES_COMPLETED:
-    case 'taxes_completed':
-      return 'Completado';
+    case StateStatusNew.TAXES_EN_PROCESO:
+    case 'taxes_en_proceso':
+      return 'Taxes en proceso';
+    case StateStatusNew.EN_VERIFICACION:
+    case 'en_verificacion':
+      return 'En verificacion';
+    case StateStatusNew.VERIFICACION_EN_PROGRESO:
+    case 'verificacion_en_progreso':
+      return 'En verificacion'; // interno → parent label
+    case StateStatusNew.PROBLEMAS:
+    case 'problemas':
+      return 'Problemas';
+    case StateStatusNew.VERIFICACION_RECHAZADA:
+    case 'verificacion_rechazada':
+      return 'Verificacion rechazada';
+    case StateStatusNew.DEPOSITO_DIRECTO:
+    case 'deposito_directo':
+      return 'Reembolso enviado'; // interno → parent label
+    case StateStatusNew.CHEQUE_EN_CAMINO:
+    case 'cheque_en_camino':
+      return 'Reembolso enviado'; // interno → parent label
+    case StateStatusNew.COMISION_PENDIENTE:
+    case 'comision_pendiente':
+      return 'Comision pendiente de pago';
+    case StateStatusNew.TAXES_COMPLETADOS:
+    case 'taxes_completados':
+      return 'Taxes completados';
     default:
       return 'Pendiente';
   }
@@ -87,23 +93,29 @@ export function mapStateStatusToSpanishLabel(status: StateStatusNew | string | n
 
 /**
  * Categorizes a federal or state status into an ObservationCategory for card styling
+ * Green: deposito_directo, cheque_en_camino, comision_pendiente, taxes_completados
+ * Yellow: taxes_en_proceso
+ * Red: en_verificacion, verificacion_en_progreso, problemas, verificacion_rechazada
  */
 export function getStatusCategory(status: FederalStatusNew | StateStatusNew | string | null | undefined): ObservationCategory {
   if (!status) return 'pending';
 
   switch (status) {
-    case 'taxes_completed':
+    // Green (completed)
+    case 'deposito_directo':
+    case 'cheque_en_camino':
+    case 'comision_pendiente':
+    case 'taxes_completados':
       return 'completed';
-    case 'issues':
-      return 'issues';
-    case 'in_process':
-    case 'in_verification':
-    case 'verification_in_progress':
-    case 'verification_letter_sent':
-    case 'check_in_transit':
-    case 'deposit_pending':
-    case 'taxes_sent':
+    // Yellow (in_progress)
+    case 'taxes_en_proceso':
       return 'in_progress';
+    // Red (issues)
+    case 'en_verificacion':
+    case 'verificacion_en_progreso':
+    case 'problemas':
+    case 'verificacion_rechazada':
+      return 'issues';
     default:
       return 'pending';
   }
@@ -111,9 +123,6 @@ export function getStatusCategory(status: FederalStatusNew | StateStatusNew | st
 
 /**
  * Maps Federal status to display status
- *
- * @param status - FederalStatusNew enum value or string
- * @returns DisplayStatus for UI rendering
  */
 export function mapFederalStatusToDisplay(
   status: FederalStatusNew | string | null | undefined
@@ -121,27 +130,31 @@ export function mapFederalStatusToDisplay(
   if (!status) return 'pending';
 
   switch (status) {
-    // Completed states
-    case FederalStatusNew.TAXES_COMPLETED:
-    case FederalStatusNew.CHECK_IN_TRANSIT:
-    case FederalStatusNew.TAXES_SENT:
-    case 'taxes_completed':
-    case 'check_in_transit':
-    case 'taxes_sent':
+    // Completed states (green)
+    case FederalStatusNew.DEPOSITO_DIRECTO:
+    case FederalStatusNew.CHEQUE_EN_CAMINO:
+    case FederalStatusNew.COMISION_PENDIENTE:
+    case FederalStatusNew.TAXES_COMPLETADOS:
+    case 'deposito_directo':
+    case 'cheque_en_camino':
+    case 'comision_pendiente':
+    case 'taxes_completados':
       return 'completed';
 
-    // Rejected/Issue states
-    case FederalStatusNew.ISSUES:
-    case 'issues':
+    // Rejected/Issue states (red)
+    case FederalStatusNew.PROBLEMAS:
+    case FederalStatusNew.EN_VERIFICACION:
+    case FederalStatusNew.VERIFICACION_EN_PROGRESO:
+    case FederalStatusNew.VERIFICACION_RECHAZADA:
+    case 'problemas':
+    case 'en_verificacion':
+    case 'verificacion_en_progreso':
+    case 'verificacion_rechazada':
       return 'rejected';
 
-    // Active/In-progress states
-    case FederalStatusNew.IN_PROCESS:
-    case FederalStatusNew.IN_VERIFICATION:
-    case FederalStatusNew.VERIFICATION_IN_PROGRESS:
-    case 'in_process':
-    case 'in_verification':
-    case 'verification_in_progress':
+    // Active/In-progress states (yellow)
+    case FederalStatusNew.TAXES_EN_PROCESO:
+    case 'taxes_en_proceso':
       return 'active';
 
     default:
@@ -151,9 +164,6 @@ export function mapFederalStatusToDisplay(
 
 /**
  * Maps State status to display status
- *
- * @param status - StateStatusNew enum value or string
- * @returns DisplayStatus for UI rendering
  */
 export function mapStateStatusToDisplay(
   status: StateStatusNew | string | null | undefined
@@ -161,27 +171,31 @@ export function mapStateStatusToDisplay(
   if (!status) return 'pending';
 
   switch (status) {
-    // Completed states
-    case StateStatusNew.TAXES_COMPLETED:
-    case StateStatusNew.CHECK_IN_TRANSIT:
-    case StateStatusNew.TAXES_SENT:
-    case 'taxes_completed':
-    case 'check_in_transit':
-    case 'taxes_sent':
+    // Completed states (green)
+    case StateStatusNew.DEPOSITO_DIRECTO:
+    case StateStatusNew.CHEQUE_EN_CAMINO:
+    case StateStatusNew.COMISION_PENDIENTE:
+    case StateStatusNew.TAXES_COMPLETADOS:
+    case 'deposito_directo':
+    case 'cheque_en_camino':
+    case 'comision_pendiente':
+    case 'taxes_completados':
       return 'completed';
 
-    // Rejected/Issue states
-    case StateStatusNew.ISSUES:
-    case 'issues':
+    // Rejected/Issue states (red)
+    case StateStatusNew.PROBLEMAS:
+    case StateStatusNew.EN_VERIFICACION:
+    case StateStatusNew.VERIFICACION_EN_PROGRESO:
+    case StateStatusNew.VERIFICACION_RECHAZADA:
+    case 'problemas':
+    case 'en_verificacion':
+    case 'verificacion_en_progreso':
+    case 'verificacion_rechazada':
       return 'rejected';
 
-    // Active/In-progress states
-    case StateStatusNew.IN_PROCESS:
-    case StateStatusNew.IN_VERIFICATION:
-    case StateStatusNew.VERIFICATION_IN_PROGRESS:
-    case 'in_process':
-    case 'in_verification':
-    case 'verification_in_progress':
+    // Active/In-progress states (yellow)
+    case StateStatusNew.TAXES_EN_PROCESO:
+    case 'taxes_en_proceso':
       return 'active';
 
     default:
@@ -191,9 +205,6 @@ export function mapStateStatusToDisplay(
 
 /**
  * Maps Case status to display status
- *
- * @param status - CaseStatus enum value or string
- * @returns DisplayStatus for UI rendering
  */
 export function mapCaseStatusToDisplay(
   status: CaseStatus | string | null | undefined
@@ -226,30 +237,38 @@ export function mapCaseStatusToDisplay(
 }
 
 /**
- * Helper: Check if federal status indicates approval/completion
+ * Helper: Check if federal status indicates approval/completion (green)
  */
 export function isFederalApproved(status: FederalStatusNew | string | null | undefined): boolean {
   if (!status) return false;
 
   return (
-    status === FederalStatusNew.TAXES_COMPLETED ||
-    status === FederalStatusNew.CHECK_IN_TRANSIT ||
-    status === FederalStatusNew.TAXES_SENT ||
-    status === 'taxes_completed' ||
-    status === 'check_in_transit' ||
-    status === 'taxes_sent'
+    status === FederalStatusNew.DEPOSITO_DIRECTO ||
+    status === FederalStatusNew.CHEQUE_EN_CAMINO ||
+    status === FederalStatusNew.COMISION_PENDIENTE ||
+    status === FederalStatusNew.TAXES_COMPLETADOS ||
+    status === 'deposito_directo' ||
+    status === 'cheque_en_camino' ||
+    status === 'comision_pendiente' ||
+    status === 'taxes_completados'
   );
 }
 
 /**
- * Helper: Check if federal status indicates rejection/issues
+ * Helper: Check if federal status indicates rejection/issues (red)
  */
 export function isFederalRejected(status: FederalStatusNew | string | null | undefined): boolean {
   if (!status) return false;
 
   return (
-    status === FederalStatusNew.ISSUES ||
-    status === 'issues'
+    status === FederalStatusNew.PROBLEMAS ||
+    status === FederalStatusNew.EN_VERIFICACION ||
+    status === FederalStatusNew.VERIFICACION_EN_PROGRESO ||
+    status === FederalStatusNew.VERIFICACION_RECHAZADA ||
+    status === 'problemas' ||
+    status === 'en_verificacion' ||
+    status === 'verificacion_en_progreso' ||
+    status === 'verificacion_rechazada'
   );
 }
 
@@ -260,36 +279,44 @@ export function isFederalDeposited(status: FederalStatusNew | string | null | un
   if (!status) return false;
 
   return (
-    status === FederalStatusNew.TAXES_COMPLETED ||
-    status === 'taxes_completed'
+    status === FederalStatusNew.TAXES_COMPLETADOS ||
+    status === 'taxes_completados'
   );
 }
 
 /**
- * Helper: Check if state status indicates approval/completion
+ * Helper: Check if state status indicates approval/completion (green)
  */
 export function isStateApproved(status: StateStatusNew | string | null | undefined): boolean {
   if (!status) return false;
 
   return (
-    status === StateStatusNew.TAXES_COMPLETED ||
-    status === StateStatusNew.CHECK_IN_TRANSIT ||
-    status === StateStatusNew.TAXES_SENT ||
-    status === 'taxes_completed' ||
-    status === 'check_in_transit' ||
-    status === 'taxes_sent'
+    status === StateStatusNew.DEPOSITO_DIRECTO ||
+    status === StateStatusNew.CHEQUE_EN_CAMINO ||
+    status === StateStatusNew.COMISION_PENDIENTE ||
+    status === StateStatusNew.TAXES_COMPLETADOS ||
+    status === 'deposito_directo' ||
+    status === 'cheque_en_camino' ||
+    status === 'comision_pendiente' ||
+    status === 'taxes_completados'
   );
 }
 
 /**
- * Helper: Check if state status indicates rejection/issues
+ * Helper: Check if state status indicates rejection/issues (red)
  */
 export function isStateRejected(status: StateStatusNew | string | null | undefined): boolean {
   if (!status) return false;
 
   return (
-    status === StateStatusNew.ISSUES ||
-    status === 'issues'
+    status === StateStatusNew.PROBLEMAS ||
+    status === StateStatusNew.EN_VERIFICACION ||
+    status === StateStatusNew.VERIFICACION_EN_PROGRESO ||
+    status === StateStatusNew.VERIFICACION_RECHAZADA ||
+    status === 'problemas' ||
+    status === 'en_verificacion' ||
+    status === 'verificacion_en_progreso' ||
+    status === 'verificacion_rechazada'
   );
 }
 
@@ -300,7 +327,7 @@ export function isStateDeposited(status: StateStatusNew | string | null | undefi
   if (!status) return false;
 
   return (
-    status === StateStatusNew.TAXES_COMPLETED ||
-    status === 'taxes_completed'
+    status === StateStatusNew.TAXES_COMPLETADOS ||
+    status === 'taxes_completados'
   );
 }

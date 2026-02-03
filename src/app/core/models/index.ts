@@ -18,24 +18,28 @@ export enum CaseStatus {
 
 // Federal status (post-filing tracking)
 export enum FederalStatusNew {
-  IN_PROCESS = 'in_process',
-  IN_VERIFICATION = 'in_verification',
-  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
-  CHECK_IN_TRANSIT = 'check_in_transit',
-  ISSUES = 'issues',
-  TAXES_SENT = 'taxes_sent',
-  TAXES_COMPLETED = 'taxes_completed'
+  TAXES_EN_PROCESO = 'taxes_en_proceso',
+  EN_VERIFICACION = 'en_verificacion',
+  VERIFICACION_EN_PROGRESO = 'verificacion_en_progreso',
+  PROBLEMAS = 'problemas',
+  VERIFICACION_RECHAZADA = 'verificacion_rechazada',
+  DEPOSITO_DIRECTO = 'deposito_directo',
+  CHEQUE_EN_CAMINO = 'cheque_en_camino',
+  COMISION_PENDIENTE = 'comision_pendiente',
+  TAXES_COMPLETADOS = 'taxes_completados'
 }
 
 // State status (post-filing tracking)
 export enum StateStatusNew {
-  IN_PROCESS = 'in_process',
-  IN_VERIFICATION = 'in_verification',
-  VERIFICATION_IN_PROGRESS = 'verification_in_progress',
-  CHECK_IN_TRANSIT = 'check_in_transit',
-  ISSUES = 'issues',
-  TAXES_SENT = 'taxes_sent',
-  TAXES_COMPLETED = 'taxes_completed'
+  TAXES_EN_PROCESO = 'taxes_en_proceso',
+  EN_VERIFICACION = 'en_verificacion',
+  VERIFICACION_EN_PROGRESO = 'verificacion_en_progreso',
+  PROBLEMAS = 'problemas',
+  VERIFICACION_RECHAZADA = 'verificacion_rechazada',
+  DEPOSITO_DIRECTO = 'deposito_directo',
+  CHEQUE_EN_CAMINO = 'cheque_en_camino',
+  COMISION_PENDIENTE = 'comision_pendiente',
+  TAXES_COMPLETADOS = 'taxes_completados'
 }
 
 // Alarm types
@@ -378,6 +382,9 @@ export interface TaxCase {
   // Per-track commission rates
   federalCommissionRate?: number;
   stateCommissionRate?: number;
+  // Internal comments (admin-only)
+  federalInternalComment?: string;
+  stateInternalComment?: string;
   statusUpdatedAt: string;
   adminStep?: number;
   hasProblem: boolean;
@@ -572,6 +579,9 @@ export interface UpdateStatusRequest {
   // Commission rates
   federalCommissionRate?: number;
   stateCommissionRate?: number;
+  // Internal comments (admin-only)
+  federalInternalComment?: string;
+  stateInternalComment?: string;
   // Force transition override
   forceTransition?: boolean;
   overrideReason?: string;

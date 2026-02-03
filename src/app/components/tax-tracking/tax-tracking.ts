@@ -507,11 +507,13 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get federalFeeAmount(): number {
-    return Math.round(this.federalRefundAmount * 0.11 * 100) / 100;
+    const rate = this.profileData?.taxCase?.federalCommissionRate || 0.11;
+    return Math.round(this.federalRefundAmount * rate * 100) / 100;
   }
 
   get stateFeeAmount(): number {
-    return Math.round(this.stateRefundAmount * 0.11 * 100) / 100;
+    const rate = this.profileData?.taxCase?.stateCommissionRate || 0.11;
+    return Math.round(this.stateRefundAmount * rate * 100) / 100;
   }
 
   get isFederalCommissionPaid(): boolean {

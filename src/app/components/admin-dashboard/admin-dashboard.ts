@@ -118,24 +118,28 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   federalStatusOptions = [
     { value: null, label: 'Todos' },
-    { value: FederalStatusNew.IN_PROCESS, label: 'En Proceso' },
-    { value: FederalStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
-    { value: FederalStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
-    { value: FederalStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
-    { value: FederalStatusNew.ISSUES, label: 'Problemas' },
-    { value: FederalStatusNew.TAXES_SENT, label: 'Reembolso Enviado' },
-    { value: FederalStatusNew.TAXES_COMPLETED, label: 'Completado' },
+    { value: FederalStatusNew.TAXES_EN_PROCESO, label: 'Taxes en Proceso' },
+    { value: FederalStatusNew.EN_VERIFICACION, label: 'En Verificacion' },
+    { value: FederalStatusNew.VERIFICACION_EN_PROGRESO, label: 'Verificacion en Progreso' },
+    { value: FederalStatusNew.CHEQUE_EN_CAMINO, label: 'Cheque en Camino' },
+    { value: FederalStatusNew.PROBLEMAS, label: 'Problemas' },
+    { value: FederalStatusNew.VERIFICACION_RECHAZADA, label: 'Verificacion Rechazada' },
+    { value: FederalStatusNew.DEPOSITO_DIRECTO, label: 'Deposito Directo' },
+    { value: FederalStatusNew.COMISION_PENDIENTE, label: 'Comision Pendiente' },
+    { value: FederalStatusNew.TAXES_COMPLETADOS, label: 'Taxes Completados' },
   ];
 
   stateStatusOptions = [
     { value: null, label: 'Todos' },
-    { value: StateStatusNew.IN_PROCESS, label: 'En Proceso' },
-    { value: StateStatusNew.IN_VERIFICATION, label: 'En Verificacion' },
-    { value: StateStatusNew.VERIFICATION_IN_PROGRESS, label: 'Verif. en Progreso' },
-    { value: StateStatusNew.CHECK_IN_TRANSIT, label: 'Cheque en Camino' },
-    { value: StateStatusNew.ISSUES, label: 'Problemas' },
-    { value: StateStatusNew.TAXES_SENT, label: 'Reembolso Enviado' },
-    { value: StateStatusNew.TAXES_COMPLETED, label: 'Completado' },
+    { value: StateStatusNew.TAXES_EN_PROCESO, label: 'Taxes en Proceso' },
+    { value: StateStatusNew.EN_VERIFICACION, label: 'En Verificacion' },
+    { value: StateStatusNew.VERIFICACION_EN_PROGRESO, label: 'Verificacion en Progreso' },
+    { value: StateStatusNew.CHEQUE_EN_CAMINO, label: 'Cheque en Camino' },
+    { value: StateStatusNew.PROBLEMAS, label: 'Problemas' },
+    { value: StateStatusNew.VERIFICACION_RECHAZADA, label: 'Verificacion Rechazada' },
+    { value: StateStatusNew.DEPOSITO_DIRECTO, label: 'Deposito Directo' },
+    { value: StateStatusNew.COMISION_PENDIENTE, label: 'Comision Pendiente' },
+    { value: StateStatusNew.TAXES_COMPLETADOS, label: 'Taxes Completados' },
   ];
 
   caseStatusOptions = [
@@ -348,10 +352,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
       if (!taxesFiled) {
         // Pending: not yet filed
         this.stats.pending++;
-      } else if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED || stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
+      } else if (federalStatusNew === FederalStatusNew.TAXES_COMPLETADOS || stateStatusNew === StateStatusNew.TAXES_COMPLETADOS) {
         // Completed: at least one completed
         this.stats.completed++;
-      } else if (federalStatusNew === FederalStatusNew.ISSUES || stateStatusNew === StateStatusNew.ISSUES) {
+      } else if (federalStatusNew === FederalStatusNew.PROBLEMAS || stateStatusNew === StateStatusNew.PROBLEMAS) {
         // Needs Attention: has issues
         this.stats.needsAttention++;
       } else {
@@ -417,13 +421,15 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
     const labels: Record<string, string> = {
       // FederalStatusNew / StateStatusNew
-      'in_process': 'En Proceso',
-      'in_verification': 'En Verificación',
-      'verification_in_progress': 'Verif. en Progreso',
-      'check_in_transit': 'Cheque en Camino',
-      'issues': 'Problemas',
-      'taxes_sent': 'Reembolso Enviado',
-      'taxes_completed': 'Completado',
+      'taxes_en_proceso': 'Taxes en Proceso',
+      'en_verificacion': 'En Verificacion',
+      'verificacion_en_progreso': 'Verificacion en Progreso',
+      'cheque_en_camino': 'Cheque en Camino',
+      'problemas': 'Problemas',
+      'verificacion_rechazada': 'Verificacion Rechazada',
+      'deposito_directo': 'Deposito Directo',
+      'comision_pendiente': 'Comision Pendiente',
+      'taxes_completados': 'Taxes Completados',
       // CaseStatus
       'awaiting_form': 'Esperando Form',
       'awaiting_docs': 'Esperando Docs',
@@ -440,13 +446,15 @@ export class AdminDashboard implements OnInit, OnDestroy {
     if (!status) return 'status-pending';
 
     const classes: Record<string, string> = {
-      'in_process': 'status-in-progress',
-      'in_verification': 'status-in-progress',
-      'verification_in_progress': 'status-in-progress',
-      'check_in_transit': 'status-approved',
-      'issues': 'status-rejected',
-      'taxes_sent': 'status-approved',
-      'taxes_completed': 'status-completed',
+      'taxes_en_proceso': 'status-in-progress',
+      'en_verificacion': 'status-in-progress',
+      'verificacion_en_progreso': 'status-in-progress',
+      'cheque_en_camino': 'status-approved',
+      'problemas': 'status-rejected',
+      'verificacion_rechazada': 'status-rejected',
+      'deposito_directo': 'status-approved',
+      'comision_pendiente': 'status-in-progress',
+      'taxes_completados': 'status-completed',
       'awaiting_form': 'status-pending',
       'awaiting_docs': 'status-pending',
       'preparing': 'status-in-progress',
@@ -615,13 +623,15 @@ export class AdminDashboard implements OnInit, OnDestroy {
   getFederalStatusNewLabel(status: FederalStatusNew | null | undefined): string {
     if (!status) return 'Sin estado';
     const labels: Record<FederalStatusNew, string> = {
-      [FederalStatusNew.IN_PROCESS]: 'En Proceso',
-      [FederalStatusNew.IN_VERIFICATION]: 'Verificación',
-      [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
-      [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
-      [FederalStatusNew.ISSUES]: 'Problemas',
-      [FederalStatusNew.TAXES_SENT]: 'Enviado',
-      [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
+      [FederalStatusNew.TAXES_EN_PROCESO]: 'Taxes en Proceso',
+      [FederalStatusNew.EN_VERIFICACION]: 'En Verificacion',
+      [FederalStatusNew.VERIFICACION_EN_PROGRESO]: 'Verificacion en Progreso',
+      [FederalStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en Camino',
+      [FederalStatusNew.PROBLEMAS]: 'Problemas',
+      [FederalStatusNew.VERIFICACION_RECHAZADA]: 'Verificacion Rechazada',
+      [FederalStatusNew.DEPOSITO_DIRECTO]: 'Deposito Directo',
+      [FederalStatusNew.COMISION_PENDIENTE]: 'Comision Pendiente',
+      [FederalStatusNew.TAXES_COMPLETADOS]: 'Taxes Completados'
     };
     return labels[status] || status;
   }
@@ -629,13 +639,15 @@ export class AdminDashboard implements OnInit, OnDestroy {
   getStateStatusNewLabel(status: StateStatusNew | null | undefined): string {
     if (!status) return 'Sin estado';
     const labels: Record<StateStatusNew, string> = {
-      [StateStatusNew.IN_PROCESS]: 'En Proceso',
-      [StateStatusNew.IN_VERIFICATION]: 'Verificación',
-      [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verif. Progreso',
-      [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque Camino',
-      [StateStatusNew.ISSUES]: 'Problemas',
-      [StateStatusNew.TAXES_SENT]: 'Enviado',
-      [StateStatusNew.TAXES_COMPLETED]: 'Completado'
+      [StateStatusNew.TAXES_EN_PROCESO]: 'Taxes en Proceso',
+      [StateStatusNew.EN_VERIFICACION]: 'En Verificacion',
+      [StateStatusNew.VERIFICACION_EN_PROGRESO]: 'Verificacion en Progreso',
+      [StateStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en Camino',
+      [StateStatusNew.PROBLEMAS]: 'Problemas',
+      [StateStatusNew.VERIFICACION_RECHAZADA]: 'Verificacion Rechazada',
+      [StateStatusNew.DEPOSITO_DIRECTO]: 'Deposito Directo',
+      [StateStatusNew.COMISION_PENDIENTE]: 'Comision Pendiente',
+      [StateStatusNew.TAXES_COMPLETADOS]: 'Taxes Completados'
     };
     return labels[status] || status;
   }

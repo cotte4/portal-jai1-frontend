@@ -5237,13 +5237,16 @@ transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
 
-.status-in_process, .status-preparing { background: #e3f2fd; color: #1565c0; }
-.status-in_verification { background: #fff3e0; color: #ef6c00; }
-.status-verification_in_progress { background: #fff8e1; color: #f57c00; }
-.status-verification_letter_sent { background: #fce4ec; color: #c2185b; }
-.status-check_in_transit, .status-taxes_completed, .status-taxes_filed { background: #e8f5e9; color: #2e7d32; }
-.status-issues, .status-case_issues { background: #ffebee; color: #c62828; }
-.status-taxes_sent { background: #e0f7fa; color: #00838f; }
+/* Yellow - In Progress */
+.status-taxes_en_proceso, .status-preparing { background: #fff8e1; color: #f57c00; }
+/* Red - Issues/Verification */
+.status-en_verificacion, .status-verificacion_en_progreso, .status-problemas, .status-verificacion_rechazada, .status-case_issues { background: #ffebee; color: #c62828; }
+/* Green - Completed/Refund */
+.status-deposito_directo, .status-cheque_en_camino, .status-comision_pendiente, .status-taxes_completados, .status-taxes_filed { background: #e8f5e9; color: #2e7d32; }
+/* Legacy status classes (old status_history records) */
+.status-in_process { background: #fff8e1; color: #f57c00; }
+.status-in_verification, .status-verification_in_progress, .status-verification_letter_sent, .status-issues { background: #ffebee; color: #c62828; }
+.status-check_in_transit, .status-taxes_completed, .status-taxes_sent { background: #e8f5e9; color: #2e7d32; }
 .status-awaiting_form { background: #fafafa; color: #616161; }
 .status-awaiting_docs { background: #fff3e0; color: #e65100; }
 

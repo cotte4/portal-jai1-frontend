@@ -109,6 +109,10 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   federalCommissionRate: number = 0.11;
   stateCommissionRate: number = 0.11;
 
+  // Internal comments (admin-only)
+  federalInternalComment: string = '';
+  stateInternalComment: string = '';
+
   // Federal/State tracking (v2 only)
   federalEstimatedDate: string = '';
   stateEstimatedDate: string = '';
@@ -285,6 +289,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
           // Load comment fields
           this.federalComment = '';
           this.stateComment = '';
+          // Load internal comments
+          this.federalInternalComment = taxCase.federalInternalComment || '';
+          this.stateInternalComment = taxCase.stateInternalComment || '';
           // NEW STATUS SYSTEM (v2)
           this.selectedCaseStatus = taxCase.caseStatus || null;
           this.selectedFederalStatusNew = taxCase.federalStatusNew || null;
@@ -400,12 +407,14 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Per-track commission methods
   get federalCommissionAmount(): number {
     const refund = this.client?.taxCases?.[0]?.federalActualRefund || 0;
-    return Math.round(refund * 0.11 * 100) / 100;
+    const rate = this.client?.taxCases?.[0]?.federalCommissionRate || 0.11;
+    return Math.round(refund * rate * 100) / 100;
   }
 
   get stateCommissionAmount(): number {
     const refund = this.client?.taxCases?.[0]?.stateActualRefund || 0;
-    return Math.round(refund * 0.11 * 100) / 100;
+    const rate = this.client?.taxCases?.[0]?.stateCommissionRate || 0.11;
+    return Math.round(refund * rate * 100) / 100;
   }
 
   openFederalCommissionConfirm() {
@@ -1296,10 +1305,20 @@ export class AdminClientDetail implements OnInit, OnDestroy {
 
     // NEW STATUS SYSTEM (v2) - Federal/State Status
     const federalStateLabels: Record<string, string> = {
+      taxes_en_proceso: 'Taxes en Proceso',
+      en_verificacion: 'En Verificacion',
+      verificacion_en_progreso: 'Verificacion en Progreso',
+      problemas: 'Problemas',
+      verificacion_rechazada: 'Verificacion Rechazada',
+      deposito_directo: 'Deposito Directo',
+      cheque_en_camino: 'Cheque en Camino',
+      comision_pendiente: 'Comision Pendiente',
+      taxes_completados: 'Taxes Completados',
+      // Legacy values for old status_history records
       in_process: 'En Proceso',
-      in_verification: 'En Verificación',
-      verification_in_progress: 'Verificación en Progreso',
-      verification_letter_sent: 'Carta de Verificación Enviada',
+      in_verification: 'En Verificacion',
+      verification_in_progress: 'Verificacion en Progreso',
+      verification_letter_sent: 'Carta de Verificacion Enviada',
       check_in_transit: 'Cheque en Camino',
       issues: 'Problemas',
       taxes_sent: 'Reembolso Enviado',
@@ -1516,8 +1535,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     this.isMarkingFiled = true;
     const updateData: UpdateStatusRequest = {
       caseStatus: CaseStatus.TAXES_FILED,
-      federalStatusNew: FederalStatusNew.IN_PROCESS,
-      stateStatusNew: StateStatusNew.IN_PROCESS
+      federalStatusNew: FederalStatusNew.TAXES_EN_PROCESO,
+      stateStatusNew: StateStatusNew.TAXES_EN_PROCESO
     };
 
     this.adminService.updateStatus(this.clientId, updateData).subscribe({
@@ -1557,13 +1576,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   getFederalStatusNewLabel(status: FederalStatusNew | null): string {
     if (!status) return 'Sin estado';
     const labels: Record<FederalStatusNew, string> = {
-      [FederalStatusNew.IN_PROCESS]: 'En Proceso',
-      [FederalStatusNew.IN_VERIFICATION]: 'En Verificación',
-      [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
-      [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
-      [FederalStatusNew.ISSUES]: 'Problemas',
-      [FederalStatusNew.TAXES_SENT]: 'Reembolso Enviado',
-      [FederalStatusNew.TAXES_COMPLETED]: 'Completado'
+      [FederalStatusNew.TAXES_EN_PROCESO]: 'Taxes en Proceso',
+      [FederalStatusNew.EN_VERIFICACION]: 'En Verificacion',
+      [FederalStatusNew.VERIFICACION_EN_PROGRESO]: 'Verificacion en Progreso',
+      [FederalStatusNew.PROBLEMAS]: 'Problemas',
+      [FederalStatusNew.VERIFICACION_RECHAZADA]: 'Verificacion Rechazada',
+      [FederalStatusNew.DEPOSITO_DIRECTO]: 'Deposito Directo',
+      [FederalStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en Camino',
+      [FederalStatusNew.COMISION_PENDIENTE]: 'Comision Pendiente',
+      [FederalStatusNew.TAXES_COMPLETADOS]: 'Taxes Completados'
     };
     return labels[status] || status;
   }
@@ -1571,13 +1592,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   getStateStatusNewLabel(status: StateStatusNew | null): string {
     if (!status) return 'Sin estado';
     const labels: Record<StateStatusNew, string> = {
-      [StateStatusNew.IN_PROCESS]: 'En Proceso',
-      [StateStatusNew.IN_VERIFICATION]: 'En Verificación',
-      [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'Verificación en Progreso',
-      [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en Camino',
-      [StateStatusNew.ISSUES]: 'Problemas',
-      [StateStatusNew.TAXES_SENT]: 'Reembolso Enviado',
-      [StateStatusNew.TAXES_COMPLETED]: 'Completado'
+      [StateStatusNew.TAXES_EN_PROCESO]: 'Taxes en Proceso',
+      [StateStatusNew.EN_VERIFICACION]: 'En Verificacion',
+      [StateStatusNew.VERIFICACION_EN_PROGRESO]: 'Verificacion en Progreso',
+      [StateStatusNew.PROBLEMAS]: 'Problemas',
+      [StateStatusNew.VERIFICACION_RECHAZADA]: 'Verificacion Rechazada',
+      [StateStatusNew.DEPOSITO_DIRECTO]: 'Deposito Directo',
+      [StateStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en Camino',
+      [StateStatusNew.COMISION_PENDIENTE]: 'Comision Pendiente',
+      [StateStatusNew.TAXES_COMPLETADOS]: 'Taxes Completados'
     };
     return labels[status] || status;
   }
@@ -1585,22 +1608,24 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   /**
    * Get description/tooltip for post-filing statuses
    * Key distinctions per engineer spec:
-   * - in_verification: IRS flagged it, JAI1 hasn't acted yet
-   * - verification_in_progress: JAI1 has taken action, waiting for agency response
-   * - check_in_transit: Physical check being mailed
-   * - deposit_pending: Client got refund but hasn't paid JAI1 fee
-   * - taxes_sent: Refund has been sent/deposited
+   * - en_verificacion: IRS flagged it, JAI1 hasn't acted yet
+   * - verificacion_en_progreso: JAI1 has taken action, waiting for agency response
+   * - cheque_en_camino: Physical check being mailed
+   * - comision_pendiente: Client got refund but hasn't paid JAI1 fee
+   * - deposito_directo: Refund sent via direct deposit
    */
   getStatusDescription(status: string | null): string {
     if (!status) return '';
     const descriptions: Record<string, string> = {
-      'in_process': 'El IRS/Estado está procesando la declaración',
-      'in_verification': 'IRS/Estado marcó para verificación - JAI1 aún NO ha actuado',
-      'verification_in_progress': 'JAI1 YA tomó acción (carta/documentos enviados) - esperando respuesta',
-      'check_in_transit': 'Cheque físico en camino al cliente',
-      'taxes_sent': 'Reembolso enviado - cliente debe pagar comisión JAI1',
-      'taxes_completed': 'Proceso completado - cliente recibió y pagó',
-      'issues': 'Problema que requiere atención especial'
+      'taxes_en_proceso': 'El IRS/Estado esta procesando la declaracion',
+      'en_verificacion': 'IRS/Estado marco para verificacion - JAI1 aun NO ha actuado',
+      'verificacion_en_progreso': 'JAI1 YA tomo accion (carta/documentos enviados) - esperando respuesta',
+      'problemas': 'Problema que requiere atencion especial',
+      'verificacion_rechazada': 'La verificacion fue rechazada por el IRS/Estado',
+      'deposito_directo': 'Reembolso enviado por deposito directo',
+      'cheque_en_camino': 'Cheque fisico en camino al cliente',
+      'comision_pendiente': 'Cliente recibio reembolso - pendiente pago de comision',
+      'taxes_completados': 'Proceso completado - cliente recibio y pago'
     };
     return descriptions[status] || '';
   }
@@ -1613,13 +1638,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (!status) return '';
     // These are the ACTUAL labels the client sees (matches backend mapFederalStatusToClientDisplay)
     const clientLabels: Record<string, string> = {
-      'in_process': 'Taxes en proceso',
-      'in_verification': 'En verificación',
-      'verification_in_progress': 'En verificación',
-      'check_in_transit': 'Cheque en camino',
-      'taxes_sent': 'Reembolso enviado',
-      'taxes_completed': 'Taxes finalizados',
-      'issues': 'Problemas - contactar soporte'
+      'taxes_en_proceso': 'Taxes en proceso',
+      'en_verificacion': 'En verificacion',
+      'verificacion_en_progreso': 'En verificacion',
+      'problemas': 'Problemas',
+      'verificacion_rechazada': 'Verificacion rechazada',
+      'deposito_directo': 'Reembolso enviado',
+      'cheque_en_camino': 'Reembolso enviado',
+      'comision_pendiente': 'Comision pendiente de pago',
+      'taxes_completados': 'Taxes completados'
     };
     return clientLabels[status] || '';
   }
@@ -1630,9 +1657,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
    */
   isAdminOnlyStatus(status: string | null): boolean {
     if (!status) return false;
-    // Only verification_in_progress is admin-only (client sees same "En verificación" as in_verification)
+    // These statuses are internal - client sees a parent label instead
     const adminOnly = [
-      'verification_in_progress'
+      'verificacion_en_progreso',
+      'deposito_directo',
+      'cheque_en_camino'
     ];
     return adminOnly.includes(status);
   }
@@ -1667,6 +1696,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     if (this.federalComment) {
       updateData.federalComment = this.federalComment;
     }
+    if (this.federalInternalComment) {
+      updateData.federalInternalComment = this.federalInternalComment;
+    }
     // Always send commission rate
     updateData.federalCommissionRate = this.federalCommissionRate;
 
@@ -1690,6 +1722,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     }
     if (this.stateComment) {
       updateData.stateComment = this.stateComment;
+    }
+    if (this.stateInternalComment) {
+      updateData.stateInternalComment = this.stateInternalComment;
     }
     // Always send commission rate
     updateData.stateCommissionRate = this.stateCommissionRate;

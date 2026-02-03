@@ -521,6 +521,16 @@ export class AdminAlarms implements OnInit, OnDestroy {
   getStatusLabel(status: string | null): string {
     if (!status) return '---';
     const labels: Record<string, string> = {
+      taxes_en_proceso: 'Taxes en Proceso',
+      en_verificacion: 'En Verificacion',
+      verificacion_en_progreso: 'Verificacion en Progreso',
+      problemas: 'Problemas',
+      verificacion_rechazada: 'Verificacion Rechazada',
+      deposito_directo: 'Deposito Directo',
+      cheque_en_camino: 'Cheque en Camino',
+      comision_pendiente: 'Comision Pendiente',
+      taxes_completados: 'Taxes Completados',
+      // Legacy (old alarm records)
       in_process: 'En Proceso',
       in_verification: 'En Verificacion',
       verification_in_progress: 'Verificacion en Progreso',

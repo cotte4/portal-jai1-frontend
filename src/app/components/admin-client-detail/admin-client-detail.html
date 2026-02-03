@@ -348,6 +348,10 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="federalComment" placeholder="Agregar comentario...">
             </div>
+            <div class="track-field full-width">
+              <label>Comentario Interno <span class="admin-only-tag">Solo admin</span></label>
+              <textarea [(ngModel)]="federalInternalComment" placeholder="Nota interna (no visible al cliente)..." rows="2"></textarea>
+            </div>
             <button class="btn-track-update" (click)="updateFederalStatusNew()" [disabled]="isSavingFederal">
               {{ isSavingFederal ? 'Guardando...' : 'Actualizar Federal' }}
             </button>
@@ -406,6 +410,10 @@
               <label>Comentario</label>
               <input type="text" [(ngModel)]="stateComment" placeholder="Agregar comentario...">
             </div>
+            <div class="track-field full-width">
+              <label>Comentario Interno <span class="admin-only-tag">Solo admin</span></label>
+              <textarea [(ngModel)]="stateInternalComment" placeholder="Nota interna (no visible al cliente)..." rows="2"></textarea>
+            </div>
             <button class="btn-track-update" (click)="updateStateStatusNew()" [disabled]="isSavingState">
               {{ isSavingState ? 'Guardando...' : 'Actualizar Estatal' }}
             </button>
@@ -425,7 +433,7 @@
           </span>
         </div>
         <div class="commission-amount">
-          <span class="commission-label">Comisión (11%)</span>
+          <span class="commission-label">Comisión ({{ (client.taxCases[0].federalCommissionRate || 0.11) * 100 }}%)</span>
           <span class="commission-value">{{ federalCommissionAmount | currency:'USD' }}</span>
         </div>
         <div class="commission-refund-info" *ngIf="client.taxCases[0].federalActualRefund">
@@ -453,7 +461,7 @@
           </span>
         </div>
         <div class="commission-amount">
-          <span class="commission-label">Comisión (11%)</span>
+          <span class="commission-label">Comisión ({{ (client.taxCases[0].stateCommissionRate || 0.11) * 100 }}%)</span>
           <span class="commission-value">{{ stateCommissionAmount | currency:'USD' }}</span>
         </div>
         <div class="commission-refund-info" *ngIf="client.taxCases[0].stateActualRefund">
@@ -521,7 +529,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Fecha de Nacimiento</span>
-                  <span class="info-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
+                  <span class="info-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy':'UTC') : 'No proporcionado' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Teléfono</span>
@@ -1133,7 +1141,7 @@
       </div>
       <div class="modal-body">
         <p class="confirm-question">¿Marcar la comisión federal como pagada?</p>
-        <p class="confirm-warning">Monto: {{ federalCommissionAmount | currency:'USD' }} (11% de {{ client?.taxCases?.[0]?.federalActualRefund | currency:'USD' }})</p>
+        <p class="confirm-warning">Monto: {{ federalCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.federalCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.federalActualRefund | currency:'USD' }})</p>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" (click)="cancelFederalCommission()">Cancelar</button>
@@ -1153,7 +1161,7 @@
       </div>
       <div class="modal-body">
         <p class="confirm-question">¿Marcar la comisión estatal como pagada?</p>
-        <p class="confirm-warning">Monto: {{ stateCommissionAmount | currency:'USD' }} (11% de {{ client?.taxCases?.[0]?.stateActualRefund | currency:'USD' }})</p>
+        <p class="confirm-warning">Monto: {{ stateCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.stateCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.stateActualRefund | currency:'USD' }})</p>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" (click)="cancelStateCommission()">Cancelar</button>
@@ -1278,7 +1286,7 @@
                 </div>
                 <div class="profile-item">
                   <span class="profile-label">Fecha de Nacimiento</span>
-                  <span class="profile-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'No proporcionado' }}</span>
+                  <span class="profile-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy':'UTC') : 'No proporcionado' }}</span>
                 </div>
                 <div class="profile-item">
                   <span class="profile-label">Teléfono</span>
@@ -1504,7 +1512,7 @@
                     </div>
                     <div class="review-data-item">
                       <span class="data-label">Fecha Nacimiento</span>
-                      <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy') : 'N/A' }}</span>
+                      <span class="data-value">{{ client.profile.dateOfBirth ? (client.profile.dateOfBirth | date:'dd/MM/yyyy':'UTC') : 'N/A' }}</span>
                     </div>
                     <div class="review-data-item">
                       <span class="data-label">Teléfono</span>

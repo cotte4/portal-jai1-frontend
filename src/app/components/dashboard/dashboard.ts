@@ -541,11 +541,11 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
     const status = this.taxCase.federalStatusNew;
     // Progress based on federal status
-    if (status === FederalStatusNew.TAXES_COMPLETED) return 100;
-    if (status === FederalStatusNew.TAXES_SENT || status === FederalStatusNew.CHECK_IN_TRANSIT) return 80;
-    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS) return 50;
-    if (status === FederalStatusNew.IN_PROCESS) return 33;
-    if (status === FederalStatusNew.ISSUES) return 33;
+    if (status === FederalStatusNew.TAXES_COMPLETADOS) return 100;
+    if (status === FederalStatusNew.DEPOSITO_DIRECTO || status === FederalStatusNew.CHEQUE_EN_CAMINO) return 80;
+    if (status === FederalStatusNew.EN_VERIFICACION || status === FederalStatusNew.VERIFICACION_EN_PROGRESO) return 50;
+    if (status === FederalStatusNew.TAXES_EN_PROCESO) return 33;
+    if (status === FederalStatusNew.PROBLEMAS) return 33;
     return 0;
   }
 
@@ -556,11 +556,11 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
     const status = this.taxCase.stateStatusNew;
     // Progress based on state status
-    if (status === StateStatusNew.TAXES_COMPLETED) return 100;
-    if (status === StateStatusNew.TAXES_SENT || status === StateStatusNew.CHECK_IN_TRANSIT) return 80;
-    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS) return 50;
-    if (status === StateStatusNew.IN_PROCESS) return 33;
-    if (status === StateStatusNew.ISSUES) return 33;
+    if (status === StateStatusNew.TAXES_COMPLETADOS) return 100;
+    if (status === StateStatusNew.DEPOSITO_DIRECTO || status === StateStatusNew.CHEQUE_EN_CAMINO) return 80;
+    if (status === StateStatusNew.EN_VERIFICACION || status === StateStatusNew.VERIFICACION_EN_PROGRESO) return 50;
+    if (status === StateStatusNew.TAXES_EN_PROCESO) return 33;
+    if (status === StateStatusNew.PROBLEMAS) return 33;
     return 0;
   }
 
@@ -568,12 +568,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isSentToIRS) return 'No enviado';
     if (!this.taxCase) return 'Pendiente';
     const status = this.taxCase.federalStatusNew;
-    if (status === FederalStatusNew.TAXES_COMPLETED) return 'Completado';
-    if (status === FederalStatusNew.TAXES_SENT) return 'Enviado';
-    if (status === FederalStatusNew.CHECK_IN_TRANSIT) return 'Cheque en camino';
-    if (status === FederalStatusNew.IN_VERIFICATION || status === FederalStatusNew.VERIFICATION_IN_PROGRESS) return 'En verificación';
-    if (status === FederalStatusNew.IN_PROCESS) return 'En proceso';
-    if (status === FederalStatusNew.ISSUES) return 'Con problemas';
+    if (status === FederalStatusNew.TAXES_COMPLETADOS) return 'Completado';
+    if (status === FederalStatusNew.DEPOSITO_DIRECTO) return 'Depósito directo';
+    if (status === FederalStatusNew.CHEQUE_EN_CAMINO) return 'Cheque en camino';
+    if (status === FederalStatusNew.EN_VERIFICACION || status === FederalStatusNew.VERIFICACION_EN_PROGRESO) return 'En verificación';
+    if (status === FederalStatusNew.TAXES_EN_PROCESO) return 'Taxes en proceso';
+    if (status === FederalStatusNew.PROBLEMAS) return 'Con problemas';
     return 'Pendiente';
   }
 
@@ -581,12 +581,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isSentToIRS) return 'No enviado';
     if (!this.taxCase) return 'Pendiente';
     const status = this.taxCase.stateStatusNew;
-    if (status === StateStatusNew.TAXES_COMPLETED) return 'Completado';
-    if (status === StateStatusNew.TAXES_SENT) return 'Enviado';
-    if (status === StateStatusNew.CHECK_IN_TRANSIT) return 'Cheque en camino';
-    if (status === StateStatusNew.IN_VERIFICATION || status === StateStatusNew.VERIFICATION_IN_PROGRESS) return 'En verificación';
-    if (status === StateStatusNew.IN_PROCESS) return 'En proceso';
-    if (status === StateStatusNew.ISSUES) return 'Con problemas';
+    if (status === StateStatusNew.TAXES_COMPLETADOS) return 'Completado';
+    if (status === StateStatusNew.DEPOSITO_DIRECTO) return 'Depósito directo';
+    if (status === StateStatusNew.CHEQUE_EN_CAMINO) return 'Cheque en camino';
+    if (status === StateStatusNew.EN_VERIFICACION || status === StateStatusNew.VERIFICACION_EN_PROGRESO) return 'En verificación';
+    if (status === StateStatusNew.TAXES_EN_PROCESO) return 'Taxes en proceso';
+    if (status === StateStatusNew.PROBLEMAS) return 'Con problemas';
     return 'Pendiente';
   }
 
@@ -726,13 +726,15 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (!status) return 'Sin estado';
 
     const mapping: Record<FederalStatusNew, string> = {
-      [FederalStatusNew.IN_PROCESS]: 'Taxes en proceso',
-      [FederalStatusNew.IN_VERIFICATION]: 'En verificación',
-      [FederalStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
-      [FederalStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
-      [FederalStatusNew.ISSUES]: 'Problemas - contactar soporte',
-      [FederalStatusNew.TAXES_SENT]: 'Reembolso enviado',
-      [FederalStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
+      [FederalStatusNew.TAXES_EN_PROCESO]: 'Taxes en proceso',
+      [FederalStatusNew.EN_VERIFICACION]: 'En verificación',
+      [FederalStatusNew.VERIFICACION_EN_PROGRESO]: 'En verificación',
+      [FederalStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en camino',
+      [FederalStatusNew.PROBLEMAS]: 'Problemas - contactar soporte',
+      [FederalStatusNew.VERIFICACION_RECHAZADA]: 'Verificación rechazada',
+      [FederalStatusNew.DEPOSITO_DIRECTO]: 'Depósito directo',
+      [FederalStatusNew.COMISION_PENDIENTE]: 'Comisión pendiente',
+      [FederalStatusNew.TAXES_COMPLETADOS]: 'Taxes finalizados',
     };
 
     return mapping[status] || status;
@@ -745,13 +747,15 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     if (!status) return 'Sin estado';
 
     const mapping: Record<StateStatusNew, string> = {
-      [StateStatusNew.IN_PROCESS]: 'Taxes en proceso',
-      [StateStatusNew.IN_VERIFICATION]: 'En verificación',
-      [StateStatusNew.VERIFICATION_IN_PROGRESS]: 'En verificación',
-      [StateStatusNew.CHECK_IN_TRANSIT]: 'Cheque en camino',
-      [StateStatusNew.ISSUES]: 'Problemas - contactar soporte',
-      [StateStatusNew.TAXES_SENT]: 'Reembolso enviado',
-      [StateStatusNew.TAXES_COMPLETED]: 'Taxes finalizados',
+      [StateStatusNew.TAXES_EN_PROCESO]: 'Taxes en proceso',
+      [StateStatusNew.EN_VERIFICACION]: 'En verificación',
+      [StateStatusNew.VERIFICACION_EN_PROGRESO]: 'En verificación',
+      [StateStatusNew.CHEQUE_EN_CAMINO]: 'Cheque en camino',
+      [StateStatusNew.PROBLEMAS]: 'Problemas - contactar soporte',
+      [StateStatusNew.VERIFICACION_RECHAZADA]: 'Verificación rechazada',
+      [StateStatusNew.DEPOSITO_DIRECTO]: 'Depósito directo',
+      [StateStatusNew.COMISION_PENDIENTE]: 'Comisión pendiente',
+      [StateStatusNew.TAXES_COMPLETADOS]: 'Taxes finalizados',
     };
 
     return mapping[status] || status;
@@ -778,22 +782,22 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     // If taxes are filed, show federal/state status
     if (caseStatus === CaseStatus.TAXES_FILED) {
       // Prioritize showing the most advanced status
-      if (federalStatusNew === FederalStatusNew.TAXES_COMPLETED ||
-          stateStatusNew === StateStatusNew.TAXES_COMPLETED) {
+      if (federalStatusNew === FederalStatusNew.TAXES_COMPLETADOS ||
+          stateStatusNew === StateStatusNew.TAXES_COMPLETADOS) {
         return 'Taxes finalizados';
       }
-      if (federalStatusNew === FederalStatusNew.TAXES_SENT ||
-          stateStatusNew === StateStatusNew.TAXES_SENT) {
-        return 'Reembolso enviado';
+      if (federalStatusNew === FederalStatusNew.DEPOSITO_DIRECTO ||
+          stateStatusNew === StateStatusNew.DEPOSITO_DIRECTO) {
+        return 'Depósito directo';
       }
-      if (federalStatusNew === FederalStatusNew.CHECK_IN_TRANSIT ||
-          stateStatusNew === StateStatusNew.CHECK_IN_TRANSIT) {
+      if (federalStatusNew === FederalStatusNew.CHEQUE_EN_CAMINO ||
+          stateStatusNew === StateStatusNew.CHEQUE_EN_CAMINO) {
         return 'Cheque en camino';
       }
-      if (federalStatusNew === FederalStatusNew.IN_VERIFICATION ||
-          federalStatusNew === FederalStatusNew.VERIFICATION_IN_PROGRESS ||
-          stateStatusNew === StateStatusNew.IN_VERIFICATION ||
-          stateStatusNew === StateStatusNew.VERIFICATION_IN_PROGRESS) {
+      if (federalStatusNew === FederalStatusNew.EN_VERIFICACION ||
+          federalStatusNew === FederalStatusNew.VERIFICACION_EN_PROGRESO ||
+          stateStatusNew === StateStatusNew.EN_VERIFICACION ||
+          stateStatusNew === StateStatusNew.VERIFICACION_EN_PROGRESO) {
         return 'En verificación';
       }
       if (federalStatusNew || stateStatusNew) {
