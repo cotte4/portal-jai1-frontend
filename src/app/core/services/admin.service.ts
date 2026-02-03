@@ -188,6 +188,16 @@ export class AdminService {
     );
   }
 
+  markCommissionPaid(clientId: string, track: 'federal' | 'state'): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/admin/clients/${clientId}/commission`,
+      { type: track }
+    ).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
   deleteClient(clientId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/clients/${clientId}`).pipe(
       catchError(this.handleError),

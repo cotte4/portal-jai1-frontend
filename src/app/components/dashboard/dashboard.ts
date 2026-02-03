@@ -429,7 +429,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     return this.allStepsComplete || this.isSentToIRS;
   }
 
-  // ============ CURRENT STEP (Matching tax-tracking logic) ============
+  // ============ CURRENT STEP (3-stage tracking) ============
   get currentStepInfo(): CurrentStepInfo {
     const taxCase = this.profileData?.taxCase;
     const profile = this.profileData?.profile;
@@ -440,82 +440,30 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     const stateStatus = taxCase?.stateStatusNew;
     const profileComplete = profile?.profileComplete || false;
 
-    // Total of 8 steps: 2 shared + 3 federal + 3 estatal
-    // We show the most relevant current step
-
-    // Step 1: Información Recibida
-    if (!profileComplete) {
+    // Step 1: Etapa Inicial — profile incomplete or not yet filed
+    if (!profileComplete || !taxesFiled) {
+      const description = !profileComplete
+        ? 'Completa tu perfil para continuar'
+        : caseStatus === CaseStatus.PREPARING
+          ? 'Tu cuenta está siendo revisada'
+          : 'Pendiente de envío al IRS';
       return {
         stepNumber: 1,
-        totalSteps: 8,
-        title: 'Información Recibida',
-        description: 'Completa tu perfil para continuar',
+        totalSteps: 3,
+        title: 'Etapa Inicial',
+        description,
         icon: '📋',
         track: 'shared',
         status: 'active'
       };
     }
 
-    // Step 2: Presentado al IRS
-    const isSubmitted = taxesFiled === true;
-
-    if (!isSubmitted) {
-      if (caseStatus === CaseStatus.PREPARING) {
-        return {
-          stepNumber: 2,
-          totalSteps: 8,
-          title: 'Presentando al IRS',
-          description: 'Tu cuenta está siendo revisada',
-          icon: '🏛️',
-          track: 'shared',
-          status: 'active'
-        };
-      }
-      return {
-        stepNumber: 2,
-        totalSteps: 8,
-        title: 'Presentado al IRS',
-        description: 'Pendiente de envío al IRS',
-        icon: '🏛️',
-        track: 'shared',
-        status: 'pending'
-      };
-    }
-
-    // After submission, check Federal and State tracks
-    // Determine most relevant step based on status
-
-    // Check for rejections first
-    if (isFederalRejected(federalStatus)) {
-      return {
-        stepNumber: 3,
-        totalSteps: 8,
-        title: 'Decisión Federal',
-        description: 'Declaración rechazada - contacta soporte',
-        icon: '❌',
-        track: 'federal',
-        status: 'rejected'
-      };
-    }
-
-    if (isStateRejected(stateStatus)) {
-      return {
-        stepNumber: 3,
-        totalSteps: 8,
-        title: 'Decisión Estatal',
-        description: 'Declaración rechazada - contacta soporte',
-        icon: '❌',
-        track: 'estatal',
-        status: 'rejected'
-      };
-    }
-
-    // Check if both are deposited (completed)
+    // Step 3: Completado — both federal and state deposited
     if (isFederalDeposited(federalStatus) && isStateDeposited(stateStatus)) {
       return {
-        stepNumber: 8,
-        totalSteps: 8,
-        title: 'Reembolsos Depositados',
+        stepNumber: 3,
+        totalSteps: 3,
+        title: 'Completado',
         description: '¡Federal y Estatal depositados!',
         icon: '🎉',
         track: 'both',
@@ -523,120 +471,26 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       };
     }
 
-    // Check individual deposit status
-    if (isFederalDeposited(federalStatus)) {
-      // Federal done, check state
-      if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
-        return {
-          stepNumber: 7,
-          totalSteps: 8,
-          title: 'Reembolso Estatal en Camino',
-          description: 'Federal depositado, esperando estatal',
-          icon: '💵',
-          track: 'estatal',
-          status: 'active'
-        };
-      }
-      if (!isStateApproved(stateStatus)) {
-        return {
-          stepNumber: 6,
-          totalSteps: 8,
-          title: 'Decisión Estatal Pendiente',
-          description: 'Federal depositado, estatal en revisión',
-          icon: '🗽',
-          track: 'estatal',
-          status: 'active'
-        };
-      }
-    }
-
-    if (isStateDeposited(stateStatus)) {
-      // State done, check federal
-      if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
-        return {
-          stepNumber: 5,
-          totalSteps: 8,
-          title: 'Reembolso Federal en Camino',
-          description: 'Estatal depositado, esperando federal',
-          icon: '💵',
-          track: 'federal',
-          status: 'active'
-        };
-      }
-      if (!isFederalApproved(federalStatus)) {
-        return {
-          stepNumber: 4,
-          totalSteps: 8,
-          title: 'Decisión Federal Pendiente',
-          description: 'Estatal depositado, federal en revisión',
-          icon: '🦅',
-          track: 'federal',
-          status: 'active'
-        };
-      }
-    }
-
-    // Check approved but not deposited
-    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus) &&
-        isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
+    // Step 2: Observaciones — filed, IRS processing
+    // Check for rejections
+    if (isFederalRejected(federalStatus) || isStateRejected(stateStatus)) {
       return {
-        stepNumber: 6,
-        totalSteps: 8,
-        title: 'Reembolsos en Camino',
-        description: 'Ambos aprobados, esperando depósitos',
-        icon: '💵',
+        stepNumber: 2,
+        totalSteps: 3,
+        title: 'Observaciones',
+        description: 'Problemas detectados - revisa los detalles',
+        icon: '⚠️',
         track: 'both',
-        status: 'active'
+        status: 'rejected'
       };
     }
 
-    if (isFederalApproved(federalStatus) && !isFederalDeposited(federalStatus)) {
-      return {
-        stepNumber: 5,
-        totalSteps: 8,
-        title: 'Federal Aprobado',
-        description: 'Reembolso federal en proceso',
-        icon: '✅',
-        track: 'federal',
-        status: 'active'
-      };
-    }
-
-    if (isStateApproved(stateStatus) && !isStateDeposited(stateStatus)) {
-      return {
-        stepNumber: 5,
-        totalSteps: 8,
-        title: 'Estatal Aprobado',
-        description: 'Reembolso estatal en proceso',
-        icon: '✅',
-        track: 'estatal',
-        status: 'active'
-      };
-    }
-
-    // Default: waiting for IRS decisions - active processing
-    const federalIsActive = federalStatus && !isFederalApproved(federalStatus) && !isFederalRejected(federalStatus);
-    const stateIsActive = stateStatus && !isStateApproved(stateStatus) && !isStateRejected(stateStatus);
-
-    if (federalIsActive || stateIsActive) {
-      return {
-        stepNumber: 3,
-        totalSteps: 8,
-        title: 'En Revisión del IRS',
-        description: 'Tu declaración está siendo procesada',
-        icon: '🏛️',
-        track: 'both',
-        status: 'active'
-      };
-    }
-
-    // Submitted but no status yet
     return {
-      stepNumber: 3,
-      totalSteps: 8,
-      title: 'Decisión Pendiente',
-      description: 'Esperando respuesta del IRS',
-      icon: '⏳',
+      stepNumber: 2,
+      totalSteps: 3,
+      title: 'Observaciones',
+      description: 'Tu declaración está siendo procesada por el IRS',
+      icon: '🏛️',
       track: 'both',
       status: 'active'
     };
@@ -650,7 +504,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   get isTrackingComplete(): boolean {
     return this.currentStepInfo.status === 'completed' &&
-           this.currentStepInfo.stepNumber === 8;
+           this.currentStepInfo.stepNumber === 3;
   }
 
   // ============ IRS SUMMARY HELPERS ============
