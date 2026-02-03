@@ -723,24 +723,23 @@
   gap: 14px;
 }
 
-.obs-card.obs-pending {
-  border-color: #d1d5db;
-  background: #f9fafb;
-}
-
+.obs-card.obs-pending,
 .obs-card.obs-in-progress {
-  border-color: #93c5fd;
-  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border-color: #f59e0b;
+  border-left: 4px solid #f59e0b;
+  background: white;
 }
 
 .obs-card.obs-completed {
-  border-color: #6ee7b7;
-  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border-color: #22c55e;
+  border-left: 4px solid #22c55e;
+  background: white;
 }
 
 .obs-card.obs-issues {
-  border-color: #fca5a5;
-  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
+  border-color: #ef4444;
+  border-left: 4px solid #ef4444;
+  background: white;
 }
 
 .obs-card-header {
@@ -781,14 +780,10 @@
   font-weight: 700;
 }
 
-.obs-status-row.status-pending {
-  background: #f1f5f9;
-  color: #475569;
-}
-
+.obs-status-row.status-pending,
 .obs-status-row.status-in-progress {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .obs-status-row.status-completed {
@@ -834,6 +829,43 @@
   font-size: 22px;
   font-weight: 700;
   color: #059669;
+}
+
+/* Fee row inside observation cards */
+.obs-fee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px dashed #f59e0b;
+  border-radius: 8px;
+}
+
+.obs-fee-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.obs-fee-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #b45309;
+}
+
+.obs-fee-row.fee-paid {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  border-style: solid;
+}
+
+.obs-fee-row.fee-paid .obs-fee-label {
+  color: #047857;
+}
+
+.obs-fee-row.fee-paid .obs-fee-amount {
+  color: #047857;
 }
 
 .obs-refund {

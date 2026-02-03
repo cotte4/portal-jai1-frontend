@@ -261,6 +261,14 @@
               </div>
             }
 
+            <!-- Fee row: shows after client confirms refund received -->
+            @if (federalConfirmed && federalFeeAmount > 0) {
+              <div class="obs-fee-row" [class.fee-paid]="isFederalCommissionPaid">
+                <span class="obs-fee-label">{{ isFederalCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
+                <span class="obs-fee-amount">${{ federalFeeAmount.toLocaleString() }}</span>
+              </div>
+            }
+
             <!-- Refund confirmation (moved from old section) -->
             @if (canConfirmFederal || federalConfirmed) {
               <div class="obs-refund">
@@ -312,6 +320,14 @@
               <div class="obs-refund-info">
                 <span class="obs-refund-label">Monto:</span>
                 <span class="obs-refund-amount">${{ stateRefundAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Fee row: shows after client confirms refund received -->
+            @if (stateConfirmed && stateFeeAmount > 0) {
+              <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
+                <span class="obs-fee-label">{{ isStateCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
+                <span class="obs-fee-amount">${{ stateFeeAmount.toLocaleString() }}</span>
               </div>
             }
 
