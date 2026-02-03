@@ -760,30 +760,43 @@
   flex: 1;
 }
 
-.obs-status-pill {
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+/* Status row — prominent full-width display */
+.obs-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.obs-status-label {
+  font-size: 14px;
   font-weight: 600;
-  white-space: nowrap;
+  opacity: 0.7;
 }
 
-.obs-status-pill.pill-pending {
+.obs-status-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.obs-status-row.status-pending {
   background: #f1f5f9;
-  color: #64748b;
+  color: #475569;
 }
 
-.obs-status-pill.pill-in-progress {
+.obs-status-row.status-in-progress {
   background: #dbeafe;
   color: #1d4ed8;
 }
 
-.obs-status-pill.pill-completed {
+.obs-status-row.status-completed {
   background: #d1fae5;
   color: #047857;
 }
 
-.obs-status-pill.pill-issues {
+.obs-status-row.status-issues {
   background: #fee2e2;
   color: #b91c1c;
 }
