@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ElementRef, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { formatUSDAmount } from '../../core/utils/currency-format';
 import { Subscription, filter, forkJoin, finalize, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
@@ -308,7 +309,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       if (this.calculatorResult.requiresReview) {
         return 'Pendiente';
       }
-      return `$${this.calculatorResult.estimatedRefund.toLocaleString()}`;
+      return `$${formatUSDAmount(this.calculatorResult.estimatedRefund)}`;
     }
     return '---';
   }
@@ -323,7 +324,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   get actualRefundDisplay(): string {
     if (this.actualRefund) {
-      return `$${this.actualRefund.toLocaleString()}`;
+      return `$${formatUSDAmount(this.actualRefund)}`;
     }
     return '---';
   }
@@ -416,7 +417,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     }
 
     if (!depositDate) return null;
-    return new Date(depositDate).toLocaleDateString('es-ES', {
+    return new Date(depositDate).toLocaleDateString('es-AR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'

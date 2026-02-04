@@ -751,7 +751,7 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
     if (!dateStr) return 'No especificada';
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('es-ES', { 
+      return date.toLocaleDateString('es-AR', { 
         day: '2-digit', 
         month: 'long', 
         year: 'numeric' 
@@ -765,7 +765,7 @@ export class Profile implements OnInit, OnDestroy, AfterViewInit {
     if (!this.memberSince) return 'Miembro desde 2024';
     try {
       const date = new Date(this.memberSince);
-      return `Miembro desde ${date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+      return `Miembro desde ${date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`;
     } catch {
       return 'Miembro desde 2024';
     }

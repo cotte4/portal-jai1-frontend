@@ -12,9 +12,9 @@ import {
   EventEmitter,
   Input
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, finalize } from 'rxjs';
+import { Router } from '@angular/router';
+import { Subscription, forkJoin, finalize } from 'rxjs';
 import { ConsentFormService } from '../../core/services/consent-form.service';
 import { ToastService } from '../../core/services/toast.service';
 
@@ -45,7 +45,7 @@ const CONSENT_CLAUSES = [
 @Component({
   selector: 'app-consent-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './consent-form.html',
   styleUrl: './consent-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -54,6 +54,7 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   private consentFormService = inject(ConsentFormService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
   private subscriptions = new Subscription();
 
   @ViewChild('signatureCanvas') signatureCanvas!: ElementRef<HTMLCanvasElement>;
@@ -65,8 +66,13 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   isLoading = false;
   hasLoaded = false;
   isSigning = false;
+  isSigned = false;
+  downloadUrl: string | null = null;
 
-  // Form fields (manually filled by client)
+  // Email validation
+  private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Form fields (pre-filled from backend, editable by client)
   formData = {
     fullName: '',
     dniPassport: '',
@@ -90,8 +96,52 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   clauses = CONSENT_CLAUSES;
 
   ngOnInit() {
-    this.hasLoaded = true;
+    this.isLoading = true;
     this.cdr.detectChanges();
+
+    this.subscriptions.add(
+      forkJoin({
+        prefilled: this.consentFormService.getPrefilled(),
+        status: this.consentFormService.getStatus()
+      }).pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.hasLoaded = true;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: ({ prefilled, status }) => {
+          // Check if already signed
+          if (status.status === 'signed') {
+            this.isSigned = true;
+            if (status.canDownload) {
+              this.consentFormService.getDownloadUrl().subscribe({
+                next: (res) => {
+                  this.downloadUrl = res.url;
+                  this.cdr.detectChanges();
+                }
+              });
+            }
+            return;
+          }
+
+          // Pre-fill form fields
+          if (prefilled.fullName) this.formData.fullName = prefilled.fullName;
+          if (prefilled.dniPassport) this.formData.dniPassport = prefilled.dniPassport;
+          if (prefilled.street) this.formData.street = prefilled.street;
+          if (prefilled.city) this.formData.city = prefilled.city;
+          if (prefilled.email) this.formData.email = prefilled.email;
+
+          // Use server date if provided
+          if (prefilled.date) {
+            this.currentDate = prefilled.date;
+          }
+        },
+        error: () => {
+          // Silently fail — form still works without prefill
+        }
+      })
+    );
   }
 
   ngAfterViewInit() {
@@ -269,6 +319,7 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
       this.formData.street.trim() &&
       this.formData.city.trim() &&
       this.formData.email.trim() &&
+      this.emailPattern.test(this.formData.email.trim()) &&
       this.hasSignature
     );
   }
@@ -279,7 +330,11 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
     if (!this.formData.dniPassport.trim()) missing.push('DNI/Pasaporte');
     if (!this.formData.street.trim()) missing.push('Direccion');
     if (!this.formData.city.trim()) missing.push('Ciudad');
-    if (!this.formData.email.trim()) missing.push('Email');
+    if (!this.formData.email.trim()) {
+      missing.push('Email');
+    } else if (!this.emailPattern.test(this.formData.email.trim())) {
+      missing.push('Email invalido');
+    }
     if (!this.hasSignature) missing.push('Firma');
     return missing;
   }
@@ -319,6 +374,21 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
 
   cancel() {
     this.cancelled.emit();
+  }
+
+  downloadPdf() {
+    if (this.downloadUrl) {
+      window.open(this.downloadUrl, '_blank');
+      return;
+    }
+    this.consentFormService.getDownloadUrl().subscribe({
+      next: (res) => window.open(res.url, '_blank'),
+      error: () => this.toastService.error('Error al descargar el PDF')
+    });
+  }
+
+  goHome() {
+    this.router.navigate(['/dashboard']);
   }
 
   get formattedDate(): string {

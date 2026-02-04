@@ -392,7 +392,7 @@ export class ReferralProgram implements OnInit, OnDestroy, AfterViewInit {
   // Format helpers
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-AR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'

@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../core/utils/error-handler';
 import { ThemeService } from '../../core/services/theme.service';
+import { formatUSDCurrency } from '../../core/utils/currency-format';
 import * as XLSX from 'xlsx';
 
 interface PaymentClient {
@@ -322,7 +323,7 @@ export class AdminPayments implements OnInit, OnDestroy {
 
   formatDate(dateStr: string | null): string {
     if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('es-ES', {
+    return new Date(dateStr).toLocaleDateString('es-AR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -330,12 +331,7 @@ export class AdminPayments implements OnInit, OnDestroy {
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
+    return formatUSDCurrency(amount);
   }
 
   getInitials(name: string): string {

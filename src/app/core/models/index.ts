@@ -175,6 +175,11 @@ export interface ConsentFormPrefilledResponse {
 
 export interface SignConsentFormRequest {
   signature: string; // base64 PNG
+  fullName: string;
+  dniPassport: string;
+  street: string;
+  city: string;
+  email: string;
 }
 
 export interface SignConsentFormResponse {

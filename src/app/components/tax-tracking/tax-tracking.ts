@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { formatUSDAmount } from '../../core/utils/currency-format';
+import { UsdAmountPipe } from '../../shared/pipes/usd-amount.pipe';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -34,7 +36,7 @@ interface TrackingStep {
 
 @Component({
   selector: 'app-tax-tracking',
-  imports: [CommonModule],
+  imports: [CommonModule, UsdAmountPipe],
   templateUrl: './tax-tracking.html',
   styleUrl: './tax-tracking.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -377,7 +379,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   private formatDate(dateStr?: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-AR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -437,7 +439,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get lastRefreshFormatted(): string {
-    return this.lastRefresh.toLocaleTimeString('es-ES', {
+    return this.lastRefresh.toLocaleTimeString('es-AR', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -558,7 +560,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
 
         this.notificationService.emitLocalNotification(
           '¡Recibo Confirmado!',
-          `Has confirmado recibir tu reembolso federal. Comisión: $${response.fee.toLocaleString()}`,
+          `Has confirmado recibir tu reembolso federal. Comisión: $${formatUSDAmount(response.fee)}`,
           NotificationType.STATUS_CHANGE
         );
 
@@ -597,7 +599,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
 
         this.notificationService.emitLocalNotification(
           '¡Recibo Confirmado!',
-          `Has confirmado recibir tu reembolso estatal. Comisión: $${response.fee.toLocaleString()}`,
+          `Has confirmado recibir tu reembolso estatal. Comisión: $${formatUSDAmount(response.fee)}`,
           NotificationType.STATUS_CHANGE
         );
 

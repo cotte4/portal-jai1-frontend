@@ -261,7 +261,28 @@ export class MainLayout implements OnInit, OnDestroy {
     return this.notificationService.hasMore;
   }
 
-  getNotificationIcon(type: string | null | undefined): string {
+  getNotificationIcon(type: string | null | undefined, title?: string): string {
+    // Match on title keywords first for contextual icons
+    if (title) {
+      const t = title.toLowerCase();
+      if (t.includes('depositado')) return '💰';
+      if (t.includes('aprobado')) return '✅';
+      if (t.includes('rechazad')) return '❌';
+      if (t.includes('atención')) return '🚨';
+      if (t.includes('resuelto')) return '✅';
+      if (t.includes('bienvenido')) return '👋';
+      if (t.includes('referido') || t.includes('indicación')) return '🤝';
+      if (t.includes('descuento')) return '🎁';
+      if (t.includes('verificación')) return '🔍';
+      if (t.includes('correo')) return '📬';
+      if (t.includes('novedades')) return '📢';
+      if (t.includes('procesando') || t.includes('en proceso')) return '⏳';
+      if (t.includes('enviada') || t.includes('enviado')) return '📤';
+      if (t.includes('documento')) return '📄';
+      if (t.includes('soporte')) return '💬';
+    }
+
+    // Fallback by notification type
     if (!type) return '🔔';
 
     switch (type) {
@@ -294,7 +315,7 @@ export class MainLayout implements OnInit, OnDestroy {
     if (diffMins < 60) return `Hace ${diffMins} min`;
     if (diffHours < 24) return `Hace ${diffHours}h`;
     if (diffDays < 7) return `Hace ${diffDays}d`;
-    return date.toLocaleDateString('es-ES');
+    return date.toLocaleDateString('es-AR');
   }
 
   closeSidebar() {

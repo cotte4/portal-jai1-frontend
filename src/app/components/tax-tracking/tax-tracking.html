@@ -66,7 +66,7 @@
           <div class="card-content">
             <span class="card-label">Reembolso Estimado</span>
             @if (estimatedRefund) {
-              <span class="card-value">${{ estimatedRefund.toLocaleString() }} USD</span>
+              <span class="card-value">${{ estimatedRefund | usdAmount }} USD</span>
             } @else {
               <span class="card-value no-estimate">Aun no calculaste tu reembolso</span>
               <button class="btn-calculate" (click)="navigateTo('/tax-calculator'); $event.stopPropagation()">Calcular ahora</button>
@@ -83,7 +83,7 @@
           </div>
           <div class="card-content">
             <span class="card-label">Reembolso Final</span>
-            <span class="card-value highlight">${{ actualRefund.toLocaleString() }}</span>
+            <span class="card-value highlight">${{ actualRefund | usdAmount }}</span>
           </div>
         </div>
       }
@@ -257,7 +257,7 @@
             @if (federalRefundAmount > 0) {
               <div class="obs-refund-info">
                 <span class="obs-refund-label">Monto:</span>
-                <span class="obs-refund-amount">${{ federalRefundAmount.toLocaleString() }}</span>
+                <span class="obs-refund-amount">${{ federalRefundAmount | usdAmount }}</span>
               </div>
             }
 
@@ -265,7 +265,7 @@
             @if (federalConfirmed && federalFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isFederalCommissionPaid">
                 <span class="obs-fee-label">{{ isFederalCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
-                <span class="obs-fee-amount">${{ federalFeeAmount.toLocaleString() }}</span>
+                <span class="obs-fee-amount">${{ federalFeeAmount | usdAmount }}</span>
               </div>
             }
 
@@ -347,7 +347,7 @@
             @if (stateRefundAmount > 0) {
               <div class="obs-refund-info">
                 <span class="obs-refund-label">Monto:</span>
-                <span class="obs-refund-amount">${{ stateRefundAmount.toLocaleString() }}</span>
+                <span class="obs-refund-amount">${{ stateRefundAmount | usdAmount }}</span>
               </div>
             }
 
@@ -355,7 +355,7 @@
             @if (stateConfirmed && stateFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
                 <span class="obs-fee-label">{{ isStateCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
-                <span class="obs-fee-amount">${{ stateFeeAmount.toLocaleString() }}</span>
+                <span class="obs-fee-amount">${{ stateFeeAmount | usdAmount }}</span>
               </div>
             }
 
@@ -425,7 +425,7 @@
             <div class="fee-summary">
               <div class="fee-row">
                 <span>Comision JAI1:</span>
-                <span class="fee-amount">${{ totalFeeOwed.toLocaleString() }}</span>
+                <span class="fee-amount">${{ totalFeeOwed | usdAmount }}</span>
               </div>
             </div>
 
@@ -489,7 +489,7 @@
         @if (actualRefund) {
           <div class="completado-amount">
             <span class="completado-amount-label">Monto Total Recibido</span>
-            <span class="completado-amount-value">${{ actualRefund.toLocaleString() }}</span>
+            <span class="completado-amount-value">${{ actualRefund | usdAmount }}</span>
           </div>
         }
       </div>

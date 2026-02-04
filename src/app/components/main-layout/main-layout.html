@@ -131,7 +131,7 @@
         <div class="notifications-list">
           @for (notification of notifications; track notification.id) {
             <div class="notification-item" [class.unread]="!notification.isRead" (click)="markAsRead(notification)">
-              <span class="notification-type-icon">{{ getNotificationIcon(notification.type) }}</span>
+              <span class="notification-type-icon">{{ getNotificationIcon(notification.type, notification.title) }}</span>
               <div class="notification-content">
                 <span class="notification-title">{{ notification.title }}</span>
                 <span class="notification-message">{{ notification.message }}</span>
