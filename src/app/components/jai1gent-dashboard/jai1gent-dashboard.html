@@ -124,7 +124,7 @@
               <div class="referral-item">
                 <div class="referral-info">
                   <span class="referral-name">{{ referral.referred_name }}</span>
-                  <span class="referral-date">{{ referral.created_at | date:'dd/MM/yyyy' }}</span>
+                  <span class="referral-date">{{ referral.created_at | date:'dd/MM/yyyy':'UTC' }}</span>
                 </div>
                 <div class="referral-status">
                   <span class="status-badge" [ngClass]="getStatusClass(referral.status)">

@@ -143,7 +143,7 @@
                       <span class="code-display">{{ code.code }}</span>
                     </td>
                     <td>{{ code.created_by }}</td>
-                    <td>{{ code.created_at | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ code.created_at | date:'dd/MM/yyyy':'UTC' }}</td>
                     <td>
                       @if (code.used_by) {
                         <span class="status-badge used">Usado</span>

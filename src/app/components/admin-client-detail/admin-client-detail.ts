@@ -130,12 +130,12 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   problemDescription: string = '';
 
   // Document tabs
-  selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
+  selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other' = 'all';
 
   // Profile and Documents Modal
   showProfileModal: boolean = false;
   showDocumentsModal: boolean = false;
-  modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'other' = 'all';
+  modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other' = 'all';
 
   // Visual Review Game
   showVisualReview: boolean = false;
@@ -741,16 +741,22 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   get filteredDocuments(): Document[] {
     if (!this.client?.documents) return [];
     if (this.selectedDocumentTab === 'all') return this.client.documents;
+    if (this.selectedDocumentTab === 'commission_proof') {
+      return this.client.documents.filter(doc => doc.type === 'commission_proof_federal' || doc.type === 'commission_proof_state');
+    }
     return this.client.documents.filter(doc => doc.type === this.selectedDocumentTab);
   }
 
-  getDocumentCountByType(type: 'all' | 'w2' | 'payment_proof' | 'other'): number {
+  getDocumentCountByType(type: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other'): number {
     if (!this.client?.documents) return 0;
     if (type === 'all') return this.client.documents.length;
+    if (type === 'commission_proof') {
+      return this.client.documents.filter(doc => doc.type === 'commission_proof_federal' || doc.type === 'commission_proof_state').length;
+    }
     return this.client.documents.filter(doc => doc.type === type).length;
   }
 
-  selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'other') {
+  selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other') {
     this.selectedDocumentTab = tab;
   }
 
@@ -778,6 +784,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   get modalFilteredDocuments(): Document[] {
     if (!this.client?.documents) return [];
     if (this.modalDocumentTab === 'all') return this.client.documents;
+    if (this.modalDocumentTab === 'commission_proof') {
+      return this.client.documents.filter(doc => doc.type === 'commission_proof_federal' || doc.type === 'commission_proof_state');
+    }
     return this.client.documents.filter(doc => doc.type === this.modalDocumentTab);
   }
 
@@ -786,6 +795,8 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       'w2': 'W2',
       'payment_proof': 'Comprobante',
       'consent_form': 'Consentimiento',
+      'commission_proof_federal': 'Comision Federal',
+      'commission_proof_state': 'Comision Estatal',
       'other': 'Otro'
     };
     return labels[type] || type;

@@ -269,6 +269,34 @@
               </div>
             }
 
+            <!-- Commission proof upload (after fee row, inside federal card) -->
+            @if (federalConfirmed && !isFederalCommissionPaid) {
+              <div class="commission-proof-upload">
+                @if (federalProofUploaded) {
+                  <div class="commission-proof-success">
+                    <span class="confirmed-icon">✓</span>
+                    <span>Comprobante enviado</span>
+                  </div>
+                } @else {
+                  <label class="btn-upload-proof" [class.uploading]="isUploadingFederalProof">
+                    @if (isUploadingFederalProof) {
+                      <span class="btn-spinner"></span>
+                      <span>Subiendo...</span>
+                    } @else {
+                      <span>📎 Subir comprobante</span>
+                    }
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+                           (change)="onCommissionProofSelected($event, 'federal')"
+                           [disabled]="isUploadingFederalProof"
+                           hidden>
+                  </label>
+                  @if (federalProofError) {
+                    <span class="upload-error">{{ federalProofError }}</span>
+                  }
+                }
+              </div>
+            }
+
             <!-- Refund confirmation (moved from old section) -->
             @if (canConfirmFederal || federalConfirmed) {
               <div class="obs-refund">
@@ -328,6 +356,34 @@
               <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
                 <span class="obs-fee-label">{{ isStateCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
                 <span class="obs-fee-amount">${{ stateFeeAmount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <!-- Commission proof upload (after fee row, inside state card) -->
+            @if (stateConfirmed && !isStateCommissionPaid) {
+              <div class="commission-proof-upload">
+                @if (stateProofUploaded) {
+                  <div class="commission-proof-success">
+                    <span class="confirmed-icon">✓</span>
+                    <span>Comprobante enviado</span>
+                  </div>
+                } @else {
+                  <label class="btn-upload-proof" [class.uploading]="isUploadingStateProof">
+                    @if (isUploadingStateProof) {
+                      <span class="btn-spinner"></span>
+                      <span>Subiendo...</span>
+                    } @else {
+                      <span>📎 Subir comprobante</span>
+                    }
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+                           (change)="onCommissionProofSelected($event, 'state')"
+                           [disabled]="isUploadingStateProof"
+                           hidden>
+                  </label>
+                  @if (stateProofError) {
+                    <span class="upload-error">{{ stateProofError }}</span>
+                  }
+                }
               </div>
             }
 

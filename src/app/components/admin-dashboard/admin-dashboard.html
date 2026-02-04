@@ -453,13 +453,13 @@
 
               <!-- 3. Tax Filing Date (derived from caseStatusChangedAt when TAXES_FILED) -->
               <td class="col-date">
-                <span *ngIf="client.caseStatus === 'taxes_filed' && client.caseStatusChangedAt">{{ client.caseStatusChangedAt | date:'dd/MM/yy' }}</span>
+                <span *ngIf="client.caseStatus === 'taxes_filed' && client.caseStatusChangedAt">{{ client.caseStatusChangedAt | date:'dd/MM/yy':'UTC' }}</span>
                 <span *ngIf="client.caseStatus !== 'taxes_filed' || !client.caseStatusChangedAt" class="no-data">---</span>
               </td>
 
               <!-- 4. Last Review Date -->
               <td class="col-date">
-                <span *ngIf="client.lastReviewDate">{{ client.lastReviewDate | date:'dd/MM/yy' }}</span>
+                <span *ngIf="client.lastReviewDate">{{ client.lastReviewDate | date:'dd/MM/yy':'UTC' }}</span>
                 <span *ngIf="!client.lastReviewDate" class="no-data">---</span>
               </td>
 

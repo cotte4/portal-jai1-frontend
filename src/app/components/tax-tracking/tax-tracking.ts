@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { DocumentService } from '../../core/services/document.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ConfettiService } from '../../core/services/confetti.service';
 import { AnimationService } from '../../core/services/animation.service';
-import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew } from '../../core/models';
+import { ProfileResponse, NotificationType, CaseStatus, FederalStatusNew, StateStatusNew, DocumentType } from '../../core/models';
 import { interval, Subscription, filter, skip, finalize } from 'rxjs';
 import {
   isFederalApproved,
@@ -42,6 +43,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private notificationService = inject(NotificationService);
+  private documentService = inject(DocumentService);
   private dataRefreshService = inject(DataRefreshService);
   private confettiService = inject(ConfettiService);
   private animationService = inject(AnimationService);
@@ -84,6 +86,14 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   stateFee: number | null = null;
   copiedToClipboard = false;
   showPaymentSection = false;
+
+  // Commission proof upload state
+  isUploadingFederalProof = false;
+  isUploadingStateProof = false;
+  federalProofUploaded = false;
+  stateProofUploaded = false;
+  federalProofError = '';
+  stateProofError = '';
 
   ngOnInit() {
     this.loadTrackingData();
@@ -370,7 +380,8 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     return date.toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'UTC'
     });
   }
 
@@ -613,5 +624,77 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
         this.cdr.detectChanges();
       }, 2000);
     });
+  }
+
+  // ============ COMMISSION PROOF UPLOAD ============
+
+  onCommissionProofSelected(event: Event, track: 'federal' | 'state'): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      const errorMsg = 'Formato no valido. Solo PDF, JPG o PNG.';
+      if (track === 'federal') this.federalProofError = errorMsg;
+      else this.stateProofError = errorMsg;
+      this.cdr.detectChanges();
+      input.value = '';
+      return;
+    }
+
+    // Validate file size (25MB max)
+    const maxSize = 25 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const errorMsg = 'El archivo supera el limite de 25MB.';
+      if (track === 'federal') this.federalProofError = errorMsg;
+      else this.stateProofError = errorMsg;
+      this.cdr.detectChanges();
+      input.value = '';
+      return;
+    }
+
+    // Clear errors and set uploading state
+    if (track === 'federal') {
+      this.federalProofError = '';
+      this.isUploadingFederalProof = true;
+    } else {
+      this.stateProofError = '';
+      this.isUploadingStateProof = true;
+    }
+    this.cdr.detectChanges();
+
+    const docType = track === 'federal'
+      ? DocumentType.COMMISSION_PROOF_FEDERAL
+      : DocumentType.COMMISSION_PROOF_STATE;
+    const taxYear = this.profileData?.taxCase?.taxYear;
+
+    this.documentService.upload(file, docType, taxYear).pipe(
+      finalize(() => {
+        if (track === 'federal') this.isUploadingFederalProof = false;
+        else this.isUploadingStateProof = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: () => {
+        if (track === 'federal') this.federalProofUploaded = true;
+        else this.stateProofUploaded = true;
+
+        this.notificationService.emitLocalNotification(
+          'Comprobante Enviado',
+          `Tu comprobante de comision ${track === 'federal' ? 'federal' : 'estatal'} fue enviado correctamente.`,
+          NotificationType.STATUS_CHANGE
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        const errorMsg = 'Error al subir el comprobante. Intenta de nuevo.';
+        if (track === 'federal') this.federalProofError = errorMsg;
+        else this.stateProofError = errorMsg;
+      }
+    });
+
+    input.value = '';
   }
 }

@@ -230,7 +230,7 @@
         </span>
         <span class="consent-compact-title">Acuerdo de Consentimiento</span>
         <span class="consent-compact-status" *ngIf="isConsentFormSigned">
-          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy' }}
+          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy':'UTC' }}
         </span>
       </div>
       <button
@@ -347,7 +347,7 @@
           <div class="file-meta">
             <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
             <span class="file-separator">|</span>
-            <span class="file-date">{{ file.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="file-date">{{ file.uploadedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</span>
             <span class="file-separator">|</span>
             <span class="file-type">{{ getDocumentTypeLabel(file.type) }}</span>
             <span *ngIf="file.isReviewed" class="reviewed-badge">Revisado</span>

@@ -54,7 +54,7 @@
           </span>
           <span class="meta-item">
             <span class="meta-icon">📅</span>
-            Registrado: {{ client.user.createdAt | date:'dd/MM/yyyy' }}
+            Registrado: {{ client.user.createdAt | date:'dd/MM/yyyy':'UTC' }}
           </span>
         </div>
         <!-- Quick Access Buttons -->
@@ -257,7 +257,7 @@
       <!-- Filed Date Display (when already filed) -->
       <div class="filed-info" *ngIf="taxesFiled && taxesFiledAt">
         <span class="filed-icon">📅</span>
-        <span class="filed-text">Presentado el {{ taxesFiledAt | date:'dd/MM/yyyy' }}</span>
+        <span class="filed-text">Presentado el {{ taxesFiledAt | date:'dd/MM/yyyy':'UTC' }}</span>
       </div>
     </section>
 
@@ -448,7 +448,7 @@
           }
         </button>
         <div class="commission-paid-date" *ngIf="client.taxCases[0].federalCommissionPaidAt">
-          Pagada el {{ client.taxCases[0].federalCommissionPaidAt | date:'dd/MM/yyyy' }}
+          Pagada el {{ client.taxCases[0].federalCommissionPaidAt | date:'dd/MM/yyyy':'UTC' }}
         </div>
       </div>
 
@@ -476,7 +476,7 @@
           }
         </button>
         <div class="commission-paid-date" *ngIf="client.taxCases[0].stateCommissionPaidAt">
-          Pagada el {{ client.taxCases[0].stateCommissionPaidAt | date:'dd/MM/yyyy' }}
+          Pagada el {{ client.taxCases[0].stateCommissionPaidAt | date:'dd/MM/yyyy':'UTC' }}
         </div>
       </div>
     </div>
@@ -750,6 +750,10 @@
                     (click)="selectDocumentTab('payment_proof')">
               Comprobantes <span class="tab-count">{{ getDocumentCountByType('payment_proof') }}</span>
             </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'commission_proof'"
+                    (click)="selectDocumentTab('commission_proof')">
+              Comision <span class="tab-count">{{ getDocumentCountByType('commission_proof') }}</span>
+            </button>
             <button class="doc-tab" [class.active]="selectedDocumentTab === 'other'"
                     (click)="selectDocumentTab('other')">
               Otros <span class="tab-count">{{ getDocumentCountByType('other') }}</span>
@@ -762,7 +766,7 @@
               <div class="doc-info">
                 <div class="doc-name">{{ doc.fileName }}</div>
                 <div class="doc-meta">
-                  {{ formatFileSize(doc.fileSize) }} | {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+                  {{ formatFileSize(doc.fileSize) }} | {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}
                   <span *ngIf="doc.isReviewed" class="reviewed-badge">Revisado</span>
                 </div>
               </div>
@@ -802,7 +806,7 @@
                 <div class="history-header">
                   <span class="history-date">
                     <span class="date-icon">📅</span>
-                    {{ history.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    {{ history.createdAt | date:'dd/MM/yyyy HH:mm':'UTC' }}
                   </span>
                   <span class="history-admin" *ngIf="history.changedBy">
                     <span class="admin-icon">👤</span>
@@ -859,7 +863,7 @@
               <div class="ticket-subject">{{ ticket.subject }}</div>
               <div class="ticket-meta">
                 <span class="ticket-status" [class]="'status-' + ticket.status">{{ getTicketStatusLabel(ticket.status) }}</span>
-                <span class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm' }}</span>
+                <span class="ticket-date">{{ ticket.createdAt | date:'dd/MM HH:mm':'UTC' }}</span>
               </div>
             </div>
           </div>
@@ -884,7 +888,7 @@
                    [class.client-message]="msg.sender?.role !== 'admin'">
                 <div class="message-header">
                   <span class="sender-name">{{ msg.sender?.role === 'admin' ? 'Soporte JAI1' : (msg.sender?.firstName || 'Cliente') }}</span>
-                  <span class="message-date">{{ msg.createdAt | date:'dd/MM HH:mm' }}</span>
+                  <span class="message-date">{{ msg.createdAt | date:'dd/MM HH:mm':'UTC' }}</span>
                 </div>
                 <div class="message-text">{{ msg.message }}</div>
               </div>
@@ -1181,7 +1185,7 @@
       </div>
       <div class="modal-body">
         <p class="confirm-question">¿Estas seguro de marcar los taxes como presentados?</p>
-        <p class="confirm-warning">Esta accion cambiara el estado del caso a "Taxes Presentados" con fecha {{ taxesFiledAt | date:'dd/MM/yyyy' }}.</p>
+        <p class="confirm-warning">Esta accion cambiara el estado del caso a "Taxes Presentados" con fecha {{ taxesFiledAt | date:'dd/MM/yyyy':'UTC' }}.</p>
         <p class="confirm-info">Los estados Federal y Estatal se estableceran como "Presentado".</p>
       </div>
       <div class="modal-footer">
@@ -1417,6 +1421,10 @@
                   (click)="modalDocumentTab = 'payment_proof'">
             Comprobantes <span class="tab-count">{{ getDocumentCountByType('payment_proof') }}</span>
           </button>
+          <button class="modal-doc-tab" [class.active]="modalDocumentTab === 'commission_proof'"
+                  (click)="modalDocumentTab = 'commission_proof'">
+            Comision <span class="tab-count">{{ getDocumentCountByType('commission_proof') }}</span>
+          </button>
           <button class="modal-doc-tab" [class.active]="modalDocumentTab === 'other'"
                   (click)="modalDocumentTab = 'other'">
             Otros <span class="tab-count">{{ getDocumentCountByType('other') }}</span>
@@ -1431,7 +1439,7 @@
               <div class="modal-doc-meta">
                 <span class="doc-type-badge" [class]="'type-' + doc.type">{{ getDocumentTypeLabel(doc.type) }}</span>
                 <span>{{ formatFileSize(doc.fileSize) }}</span>
-                <span>{{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</span>
                 <span *ngIf="doc.isReviewed" class="reviewed-badge">Revisado</span>
               </div>
             </div>
@@ -1549,7 +1557,7 @@
                       <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
                       <div class="doc-details">
                         <span class="doc-name">{{ doc.fileName }}</span>
-                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy':'UTC' }}</span>
                       </div>
                       <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
                     </div>
@@ -1573,7 +1581,7 @@
                       <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
                       <div class="doc-details">
                         <span class="doc-name">{{ doc.fileName }}</span>
-                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy':'UTC' }}</span>
                       </div>
                       <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
                     </div>
@@ -1597,7 +1605,7 @@
                       <span class="doc-icon-large">{{ getFileIcon(doc.mimeType) }}</span>
                       <div class="doc-details">
                         <span class="doc-name">{{ doc.fileName }}</span>
-                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+                        <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ doc.uploadedAt | date:'dd/MM/yyyy':'UTC' }}</span>
                       </div>
                       <span class="doc-preview-badge" *ngIf="previewDocumentId === doc.id">Viendo</span>
                     </div>

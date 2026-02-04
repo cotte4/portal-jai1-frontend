@@ -868,6 +868,59 @@
   color: #047857;
 }
 
+/* Commission proof upload (inside obs-card) */
+.commission-proof-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-upload-proof {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #1D345D;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-upload-proof:hover:not(.uploading) {
+  background: #152844;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
+}
+
+.btn-upload-proof.uploading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.commission-proof-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #dcfce7;
+  border-radius: 10px;
+  color: #166534;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.upload-error {
+  font-size: 12px;
+  color: #dc2626;
+  padding: 0 4px;
+}
+
 .obs-refund {
   margin-top: 4px;
 }
