@@ -1,6 +1,8 @@
-import { Component, signal, OnInit, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Component, signal, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { ToastComponent } from './components/toast/toast';
 import { StandaloneService } from './core/services/standalone.service';
 
@@ -10,9 +12,10 @@ import { StandaloneService } from './core/services/standalone.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   private standaloneService = inject(StandaloneService);
-  private platformId = inject(PLATFORM_ID);
+  private swUpdate = inject(SwUpdate, { optional: true });
+  private swSub?: Subscription;
 
   protected readonly title = signal('tax-client-portal');
   protected showSplash = signal(true);
@@ -22,9 +25,15 @@ export class App implements OnInit {
     // Initialize standalone mode fixes (link interception, session recovery, etc.)
     this.standaloneService.initialize();
 
-    // Add standalone CSS class for iOS navigator.standalone detection
-    if (isPlatformBrowser(this.platformId) && this.standaloneService.isStandalone) {
-      document.documentElement.classList.add('standalone-mode');
+    // Notify user when a new version of the app is available
+    if (this.swUpdate?.isEnabled) {
+      this.swSub = this.swUpdate.versionUpdates.pipe(
+        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY')
+      ).subscribe(() => {
+        if (confirm('Hay una nueva version disponible. ¿Actualizar ahora?')) {
+          document.location.reload();
+        }
+      });
     }
 
     // Start fade out after 2 seconds
@@ -35,5 +44,9 @@ export class App implements OnInit {
         this.showSplash.set(false);
       }, 600);
     }, 2000);
+  }
+
+  ngOnDestroy(): void {
+    this.swSub?.unsubscribe();
   }
 }

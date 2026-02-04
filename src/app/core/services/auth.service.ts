@@ -79,13 +79,24 @@ export class AuthService {
   }
 
   /**
-   * Initialize auth state - check if tokens need refresh
-   * Call this on app startup
+   * Initialize auth state - check if tokens need refresh.
+   * Call this on app startup. Only runs once (guarded).
    */
   async initializeAuth(): Promise<void> {
     if (this.initialized) return;
     this.initialized = true;
+    await this.checkAndRefreshToken();
+  }
 
+  /**
+   * Re-validate the session after the app returns from background.
+   * Unlike initializeAuth(), this can be called multiple times.
+   */
+  async revalidateSession(): Promise<void> {
+    await this.checkAndRefreshToken();
+  }
+
+  private async checkAndRefreshToken(): Promise<void> {
     const accessToken = this.storage.getAccessToken();
     const refreshToken = this.storage.getRefreshToken();
 
@@ -93,7 +104,6 @@ export class AuthService {
       return;
     }
 
-    // Check if access token is expired or about to expire (within 1 minute)
     if (this.isTokenExpired(accessToken, 60)) {
       try {
         await firstValueFrom(this.refreshToken());

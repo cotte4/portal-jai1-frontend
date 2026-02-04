@@ -88,7 +88,7 @@ export class StandaloneService {
         // If backgrounded for more than 30 seconds, re-validate auth
         if (elapsed > 30_000) {
           this.ngZone.run(() => {
-            this.authService.initializeAuth();
+            this.authService.revalidateSession();
           });
         }
       } else {
@@ -100,7 +100,7 @@ export class StandaloneService {
     window.addEventListener('pageshow', (event: PageTransitionEvent) => {
       if (event.persisted) {
         this.ngZone.run(() => {
-          this.authService.initializeAuth();
+          this.authService.revalidateSession();
         });
       }
     });
@@ -109,15 +109,22 @@ export class StandaloneService {
   /**
    * Prevent pull-to-refresh in standalone mode.
    * CSS overscroll-behavior is inconsistent on older iOS, so we add a JS fallback.
+   * Skips prevention when the touch originates inside a scrollable container
+   * (modals, chat areas, etc.) so nested scrolling still works.
    */
   private setupPullToRefreshPrevention(): void {
     let startY = 0;
+    let targetIsScrollable = false;
 
     document.addEventListener('touchstart', (e: TouchEvent) => {
       startY = e.touches[0].pageY;
+      targetIsScrollable = this.isInsideScrollable(e.target as HTMLElement);
     }, { passive: true });
 
     document.addEventListener('touchmove', (e: TouchEvent) => {
+      // Don't interfere with scrolling inside nested scrollable containers
+      if (targetIsScrollable) return;
+
       const scrollTop = document.scrollingElement?.scrollTop ?? 0;
       const deltaY = e.touches[0].pageY - startY;
 
@@ -126,6 +133,18 @@ export class StandaloneService {
         e.preventDefault();
       }
     }, { passive: false });
+  }
+
+  private isInsideScrollable(el: HTMLElement | null): boolean {
+    while (el && el !== document.documentElement) {
+      const style = window.getComputedStyle(el);
+      const overflowY = style.overflowY;
+      if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+        return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
   }
 
   /**
