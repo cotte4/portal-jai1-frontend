@@ -49,6 +49,30 @@
   ],
   "scope": "/",
   "lang": "es",
+  "dir": "ltr",
   "categories": ["finance", "productivity"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "short_name": "Inicio",
+      "description": "Ir al dashboard",
+      "url": "/dashboard",
+      "icons": [{"src": "assets/images/jai1-icon-192x192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Declaracion",
+      "short_name": "Declaracion",
+      "description": "Completar declaracion de taxes",
+      "url": "/tax-form",
+      "icons": [{"src": "assets/images/jai1-icon-192x192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Documentos",
+      "short_name": "Documentos",
+      "description": "Subir documentos",
+      "url": "/documents",
+      "icons": [{"src": "assets/images/jai1-icon-192x192.png", "sizes": "192x192"}]
+    }
+  ]
 }
