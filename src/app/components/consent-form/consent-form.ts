@@ -108,6 +108,10 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
           this.isLoading = false;
           this.hasLoaded = true;
           this.cdr.detectChanges();
+          // Initialize signature canvas after DOM renders the form
+          if (!this.isSigned) {
+            setTimeout(() => this.initCanvas(), 100);
+          }
         })
       ).subscribe({
         next: ({ prefilled, status }) => {
@@ -145,10 +149,8 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Delay canvas initialization to ensure DOM is ready
-    setTimeout(() => {
-      this.initCanvas();
-    }, 100);
+    // Canvas is initialized after data loads in ngOnInit finalize callback,
+    // since the canvas element only exists once hasLoaded && !isSigned renders the template.
   }
 
   ngOnDestroy() {
