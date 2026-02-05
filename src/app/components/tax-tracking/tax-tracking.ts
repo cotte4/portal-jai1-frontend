@@ -461,7 +461,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     const taxCase = this.profileData?.taxCase;
     if (!taxCase) return false;
     return !!(
-      taxCase.federalDepositDate &&
+      isFederalApproved(taxCase.federalStatusNew) &&
       taxCase.federalActualRefund &&
       Number(taxCase.federalActualRefund) > 0 &&
       !taxCase.federalRefundReceived
@@ -472,7 +472,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     const taxCase = this.profileData?.taxCase;
     if (!taxCase) return false;
     return !!(
-      taxCase.stateDepositDate &&
+      isStateApproved(taxCase.stateStatusNew) &&
       taxCase.stateActualRefund &&
       Number(taxCase.stateActualRefund) > 0 &&
       !taxCase.stateRefundReceived
