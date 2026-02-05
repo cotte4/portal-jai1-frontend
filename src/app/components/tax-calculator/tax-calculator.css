@@ -114,7 +114,7 @@
 }
 
 .card-header h1 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 32px;
   font-weight: 700;
   margin: 0 0 12px;
@@ -134,7 +134,7 @@
 }
 
 .upload-section h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 8px;
@@ -160,13 +160,13 @@
 }
 
 .upload-zone:hover {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, #f0f7ff 0%, #e8f0ff 100%);
   transform: translateY(-2px);
 }
 
 .upload-zone.dragging {
-  border-color: #B21B43;
+  border-color: var(--color-accent);
   background: linear-gradient(135deg, #fef2f4 0%, #fce7eb 100%);
   transform: scale(1.02);
 }
@@ -178,12 +178,12 @@
 }
 
 .upload-zone:hover .upload-icon {
-  color: #1D345D;
+  color: var(--color-primary);
   transform: translateY(-4px);
 }
 
 .upload-zone.dragging .upload-icon {
-  color: #B21B43;
+  color: var(--color-accent);
 }
 
 .upload-text {
@@ -194,7 +194,7 @@
 }
 
 .upload-main {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
 }
@@ -205,7 +205,7 @@
 }
 
 .upload-browse {
-  color: #B21B43;
+  color: var(--color-accent);
   font-size: 16px;
   font-weight: 500;
 }
@@ -258,8 +258,8 @@
 
 .demo-button {
   background: transparent;
-  border: 2px solid #1D345D;
-  color: #1D345D;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
   padding: 10px 20px;
   border-radius: 12px;
   font-size: 14px;
@@ -269,7 +269,7 @@
 }
 
 .demo-button:hover {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -296,21 +296,21 @@
   position: absolute;
   inset: 0;
   border: 4px solid transparent;
-  border-top-color: #B21B43;
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 1.5s linear infinite;
 }
 
 .calc-ring-2 {
   inset: 15px;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   animation-duration: 2s;
   animation-direction: reverse;
 }
 
 .calc-ring-3 {
   inset: 30px;
-  border-top-color: #B21B43;
+  border-top-color: var(--color-accent);
   animation-duration: 2.5s;
 }
 
@@ -333,7 +333,7 @@
 }
 
 .calculating-title {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 32px;
@@ -385,7 +385,7 @@
 }
 
 .step.active {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .step-icon {
@@ -516,14 +516,14 @@
 }
 
 .result-amount .currency {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 28px;
   font-weight: 700;
   margin-top: 6px;
 }
 
 .result-amount .amount {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 56px;
   font-weight: 800;
   line-height: 1;
@@ -534,7 +534,7 @@
 }
 
 .result-amount .cents {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   margin-top: 6px;
@@ -562,7 +562,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -621,7 +621,7 @@
 }
 
 .reset-button:hover {
-  color: #1D345D;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
@@ -728,7 +728,7 @@
 }
 
 .popup-card h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 12px;
@@ -764,11 +764,6 @@
   background: #f8fafc;
 }
 
-.btn-popup-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-popup-primary {
   flex: 1;
   padding: 14px 20px;
@@ -786,12 +781,6 @@
 .btn-popup-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(178, 27, 67, 0.4);
-}
-
-.btn-popup-primary:disabled {
-  opacity: 0.8;
-  cursor: not-allowed;
-  transform: none;
 }
 
 /* Error Message */
@@ -849,7 +838,7 @@
 }
 
 .breakdown-value {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 700;
 }
@@ -908,7 +897,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -998,7 +987,7 @@
 }
 
 .review-title {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 22px;
   font-weight: 700;
   margin: 0 0 16px;
@@ -1042,8 +1031,8 @@
 }
 
 .secondary-button:hover {
-  border-color: #1D345D;
-  color: #1D345D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
   background: #f8fafc;
 }
 
@@ -1054,7 +1043,7 @@
 }
 
 .info-note a {
-  color: #B21B43;
+  color: var(--color-accent);
   text-decoration: none;
   font-weight: 500;
 }

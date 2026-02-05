@@ -76,7 +76,7 @@
   gap: 8px;
   background: transparent;
   border: none;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -144,8 +144,8 @@
 }
 
 .client-info h1 {
-  color: #1D345D;
-  font-size: 26px;
+  color: var(--color-primary);
+  font-size: var(--font-2xl);
   font-weight: 700;
   margin: 0 0 10px 0;
   line-height: 1.2;
@@ -196,14 +196,14 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-quick-access:hover {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.12);
@@ -263,14 +263,14 @@
   font-weight: 600;
   cursor: pointer;
   background: white;
-  color: #1D345D;
+  color: var(--color-primary);
   min-width: 180px;
   transition: all 0.2s ease;
 }
 
 .status-control select:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
 }
 
@@ -337,7 +337,7 @@
 }
 
 .btn-download {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   padding: 10px 20px;
   border: none;
@@ -352,7 +352,7 @@
 }
 
 .btn-download:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.25);
 }
@@ -474,8 +474,8 @@
 }
 
 .doc-tab.active {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: white;
 }
 
@@ -514,7 +514,7 @@
 
 .document-card:hover {
   background: white;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(29, 52, 93, 0.1);
 }
 
@@ -567,7 +567,7 @@
 
 .btn-doc-download {
   padding: 10px 16px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -583,7 +583,7 @@
 }
 
 .btn-doc-download:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(29, 52, 93, 0.2);
 }
@@ -648,7 +648,7 @@
 .message-bubble.client {
   align-self: flex-start;
   background: #f5f5f5;
-  color: #333;
+  color: var(--color-text-primary);
   border-bottom-left-radius: 4px;
 }
 
@@ -670,7 +670,7 @@
 }
 
 .message-bubble.client .message-sender {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .message-time {
@@ -692,7 +692,7 @@ justify-content: center;
 gap: 8px;
 }
 .empty-messages p {
-color: #999;
+color: var(--color-text-muted);
 margin: 0;
 }
 .empty-messages small,
@@ -723,7 +723,7 @@ font-size: 12px;
   width: 24px;
   height: 24px;
   border: 3px solid #f0f0f0;
-  border-top-color: #B21B43;
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -744,15 +744,11 @@ font-size: 12px;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 .btn-refresh-tickets:hover:not(:disabled) {
   background: #e8e8e8;
-  color: #333;
-}
-.btn-refresh-tickets:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  color: var(--color-text-primary);
 }
 .btn-refresh-tickets .spinning {
   animation: spin 0.8s linear infinite;
@@ -824,7 +820,7 @@ font-size: 12px;
 }
 .ticket-subject-display {
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   flex: 1;
   overflow: hidden;
@@ -847,7 +843,7 @@ font-size: 12px;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 .empty-conversation p {
@@ -896,12 +892,12 @@ font-size: 12px;
 }
 
 .ticket-card:hover {
-  border-color: #B21B43;
+  border-color: var(--color-accent);
   background: white;
 }
 
 .ticket-card.selected {
-  border-color: #B21B43;
+  border-color: var(--color-accent);
   background: white;
   box-shadow: 0 2px 8px rgba(178, 27, 67, 0.12);
 }
@@ -979,7 +975,7 @@ font-size: 12px;
 
 .message-input textarea:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: white;
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.08);
 }
@@ -1011,14 +1007,6 @@ font-size: 12px;
 }
 .btn-send:disabled,
 .btn-problem:disabled,
-.btn-resolve:disabled,
-.btn-save:disabled,
-.btn-resolve-modal:disabled,
-.btn-confirm-action:disabled,
-.btn-status-update:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 .send-icon {
 font-size: 18px;
 transition: transform 0.3s ease;
@@ -1074,8 +1062,8 @@ transform: translateX(4px);
 }
 
 .btn-problem:hover {
-  border-color: #B21B43;
-  color: #B21B43;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
   background: #fef2f2;
 }
 
@@ -1117,7 +1105,7 @@ transform: translateX(4px);
   margin-top: 16px;
   padding: 16px 20px;
   background: linear-gradient(135deg, rgba(178, 27, 67, 0.1) 0%, rgba(178, 27, 67, 0.05) 100%);
-  border: 2px solid #B21B43;
+  border: 2px solid var(--color-accent);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -1127,7 +1115,7 @@ transform: translateX(4px);
 .problem-icon {
   width: 40px;
   height: 40px;
-  background: #B21B43;
+  background: var(--color-accent);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -1143,14 +1131,14 @@ transform: translateX(4px);
 }
 
 .problem-info strong {
-  color: #B21B43;
+  color: var(--color-accent);
   font-size: 15px;
   display: block;
   margin-bottom: 4px;
 }
 
 .problem-info p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   margin: 0;
 }
@@ -1367,12 +1355,6 @@ transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
 }
 
-.btn-action:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
 /* ==================== MODALS ==================== */
 .modal-overlay {
   position: fixed;
@@ -1502,7 +1484,7 @@ transform: translateX(4px);
 .form-group input[type="number"]:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: white;
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.08);
 }
@@ -1539,7 +1521,7 @@ transform: translateX(4px);
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #1D345D;
+  accent-color: var(--color-primary);
 }
 
 /* ==================== MODAL FOOTER ==================== */
@@ -1691,7 +1673,7 @@ transform: translateX(4px);
 }
 
 .profile-section h4 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 700;
   margin: 0 0 16px 0;
@@ -1781,8 +1763,8 @@ transform: translateX(4px);
 }
 
 .modal-doc-tab.active {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: white;
 }
 
@@ -1894,7 +1876,7 @@ transform: translateX(4px);
   align-items: center;
   gap: 6px;
   padding: 10px 16px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -1906,7 +1888,7 @@ transform: translateX(4px);
 }
 
 .btn-modal-download:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(29, 52, 93, 0.25);
 }
@@ -2007,7 +1989,7 @@ transform: translateX(4px);
 .steps-progress-header h3 {
   flex: 1;
   font-size: 16px;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0;
   font-weight: 600;
 }
@@ -2018,7 +2000,7 @@ transform: translateX(4px);
   font-size: 12px;
   font-weight: 600;
   background: #e8f0ff;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .steps-progress-body {
@@ -2050,7 +2032,7 @@ transform: translateX(4px);
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
-  color: #999;
+  color: var(--color-text-muted);
   transition: all 0.3s ease;
 }
 
@@ -2067,7 +2049,7 @@ transform: translateX(4px);
 .step-label {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--color-text-secondary);
   text-align: center;
   white-space: nowrap;
 }
@@ -2689,11 +2671,6 @@ transform: translateX(4px);
   color: white;
 }
 
-.bento-toolbar-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
 .bento-zoom-label {
   min-width: 44px;
   padding: 4px 8px;
@@ -2898,7 +2875,7 @@ transform: translateX(4px);
 }
 
 .info-bar-value.highlight {
-  color: #B21B43;
+  color: var(--color-accent);
   background: rgba(178, 27, 67, 0.15);
   padding: 2px 6px;
   border-radius: 4px;
@@ -3387,7 +3364,7 @@ transform: translateX(4px);
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .review-card-content {
@@ -3654,11 +3631,6 @@ transform: translateX(4px);
   color: white;
 }
 
-.toolbar-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 .toolbar-btn svg {
   width: 18px;
   height: 18px;
@@ -3871,11 +3843,6 @@ transform: translateX(4px);
 .btn-review-back:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.15);
   color: white;
-}
-
-.btn-review-back:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }
 
 .btn-review-correct {
@@ -4219,7 +4186,7 @@ transform: translateX(4px);
 .mark-filed-header h3 {
   flex: 1;
   font-size: 16px;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0;
 }
 
@@ -4229,7 +4196,7 @@ transform: translateX(4px);
   font-size: 12px;
   font-weight: 600;
   background: #e8f0ff;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .status-badge-large.status-awaiting_registration,
@@ -4261,7 +4228,7 @@ transform: translateX(4px);
 .mark-filed-field label {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .pre-filing-field select,
@@ -4278,12 +4245,12 @@ transform: translateX(4px);
 .pre-filing-field input:focus,
 .mark-filed-field input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
 }
 
 .btn-update-prefiling {
   margin-top: 8px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   padding: 12px 20px;
   border: none;
@@ -4295,20 +4262,13 @@ transform: translateX(4px);
 }
 
 .btn-update-prefiling:hover:not(:disabled) {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
-}
-
-.btn-update-prefiling:disabled,
-.btn-mark-filed:disabled,
-.btn-track-update:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .mark-filed-description {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   margin: 0;
 }
@@ -4413,7 +4373,7 @@ transform: translateX(4px);
 
 .track-header h3 {
   flex: 1;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
@@ -4430,7 +4390,7 @@ transform: translateX(4px);
 .track-status.status-pending,
 .track-status.status-null {
   background: #f0f0f0;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .track-status.status-processing {
@@ -4466,7 +4426,7 @@ transform: translateX(4px);
 }
 
 .track-field label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4486,12 +4446,12 @@ transform: translateX(4px);
 .track-field select:focus,
 .track-field input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 .state-track .track-field select:focus,
 .state-track .track-field input:focus {
-  border-color: #B21B43;
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 4px rgba(178, 27, 67, 0.1);
 }
 
@@ -4514,7 +4474,7 @@ transform: translateX(4px);
 
 .state-track .status-hint {
   background: #fff0f3;
-  border-left-color: #B21B43;
+  border-left-color: var(--color-accent);
 }
 
 /* Client visibility hint - shows what the client sees */
@@ -4626,17 +4586,17 @@ transform: translateX(4px);
 }
 
 .federal-track .btn-track-update {
-  background: #1D345D;
+  background: var(--color-primary);
 }
 
 .federal-track .btn-track-update:hover:not(:disabled) {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
 
 .state-track .btn-track-update {
-  background: #B21B43;
+  background: var(--color-accent);
 }
 
 .state-track .btn-track-update:hover:not(:disabled) {
@@ -4656,7 +4616,7 @@ transform: translateX(4px);
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 20px 0;
@@ -4715,7 +4675,7 @@ transform: translateX(4px);
 .account-name {
   font-weight: 600;
   font-size: 15px;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .account-credentials {
@@ -4734,13 +4694,13 @@ transform: translateX(4px);
 .credential-label {
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
 .credential-value {
   font-size: 13px;
-  color: #333;
+  color: var(--color-text-primary);
   font-family: monospace;
   background: #f5f5f5;
   padding: 4px 8px;
@@ -4753,7 +4713,7 @@ transform: translateX(4px);
 
 .credential-value.masked {
   letter-spacing: 2px;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .btn-show-credentials {
@@ -4764,14 +4724,14 @@ transform: translateX(4px);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-show-credentials:hover {
   background: #e8e8e8;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .account-empty {
@@ -4780,7 +4740,7 @@ transform: translateX(4px);
 }
 
 .empty-text {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 13px;
   font-style: italic;
 }
@@ -4823,7 +4783,7 @@ transform: translateX(4px);
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 16px 0;
@@ -4855,7 +4815,7 @@ transform: translateX(4px);
 
 .credentials-group input[type="text"]:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -4921,10 +4881,6 @@ transform: translateX(4px);
     height: 56px;
     font-size: 20px;
     border-radius: 12px;
-  }
-
-  .client-info h1 {
-    font-size: 20px;
   }
 
   .client-meta {
@@ -5019,14 +4975,14 @@ transform: translateX(4px);
 }
 
 .confirm-warning {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
   margin: 16px 0 0 0;
   line-height: 1.5;
 }
 
 .confirm-info {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 13px;
   margin: 12px 0 0 0;
   padding: 12px;
@@ -5115,12 +5071,12 @@ transform: translateX(4px);
 
 .alarm-message {
   flex: 1;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .alarm-days {
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   background: #f5f5f5;
   padding: 4px 8px;
   border-radius: 4px;
@@ -5176,7 +5132,7 @@ transform: translateX(4px);
 .status-card-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .status-icon {
@@ -5197,7 +5153,7 @@ transform: translateX(4px);
 .status-field label {
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -5215,7 +5171,7 @@ transform: translateX(4px);
 .status-field select:focus,
 .status-field input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
 }
 
@@ -5323,7 +5279,7 @@ transform: translateX(4px);
 .detail-label {
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   min-width: 140px;
 }
 
@@ -5365,7 +5321,7 @@ transform: translateX(4px);
 
 .override-instruction {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 16px 0;
   line-height: 1.5;
 }
@@ -5396,7 +5352,7 @@ transform: translateX(4px);
   display: block;
   text-align: right;
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-muted);
   margin-top: 6px;
 }
 
@@ -5419,11 +5375,6 @@ transform: translateX(4px);
 .btn-override:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-}
-
-.btn-override:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Status History Timeline Styles */
@@ -5451,7 +5402,7 @@ transform: translateX(4px);
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #1D345D;
+  background: var(--color-primary);
   border: 3px solid white;
   box-shadow: 0 0 0 2px #1D345D;
   z-index: 1;
@@ -5489,7 +5440,7 @@ transform: translateX(4px);
 }
 
 .history-content:hover {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.1);
   transform: translateX(4px);
 }
@@ -5509,7 +5460,7 @@ transform: translateX(4px);
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .date-icon {
@@ -5522,7 +5473,7 @@ transform: translateX(4px);
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #1D345D;
+  color: var(--color-primary);
   background: rgba(29, 52, 93, 0.08);
   padding: 4px 12px;
   border-radius: 12px;
@@ -5550,7 +5501,7 @@ transform: translateX(4px);
 
 .status-badge-history.old {
   background: #f5f5f5;
-  color: #666;
+  color: var(--color-text-secondary);
   border: 2px solid #e0e0e0;
 }
 
@@ -5563,7 +5514,7 @@ transform: translateX(4px);
 
 .arrow-icon {
   font-size: 20px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: bold;
 }
 
@@ -5585,7 +5536,7 @@ transform: translateX(4px);
 }
 
 .comment-text {
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 13px;
   line-height: 1.5;
   font-style: italic;
@@ -5608,11 +5559,6 @@ transform: translateX(4px);
 .btn-reset-estimate:hover:not(:disabled) {
   background: #dc3545;
   color: white;
-}
-
-.btn-reset-estimate:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* ==================== HEADER RIGHT / DARK MODE TOGGLE ==================== */

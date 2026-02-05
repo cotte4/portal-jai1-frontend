@@ -308,7 +308,7 @@
   font-size: 22px;
   cursor: pointer;
   padding: 8px;
-  color: #1D345D;
+  color: var(--color-primary);
   border-radius: 8px;
 }
 
@@ -323,7 +323,7 @@
 .welcome-text {
   flex: 1;
   font-size: 20px;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .welcome-text strong {
@@ -363,7 +363,7 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  background: #B21B43;
+  background: var(--color-accent);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -415,7 +415,7 @@
 
 .notifications-header h3 {
   font-size: 18px;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .btn-close-notif {
@@ -423,7 +423,7 @@
   border: none;
   font-size: 16px;
   cursor: pointer;
-  color: #666;
+  color: var(--color-text-secondary);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -451,7 +451,7 @@
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -464,20 +464,20 @@
 }
 
 .btn-action.btn-delete-all {
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .btn-action.btn-delete-all:hover {
   background: #fff3f3;
-  border-color: #B21B43;
-  color: #B21B43;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* Individual Delete Button */
 .btn-delete {
   background: none;
   border: none;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   cursor: pointer;
   padding: 4px 8px;
@@ -494,7 +494,7 @@
 
 .btn-delete:hover {
   background: #fee2e2;
-  color: #B21B43;
+  color: var(--color-accent);
 }
 
 .notifications-list {
@@ -536,18 +536,18 @@
 
 .notification-title {
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
 }
 
 .notification-message {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.4;
 }
 
 .notification-time {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -556,7 +556,7 @@
   flex-direction: column;
   align-items: center;
   padding: 60px 20px;
-  color: #999;
+  color: var(--color-text-muted);
   gap: 12px;
 }
 
@@ -572,7 +572,7 @@
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -581,12 +581,7 @@
 
 .btn-load-more:hover:not(:disabled) {
   background: #f0f2f5;
-  border-color: #1D345D;
-}
-
-.btn-load-more:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  border-color: var(--color-primary);
 }
 
 /* ==================== PAGE CONTENT ==================== */

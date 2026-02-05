@@ -125,7 +125,7 @@
 .btn-notifications svg {
   width: 20px;
   height: 20px;
-  stroke: #1D345D;
+  stroke: var(--color-primary);
 }
 
 .notif-badge {
@@ -232,7 +232,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .btn-close-panel {
@@ -255,7 +255,7 @@
 .btn-close-panel svg {
   width: 18px;
   height: 18px;
-  stroke: #666;
+  stroke: var(--color-text-secondary);
 }
 
 /* User Card */
@@ -312,7 +312,7 @@
 .menu-user-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -369,7 +369,7 @@
 .menu-nav-item span {
   font-size: 15px;
   font-weight: 500;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* Logout Button - Fixed at bottom */

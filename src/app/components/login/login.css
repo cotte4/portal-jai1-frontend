@@ -236,7 +236,7 @@ html, body {
 .form-header h2 {
   font-size: 28px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
 }
 
@@ -270,12 +270,12 @@ html, body {
 
 .auth-tab.active {
   background: white;
-  color: #1D345D;
+  color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .auth-tab:hover:not(.active) {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* Error Alert */
@@ -321,7 +321,7 @@ html, body {
 .input-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin-left: 4px;
 }
 
@@ -348,12 +348,12 @@ html, body {
   font-family: inherit;
   background: white;
   transition: all 0.25s ease;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .input-wrapper input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -415,8 +415,8 @@ html, body {
 }
 
 .remember-check input:checked ~ .checkmark {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .remember-check input:checked ~ .checkmark::after {
@@ -431,7 +431,7 @@ html, body {
 }
 
 .forgot-link {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -440,7 +440,7 @@ html, body {
 }
 
 .forgot-link:hover {
-  color: #B21B43;
+  color: var(--color-accent);
 }
 
 /* Login Button */
@@ -470,11 +470,6 @@ html, body {
 
 .btn-login:active:not(:disabled) {
   transform: translateY(0);
-}
-
-.btn-login:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 .btn-arrow {
@@ -545,14 +540,9 @@ html, body {
 }
 
 .btn-social:hover:not(:disabled) {
-  border-color: #1D345D;
-  color: #1D345D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
   background: #f8fafc;
-}
-
-.btn-social:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btn-google {
@@ -583,7 +573,7 @@ html, body {
 }
 
 .form-footer a {
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -591,7 +581,7 @@ html, body {
 }
 
 .form-footer a:hover {
-  color: #B21B43;
+  color: var(--color-accent);
 }
 
 /* Install App Button */

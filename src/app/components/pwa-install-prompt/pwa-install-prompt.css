@@ -95,7 +95,7 @@
 .pwa-title {
   font-size: 22px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
 }
 

@@ -423,10 +423,25 @@
             </div>
 
             <div class="fee-summary">
-              <div class="fee-row">
-                <span>Comision JAI1:</span>
-                <span class="fee-amount">${{ totalFeeOwed | usdAmount }}</span>
-              </div>
+              @if (referralDiscountAmount > 0) {
+                <div class="fee-row">
+                  <span>Comision JAI1:</span>
+                  <span class="fee-amount">${{ totalFeeBeforeDiscount | usdAmount }}</span>
+                </div>
+                <div class="fee-row discount-row">
+                  <span>Descuento por referido:</span>
+                  <span class="fee-discount">-${{ referralDiscountAmount | usdAmount }}</span>
+                </div>
+                <div class="fee-row total-row">
+                  <span>Total a pagar:</span>
+                  <span class="fee-amount fee-total">${{ totalFeeOwed | usdAmount }}</span>
+                </div>
+              } @else {
+                <div class="fee-row">
+                  <span>Comision JAI1:</span>
+                  <span class="fee-amount">${{ totalFeeOwed | usdAmount }}</span>
+                </div>
+              }
             </div>
 
             <div class="payment-methods">

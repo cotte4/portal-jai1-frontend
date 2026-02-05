@@ -494,7 +494,13 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     return hasConfirmedRefund && !taxCase.commissionPaid;
   }
 
-  get totalFeeOwed(): number {
+  get referralDiscountAmount(): number {
+    const discount = this.profileData?.taxCase?.referralDiscount;
+    if (!discount || discount.status === 'expired') return 0;
+    return discount.amount;
+  }
+
+  get totalFeeBeforeDiscount(): number {
     const taxCase = this.profileData?.taxCase;
     if (!taxCase) return 0;
 
@@ -509,6 +515,11 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
       total += Number(taxCase.stateActualRefund) * stateRate;
     }
     return Math.round(total * 100) / 100;
+  }
+
+  get totalFeeOwed(): number {
+    const total = this.totalFeeBeforeDiscount - this.referralDiscountAmount;
+    return Math.max(0, Math.round(total * 100) / 100);
   }
 
   get federalRefundAmount(): number {

@@ -389,6 +389,8 @@ export interface TaxCase {
   // Per-track commission rates
   federalCommissionRate?: number;
   stateCommissionRate?: number;
+  // Referral discount
+  referralDiscount?: { amount: number; status: string } | null;
   // Internal comments (admin-only)
   federalInternalComment?: string;
   stateInternalComment?: string;

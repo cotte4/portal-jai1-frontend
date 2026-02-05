@@ -130,7 +130,7 @@
 .success-title {
   font-size: 26px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
   animation: slideUp 0.5s ease 0.3s both;
 }
@@ -182,7 +182,7 @@
 .next-step-content h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 4px 0;
 }
 
@@ -245,7 +245,7 @@
 }
 
 .btn-later:hover {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* Progress Steps */
@@ -297,7 +297,7 @@
 
 .step.completed span:not(.step-dot),
 .step.current span:not(.step-dot) {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .step-line {
@@ -321,7 +321,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 24px;
@@ -360,7 +360,7 @@
   align-items: center;
   gap: 12px;
   font-size: 15px;
-  color: #1D345D;
+  color: var(--color-primary);
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
 }
@@ -440,7 +440,7 @@
 .referral-compact-label {
   font-size: 13px;
   font-weight: 500;
-  color: #1D345D;
+  color: var(--color-primary);
   white-space: nowrap;
 }
 
@@ -534,11 +534,6 @@
   transform: scale(1.02);
 }
 
-.btn-apply-compact:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .referral-compact-feedback {
   margin-top: 6px;
   padding-left: 28px;
@@ -606,14 +601,14 @@
 }
 
 .page-title h1 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 32px;
   font-weight: 700;
   margin: 0 0 12px 0;
 }
 
 .page-title p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 16px;
   margin: 0;
 }
@@ -760,14 +755,14 @@
 }
 
 .section-title h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 22px;
   font-weight: 600;
   margin: 0 0 6px 0;
 }
 
 .section-title p {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 0;
 }
@@ -796,7 +791,7 @@
 }
 
 .form-group label {
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 14px;
 }
@@ -815,7 +810,7 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -834,9 +829,9 @@
 
 .btn-draft {
   background: white;
-  color: #1D345D;
+  color: var(--color-primary);
   padding: 16px 32px;
-  border: 2px solid #1D345D;
+  border: 2px solid var(--color-primary);
   border-radius: 16px;
   font-size: 15px;
   font-weight: 600;
@@ -846,11 +841,6 @@
 
 .btn-draft:hover {
   background: #f5f7fa;
-}
-
-.btn-draft:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .btn-submit {
@@ -876,12 +866,6 @@
 
 .btn-submit:active {
   transform: translateY(0);
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
 }
 
 .submit-icon {
@@ -915,20 +899,20 @@
 }
 
 .help-content h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 8px 0;
 }
 
 .help-content p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
   margin: 0;
 }
 
 .btn-help {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   padding: 12px 24px;
   border: none;
@@ -941,7 +925,7 @@
 }
 
 .btn-help:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
@@ -973,7 +957,7 @@
   .page-title h1 {
     font-size: 22px;
     font-weight: 700;
-    color: #1D345D;
+    color: var(--color-primary);
     margin-bottom: 4px;
   }
 
@@ -1026,7 +1010,7 @@
   .form-group label {
     font-size: 13px;
     font-weight: 600;
-    color: #1D345D;
+    color: var(--color-primary);
   }
 
   .form-group input,
@@ -1270,12 +1254,12 @@
 }
 
 .dropdown-trigger.has-value {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: #fafbfc;
 }
 
 .dropdown-trigger .selected-value {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 500;
 }
@@ -1286,7 +1270,7 @@
 }
 
 .dropdown-arrow {
-  color: #666;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   transition: transform 0.2s ease;
@@ -1339,7 +1323,7 @@
 
 .dropdown-search input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
 }
 
@@ -1370,7 +1354,7 @@
   padding: 12px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
   transition: background 0.15s ease;
 }
 
@@ -1380,7 +1364,7 @@
 
 .dropdown-option.selected {
   background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -1394,7 +1378,7 @@
   border-top: 1px solid #f0f0f0;
   margin-top: 4px;
   padding-top: 16px;
-  color: #666;
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 
@@ -1409,14 +1393,14 @@
   margin-right: 8px;
   font-size: 14px;
   font-weight: bold;
-  color: #666;
+  color: var(--color-text-secondary);
   font-style: normal;
 }
 
 .dropdown-empty {
   padding: 20px 16px;
   text-align: center;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -1559,8 +1543,8 @@
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
@@ -1662,7 +1646,7 @@
 }
 
 .phone-input-wrapper:focus-within {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -1680,7 +1664,7 @@
   border: none;
   background: #f8fafc;
   font-size: 14px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 500;
   cursor: pointer;
   appearance: none;
@@ -1708,7 +1692,7 @@
   border: none;
   font-size: 15px;
   font-family: inherit;
-  color: #1D345D;
+  color: var(--color-primary);
   background: white;
   min-width: 0;
 }

@@ -46,14 +46,14 @@
 }
 
 .login-card h1 {
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 12px 0;
   font-size: 28px;
   font-weight: 600;
 }
 
 .login-card p {
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 32px 0;
   font-size: 15px;
 }
@@ -63,7 +63,7 @@
   align-items: center;
   gap: 10px;
   background: #fff0f0;
-  color: #B21B43;
+  color: var(--color-accent);
   padding: 14px 16px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -88,7 +88,7 @@
 }
 
 .form-group label {
-  color: #333;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-size: 14px;
 }
@@ -103,7 +103,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -148,12 +148,12 @@
 
 .demo-credentials p {
   margin: 0;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
 .demo-credentials strong {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* ==================== RESPONSIVE STYLES ==================== */

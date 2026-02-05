@@ -21,15 +21,15 @@
 
 .header-left h1 {
   margin: 0;
-  color: #1D345D;
-  font-size: 32px;
+  color: var(--color-primary);
+  font-size: var(--font-3xl);
   font-weight: 700;
 }
 
 .btn-back {
   background: transparent;
   border: 1px solid #e0e0e0;
-  color: #666;
+  color: var(--color-text-secondary);
   padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
@@ -38,8 +38,8 @@
 }
 
 .btn-back:hover {
-  border-color: #1D345D;
-  color: #1D345D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .header-right {
@@ -97,7 +97,7 @@
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin-bottom: 4px;
 }
 
@@ -107,7 +107,7 @@
 
 .stat-label {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 /* Error Banner */
@@ -148,7 +148,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #f0f0f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -159,7 +159,7 @@
 }
 
 .loading-state p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 16px;
 }
 
@@ -197,13 +197,13 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: white;
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
 }
 
 .search-input::placeholder {
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 /* Sort Buttons */
@@ -215,7 +215,7 @@
 }
 
 .sort-label {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -223,7 +223,7 @@
 .btn-sort {
   background: white;
   border: 1px solid #e0e0e0;
-  color: #666;
+  color: var(--color-text-secondary);
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -233,20 +233,20 @@
 }
 
 .btn-sort:hover {
-  border-color: #1D345D;
-  color: #1D345D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .btn-sort.active {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: white;
 }
 
 .btn-sort-clear {
   background: transparent;
   border: 1px solid #e0e0e0;
-  color: #999;
+  color: var(--color-text-muted);
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -255,20 +255,8 @@
 }
 
 .btn-sort-clear:hover {
-  border-color: #B21B43;
-  color: #B21B43;
-}
-
-.btn-sort:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-sort-clear:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* Table */
@@ -289,7 +277,7 @@
   text-align: left;
   font-weight: 600;
   font-size: 11px;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid #e0e0e0;
@@ -329,7 +317,7 @@
 
 .client-name {
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 /* Badges */
@@ -377,7 +365,7 @@
 
 /* View Button */
 .btn-view {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   padding: 6px 14px;
@@ -389,7 +377,7 @@
 }
 
 .btn-view:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
 }
 
 /* Empty State */
@@ -405,13 +393,13 @@
 }
 
 .empty-state h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   margin: 0 0 8px 0;
 }
 
 .empty-state p {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 0;
 }
