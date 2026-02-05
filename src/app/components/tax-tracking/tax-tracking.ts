@@ -497,6 +497,9 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   get referralDiscountAmount(): number {
     const discount = this.profileData?.taxCase?.referralDiscount;
     if (!discount || discount.status === 'expired') return 0;
+    // Discount already consumed if any commission has been paid
+    const taxCase = this.profileData?.taxCase;
+    if (taxCase?.federalCommissionPaid || taxCase?.stateCommissionPaid) return 0;
     return discount.amount;
   }
 
@@ -508,10 +511,10 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     const stateRate = taxCase.stateCommissionRate || 0.11;
 
     let total = 0;
-    if (taxCase.federalRefundReceived && taxCase.federalActualRefund) {
+    if (taxCase.federalRefundReceived && taxCase.federalActualRefund && !taxCase.federalCommissionPaid) {
       total += Number(taxCase.federalActualRefund) * fedRate;
     }
-    if (taxCase.stateRefundReceived && taxCase.stateActualRefund) {
+    if (taxCase.stateRefundReceived && taxCase.stateActualRefund && !taxCase.stateCommissionPaid) {
       total += Number(taxCase.stateActualRefund) * stateRate;
     }
     return Math.round(total * 100) / 100;
@@ -546,6 +549,34 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
 
   get isStateCommissionPaid(): boolean {
     return this.profileData?.taxCase?.stateCommissionPaid || false;
+  }
+
+  private get rawReferralDiscount(): number {
+    const discount = this.profileData?.taxCase?.referralDiscount;
+    if (!discount || discount.status === 'expired') return 0;
+    return discount.amount;
+  }
+
+  get federalDiscountApplied(): boolean {
+    return this.isFederalCommissionPaid && this.rawReferralDiscount > 0;
+  }
+
+  get stateDiscountApplied(): boolean {
+    return this.isStateCommissionPaid && !this.isFederalCommissionPaid && this.rawReferralDiscount > 0;
+  }
+
+  get federalDisplayFee(): number {
+    if (this.federalDiscountApplied) {
+      return Math.max(0, Math.round((this.federalFeeAmount - this.rawReferralDiscount) * 100) / 100);
+    }
+    return this.federalFeeAmount;
+  }
+
+  get stateDisplayFee(): number {
+    if (this.stateDiscountApplied) {
+      return Math.max(0, Math.round((this.stateFeeAmount - this.rawReferralDiscount) * 100) / 100);
+    }
+    return this.stateFeeAmount;
   }
 
   confirmFederalRefund(): void {

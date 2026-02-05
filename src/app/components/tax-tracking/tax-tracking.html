@@ -265,8 +265,13 @@
             @if (federalConfirmed && federalFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isFederalCommissionPaid">
                 <span class="obs-fee-label">{{ isFederalCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
-                <span class="obs-fee-amount">${{ federalFeeAmount | usdAmount }}</span>
+                <span class="obs-fee-amount">${{ isFederalCommissionPaid ? (federalDisplayFee | usdAmount) : (federalFeeAmount | usdAmount) }}</span>
               </div>
+              @if (federalDiscountApplied) {
+                <div class="obs-fee-discount-note">
+                  <span>con desc. referido -${{ rawReferralDiscount | usdAmount }}</span>
+                </div>
+              }
             }
 
             <!-- Commission proof upload (after fee row, inside federal card) -->
@@ -355,8 +360,13 @@
             @if (stateConfirmed && stateFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
                 <span class="obs-fee-label">{{ isStateCommissionPaid ? '✓ Comisión pagada:' : 'Comisión a pagar:' }}</span>
-                <span class="obs-fee-amount">${{ stateFeeAmount | usdAmount }}</span>
+                <span class="obs-fee-amount">${{ isStateCommissionPaid ? (stateDisplayFee | usdAmount) : (stateFeeAmount | usdAmount) }}</span>
               </div>
+              @if (stateDiscountApplied) {
+                <div class="obs-fee-discount-note">
+                  <span>con desc. referido -${{ rawReferralDiscount | usdAmount }}</span>
+                </div>
+              }
             }
 
             <!-- Commission proof upload (after fee row, inside state card) -->

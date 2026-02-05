@@ -949,6 +949,14 @@
   color: #047857;
 }
 
+.obs-fee-discount-note {
+  font-size: 12px;
+  color: #047857;
+  text-align: right;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 /* Commission proof upload (inside obs-card) */
 .commission-proof-upload {
   display: flex;
