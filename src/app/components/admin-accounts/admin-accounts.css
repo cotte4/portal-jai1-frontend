@@ -21,7 +21,7 @@
 }
 
 .header-content {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px 32px;
   display: flex;
@@ -51,8 +51,8 @@
 }
 
 .btn-back:hover {
-  border-color: #1D345D;
-  color: #1D345D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .back-arrow {
@@ -111,7 +111,7 @@
 
 /* Main Content */
 .admin-main {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px;
 }
@@ -125,8 +125,8 @@
 }
 
 .page-header h1 {
-  color: #1D345D;
-  font-size: 32px;
+  color: var(--color-primary);
+  font-size: var(--font-3xl);
   font-weight: 700;
   margin: 0 0 8px 0;
 }
@@ -181,7 +181,7 @@
 }
 
 .search-input:focus {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(29, 52, 93, 0.1);
 }
 
@@ -259,7 +259,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #f0f0f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -452,7 +452,7 @@
 /* Timer indicator when password is revealed */
 .reveal-timer {
   font-size: 10px;
-  color: #B21B43;
+  color: var(--color-accent);
   font-weight: 600;
   padding: 2px 6px;
   background: rgba(178, 27, 67, 0.1);
@@ -490,7 +490,7 @@
 }
 
 .empty-state h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 12px 0;
@@ -533,8 +533,8 @@
 
 .btn-load-more {
   background: transparent;
-  border: 2px solid #1D345D;
-  color: #1D345D;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
   padding: 12px 32px;
   border-radius: 12px;
   cursor: pointer;
@@ -544,13 +544,8 @@
 }
 
 .btn-load-more:hover:not(:disabled) {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
-}
-
-.btn-load-more:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Responsive */
@@ -584,10 +579,6 @@
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
-  }
-
-  .page-header h1 {
-    font-size: 24px;
   }
 
   .search-input {

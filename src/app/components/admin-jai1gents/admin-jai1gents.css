@@ -38,9 +38,9 @@
 }
 
 .page-header h1 {
-  font-size: 20px;
+  font-size: var(--font-3xl);
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* ==================== TABS ==================== */
@@ -65,12 +65,12 @@
 }
 
 .tab:hover {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .tab.active {
-  color: #B21B43;
-  border-bottom-color: #B21B43;
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
 }
 
 /* ==================== MAIN CONTENT ==================== */
@@ -103,12 +103,12 @@
 
 .search-bar input:focus {
   outline: none;
-  border-color: #B21B43;
+  border-color: var(--color-accent);
 }
 
 .btn-search {
   padding: 12px 20px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -158,7 +158,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #e5e7eb;
-  border-top-color: #B21B43;
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -175,7 +175,7 @@
 
 .btn-generate-empty {
   padding: 12px 24px;
-  background: #B21B43;
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -212,7 +212,7 @@
 }
 
 .data-table td {
-  color: #1D345D;
+  color: var(--color-primary);
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -236,7 +236,7 @@
 .code-display {
   padding: 4px 8px;
   background: #f3f4f6;
-  color: #1D345D;
+  color: var(--color-primary);
   font-family: monospace;
   font-size: 12px;
   font-weight: 600;
@@ -305,7 +305,7 @@
 .btn-copy-small {
   padding: 6px 12px;
   background: #f3f4f6;
-  color: #1D345D;
+  color: var(--color-primary);
   border: none;
   border-radius: 6px;
   font-size: 12px;
@@ -351,7 +351,7 @@
 .modal-header h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .btn-close {
@@ -377,7 +377,7 @@
 .modal-body label {
   font-size: 14px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .modal-body input {
@@ -389,7 +389,7 @@
 
 .modal-body input:focus {
   outline: none;
-  border-color: #B21B43;
+  border-color: var(--color-accent);
 }
 
 .modal-body .hint {
@@ -430,7 +430,7 @@
 
 .btn-copy-inline {
   padding: 6px 12px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -469,14 +469,9 @@
   cursor: pointer;
 }
 
-.btn-confirm:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-copy-all {
   padding: 12px 20px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;

@@ -323,7 +323,7 @@ JAI1 Tax Portal - Refined Financial Dashboard
 }
 
 .amount.commission {
-  color: #B21B43;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
@@ -434,7 +434,7 @@ JAI1 Tax Portal - Refined Financial Dashboard
   min-height: 50px;
   background: linear-gradient(135deg, rgba(29, 52, 93, 0.05) 0%, rgba(29, 52, 93, 0.08) 100%);
   border: 2px solid rgba(29, 52, 93, 0.15);
-  color: #1D345D;
+  color: var(--color-primary);
   padding: 14px 36px;
   border-radius: 14px;
   cursor: pointer;
@@ -461,7 +461,7 @@ JAI1 Tax Portal - Refined Financial Dashboard
 
 .btn-load-more:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 8px 24px rgba(29, 52, 93, 0.15);
 }
 
@@ -473,11 +473,6 @@ JAI1 Tax Portal - Refined Financial Dashboard
   color: white;
   position: relative;
   z-index: 1;
-}
-
-.btn-load-more:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Export Button - Excel Green */
@@ -496,10 +491,7 @@ JAI1 Tax Portal - Refined Financial Dashboard
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.btn-export:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+
 
 /* Responsive Enhancements */
 @media (max-width: 1400px) {

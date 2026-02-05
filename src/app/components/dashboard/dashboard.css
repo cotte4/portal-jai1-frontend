@@ -63,7 +63,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -176,18 +176,18 @@
 
 /* Attention state - blinking animation */
 .bento-card.attention {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   animation: attention-pulse 2s ease-in-out infinite;
 }
 
 @keyframes attention-pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(29, 52, 93, 0.4);
-    border-color: #1D345D;
+    border-color: var(--color-primary);
   }
   50% {
     box-shadow: 0 0 0 12px rgba(29, 52, 93, 0);
-    border-color: #B21B43;
+    border-color: var(--color-accent);
   }
 }
 
@@ -235,7 +235,7 @@
 .bento-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
 }
 
@@ -327,7 +327,7 @@
 .progress-section .progress-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .progress-section .progress-percent {
@@ -697,7 +697,7 @@
 .irs-tracking-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  border-color: #1D345D;
+  border-color: var(--color-primary);
 }
 
 .irs-tracking-card.completed {
@@ -808,7 +808,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .tracking-step-desc {
@@ -874,7 +874,7 @@
   transform: translate(-50%, -50%);
   font-size: 16px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .irs-tracking-card.completed .progress-text {
@@ -888,7 +888,7 @@
 .view-details {
   font-size: 13px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1109,7 +1109,7 @@
 .step-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
 }
 
@@ -1267,17 +1267,17 @@
 .help-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .help-desc {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .btn-help {
   padding: 12px 24px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -1288,7 +1288,7 @@
 }
 
 .btn-help:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
@@ -2180,7 +2180,7 @@
 
 .install-overlay-close:hover {
   background: #e2e8f0;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .install-overlay-icon {
@@ -2204,7 +2204,7 @@
 .install-overlay-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 12px 0;
 }
 

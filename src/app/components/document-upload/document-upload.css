@@ -52,7 +52,7 @@
 }
 
 .popup-card h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 12px;
@@ -74,7 +74,7 @@
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 13px;
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 500;
   word-break: break-all;
   border: 1px solid #e2e8f0;
@@ -147,14 +147,14 @@
 }
 
 .page-title h1 {
-  color: #1D345D;
-  font-size: 28px;
+  color: var(--color-primary);
+  font-size: var(--font-3xl);
   font-weight: 700;
   margin: 0 0 8px 0;
 }
 
 .page-title p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 15px;
   margin: 0;
 }
@@ -299,7 +299,7 @@
 }
 
 .doc-tab.active .tab-label {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .doc-tab.uploaded .tab-label {
@@ -464,7 +464,7 @@
 
 .modal-close-btn:hover {
   background: #e2e8f0;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .payment-icon {
@@ -497,7 +497,7 @@
 }
 
 .payment-value {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
   text-align: right;
@@ -515,7 +515,7 @@
 }
 
 .payment-methods-section h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 12px 0;
@@ -550,7 +550,7 @@
 }
 
 .method-name {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 600;
 }
@@ -643,12 +643,12 @@
 }
 
 .upload-zone:hover {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: #f8f9ff;
 }
 
 .upload-zone.drag-over {
-  border-color: #B21B43;
+  border-color: var(--color-accent);
   background: linear-gradient(135deg, #fff0f5 0%, #f0f7ff 100%);
   transform: scale(1.01);
   box-shadow: 0 8px 24px rgba(178, 27, 67, 0.15);
@@ -675,21 +675,21 @@
 }
 
 .upload-zone h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 8px 0;
 }
 
 .upload-or {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 12px 0;
 }
 
 .btn-browse {
   display: inline-block;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   padding: 12px 28px;
   border-radius: 12px;
@@ -701,7 +701,7 @@
 }
 
 .btn-browse:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(29, 52, 93, 0.3);
 }
@@ -717,7 +717,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -741,7 +741,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -761,7 +761,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #e8e8e8;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -772,7 +772,7 @@
 }
 
 .loading-state p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -852,7 +852,7 @@
 }
 
 .section-header h2 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
@@ -908,7 +908,7 @@
 }
 
 .file-name {
-  color: #1D345D;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 4px;
@@ -921,7 +921,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 12px;
   flex-wrap: wrap;
 }
@@ -959,8 +959,8 @@
 }
 
 .btn-download:hover {
-  background: #1D345D;
-  border-color: #1D345D;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   transform: scale(1.05);
 }
 
@@ -974,8 +974,8 @@
 }
 
 .btn-remove:hover {
-  background: #B21B43;
-  border-color: #B21B43;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   transform: scale(1.05);
 }
 
@@ -1000,14 +1000,14 @@
 }
 
 .empty-state h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 8px 0;
 }
 
 .empty-state p {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 0;
 }
@@ -1032,7 +1032,7 @@
 }
 
 .tips-header h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
@@ -1048,7 +1048,7 @@
 }
 
 .tips-list li {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 13px;
   padding-left: 24px;
   position: relative;
@@ -1089,7 +1089,7 @@
 .consent-content h3 {
   font-size: 15px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 4px 0;
 }
 
@@ -1101,7 +1101,7 @@
 }
 
 .consent-link {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   padding: 10px 16px;
   border-radius: 10px;
@@ -1113,7 +1113,7 @@
 }
 
 .consent-link:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -1121,10 +1121,6 @@
 @media (max-width: 767px) {
   .upload-content {
     padding: 16px;
-  }
-
-  .page-title h1 {
-    font-size: 22px;
   }
 
   /* Show consent card on mobile */
@@ -1208,7 +1204,7 @@
 }
 
 .success-card h1 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 12px;
@@ -1235,7 +1231,7 @@
   padding: 12px 0;
   font-size: 15px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .success-item:not(:last-child) {
@@ -1298,7 +1294,7 @@
   width: 100%;
   padding: 14px 24px;
   background: white;
-  color: #1D345D;
+  color: var(--color-primary);
   border: 2px solid #e2e8f0;
   border-radius: 14px;
   font-size: 15px;
@@ -1308,7 +1304,7 @@
 }
 
 .btn-secondary-action:hover {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: #f8fafc;
 }
 
@@ -1335,8 +1331,8 @@
 .btn-view-docs {
   padding: 10px 20px;
   background: white;
-  color: #1D345D;
-  border: 2px solid #1D345D;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -1345,7 +1341,7 @@
 }
 
 .btn-view-docs:hover {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -1365,7 +1361,7 @@
 }
 
 .btn-back-to-success:hover {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* Success screen responsive */
@@ -1483,7 +1479,7 @@
 }
 
 .consent-info h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 4px;
@@ -1540,8 +1536,8 @@
   gap: 8px;
   padding: 12px 20px;
   background: white;
-  color: #1D345D;
-  border: 2px solid #1D345D;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -1550,7 +1546,7 @@
 }
 
 .btn-consent-secondary:hover {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -1605,7 +1601,7 @@
 
 .consent-form-modal .modal-close-btn:hover {
   background: #e2e8f0;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* Consent form responsive */
@@ -1697,7 +1693,7 @@
 }
 
 .consent-compact-title {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -1731,13 +1727,13 @@
 
 .btn-consent-compact.secondary {
   background: white;
-  color: #1D345D;
-  border: 2px solid #1D345D;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   padding: 6px 14px;
 }
 
 .btn-consent-compact.secondary:hover {
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
 }
 

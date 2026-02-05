@@ -14,7 +14,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -27,7 +27,7 @@
 /* ==================== CONTAINER ==================== */
 .tracking-container {
   padding: 24px;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
   animation: fadeIn 0.5s ease;
 }
@@ -66,8 +66,8 @@
 }
 
 .header-text h1 {
-  color: #1D345D;
-  font-size: 28px;
+  color: var(--color-primary);
+  font-size: var(--font-2xl);
   font-weight: 700;
   margin: 0 0 4px;
 }
@@ -95,19 +95,14 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-refresh:hover:not(:disabled) {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: #f8fafc;
-}
-
-.btn-refresh:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .refresh-icon {
@@ -253,7 +248,7 @@
 .card-value {
   font-size: 22px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .card-value.highlight {
@@ -305,7 +300,7 @@
 .progress-value {
   font-size: 20px;
   font-weight: 800;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .mini-progress {
@@ -337,7 +332,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e5e7eb;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -422,7 +417,7 @@
   gap: 10px;
   font-size: 16px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin-bottom: 20px;
 }
 
@@ -516,7 +511,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .step-text p {
@@ -723,6 +718,92 @@
   gap: 14px;
 }
 
+.track-header.federal {
+  border-bottom-color: #dbeafe;
+}
+
+.track-header.estatal {
+  border-bottom-color: #fce7f3;
+}
+
+.track-icon {
+  font-size: 28px;
+}
+
+.track-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex: 1;
+}
+
+.track-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.track-progress span {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.track-progress-bar {
+  width: 60px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.track-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1D345D 0%, #3b82f6 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.track-progress-fill.estatal {
+  background: linear-gradient(90deg, #B21B43 0%, #ec4899 100%);
+}
+
+/* Track Timeline */
+.track-timeline {
+  display: flex;
+  gap: 16px;
+}
+
+.track-line {
+  width: 3px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  position: relative;
+  margin-left: 14px;
+}
+
+.track-line-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, #10b981 0%, #3b82f6 100%);
+  border-radius: 2px;
+  transition: height 0.5s ease;
+}
+
+.track-line-fill.estatal {
+  background: linear-gradient(180deg, #10b981 0%, #ec4899 100%);
+}
+
+.track-steps {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .obs-card.obs-pending,
 .obs-card.obs-in-progress {
   border-color: #f59e0b;
@@ -772,7 +853,7 @@
 .obs-status-label {
   font-size: 14px;
   font-weight: 600;
-  opacity: 0.7;
+  color: var(--color-primary);
 }
 
 .obs-status-value {
@@ -1010,7 +1091,7 @@
 }
 
 .help-content h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 4px;
@@ -1024,7 +1105,7 @@
 
 .btn-help {
   padding: 12px 24px;
-  background: #1D345D;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -1035,7 +1116,7 @@
 }
 
 .btn-help:hover {
-  background: #152844;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(29, 52, 93, 0.3);
 }
@@ -1081,7 +1162,234 @@
   line-height: 1.5;
 }
 
+/* ==================== RESPONSIVE (track layout) ==================== */
+@media (max-width: 1023px) {
+  .dual-track {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .tracking-container {
+    padding: 16px;
+  }
+
+  .tracking-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .btn-refresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 26px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .shared-timeline {
+    padding: 16px;
+  }
+
+  .shared-step {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .shared-step .step-indicator {
+    width: 36px;
+    height: 36px;
+  }
+
+  .step-status-badge {
+    align-self: flex-start;
+  }
+
+  .track {
+    padding: 16px;
+  }
+
+  .track-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .track-progress {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .step-card {
+    padding: 12px;
+  }
+
+  .help-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .btn-help {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracking-container {
+    padding: 12px;
+  }
+
+  .header-text p {
+    font-size: 13px;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+
+  .card-icon-bg {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .card-value {
+    font-size: 18px;
+  }
+
+  .progress-value {
+    font-size: 22px;
+  }
+
+  .track-header h2 {
+    font-size: 16px;
+  }
+
+  .track-icon {
+    font-size: 22px;
+  }
+
+  .step-card-header .card-title {
+    font-size: 13px;
+  }
+
+  .card-desc {
+    font-size: 11px;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    left: -18px;
+  }
+
+  .dot-icon {
+    font-size: 12px;
+  }
+}
+
 /* ==================== REFUND CONFIRMATION (inside obs cards) ==================== */
+/* ==================== REFUND CONFIRMATION SECTION ==================== */
+.refund-confirmation-section {
+  margin-top: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-radius: 20px;
+  border: 1px solid #bbf7d0;
+}
+
+.confirmation-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.confirmation-icon {
+  font-size: 32px;
+}
+
+.confirmation-header h2 {
+  color: #166534;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Confirmation Cards */
+.confirmation-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 2px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.confirmation-card.confirmed {
+  border-color: #22c55e;
+  background: linear-gradient(135deg, #f0fdf4 0%, white 100%);
+}
+
+.card-track-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 0 14px 0 12px;
+}
+
+.card-track-badge.federal {
+  background: linear-gradient(135deg, #1D345D 0%, #2a4a7a 100%);
+  color: white;
+}
+
+.card-track-badge.state {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  color: white;
+}
+
+.confirmation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.refund-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.refund-label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.refund-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #166534;
+}
+
 .confirmed-badge {
   display: flex;
   align-items: center;
@@ -1119,11 +1427,6 @@
   box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35);
 }
 
-.btn-confirm:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .btn-spinner {
   width: 18px;
   height: 18px;
@@ -1154,7 +1457,7 @@
 }
 
 .payment-header h3 {
-  color: #1D345D;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 700;
   margin: 0;
@@ -1229,7 +1532,7 @@
 .method-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .method-content {
@@ -1259,7 +1562,7 @@
 .zelle-email {
   font-size: 18px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   font-family: monospace;
   background: white;
   padding: 8px 16px;

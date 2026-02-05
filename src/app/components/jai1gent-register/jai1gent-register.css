@@ -150,7 +150,7 @@
 .badge-icon {
   width: 24px;
   height: 24px;
-  background: #B21B43;
+  background: var(--color-accent);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -197,7 +197,7 @@
 .form-header h2 {
   font-size: 28px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 8px 0;
 }
 
@@ -260,7 +260,7 @@
 .input-group label {
   font-size: 13px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin-left: 4px;
 }
 
@@ -295,7 +295,7 @@
   font-family: inherit;
   background: white;
   transition: all 0.25s ease;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .input-row .input-wrapper input {
@@ -304,7 +304,7 @@
 
 .input-wrapper input:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -328,7 +328,7 @@
 
 .toggle-visibility:hover {
   background: #f1f5f9;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .validation-spinner {
@@ -337,7 +337,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -400,11 +400,6 @@
   box-shadow: 0 8px 24px rgba(178, 27, 67, 0.35);
 }
 
-.btn-register:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-arrow {
   font-size: 16px;
   transition: transform 0.3s;
@@ -432,7 +427,7 @@
 }
 
 .form-footer a {
-  color: #B21B43;
+  color: var(--color-accent);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -440,7 +435,7 @@
 }
 
 .form-footer a:hover {
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 /* ==================== RESPONSIVE ==================== */

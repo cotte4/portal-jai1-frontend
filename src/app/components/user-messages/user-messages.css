@@ -18,7 +18,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -75,13 +75,13 @@
 .title-content h1 {
   font-size: 22px;
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 4px 0;
 }
 
 .title-content p {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -106,13 +106,8 @@
 }
 
 .btn-refresh:hover:not(:disabled) {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   background: #f8f9fa;
-}
-
-.btn-refresh:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btn-new-ticket {
@@ -163,7 +158,7 @@
 .new-ticket-form h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 20px 0;
 }
 
@@ -175,7 +170,7 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 8px;
 }
 
@@ -194,7 +189,7 @@
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
@@ -214,7 +209,7 @@
   padding: 12px 24px;
   border: 2px solid #e0e0e0;
   background: white;
-  color: #666;
+  color: var(--color-text-secondary);
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
@@ -244,11 +239,6 @@
   box-shadow: 0 4px 12px rgba(178, 27, 67, 0.3);
 }
 
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* Chat Layout */
 .chat-layout {
   display: flex;
@@ -272,7 +262,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   border-bottom: 1px solid #e8e8e8;
 }
 
@@ -294,7 +284,7 @@
 
 .ticket-item.active {
   background: #e8f4fc;
-  border-left: 3px solid #1D345D;
+  border-left: 3px solid var(--color-primary);
 }
 
 .ticket-header {
@@ -307,7 +297,7 @@
 .ticket-subject {
   font-size: 13px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -316,11 +306,11 @@
 
 .ticket-item.has-unread .ticket-subject {
   font-weight: 700;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .unread-badge {
-  background: #B21B43;
+  background: var(--color-accent);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -382,7 +372,7 @@
 
 .ticket-date {
   font-size: 11px;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 /* Chat Container */
@@ -415,7 +405,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid #e0e0e0;
-  border-top-color: #1D345D;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -426,7 +416,7 @@
 
 .loading-state p {
   margin-top: 16px;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -454,7 +444,7 @@
   padding: 5px 14px;
   border-radius: 16px;
   font-size: 11px;
-  color: #666;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -488,7 +478,7 @@
 
 .message-wrapper.admin .message-bubble {
   background: #f0f0f0;
-  color: #333;
+  color: var(--color-text-primary);
   border-bottom-left-radius: 4px;
 }
 
@@ -506,7 +496,7 @@
 .sender-name {
   font-size: 11px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
 }
 
 .message-text {
@@ -526,7 +516,7 @@
 }
 
 .message-wrapper.admin .message-time {
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 /* Empty State */
@@ -549,13 +539,13 @@
 .empty-state h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
 }
 
 .empty-state p {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 20px 0;
 }
 
@@ -604,12 +594,12 @@
 }
 
 .input-container textarea:focus {
-  border-color: #1D345D;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(29, 52, 93, 0.1);
 }
 
 .input-container textarea::placeholder {
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .input-container textarea:disabled {
@@ -638,18 +628,13 @@
   box-shadow: 0 4px 12px rgba(178, 27, 67, 0.3);
 }
 
-.btn-send:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .send-icon {
   transform: rotate(-45deg);
 }
 
 .input-hint {
   font-size: 11px;
-  color: #999;
+  color: var(--color-text-muted);
   margin: 6px 0 0 0;
   text-align: center;
 }
@@ -682,13 +667,13 @@
 .info-content h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 4px 0;
 }
 
 .info-content p {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
 }
@@ -802,13 +787,13 @@
 .modal-header h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1D345D;
+  color: var(--color-primary);
   margin: 0 0 16px 0;
 }
 
 .modal-body p {
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 12px 0;
   line-height: 1.5;
 }
@@ -818,11 +803,11 @@
   padding: 10px 14px;
   border-radius: 8px;
   font-style: italic;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .modal-warning {
-  color: #B21B43 !important;
+  color: var(--color-accent) !important;
   font-size: 13px !important;
   font-weight: 500;
 }
@@ -838,7 +823,7 @@
   padding: 10px 20px;
   border: 2px solid #e0e0e0;
   background: white;
-  color: #666;
+  color: var(--color-text-secondary);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -867,8 +852,4 @@
   background: #b91c1c;
 }
 
-.modal-actions .btn-delete:disabled,
-.modal-actions .btn-cancel:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+
