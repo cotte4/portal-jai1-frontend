@@ -392,9 +392,16 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Current major step: 1 = Etapa Inicial, 2 = Observaciones, 3 = Completado
    */
+  get showTaxCards(): boolean {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return false;
+    const isFiled = taxCase.caseStatus === CaseStatus.TAXES_FILED;
+    return isFiled && (!!taxCase.federalStatusNew || !!taxCase.stateStatusNew);
+  }
+
   get currentMajorStep(): number {
     if (this.isFullyCompleted) return 3;
-    if (this.hasFederalStatus || this.hasStateStatus) return 2;
+    if (this.showTaxCards) return 2;
     return 1;
   }
 
@@ -551,7 +558,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     return this.profileData?.taxCase?.stateCommissionPaid || false;
   }
 
-  private get rawReferralDiscount(): number {
+  get rawReferralDiscount(): number {
     const discount = this.profileData?.taxCase?.referralDiscount;
     if (!discount || discount.status === 'expired') return 0;
     return discount.amount;

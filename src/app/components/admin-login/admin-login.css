@@ -138,23 +138,6 @@
   transform: translateX(4px);
 }
 
-.demo-credentials {
-  margin-top: 24px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.demo-credentials p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-
-.demo-credentials strong {
-  color: var(--color-primary);
-}
 
 /* ==================== RESPONSIVE STYLES ==================== */
 
@@ -191,10 +174,6 @@
 
   .btn-primary {
     padding: 14px;
-  }
-
-  .demo-credentials {
-    padding: 12px;
   }
 }
 
@@ -248,10 +227,6 @@
   .error-message {
     padding: 12px;
     font-size: 13px;
-  }
-
-  .demo-credentials p {
-    font-size: 12px;
   }
 }
 
