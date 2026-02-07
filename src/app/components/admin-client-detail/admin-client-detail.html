@@ -428,8 +428,8 @@
       <div class="commission-card" [class.commission-paid]="client.taxCases[0].federalCommissionPaid">
         <div class="commission-header">
           <span class="commission-track-label">Federal</span>
-          <span class="commission-badge" [class.badge-paid]="client.taxCases[0].federalCommissionPaid" [class.badge-unpaid]="!client.taxCases[0].federalCommissionPaid">
-            {{ client.taxCases[0].federalCommissionPaid ? 'Pagada' : 'Pendiente' }}
+          <span class="commission-status-badge" [ngClass]="federalCommissionBadge.class">
+            {{ federalCommissionBadge.text }}
           </span>
         </div>
         <div class="commission-amount">
@@ -440,6 +440,11 @@
           <span class="commission-refund-label">Reembolso federal:</span>
           <span class="commission-refund-value">{{ client.taxCases[0].federalActualRefund | currency:'USD' }}</span>
         </div>
+        @if (hasFederalCommissionProof && !client.taxCases[0].federalCommissionPaid) {
+          <button class="btn-view-proof" (click)="openCommissionProof('federal')" title="Ver comprobante de pago">
+            📄 Ver comprobante
+          </button>
+        }
         <button class="btn-commission-mark" (click)="openFederalCommissionConfirm()" [disabled]="isMarkingFederalCommission || client.taxCases[0].federalCommissionPaid" *ngIf="!client.taxCases[0].federalCommissionPaid">
           @if (isMarkingFederalCommission) {
             <span class="spinner"></span> Procesando...
@@ -456,8 +461,8 @@
       <div class="commission-card" [class.commission-paid]="client.taxCases[0].stateCommissionPaid">
         <div class="commission-header">
           <span class="commission-track-label">Estatal</span>
-          <span class="commission-badge" [class.badge-paid]="client.taxCases[0].stateCommissionPaid" [class.badge-unpaid]="!client.taxCases[0].stateCommissionPaid">
-            {{ client.taxCases[0].stateCommissionPaid ? 'Pagada' : 'Pendiente' }}
+          <span class="commission-status-badge" [ngClass]="stateCommissionBadge.class">
+            {{ stateCommissionBadge.text }}
           </span>
         </div>
         <div class="commission-amount">
@@ -468,6 +473,11 @@
           <span class="commission-refund-label">Reembolso estatal:</span>
           <span class="commission-refund-value">{{ client.taxCases[0].stateActualRefund | currency:'USD' }}</span>
         </div>
+        @if (hasStateCommissionProof && !client.taxCases[0].stateCommissionPaid) {
+          <button class="btn-view-proof" (click)="openCommissionProof('state')" title="Ver comprobante de pago">
+            📄 Ver comprobante
+          </button>
+        }
         <button class="btn-commission-mark" (click)="openStateCommissionConfirm()" [disabled]="isMarkingStateCommission || client.taxCases[0].stateCommissionPaid" *ngIf="!client.taxCases[0].stateCommissionPaid">
           @if (isMarkingStateCommission) {
             <span class="spinner"></span> Procesando...
@@ -1144,10 +1154,36 @@
         <button class="modal-close" (click)="cancelFederalCommission()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="confirm-question">¿Marcar la comisión federal como pagada?</p>
-        <p class="confirm-warning">Monto: {{ federalCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.federalCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.federalActualRefund | currency:'USD' }})</p>
+        <div class="commission-summary">
+          <p class="confirm-question">¿Marcar la comisión federal como pagada?</p>
+          <p class="confirm-warning">Monto: {{ federalCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.federalCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.federalActualRefund | currency:'USD' }})</p>
+
+          @if (client?.taxCases?.[0]?.federalCommissionProofSubmittedAt) {
+            <p class="modal-proof-info">
+              Comprobante enviado: {{ client.taxCases[0].federalCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          }
+        </div>
+
+        <div class="review-note-section">
+          <label for="federalReviewNote">Nota de revisión (opcional):</label>
+          <textarea
+            id="federalReviewNote"
+            [(ngModel)]="federalCommissionReviewNote"
+            placeholder="Ej: Pago recibido por Zelle el 07/02. Referencia #12345"
+            maxlength="500"
+            rows="3"
+            class="review-note-textarea">
+          </textarea>
+          <small class="char-count">{{ federalCommissionReviewNote.length }}/500</small>
+        </div>
       </div>
       <div class="modal-footer">
+        @if (hasFederalCommissionProof) {
+          <button class="btn-modal-view-proof" (click)="openCommissionProof('federal')">
+            📄 Ver comprobante
+          </button>
+        }
         <button class="btn-cancel" (click)="cancelFederalCommission()">Cancelar</button>
         <button class="btn-confirm-action" (click)="confirmFederalCommission()" [disabled]="isMarkingFederalCommission">
           {{ isMarkingFederalCommission ? 'Procesando...' : 'Confirmar' }}
@@ -1164,10 +1200,36 @@
         <button class="modal-close" (click)="cancelStateCommission()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="confirm-question">¿Marcar la comisión estatal como pagada?</p>
-        <p class="confirm-warning">Monto: {{ stateCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.stateCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.stateActualRefund | currency:'USD' }})</p>
+        <div class="commission-summary">
+          <p class="confirm-question">¿Marcar la comisión estatal como pagada?</p>
+          <p class="confirm-warning">Monto: {{ stateCommissionAmount | currency:'USD' }} ({{ (client?.taxCases?.[0]?.stateCommissionRate || 0.11) * 100 }}% de {{ client?.taxCases?.[0]?.stateActualRefund | currency:'USD' }})</p>
+
+          @if (client?.taxCases?.[0]?.stateCommissionProofSubmittedAt) {
+            <p class="modal-proof-info">
+              Comprobante enviado: {{ client.taxCases[0].stateCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          }
+        </div>
+
+        <div class="review-note-section">
+          <label for="stateReviewNote">Nota de revisión (opcional):</label>
+          <textarea
+            id="stateReviewNote"
+            [(ngModel)]="stateCommissionReviewNote"
+            placeholder="Ej: Pago recibido por Zelle el 07/02. Referencia #12345"
+            maxlength="500"
+            rows="3"
+            class="review-note-textarea">
+          </textarea>
+          <small class="char-count">{{ stateCommissionReviewNote.length }}/500</small>
+        </div>
       </div>
       <div class="modal-footer">
+        @if (hasStateCommissionProof) {
+          <button class="btn-modal-view-proof" (click)="openCommissionProof('state')">
+            📄 Ver comprobante
+          </button>
+        }
         <button class="btn-cancel" (click)="cancelStateCommission()">Cancelar</button>
         <button class="btn-confirm-action" (click)="confirmStateCommission()" [disabled]="isMarkingStateCommission">
           {{ isMarkingStateCommission ? 'Procesando...' : 'Confirmar' }}

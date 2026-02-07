@@ -261,6 +261,18 @@
               </div>
             }
 
+            <!-- Commission Status Badge -->
+            @if (federalCommissionStatus) {
+              <div class="commission-status-badge"
+                   [ngClass]="'status-' + federalCommissionStatus">
+                <span class="status-icon">
+                  {{ federalCommissionStatus === 'verified' ? '✅' :
+                     federalCommissionStatus === 'proof_submitted' ? '📄' : '💰' }}
+                </span>
+                <span class="status-label">{{ federalCommissionStatusLabel }}</span>
+              </div>
+            }
+
             <!-- Fee row: shows after client confirms refund received -->
             @if (federalConfirmed && federalFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isFederalCommissionPaid">
@@ -277,12 +289,20 @@
             <!-- Commission proof upload (after fee row, inside federal card) -->
             @if (federalConfirmed && !isFederalCommissionPaid) {
               <div class="commission-proof-upload">
-                @if (federalProofUploaded) {
+                @if (federalCommissionStatus === 'proof_submitted') {
+                  <!-- Proof submitted - show waiting for review message -->
+                  <div class="commission-proof-review">
+                    <span class="review-icon">⏳</span>
+                    <span>Tu comprobante está siendo revisado por el equipo</span>
+                  </div>
+                } @else if (federalProofUploaded) {
+                  <!-- Legacy success message -->
                   <div class="commission-proof-success">
                     <span class="confirmed-icon">✓</span>
                     <span>Comprobante enviado</span>
                   </div>
                 } @else {
+                  <!-- Upload button -->
                   <label class="btn-upload-proof" [class.uploading]="isUploadingFederalProof">
                     @if (isUploadingFederalProof) {
                       <span class="btn-spinner"></span>
@@ -356,6 +376,18 @@
               </div>
             }
 
+            <!-- Commission Status Badge -->
+            @if (stateCommissionStatus) {
+              <div class="commission-status-badge"
+                   [ngClass]="'status-' + stateCommissionStatus">
+                <span class="status-icon">
+                  {{ stateCommissionStatus === 'verified' ? '✅' :
+                     stateCommissionStatus === 'proof_submitted' ? '📄' : '💰' }}
+                </span>
+                <span class="status-label">{{ stateCommissionStatusLabel }}</span>
+              </div>
+            }
+
             <!-- Fee row: shows after client confirms refund received -->
             @if (stateConfirmed && stateFeeAmount > 0) {
               <div class="obs-fee-row" [class.fee-paid]="isStateCommissionPaid">
@@ -372,12 +404,20 @@
             <!-- Commission proof upload (after fee row, inside state card) -->
             @if (stateConfirmed && !isStateCommissionPaid) {
               <div class="commission-proof-upload">
-                @if (stateProofUploaded) {
+                @if (stateCommissionStatus === 'proof_submitted') {
+                  <!-- Proof submitted - show waiting for review message -->
+                  <div class="commission-proof-review">
+                    <span class="review-icon">⏳</span>
+                    <span>Tu comprobante está siendo revisado por el equipo</span>
+                  </div>
+                } @else if (stateProofUploaded) {
+                  <!-- Legacy success message -->
                   <div class="commission-proof-success">
                     <span class="confirmed-icon">✓</span>
                     <span>Comprobante enviado</span>
                   </div>
                 } @else {
+                  <!-- Upload button -->
                   <label class="btn-upload-proof" [class.uploading]="isUploadingStateProof">
                     @if (isUploadingStateProof) {
                       <span class="btn-spinner"></span>

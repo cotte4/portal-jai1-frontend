@@ -957,6 +957,60 @@
   font-style: italic;
 }
 
+/* Commission Status Badge (3-state system) */
+.commission-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.commission-status-badge .status-icon {
+  font-size: 18px;
+}
+
+/* Pending Status (Yellow) */
+.commission-status-badge.status-pending {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+/* Proof Submitted Status (Blue) */
+.commission-status-badge.status-proof_submitted {
+  background-color: #dbeafe;
+  border: 1px solid #3b82f6;
+  color: #1e40af;
+}
+
+/* Verified Status (Green) */
+.commission-status-badge.status-verified {
+  background-color: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #166534;
+}
+
+/* Review in progress message */
+.commission-proof-review {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background-color: #f0f9ff;
+  border: 1px dashed #3b82f6;
+  border-radius: 8px;
+  color: #1e40af;
+  font-size: 14px;
+}
+
+.commission-proof-review .review-icon {
+  font-size: 20px;
+}
+
 /* Commission proof upload (inside obs-card) */
 .commission-proof-upload {
   display: flex;

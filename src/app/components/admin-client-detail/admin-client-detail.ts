@@ -219,6 +219,9 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   showStateCommissionConfirm: boolean = false;
   isMarkingFederalCommission: boolean = false;
   isMarkingStateCommission: boolean = false;
+  // Commission review notes
+  federalCommissionReviewNote: string = '';
+  stateCommissionReviewNote: string = '';
 
   // Status transition validation
   validTransitions: ValidTransitionsResponse | null = null;
@@ -417,6 +420,67 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return Math.round(refund * rate * 100) / 100;
   }
 
+  // Commission status badge getters (3-state system)
+  get federalCommissionBadge(): { text: string; class: string } {
+    if (this.client?.taxCases?.[0]?.federalCommissionPaid) {
+      return { text: 'Pagado', class: 'badge-paid' };
+    }
+    if (this.client?.taxCases?.[0]?.federalCommissionProofSubmitted) {
+      return { text: 'Comprobante enviado', class: 'badge-proof-submitted' };
+    }
+    if (this.client?.taxCases?.[0]?.federalRefundReceived) {
+      return { text: 'Pendiente', class: 'badge-unpaid' };
+    }
+    return { text: 'N/A', class: 'badge-na' };
+  }
+
+  get stateCommissionBadge(): { text: string; class: string } {
+    if (this.client?.taxCases?.[0]?.stateCommissionPaid) {
+      return { text: 'Pagado', class: 'badge-paid' };
+    }
+    if (this.client?.taxCases?.[0]?.stateCommissionProofSubmitted) {
+      return { text: 'Comprobante enviado', class: 'badge-proof-submitted' };
+    }
+    if (this.client?.taxCases?.[0]?.stateRefundReceived) {
+      return { text: 'Pendiente', class: 'badge-unpaid' };
+    }
+    return { text: 'N/A', class: 'badge-na' };
+  }
+
+  // Get commission proof document URLs
+  get federalCommissionProofUrl(): string | null {
+    const proofDoc = this.client?.documents?.find(
+      doc => doc.type === 'commission_proof_federal'
+    );
+    return proofDoc ? this.getDocumentUrl(proofDoc) : null;
+  }
+
+  get stateCommissionProofUrl(): string | null {
+    const proofDoc = this.client?.documents?.find(
+      doc => doc.type === 'commission_proof_state'
+    );
+    return proofDoc ? this.getDocumentUrl(proofDoc) : null;
+  }
+
+  // Check if proof documents exist
+  get hasFederalCommissionProof(): boolean {
+    return !!this.federalCommissionProofUrl;
+  }
+
+  get hasStateCommissionProof(): boolean {
+    return !!this.stateCommissionProofUrl;
+  }
+
+  // Open commission proof document in new tab
+  openCommissionProof(track: 'federal' | 'state') {
+    const url = track === 'federal' ? this.federalCommissionProofUrl : this.stateCommissionProofUrl;
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      this.toastService.warning('No se encontró el comprobante', 'Aviso');
+    }
+  }
+
   openFederalCommissionConfirm() {
     this.showFederalCommissionConfirm = true;
   }
@@ -428,9 +492,13 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   confirmFederalCommission() {
     this.showFederalCommissionConfirm = false;
     this.isMarkingFederalCommission = true;
-    this.adminService.markCommissionPaid(this.clientId, 'federal').subscribe({
+
+    const reviewNote = this.federalCommissionReviewNote.trim() || undefined;
+
+    this.adminService.markCommissionPaid(this.clientId, 'federal', reviewNote).subscribe({
       next: () => {
         this.isMarkingFederalCommission = false;
+        this.federalCommissionReviewNote = ''; // Reset note
         this.toastService.success('Comisión federal marcada como pagada');
         this.loadClientData();
       },
@@ -452,9 +520,13 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   confirmStateCommission() {
     this.showStateCommissionConfirm = false;
     this.isMarkingStateCommission = true;
-    this.adminService.markCommissionPaid(this.clientId, 'state').subscribe({
+
+    const reviewNote = this.stateCommissionReviewNote.trim() || undefined;
+
+    this.adminService.markCommissionPaid(this.clientId, 'state', reviewNote).subscribe({
       next: () => {
         this.isMarkingStateCommission = false;
+        this.stateCommissionReviewNote = ''; // Reset note
         this.toastService.success('Comisión estatal marcada como pagada');
         this.loadClientData();
       },

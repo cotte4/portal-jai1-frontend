@@ -153,11 +153,24 @@ export class AdminAccounts implements OnInit, OnDestroy {
           this.revealedCredentials.set(clientId, response.credentials);
           this.isRevealing.set(clientId, false);
 
-          // Show toast notification that access was logged (SECURITY: user awareness)
-          this.toastService.warning(
-            'Acceso a credenciales registrado en auditoria',
-            'Seguridad'
-          );
+          // Check if any fields failed to decrypt
+          const errors = response.errors;
+          const hasErrors = errors && Object.values(errors).some(e => e !== null);
+
+          if (hasErrors) {
+            // Show warning if some fields couldn't be decrypted
+            const failedFields = Object.keys(errors || {}).filter(key => errors?.[key as keyof typeof errors]);
+            this.toastService.warning(
+              `Algunas credenciales no pudieron ser desencriptadas: ${failedFields.join(', ')}. Verifica los datos.`,
+              'Advertencia'
+            );
+          } else {
+            // Show success notification that access was logged (SECURITY: user awareness)
+            this.toastService.warning(
+              'Acceso a credenciales registrado en auditoria',
+              'Seguridad'
+            );
+          }
 
           // Toggle the specific field visibility
           this.toggleFieldVisibility(fieldId);
@@ -222,7 +235,14 @@ export class AdminAccounts implements OnInit, OnDestroy {
       const credentialField = fieldMap[field];
       if (credentialField) {
         const credentials = this.revealedCredentials.get(clientId);
-        return credentials[credentialField] || '---';
+        const credValue = credentials[credentialField];
+
+        // If credential exists in DB but decryption failed (null), show error
+        if (value && credValue === null) {
+          return '❌ Error al desencriptar';
+        }
+
+        return credValue || '---';
       }
     }
 

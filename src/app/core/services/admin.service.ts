@@ -188,10 +188,15 @@ export class AdminService {
     );
   }
 
-  markCommissionPaid(clientId: string, track: 'federal' | 'state'): Observable<void> {
+  markCommissionPaid(clientId: string, track: 'federal' | 'state', reviewNote?: string): Observable<void> {
+    const payload: any = { type: track };
+    if (reviewNote) {
+      payload.reviewNote = reviewNote;
+    }
+
     return this.http.post<void>(
       `${this.apiUrl}/admin/clients/${clientId}/commission`,
-      { type: track }
+      payload
     ).pipe(
       catchError(this.handleError),
       shareReplay(1)
@@ -421,6 +426,14 @@ export class AdminService {
     clientName: string;
     clientEmail: string;
     credentials: {
+      turbotaxEmail: string | null;
+      turbotaxPassword: string | null;
+      irsUsername: string | null;
+      irsPassword: string | null;
+      stateUsername: string | null;
+      statePassword: string | null;
+    };
+    errors?: {
       turbotaxEmail: string | null;
       turbotaxPassword: string | null;
       irsUsername: string | null;

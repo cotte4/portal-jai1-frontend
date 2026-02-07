@@ -1215,6 +1215,48 @@ transform: translateX(4px);
   color: #92400e;
 }
 
+/* New commission status badges */
+.commission-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.commission-status-badge.badge-paid {
+  background-color: #22c55e;
+  color: white;
+}
+
+.commission-status-badge.badge-unpaid {
+  background-color: #f59e0b;
+  color: white;
+}
+
+/* Proof Submitted Status Badge (Blue) with pulse animation */
+.commission-status-badge.badge-proof-submitted {
+  background-color: #3b82f6;
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* N/A Badge (Gray) */
+.commission-status-badge.badge-na {
+  background-color: #9ca3af;
+  color: white;
+}
+
 .commission-amount {
   display: flex;
   justify-content: space-between;
@@ -1289,6 +1331,35 @@ transform: translateX(4px);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* View Commission Proof Button */
+.btn-view-proof {
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-view-proof:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.btn-view-proof:active {
+  transform: translateY(0);
 }
 
 .commission-paid-date {
@@ -4989,6 +5060,94 @@ transform: translateX(4px);
   background: rgba(29, 52, 93, 0.08);
   border-radius: 8px;
   line-height: 1.4;
+}
+
+/* Commission Review Note Section in Modal */
+.commission-summary {
+  margin-bottom: 20px;
+}
+
+.review-note-section {
+  margin: 20px 0;
+  text-align: left;
+}
+
+.review-note-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.review-note-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.review-note-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.review-note-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Proof Info in Modal */
+.modal-proof-info {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  text-align: left;
+}
+
+/* Modal View Proof Button */
+.btn-modal-view-proof {
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: auto;
+}
+
+.btn-modal-view-proof:hover {
+  background-color: #2563eb;
+}
+
+/* Update modal-footer to flex for new button layout */
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .btn-confirm-action { background: #4CAF50; color: white; }

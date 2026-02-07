@@ -389,6 +389,18 @@ export interface TaxCase {
   // Per-track commission rates
   federalCommissionRate?: number;
   stateCommissionRate?: number;
+  // Commission proof tracking (client uploads payment receipt)
+  federalCommissionProofSubmitted?: boolean;
+  federalCommissionProofSubmittedAt?: string;
+  stateCommissionProofSubmitted?: boolean;
+  stateCommissionProofSubmittedAt?: string;
+  // Commission proof review tracking (admin reviews and approves)
+  federalCommissionProofReviewedBy?: string;
+  federalCommissionProofReviewedAt?: string;
+  federalCommissionProofReviewNote?: string;
+  stateCommissionProofReviewedBy?: string;
+  stateCommissionProofReviewedAt?: string;
+  stateCommissionProofReviewNote?: string;
   // Referral discount
   referralDiscount?: { amount: number; status: string } | null;
   // Internal comments (admin-only)

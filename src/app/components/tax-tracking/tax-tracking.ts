@@ -586,6 +586,45 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     return this.stateFeeAmount;
   }
 
+  // Commission status badges (3-state system)
+  get federalCommissionStatus(): 'pending' | 'proof_submitted' | 'verified' | null {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return null;
+
+    if (taxCase.federalCommissionPaid) return 'verified';
+    if (taxCase.federalCommissionProofSubmitted) return 'proof_submitted';
+    if (taxCase.federalRefundReceived && !taxCase.federalCommissionPaid) return 'pending';
+    return null;
+  }
+
+  get stateCommissionStatus(): 'pending' | 'proof_submitted' | 'verified' | null {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return null;
+
+    if (taxCase.stateCommissionPaid) return 'verified';
+    if (taxCase.stateCommissionProofSubmitted) return 'proof_submitted';
+    if (taxCase.stateRefundReceived && !taxCase.stateCommissionPaid) return 'pending';
+    return null;
+  }
+
+  get federalCommissionStatusLabel(): string {
+    switch (this.federalCommissionStatus) {
+      case 'pending': return '💰 Comisión pendiente de pago';
+      case 'proof_submitted': return '📄 Comprobante enviado - En revisión';
+      case 'verified': return '✅ Comisión verificada';
+      default: return '';
+    }
+  }
+
+  get stateCommissionStatusLabel(): string {
+    switch (this.stateCommissionStatus) {
+      case 'pending': return '💰 Comisión pendiente de pago';
+      case 'proof_submitted': return '📄 Comprobante enviado - En revisión';
+      case 'verified': return '✅ Comisión verificada';
+      default: return '';
+    }
+  }
+
   confirmFederalRefund(): void {
     if (this.isConfirmingFederal || !this.canConfirmFederal) return;
 
@@ -729,8 +768,21 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: () => {
-        if (track === 'federal') this.federalProofUploaded = true;
-        else this.stateProofUploaded = true;
+        // Mark proof as uploaded locally (optimistic update)
+        if (track === 'federal') {
+          this.federalProofUploaded = true;
+          // Optimistically update backend status
+          if (this.profileData?.taxCase) {
+            this.profileData.taxCase.federalCommissionProofSubmitted = true;
+            this.profileData.taxCase.federalCommissionProofSubmittedAt = new Date().toISOString();
+          }
+        } else {
+          this.stateProofUploaded = true;
+          if (this.profileData?.taxCase) {
+            this.profileData.taxCase.stateCommissionProofSubmitted = true;
+            this.profileData.taxCase.stateCommissionProofSubmittedAt = new Date().toISOString();
+          }
+        }
 
         this.notificationService.emitLocalNotification(
           'Comprobante Enviado',
