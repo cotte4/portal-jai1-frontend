@@ -180,6 +180,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
       next: (data) => {
         if (data) {
           this.profileData = data;
+          this.syncProofStateFromApi(data);
           this.previousCaseStatus = data.taxCase?.caseStatus;
           this.previousTaxesFiled = data.taxCase?.caseStatus === CaseStatus.TAXES_FILED;
           this.previousFederalStatus = data.taxCase?.federalStatusNew;
@@ -225,6 +226,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
           this.previousFederalStatus = currentFederalStatus;
           this.previousStateStatus = currentStateStatus;
           this.profileData = data;
+          this.syncProofStateFromApi(data);
           this.buildSteps();
           this.lastRefresh = new Date();
           this.cdr.detectChanges();
@@ -254,6 +256,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
           this.previousFederalStatus = currentFederalStatus;
           this.previousStateStatus = currentStateStatus;
           this.profileData = data;
+          this.syncProofStateFromApi(data);
           this.buildSteps();
           this.lastRefresh = new Date();
           this.isRefreshing = false;
@@ -265,6 +268,15 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
         }
       })
     );
+  }
+
+  private syncProofStateFromApi(data: any): void {
+    if (data.taxCase?.federalCommissionProofSubmitted) {
+      this.federalProofUploaded = true;
+    }
+    if (data.taxCase?.stateCommissionProofSubmitted) {
+      this.stateProofUploaded = true;
+    }
   }
 
   private onTaxesFiled() {
