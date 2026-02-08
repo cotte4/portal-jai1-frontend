@@ -340,7 +340,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
         icon: '📋',
         status: this.getStepStatusNew('received', taxesFiled, caseStatus, profile?.profileComplete),
         date: profile?.updatedAt ? this.formatDate(profile.updatedAt) : undefined,
-        detail: profile?.profileComplete ? 'Perfil completo' : 'Pendiente de completar'
+        detail: this.getReceivedDetail(caseStatus, profile?.profileComplete),
       },
       {
         id: 'submitted',
@@ -363,8 +363,15 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   // ============ SHARED STEP HELPERS ============
   private getStepStatusNew(step: string, taxesFiled: boolean, caseStatus?: CaseStatus, profileComplete?: boolean): TrackingStep['status'] {
     if (step === 'received') {
-      if (profileComplete) return 'completed';
-      return 'active';
+      // Only mark as completed when ALL 4 steps are done (backend transitions to documentos_enviados)
+      const allDocsComplete = caseStatus && [
+        CaseStatus.DOCUMENTOS_ENVIADOS,
+        CaseStatus.PREPARING,
+        CaseStatus.TAXES_FILED,
+      ].includes(caseStatus);
+      if (allDocsComplete) return 'completed';
+      if (profileComplete || caseStatus === CaseStatus.AWAITING_DOCS) return 'active';
+      return 'pending';
     }
 
     if (step === 'submitted') {
@@ -374,6 +381,17 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     }
 
     return 'pending';
+  }
+
+  private getReceivedDetail(caseStatus?: CaseStatus, profileComplete?: boolean): string {
+    const allDocsComplete = caseStatus && [
+      CaseStatus.DOCUMENTOS_ENVIADOS,
+      CaseStatus.PREPARING,
+      CaseStatus.TAXES_FILED,
+    ].includes(caseStatus);
+    if (allDocsComplete) return 'Documentación completa';
+    if (profileComplete || caseStatus === CaseStatus.AWAITING_DOCS) return 'Completando documentación';
+    return 'Pendiente de completar';
   }
 
   private formatDate(dateStr?: string): string {
