@@ -527,8 +527,9 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
   get hasUnpaidFee(): boolean {
     const taxCase = this.profileData?.taxCase;
     if (!taxCase) return false;
-    const hasConfirmedRefund = !!(taxCase.federalRefundReceived || taxCase.stateRefundReceived);
-    return hasConfirmedRefund && !taxCase.commissionPaid;
+    const hasFederalUnpaid = taxCase.federalRefundReceived && !taxCase.federalCommissionPaid;
+    const hasStateUnpaid = taxCase.stateRefundReceived && !taxCase.stateCommissionPaid;
+    return !!(hasFederalUnpaid || hasStateUnpaid);
   }
 
   get referralDiscountAmount(): number {
