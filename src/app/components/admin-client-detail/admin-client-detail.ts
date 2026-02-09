@@ -456,12 +456,15 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return !!this.client?.documents?.find(doc => doc.type === 'commission_proof_state');
   }
 
-  // Open commission proof document in preview
+  // Open commission proof document in new tab
   openCommissionProof(track: 'federal' | 'state') {
     const docType = track === 'federal' ? 'commission_proof_federal' : 'commission_proof_state';
     const proofDoc = this.client?.documents?.find(doc => doc.type === docType);
     if (proofDoc) {
-      this.previewDocument(proofDoc);
+      this.documentService.getDownloadUrl(proofDoc.id).subscribe({
+        next: (response) => window.open(response.url, '_blank'),
+        error: () => this.toastService.warning('Error al abrir el comprobante', 'Error'),
+      });
     } else {
       this.toastService.warning('No se encontró el comprobante', 'Aviso');
     }
