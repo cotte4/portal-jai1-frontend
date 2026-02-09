@@ -674,6 +674,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
         if (this.profileData?.taxCase) {
           this.profileData.taxCase.federalRefundReceived = true;
           this.profileData.taxCase.federalRefundReceivedAt = response.confirmedAt;
+          this.profileData.taxCase.federalStatusNew = 'comision_pendiente' as any;
         }
 
         this.notificationService.emitLocalNotification(
@@ -682,6 +683,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
           NotificationType.STATUS_CHANGE
         );
 
+        this.buildSteps();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -713,6 +715,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
         if (this.profileData?.taxCase) {
           this.profileData.taxCase.stateRefundReceived = true;
           this.profileData.taxCase.stateRefundReceivedAt = response.confirmedAt;
+          this.profileData.taxCase.stateStatusNew = 'comision_pendiente' as any;
         }
 
         this.notificationService.emitLocalNotification(
@@ -721,6 +724,7 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
           NotificationType.STATUS_CHANGE
         );
 
+        this.buildSteps();
         this.cdr.detectChanges();
       },
       error: (err) => {

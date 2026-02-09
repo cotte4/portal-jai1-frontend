@@ -447,35 +447,21 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return { text: 'N/A', class: 'badge-na' };
   }
 
-  // Get commission proof document URLs
-  get federalCommissionProofUrl(): string | null {
-    const proofDoc = this.client?.documents?.find(
-      doc => doc.type === 'commission_proof_federal'
-    );
-    return proofDoc ? this.getDocumentUrl(proofDoc) : null;
-  }
-
-  get stateCommissionProofUrl(): string | null {
-    const proofDoc = this.client?.documents?.find(
-      doc => doc.type === 'commission_proof_state'
-    );
-    return proofDoc ? this.getDocumentUrl(proofDoc) : null;
-  }
-
   // Check if proof documents exist
   get hasFederalCommissionProof(): boolean {
-    return !!this.federalCommissionProofUrl;
+    return !!this.client?.documents?.find(doc => doc.type === 'commission_proof_federal');
   }
 
   get hasStateCommissionProof(): boolean {
-    return !!this.stateCommissionProofUrl;
+    return !!this.client?.documents?.find(doc => doc.type === 'commission_proof_state');
   }
 
-  // Open commission proof document in new tab
+  // Open commission proof document in preview
   openCommissionProof(track: 'federal' | 'state') {
-    const url = track === 'federal' ? this.federalCommissionProofUrl : this.stateCommissionProofUrl;
-    if (url) {
-      window.open(url, '_blank');
+    const docType = track === 'federal' ? 'commission_proof_federal' : 'commission_proof_state';
+    const proofDoc = this.client?.documents?.find(doc => doc.type === docType);
+    if (proofDoc) {
+      this.previewDocument(proofDoc);
     } else {
       this.toastService.warning('No se encontró el comprobante', 'Aviso');
     }

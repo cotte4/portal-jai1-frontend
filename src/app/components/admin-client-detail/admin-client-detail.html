@@ -1165,7 +1165,7 @@
 
           @if (client?.taxCases?.[0]?.federalCommissionProofSubmittedAt) {
             <p class="modal-proof-info">
-              Comprobante enviado: {{ client.taxCases[0].federalCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
+              Comprobante enviado: {{ client?.taxCases?.[0]?.federalCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
             </p>
           }
         </div>
@@ -1211,7 +1211,7 @@
 
           @if (client?.taxCases?.[0]?.stateCommissionProofSubmittedAt) {
             <p class="modal-proof-info">
-              Comprobante enviado: {{ client.taxCases[0].stateCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
+              Comprobante enviado: {{ client?.taxCases?.[0]?.stateCommissionProofSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
             </p>
           }
         </div>
