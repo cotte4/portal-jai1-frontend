@@ -832,6 +832,11 @@
                   <span class="comment-icon">💬</span>
                   <span class="comment-text">"{{ history.comment }}"</span>
                 </div>
+                <div class="history-internal-comment" *ngIf="history.internalComment">
+                  <span class="comment-icon">🔒</span>
+                  <span class="internal-comment-label">Nota interna:</span>
+                  <span class="comment-text">"{{ history.internalComment }}"</span>
+                </div>
               </div>
             </div>
           </div>

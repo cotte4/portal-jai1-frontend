@@ -579,6 +579,7 @@ export interface StatusHistory {
   newStatus: string;
   changedById: string;
   comment?: string;
+  internalComment?: string;
   createdAt: string;
   changedBy?: User;
 }
