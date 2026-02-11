@@ -43,26 +43,26 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
     {
       heading: 'Declara, despreocupate, disfruta.',
       subheading: 'La plataforma que simplifica tu tax return de principio a fin.',
-      bg: 'linear-gradient(135deg, #1D345D 0%, #2a4a7a 60%, #3d5f9e 100%)',
-      icon: '✨'
+      image: '',
+      isLogo: true
     },
     {
       heading: 'Declara',
       subheading: 'Completa tu declaracion en minutos desde tu celular. Sin papeles, sin complicaciones.',
-      bg: 'linear-gradient(135deg, #1D345D 0%, #4a2040 50%, #B21B43 100%)',
-      icon: '📝'
+      image: 'assets/images/Declara.png',
+      isLogo: false
     },
     {
       heading: 'Despreocupate',
       subheading: 'Seguimiento en tiempo real. Conoce el estado de tu reembolso en cada paso.',
-      bg: 'linear-gradient(135deg, #B21B43 0%, #8B1535 50%, #1D345D 100%)',
-      icon: '😌'
+      image: 'assets/images/Despreocupate.png',
+      isLogo: false
     },
     {
       heading: 'Disfruta',
       subheading: 'Recibe tu reembolso de forma rapida y segura. Tu dinero, de vuelta.',
-      bg: 'linear-gradient(135deg, #0f1f38 0%, #1D345D 40%, #3d5f9e 100%)',
-      icon: '🎉'
+      image: 'assets/images/Disfruta.png',
+      isLogo: false
     }
   ];
   private autoAdvanceTimer: ReturnType<typeof setInterval> | null = null;
@@ -101,8 +101,12 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
     // PWA Install prompt - listen for beforeinstallprompt event
     this.setupInstallPrompt();
 
-    // Start intro auto-advance
-    this.startAutoAdvance();
+    // Skip intro carousel if already seen
+    if (this.storage.isIntroSeen()) {
+      this.showIntro = false;
+    } else {
+      this.startAutoAdvance();
+    }
   }
 
   private setupInstallPrompt() {
@@ -185,6 +189,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   }
 
   enterLogin() {
+    this.storage.setIntroSeen();
     this.showIntro = false;
     this.stopAutoAdvance();
     this.cdr.markForCheck();

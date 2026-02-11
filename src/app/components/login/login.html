@@ -7,9 +7,15 @@
       <div class="carousel-track" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
         @for (slide of slides; track $index) {
           <div class="slide">
-            <div class="slide-image" [style.background]="slide.bg">
-              <span class="slide-icon">{{ slide.icon }}</span>
-            </div>
+            @if (slide.isLogo) {
+              <div class="slide-image slide-logo">
+                <img src="assets/images/jai1-logo.svg" alt="JAI1 Logo" class="carousel-logo">
+              </div>
+            } @else {
+              <div class="slide-image">
+                <img [src]="slide.image" [alt]="slide.heading" class="carousel-img">
+              </div>
+            }
           </div>
         }
       </div>

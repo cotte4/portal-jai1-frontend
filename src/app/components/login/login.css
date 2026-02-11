@@ -70,18 +70,21 @@ html, body {
   overflow: hidden;
 }
 
-.slide-image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 60%);
-  pointer-events: none;
+/* Logo slide — white background */
+.slide-logo {
+  background: #ffffff;
 }
 
-.slide-icon {
-  font-size: 64px;
-  z-index: 1;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+.carousel-logo {
+  height: 80px;
+  width: auto;
+}
+
+/* Photo slides — cover image */
+.carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Bottom half container */
@@ -100,10 +103,10 @@ html, body {
 }
 
 .intro-content h1 {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   color: #1D345D;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   line-height: 1.2;
 }
 
@@ -147,7 +150,7 @@ html, body {
   justify-content: center;
   gap: 10px;
   width: 100%;
-  margin: auto 0 24px;
+  margin: auto 0 40px;
   padding: 16px 24px;
   background: linear-gradient(135deg, #B21B43 0%, #8B1535 100%);
   color: white;
@@ -786,37 +789,47 @@ html, body {
 
 /* ==================== RESPONSIVE ==================== */
 
-/* Desktop: intro screen centered, max-width for content */
+/* Desktop: side-by-side layout — image left, content right */
 @media (min-width: 1024px) {
   .intro-screen {
-    align-items: center;
+    flex-direction: row;
+    align-items: stretch;
   }
 
   .carousel {
-    max-width: 600px;
-    width: 100%;
+    width: 55%;
+    min-width: 55%;
+    height: 100%;
+    min-height: 100%;
   }
 
-  .slide-icon {
-    font-size: 80px;
+  .carousel-logo {
+    height: 120px;
   }
 
   .intro-bottom {
-    max-width: 600px;
-    width: 100%;
-    padding: 28px 32px 0;
+    width: 45%;
+    min-width: 45%;
+    flex: none;
+    padding: 48px 48px 0;
+    justify-content: center;
   }
 
   .intro-content h1 {
-    font-size: 26px;
+    font-size: 36px;
   }
 
   .intro-content p {
-    font-size: 16px;
+    font-size: 17px;
+  }
+
+  .intro-dots {
+    padding: 28px 0 0;
   }
 
   .btn-enter {
-    max-width: 600px;
+    max-width: 100%;
+    margin-bottom: 48px;
   }
 }
 
@@ -974,7 +987,7 @@ html, body {
   }
 
   .intro-content h1 {
-    font-size: 19px;
+    font-size: 26px;
   }
 
   .intro-content p {
@@ -984,7 +997,7 @@ html, body {
   .btn-enter {
     padding: 14px 20px;
     font-size: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 36px;
   }
 }
 
@@ -1075,12 +1088,12 @@ html, body {
     padding: 16px 16px 0;
   }
 
-  .slide-icon {
-    font-size: 52px;
+  .carousel-logo {
+    height: 64px;
   }
 
   .intro-content h1 {
-    font-size: 18px;
+    font-size: 24px;
   }
 
   .intro-content p {
@@ -1095,7 +1108,7 @@ html, body {
     padding: 14px 20px;
     font-size: 15px;
     border-radius: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 32px;
   }
 }
 
@@ -1138,12 +1151,12 @@ html, body {
     padding: 12px 14px 0;
   }
 
-  .slide-icon {
-    font-size: 40px;
+  .carousel-logo {
+    height: 56px;
   }
 
   .intro-content h1 {
-    font-size: 17px;
+    font-size: 22px;
   }
 
   .intro-content p {
@@ -1153,6 +1166,6 @@ html, body {
   .btn-enter {
     padding: 12px 16px;
     font-size: 14px;
-    margin-bottom: 14px;
+    margin-bottom: 28px;
   }
 }

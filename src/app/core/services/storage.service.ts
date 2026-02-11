@@ -8,6 +8,7 @@ const ONBOARDING_KEY = 'onboarding_completed';
 const DASHBOARD_CACHE_KEY = 'jai1_dashboard_cache';
 const PROFILE_CACHE_KEY = 'jai1_cached_profile';
 const CALCULATOR_RESULT_KEY = 'jai1_calculator_result';
+const INTRO_SEEN_KEY = 'jai1_intro_seen';
 
 @Injectable({
   providedIn: 'root'
@@ -111,5 +112,14 @@ export class StorageService {
 
   clearOnboarding(): void {
     localStorage.removeItem(ONBOARDING_KEY);
+  }
+
+  // Intro carousel methods (persists across sessions, NOT cleared on logout)
+  isIntroSeen(): boolean {
+    return localStorage.getItem(INTRO_SEEN_KEY) === 'true';
+  }
+
+  setIntroSeen(): void {
+    localStorage.setItem(INTRO_SEEN_KEY, 'true');
   }
 }
