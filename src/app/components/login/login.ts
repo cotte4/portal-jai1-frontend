@@ -36,6 +36,39 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
+  // Intro Screen
+  showIntro = true;
+  currentSlide = 0;
+  slides = [
+    {
+      heading: 'Declara, despreocupate, disfruta.',
+      subheading: 'La plataforma que simplifica tu tax return de principio a fin.',
+      bg: 'linear-gradient(135deg, #1D345D 0%, #2a4a7a 60%, #3d5f9e 100%)',
+      icon: '✨'
+    },
+    {
+      heading: 'Declara',
+      subheading: 'Completa tu declaracion en minutos desde tu celular. Sin papeles, sin complicaciones.',
+      bg: 'linear-gradient(135deg, #1D345D 0%, #4a2040 50%, #B21B43 100%)',
+      icon: '📝'
+    },
+    {
+      heading: 'Despreocupate',
+      subheading: 'Seguimiento en tiempo real. Conoce el estado de tu reembolso en cada paso.',
+      bg: 'linear-gradient(135deg, #B21B43 0%, #8B1535 50%, #1D345D 100%)',
+      icon: '😌'
+    },
+    {
+      heading: 'Disfruta',
+      subheading: 'Recibe tu reembolso de forma rapida y segura. Tu dinero, de vuelta.',
+      bg: 'linear-gradient(135deg, #0f1f38 0%, #1D345D 40%, #3d5f9e 100%)',
+      icon: '🎉'
+    }
+  ];
+  private autoAdvanceTimer: ReturnType<typeof setInterval> | null = null;
+  private touchStartX = 0;
+  private touchStartY = 0;
+
   // PWA Install
   showInstallButton: boolean = false;
   private deferredPrompt: any = null;
@@ -67,6 +100,9 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
 
     // PWA Install prompt - listen for beforeinstallprompt event
     this.setupInstallPrompt();
+
+    // Start intro auto-advance
+    this.startAutoAdvance();
   }
 
   private setupInstallPrompt() {
@@ -119,6 +155,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.animationService.killAnimations();
+    this.stopAutoAdvance();
     // Remove window event listeners to prevent memory leaks
     if (this.beforeInstallHandler) {
       window.removeEventListener('beforeinstallprompt', this.beforeInstallHandler);
@@ -129,6 +166,70 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
       this.appInstalledHandler = null;
     }
   }
+
+  // --- Intro Carousel ---
+
+  goToSlide(index: number) {
+    this.currentSlide = index;
+    this.cdr.markForCheck();
+  }
+
+  nextSlide() {
+    this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+    this.cdr.markForCheck();
+  }
+
+  prevSlide() {
+    this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+    this.cdr.markForCheck();
+  }
+
+  enterLogin() {
+    this.showIntro = false;
+    this.stopAutoAdvance();
+    this.cdr.markForCheck();
+  }
+
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].clientX;
+    this.touchStartY = event.changedTouches[0].clientY;
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    const deltaX = event.changedTouches[0].clientX - this.touchStartX;
+    const deltaY = event.changedTouches[0].clientY - this.touchStartY;
+    // Only swipe if horizontal movement > vertical and exceeds threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX < 0) {
+        this.nextSlide();
+      } else {
+        this.prevSlide();
+      }
+      this.restartAutoAdvance();
+    }
+  }
+
+  private startAutoAdvance() {
+    this.autoAdvanceTimer = setInterval(() => {
+      if (this.showIntro) {
+        this.nextSlide();
+      }
+    }, 4000);
+  }
+
+  private stopAutoAdvance() {
+    if (this.autoAdvanceTimer) {
+      clearInterval(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = null;
+    }
+  }
+
+  private restartAutoAdvance() {
+    this.stopAutoAdvance();
+    this.startAutoAdvance();
+  }
+
+  // --- Login ---
 
   onLogin() {
     this.errorMessage = '';

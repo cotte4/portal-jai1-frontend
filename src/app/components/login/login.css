@@ -13,14 +13,180 @@ html, body {
   overflow: hidden;
 }
 
-/* ==================== LOGIN PAGE ==================== */
-.login-page {
+/* ==================== LOGIN VIEW (wrapper) ==================== */
+.login-view {
+  display: flex;
+  width: 200%;
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+}
+
+.login-view.show-form {
+  transform: translateX(-50%);
+}
+
+/* ==================== INTRO SCREEN ==================== */
+.intro-screen {
+  width: 50%;
+  min-width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fb;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Carousel — top half, edge-to-edge */
+.carousel {
+  height: 50%;
+  min-height: 50%;
+  overflow: hidden;
+  position: relative;
+  touch-action: pan-y;
+}
+
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide {
+  min-width: 100%;
+  height: 100%;
+}
+
+.slide-image {
   width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.slide-icon {
+  font-size: 64px;
+  z-index: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+}
+
+/* Bottom half container */
+.intro-bottom {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 24px 0;
+}
+
+/* Intro Content — left aligned */
+.intro-content {
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.intro-content h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1D345D;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.intro-content p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Dots — left aligned */
+.intro-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0 0;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: #B21B43;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* CTA Button */
+.btn-enter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: auto 0 24px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #B21B43 0%, #8B1535 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(178, 27, 67, 0.35);
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.btn-enter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(178, 27, 67, 0.45);
+}
+
+.btn-enter:active {
+  transform: translateY(0);
+}
+
+.btn-enter-arrow {
+  font-size: 20px;
+  transition: transform 0.3s;
+}
+
+.btn-enter:hover .btn-enter-arrow {
+  transform: translateX(4px);
+}
+
+/* ==================== LOGIN PAGE ==================== */
+.login-page {
+  width: 50%;
+  min-width: 50%;
+  height: 100%;
   display: flex;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 /* ==================== BRAND PANEL ==================== */
@@ -107,7 +273,7 @@ html, body {
 .brand-logo {
   height: 64px;
   width: auto;
-  filter: brightness(0) invert(1); /* Makes SVG white for dark background */
+  filter: brightness(0) invert(1);
 }
 
 /* Brand Title */
@@ -420,7 +586,7 @@ html, body {
 }
 
 .remember-check input:checked ~ .checkmark::after {
-  content: '✓';
+  content: '\2713';
   color: white;
   font-size: 12px;
   font-weight: bold;
@@ -619,6 +785,41 @@ html, body {
 }
 
 /* ==================== RESPONSIVE ==================== */
+
+/* Desktop: intro screen centered, max-width for content */
+@media (min-width: 1024px) {
+  .intro-screen {
+    align-items: center;
+  }
+
+  .carousel {
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .slide-icon {
+    font-size: 80px;
+  }
+
+  .intro-bottom {
+    max-width: 600px;
+    width: 100%;
+    padding: 28px 32px 0;
+  }
+
+  .intro-content h1 {
+    font-size: 26px;
+  }
+
+  .intro-content p {
+    font-size: 16px;
+  }
+
+  .btn-enter {
+    max-width: 600px;
+  }
+}
+
 @media (max-width: 1024px) {
   .brand-title {
     font-size: 40px;
@@ -632,8 +833,7 @@ html, body {
 @media (max-width: 1023px) {
   .login-page {
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
   }
 
   .brand-panel {
@@ -646,7 +846,7 @@ html, body {
     align-items: center;
     justify-content: center;
     padding: 16px;
-    overflow: hidden; /* NO scrolling */
+    overflow: hidden;
     height: 100%;
   }
 
@@ -767,6 +967,25 @@ html, body {
     font-size: 12px;
     margin-bottom: 12px;
   }
+
+  /* Intro responsive */
+  .intro-bottom {
+    padding: 20px 20px 0;
+  }
+
+  .intro-content h1 {
+    font-size: 19px;
+  }
+
+  .intro-content p {
+    font-size: 13px;
+  }
+
+  .btn-enter {
+    padding: 14px 20px;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
 }
 
 /* ==================== SMALL MOBILE (480px and below) ==================== */
@@ -850,6 +1069,34 @@ html, body {
     margin-top: 10px;
     font-size: 11px;
   }
+
+  /* Intro responsive */
+  .intro-bottom {
+    padding: 16px 16px 0;
+  }
+
+  .slide-icon {
+    font-size: 52px;
+  }
+
+  .intro-content h1 {
+    font-size: 18px;
+  }
+
+  .intro-content p {
+    font-size: 12px;
+  }
+
+  .intro-dots {
+    padding: 14px 0 0;
+  }
+
+  .btn-enter {
+    padding: 14px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
 }
 
 /* ==================== VERY SMALL MOBILE (360px and below) ==================== */
@@ -884,5 +1131,28 @@ html, body {
   .btn-social {
     padding: 8px 10px;
     font-size: 11px;
+  }
+
+  /* Intro responsive */
+  .intro-bottom {
+    padding: 12px 14px 0;
+  }
+
+  .slide-icon {
+    font-size: 40px;
+  }
+
+  .intro-content h1 {
+    font-size: 17px;
+  }
+
+  .intro-content p {
+    font-size: 11px;
+  }
+
+  .btn-enter {
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 14px;
   }
 }
