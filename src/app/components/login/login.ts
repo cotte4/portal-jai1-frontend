@@ -47,7 +47,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
       isLogo: true
     },
     {
-      heading: 'Declara',
+      heading: 'Declará',
       subheading: 'Completá tu declaración en minutos desde tu celular. Sin papeles, sin complicaciones.',
       image: 'assets/images/Declara.png',
       isLogo: false
@@ -59,7 +59,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
       isLogo: false
     },
     {
-      heading: 'Disfruta',
+      heading: 'Disfrutá',
       subheading: 'Recibí tu reembolso de forma rápida y segura. Tu dinero, de vuelta.',
       image: 'assets/images/Disfruta.png',
       isLogo: false
