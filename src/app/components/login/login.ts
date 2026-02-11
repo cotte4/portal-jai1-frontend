@@ -41,26 +41,26 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   currentSlide = 0;
   slides = [
     {
-      heading: 'Declara, despreocupate, disfruta.',
+      heading: 'Declará, despreocupate, disfrutá.',
       subheading: 'La plataforma que simplifica tu tax return de principio a fin.',
       image: '',
       isLogo: true
     },
     {
       heading: 'Declara',
-      subheading: 'Completa tu declaracion en minutos desde tu celular. Sin papeles, sin complicaciones.',
+      subheading: 'Completá tu declaración en minutos desde tu celular. Sin papeles, sin complicaciones.',
       image: 'assets/images/Declara.png',
       isLogo: false
     },
     {
       heading: 'Despreocupate',
-      subheading: 'Seguimiento en tiempo real. Conoce el estado de tu reembolso en cada paso.',
+      subheading: 'Seguimiento en tiempo real. Conocé el estado de tu reembolso en cada paso.',
       image: 'assets/images/Despreocupate.png',
       isLogo: false
     },
     {
       heading: 'Disfruta',
-      subheading: 'Recibe tu reembolso de forma rapida y segura. Tu dinero, de vuelta.',
+      subheading: 'Recibí tu reembolso de forma rápida y segura. Tu dinero, de vuelta.',
       image: 'assets/images/Disfruta.png',
       isLogo: false
     }
