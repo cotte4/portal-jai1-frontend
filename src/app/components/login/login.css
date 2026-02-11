@@ -127,9 +127,9 @@ html, body {
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
   border: none;
   background: #d1d5db;
   cursor: pointer;
@@ -139,8 +139,7 @@ html, body {
 
 .dot.active {
   background: #B21B43;
-  width: 24px;
-  border-radius: 4px;
+  width: 32px;
 }
 
 /* CTA Button */
