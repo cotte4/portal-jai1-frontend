@@ -946,8 +946,7 @@
 @media (max-width: 767px) {
   .form-content {
     padding: 16px;
-    /* Space for: mobile sticky actions bar (~60px) + bottom nav (64px) + safe area + breathing room */
-    padding-bottom: calc(60px + var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px);
+    padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px) + 16px);
   }
 
   /* Mobile Page Header - Match Dashboard style */
