@@ -30,8 +30,9 @@ export class Login implements OnInit, OnDestroy {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
-  // Splash Screen
-  showSplash = true;
+  // Splash Screen — only on first visit per session
+  private static splashShown = false;
+  showSplash = !Login.splashShown;
   splashFading = false;
 
   // Intro Screen
@@ -105,15 +106,18 @@ export class Login implements OnInit, OnDestroy {
       this.startAutoAdvance();
     }
 
-    // Splash screen: fade out after 2s, remove after fade animation
-    setTimeout(() => {
-      this.splashFading = true;
-      this.cdr.markForCheck();
+    // Splash screen: fade out after 2s, remove after fade animation (first visit only)
+    if (this.showSplash) {
+      Login.splashShown = true;
       setTimeout(() => {
-        this.showSplash = false;
+        this.splashFading = true;
         this.cdr.markForCheck();
-      }, 600);
-    }, 2000);
+        setTimeout(() => {
+          this.showSplash = false;
+          this.cdr.markForCheck();
+        }, 600);
+      }, 2000);
+    }
   }
 
   private setupInstallPrompt() {
