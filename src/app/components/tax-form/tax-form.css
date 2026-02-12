@@ -594,6 +594,12 @@
   align-items: flex-start;
   gap: 24px;
   margin-bottom: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #f5f7fa;
+  padding: 24px 0 16px;
+  margin-top: -24px;
 }
 
 .page-title {
@@ -940,7 +946,8 @@
 @media (max-width: 767px) {
   .form-content {
     padding: 16px;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 16px);
+    /* Space for: mobile sticky actions bar (~60px) + bottom nav (64px) + safe area + breathing room */
+    padding-bottom: calc(60px + var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px);
   }
 
   /* Mobile Page Header - Match Dashboard style */
@@ -948,6 +955,10 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
+    position: static;
+    background: none;
+    padding: 0;
+    margin-top: 0;
   }
 
   .header-actions {
@@ -1193,11 +1204,10 @@
   .mobile-sticky-actions {
     display: flex;
     position: fixed;
-    bottom: 0;
+    bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
