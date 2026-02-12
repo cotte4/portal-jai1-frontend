@@ -1,11 +1,10 @@
-import { Component, inject, OnInit, AfterViewInit, OnDestroy, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageService } from '../../core/services/storage.service';
-import { AnimationService } from '../../core/services/animation.service';
 import { UserRole } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -16,18 +15,13 @@ import { environment } from '../../../environments/environment';
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Login implements OnInit, AfterViewInit, OnDestroy {
+export class Login implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private storage = inject(StorageService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
-  private animationService = inject(AnimationService);
-
-  @ViewChild('brandContent') brandContent!: ElementRef<HTMLElement>;
-  @ViewChild('formWrapper') formWrapper!: ElementRef<HTMLElement>;
-  @ViewChild('errorAlert') errorAlert!: ElementRef<HTMLElement>;
 
   email: string = '';
   password: string = '';
@@ -36,8 +30,13 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   rememberMe: boolean = false;
   isLoading: boolean = false;
 
+  // Splash Screen
+  showSplash = true;
+  splashFading = false;
+
   // Intro Screen
-  showIntro = true;
+  showIntro = !this.storage.isIntroSeen();
+  animateSlide = false;
   currentSlide = 0;
   slides = [
     {
@@ -101,12 +100,20 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
     // PWA Install prompt - listen for beforeinstallprompt event
     this.setupInstallPrompt();
 
-    // Skip intro carousel if already seen
-    if (this.storage.isIntroSeen()) {
-      this.showIntro = false;
-    } else {
+    // Start auto-advance only if intro carousel is showing
+    if (this.showIntro) {
       this.startAutoAdvance();
     }
+
+    // Splash screen: fade out after 2s, remove after fade animation
+    setTimeout(() => {
+      this.splashFading = true;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.showSplash = false;
+        this.cdr.markForCheck();
+      }, 600);
+    }, 2000);
   }
 
   private setupInstallPrompt() {
@@ -146,19 +153,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
     window.addEventListener('appinstalled', this.appInstalledHandler);
   }
 
-  ngAfterViewInit() {
-    // Animate brand content sliding in from left
-    if (this.brandContent?.nativeElement) {
-      this.animationService.slideIn(this.brandContent.nativeElement, 'left', { delay: 0.1 });
-    }
-    // Animate form wrapper sliding in from right
-    if (this.formWrapper?.nativeElement) {
-      this.animationService.slideIn(this.formWrapper.nativeElement, 'right', { delay: 0.2 });
-    }
-  }
-
   ngOnDestroy() {
-    this.animationService.killAnimations();
     this.stopAutoAdvance();
     // Remove window event listeners to prevent memory leaks
     if (this.beforeInstallHandler) {
@@ -189,6 +184,7 @@ export class Login implements OnInit, AfterViewInit, OnDestroy {
   }
 
   enterLogin() {
+    this.animateSlide = true;
     this.storage.setIntroSeen();
     this.showIntro = false;
     this.stopAutoAdvance();
