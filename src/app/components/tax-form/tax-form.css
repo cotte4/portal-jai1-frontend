@@ -1213,7 +1213,7 @@
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     gap: 10px;
-    z-index: 100;
+    z-index: 999;
   }
 
   .mobile-sticky-actions .btn-draft {
