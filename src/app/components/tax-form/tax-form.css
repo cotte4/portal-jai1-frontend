@@ -940,7 +940,7 @@
 @media (max-width: 767px) {
   .form-content {
     padding: 16px;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 16px);
+    padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px) + 16px);
   }
 
   /* Mobile Page Header - Match Dashboard style */
@@ -1193,17 +1193,16 @@
   .mobile-sticky-actions {
     display: flex;
     position: fixed;
-    bottom: 0;
+    bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     gap: 10px;
-    z-index: 100;
+    z-index: 999;
   }
 
   .mobile-sticky-actions .btn-draft {
