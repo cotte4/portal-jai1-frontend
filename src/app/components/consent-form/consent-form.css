@@ -497,7 +497,11 @@
 /* Responsive */
 @media (max-width: 767px) {
   .consent-container {
-    padding: 0 16px 16px;
+    padding: 0 16px calc(var(--bottom-nav-height, 64px) + 24px);
+  }
+
+  .consent-container.modal-mode {
+    padding-bottom: 24px;
   }
 
   .header-title {
