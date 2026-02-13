@@ -607,6 +607,7 @@
 @media (max-width: 767px) {
   .payment-instructions-modal {
     padding: 32px 24px;
+    max-height: 80vh;
   }
 
   .payment-info-card {
@@ -1121,6 +1122,7 @@
 @media (max-width: 767px) {
   .upload-content {
     padding: 16px;
+    padding-bottom: calc(var(--bottom-nav-height, 64px) + 24px);
   }
 
   /* Show consent card on mobile */
@@ -1641,7 +1643,7 @@
   .consent-form-modal .consent-form-modal-content {
     width: 100%;
     border-radius: 16px 16px 0 0;
-    max-height: 95vh;
+    max-height: calc(100vh - var(--bottom-nav-height, 64px));
   }
 }
 

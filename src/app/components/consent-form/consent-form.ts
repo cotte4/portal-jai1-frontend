@@ -129,11 +129,9 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
             return;
           }
 
-          // Pre-fill form fields
+          // Pre-fill only name and email — other fields (DNI, address)
+          // come encrypted from backend and must be entered manually
           if (prefilled.fullName) this.formData.fullName = prefilled.fullName;
-          if (prefilled.dniPassport) this.formData.dniPassport = prefilled.dniPassport;
-          if (prefilled.street) this.formData.street = prefilled.street;
-          if (prefilled.city) this.formData.city = prefilled.city;
           if (prefilled.email) this.formData.email = prefilled.email;
 
           // Use server date if provided
