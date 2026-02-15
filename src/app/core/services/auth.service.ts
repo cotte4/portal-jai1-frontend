@@ -285,6 +285,16 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
+  /**
+   * Store auth tokens and user from an external auth response (e.g. jai1gent registration).
+   * Use this instead of manually calling StorageService to ensure centralized auth handling.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleExternalAuthResponse(response: any, rememberMe: boolean = true): void {
+    this.storage.setRememberMe(rememberMe);
+    this.handleAuthResponse(response);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleAuthResponse(response: any): void {
     // Guard against invalid response

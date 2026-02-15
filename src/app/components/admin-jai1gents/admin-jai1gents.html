@@ -28,7 +28,7 @@
     <!-- JAI1GENTS Tab -->
     @if (activeTab === 'jai1gents') {
       <div class="tab-content">
-        <!-- Search -->
+        <!-- Search + Create -->
         <div class="search-bar">
           <input
             type="text"
@@ -37,6 +37,7 @@
             placeholder="Buscar por nombre o email..."
           >
           <button class="btn-search" (click)="onSearchJai1gents()">Buscar</button>
+          <button class="btn-generate" (click)="openCreateModal()">+ Crear JAI1GENT</button>
         </div>
 
         <!-- Table -->
@@ -61,15 +62,32 @@
                   <th>Ganancias</th>
                   <th>Tier</th>
                   <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 @for (jai1gent of jai1gents; track jai1gent.id) {
-                  <tr>
-                    <td class="name-cell">{{ jai1gent.name }}</td>
+                  <tr [class.inactive-row]="!jai1gent.is_active">
+                    <td class="name-cell clickable" (click)="openReferralDetail(jai1gent)">{{ jai1gent.name }}</td>
                     <td class="email-cell">{{ jai1gent.email }}</td>
                     <td class="code-cell">
-                      <span class="code-badge">{{ jai1gent.referral_code }}</span>
+                      @if (editingCodeFor === jai1gent.user_id) {
+                        <div class="code-edit">
+                          <input
+                            type="text"
+                            [(ngModel)]="editCodeValue"
+                            (keydown)="onEditCodeKeydown($event, jai1gent)"
+                            maxlength="15"
+                            class="code-edit-input"
+                            autofocus
+                          >
+                          <button class="btn-code-save" (click)="saveEditCode(jai1gent)">OK</button>
+                          <button class="btn-code-cancel" (click)="cancelEditCode()">X</button>
+                        </div>
+                      } @else {
+                        <span class="code-badge editable" (click)="startEditCode(jai1gent)">{{ jai1gent.referral_code }}</span>
+                      }
                     </td>
                     <td class="stats-cell">
                       {{ jai1gent.stats.completed_referrals }}/{{ jai1gent.stats.total_referrals }}
@@ -85,6 +103,23 @@
                       } @else {
                         <span class="payment-status pending">Pendiente</span>
                       }
+                    </td>
+                    <td>
+                      @if (jai1gent.is_active) {
+                        <span class="status-badge available">Activo</span>
+                      } @else {
+                        <span class="status-badge used">Inactivo</span>
+                      }
+                    </td>
+                    <td class="actions-cell">
+                      <button
+                        class="btn-toggle-active"
+                        [class.deactivate]="jai1gent.is_active"
+                        [class.activate]="!jai1gent.is_active"
+                        (click)="toggleActive(jai1gent)"
+                      >
+                        {{ jai1gent.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
                     </td>
                   </tr>
                 }
@@ -235,6 +270,235 @@
             </button>
           </div>
         }
+      </div>
+    </div>
+  }
+
+  <!-- Create JAI1GENT Modal -->
+  @if (showCreateModal) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Crear JAI1GENT</h2>
+          <button class="btn-close" (click)="closeCreateModal()">X</button>
+        </div>
+
+        @if (!createdJai1gent) {
+          <div class="modal-body">
+            @if (createErrorMessage) {
+              <div class="create-error">{{ createErrorMessage }}</div>
+            }
+
+            <div class="create-form">
+              <div class="input-row">
+                <div class="input-group">
+                  <label>Nombre *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="createForm.first_name"
+                    placeholder="Nombre"
+                    autocomplete="off"
+                  >
+                </div>
+                <div class="input-group">
+                  <label>Apellido *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="createForm.last_name"
+                    placeholder="Apellido"
+                    autocomplete="off"
+                  >
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  [(ngModel)]="createForm.email"
+                  placeholder="email@ejemplo.com"
+                  autocomplete="off"
+                >
+              </div>
+
+              <div class="input-group">
+                <label>Teléfono</label>
+                <input
+                  type="tel"
+                  [(ngModel)]="createForm.phone"
+                  placeholder="+1 (555) 123-4567"
+                  autocomplete="off"
+                >
+              </div>
+
+              <div class="input-group">
+                <label>Contraseña *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="createForm.password"
+                  placeholder="Minimo 8 caracteres"
+                  autocomplete="off"
+                >
+                <span class="hint">El JAI1GENT podra cambiarla despues</span>
+              </div>
+
+              <div class="input-group">
+                <label>Código de referido *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="createForm.referral_code"
+                  placeholder="Ej: JAIFRANCO, MYREFERRAL"
+                  maxlength="15"
+                  autocomplete="off"
+                  style="text-transform: uppercase; font-family: monospace; letter-spacing: 1px;"
+                >
+                <span class="hint">5-15 caracteres, letras y numeros. Este es el código que compartira con clientes.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-cancel" (click)="closeCreateModal()">Cancelar</button>
+            <button
+              class="btn-confirm"
+              (click)="createJai1gent()"
+              [disabled]="isCreating"
+            >
+              {{ isCreating ? 'Creando...' : 'Crear JAI1GENT' }}
+            </button>
+          </div>
+        } @else {
+          <div class="modal-body">
+            <p class="success-message">JAI1GENT creado exitosamente!</p>
+            <div class="created-info">
+              <div class="created-info-row">
+                <span class="info-label">Nombre</span>
+                <span class="info-value">{{ createdJai1gent.name }}</span>
+              </div>
+              <div class="created-info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ createdJai1gent.email }}</span>
+              </div>
+              <div class="created-info-row">
+                <span class="info-label">Código de referido</span>
+                <span class="info-value code-value">
+                  {{ createdJai1gent.referral_code }}
+                  <button class="btn-copy-inline" (click)="copyReferralCode(createdJai1gent.referral_code)">Copiar</button>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-confirm" (click)="closeCreateModal()">Cerrar</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Referral Detail Modal -->
+  @if (showReferralModal) {
+    <div class="modal-overlay" (click)="closeReferralModal()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Referidos del JAI1GENT</h2>
+          <button class="btn-close" (click)="closeReferralModal()">X</button>
+        </div>
+
+        @if (referralDetailLoading) {
+          <div class="modal-body">
+            <div class="loading-state" style="padding: 40px">
+              <div class="spinner"></div>
+              <p>Cargando...</p>
+            </div>
+          </div>
+        } @else if (referralDetailData) {
+          <!-- JAI1GENT Summary -->
+          <div class="referral-summary">
+            <div class="summary-item">
+              <span class="summary-label">Nombre</span>
+              <span class="summary-value">{{ referralDetailData.jai1gent.name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Código</span>
+              <span class="summary-value code-value">{{ referralDetailData.jai1gent.referral_code }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Referidos</span>
+              <span class="summary-value">{{ referralDetailData.jai1gent.completed_referrals }}/{{ referralDetailData.jai1gent.total_referrals }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Ganancias</span>
+              <span class="summary-value earnings">${{ referralDetailData.jai1gent.total_earnings.toFixed(2) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Tier</span>
+              <span class="summary-value">
+                <span class="tier-badge">Tier {{ referralDetailData.jai1gent.tier.tierNumber }}</span>
+                <span class="tier-percent">({{ referralDetailData.jai1gent.tier.percent }}%)</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div class="referral-filter">
+            <select [(ngModel)]="referralStatusFilter" (change)="onReferralFilterChange()">
+              <option value="all">Todos</option>
+              <option value="pending">Pendientes</option>
+              <option value="taxes_filed">Taxes presentados</option>
+              <option value="completed">Completados</option>
+              <option value="expired">Expirados</option>
+            </select>
+            <span class="referral-count">{{ referralDetailData.total }} referidos</span>
+          </div>
+
+          <!-- Referrals Table -->
+          <div class="modal-body" style="padding-top: 0">
+            @if (referralDetailData.referrals.length === 0) {
+              <div class="empty-state" style="padding: 30px">
+                <p>No hay referidos con este filtro.</p>
+              </div>
+            } @else {
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Email</th>
+                      <th>Estado</th>
+                      <th>Fee JAI1</th>
+                      <th>Comision %</th>
+                      <th>Comision $</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (ref of referralDetailData.referrals; track ref.id) {
+                      <tr>
+                        <td class="name-cell">{{ ref.referred_name }}</td>
+                        <td class="email-cell">{{ ref.referred_email }}</td>
+                        <td>
+                          <span class="referral-status" [class]="getStatusClass(ref.status)">
+                            {{ getStatusLabel(ref.status) }}
+                          </span>
+                        </td>
+                        <td>{{ ref.jai1_fee !== null ? ('$' + ref.jai1_fee.toFixed(2)) : '-' }}</td>
+                        <td>{{ ref.commission_percent !== null ? (ref.commission_percent + '%') : '-' }}</td>
+                        <td class="earnings-cell">{{ ref.commission_amount !== null ? ('$' + ref.commission_amount.toFixed(2)) : '-' }}</td>
+                        <td>{{ ref.created_at | date:'dd/MM/yyyy':'UTC' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="modal-footer">
+          <button class="btn-confirm" (click)="closeReferralModal()">Cerrar</button>
+        </div>
       </div>
     </div>
   }

@@ -85,6 +85,10 @@ export class Jai1gentLogin {
     this.router.navigate(['/jai1gent/register']);
   }
 
+  goToForgotPassword() {
+    this.router.navigate(['/forgot-password']);
+  }
+
   goToClientLogin() {
     this.router.navigate(['/login']);
   }

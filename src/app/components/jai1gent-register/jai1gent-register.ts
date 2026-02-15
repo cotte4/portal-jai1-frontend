@@ -9,7 +9,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Jai1gentService } from '../../core/services/jai1gent.service';
-import { StorageService } from '../../core/services/storage.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-jai1gent-register',
@@ -22,7 +22,7 @@ export class Jai1gentRegister implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private jai1gentService = inject(Jai1gentService);
-  private storage = inject(StorageService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
   // Form fields
@@ -129,23 +129,10 @@ export class Jai1gentRegister implements OnInit {
       })
       .subscribe({
         next: (response) => {
-          // Store tokens
-          this.storage.setRememberMe(true);
-          this.storage.setAccessToken(response.access_token);
-          this.storage.setRefreshToken(response.refresh_token);
-          this.storage.setUser({
-            id: response.user.id,
-            email: response.user.email,
-            firstName: response.user.first_name,
-            lastName: response.user.last_name,
-            role: response.user.role as any,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
+          // Use centralized auth handling for tokens + user storage
+          this.authService.handleExternalAuthResponse(response, true);
 
           this.isLoading = false;
-          // Redirect to dashboard
           this.router.navigate(['/jai1gent/dashboard']);
         },
         error: (error) => {

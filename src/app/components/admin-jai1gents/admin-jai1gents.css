@@ -480,6 +480,267 @@
   cursor: pointer;
 }
 
+/* ==================== EDITABLE CODE ==================== */
+.code-badge.editable {
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px dashed transparent;
+}
+
+.code-badge.editable:hover {
+  border-color: var(--color-accent);
+  background: #e8e8e8;
+}
+
+.code-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.code-edit-input {
+  width: 120px;
+  padding: 4px 8px;
+  border: 2px solid var(--color-accent);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.btn-code-save,
+.btn-code-cancel {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-code-save {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.btn-code-save:hover {
+  background: #bbf7d0;
+}
+
+.btn-code-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.btn-code-cancel:hover {
+  background: #e5e7eb;
+}
+
+/* ==================== CLICKABLE NAME ==================== */
+.name-cell.clickable {
+  cursor: pointer;
+  color: var(--color-accent) !important;
+  transition: opacity 0.2s;
+}
+
+.name-cell.clickable:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* ==================== REFERRAL DETAIL MODAL ==================== */
+.modal-wide {
+  max-width: 760px;
+}
+
+.referral-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.summary-value.earnings {
+  color: #059669;
+}
+
+.summary-value.code-value {
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.referral-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.referral-filter select {
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+
+.referral-count {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.referral-status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.referral-status.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.referral-status.status-filed {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.referral-status.status-completed {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.referral-status.status-expired {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ==================== TOGGLE ACTIVE BUTTON ==================== */
+.btn-toggle-active {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-active.deactivate {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.btn-toggle-active.deactivate:hover {
+  background: #fee2e2;
+}
+
+.btn-toggle-active.activate {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.btn-toggle-active.activate:hover {
+  background: #dcfce7;
+}
+
+.inactive-row {
+  opacity: 0.55;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+/* ==================== CREATE JAI1GENT MODAL ==================== */
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.create-form .input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.create-form .input-row .input-group {
+  flex: 1;
+}
+
+.create-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  color: #be123c;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.created-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fb;
+  border-radius: 10px;
+}
+
+.created-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.info-value.code-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .page-header {
@@ -730,4 +991,111 @@
 
 .admin-page.dark-mode .btn-copy-all {
   background: #6366f1;
+}
+
+.admin-page.dark-mode .btn-toggle-active.deactivate {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+}
+
+.admin-page.dark-mode .btn-toggle-active.deactivate:hover {
+  background: rgba(220, 38, 38, 0.25);
+}
+
+.admin-page.dark-mode .btn-toggle-active.activate {
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .btn-toggle-active.activate:hover {
+  background: rgba(22, 163, 74, 0.25);
+}
+
+.admin-page.dark-mode .create-error {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #f87171;
+}
+
+.admin-page.dark-mode .created-info {
+  background: #0f172a;
+}
+
+.admin-page.dark-mode .info-label {
+  color: #64748b;
+}
+
+.admin-page.dark-mode .info-value {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .code-badge.editable:hover {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: #6366f1;
+}
+
+.admin-page.dark-mode .code-edit-input {
+  background: #0f172a;
+  border-color: #6366f1;
+  color: #e2e8f0;
+}
+
+.admin-page.dark-mode .btn-code-save {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .btn-code-cancel {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .name-cell.clickable {
+  color: #f472b6 !important;
+}
+
+.admin-page.dark-mode .referral-summary {
+  border-color: #334155;
+}
+
+.admin-page.dark-mode .summary-label {
+  color: #64748b;
+}
+
+.admin-page.dark-mode .summary-value {
+  color: #f1f5f9;
+}
+
+.admin-page.dark-mode .summary-value.earnings {
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .referral-filter select {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.admin-page.dark-mode .referral-count {
+  color: #94a3b8;
+}
+
+.admin-page.dark-mode .referral-status.status-pending {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.admin-page.dark-mode .referral-status.status-filed {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+}
+
+.admin-page.dark-mode .referral-status.status-completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.admin-page.dark-mode .referral-status.status-expired {
+  background: #334155;
+  color: #94a3b8;
 }

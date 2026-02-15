@@ -122,6 +122,32 @@ export interface Jai1gentListItem {
   created_at: string;
 }
 
+export interface Jai1gentReferralDetail {
+  id: string;
+  referred_name: string;
+  referred_email: string;
+  status: 'pending' | 'taxes_filed' | 'completed' | 'expired';
+  jai1_fee: number | null;
+  commission_percent: number | null;
+  commission_amount: number | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface Jai1gentReferralDetailResponse {
+  jai1gent: {
+    name: string;
+    email: string;
+    referral_code: string;
+    total_referrals: number;
+    completed_referrals: number;
+    total_earnings: number;
+    tier: Jai1gentTier;
+  };
+  referrals: Jai1gentReferralDetail[];
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -241,6 +267,67 @@ export class Jai1gentService {
     return this.http.get<{ jai1gents: Jai1gentListItem[]; total: number }>(
       `${this.apiUrl}/jai1gents/admin/list`,
       { params }
+    );
+  }
+
+  /**
+   * Get referral details for a specific JAI1GENT (admin only)
+   */
+  getJai1gentReferrals(userId: string, options?: {
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Observable<Jai1gentReferralDetailResponse> {
+    const params: any = {};
+    if (options?.status) params.status = options.status;
+    if (options?.limit) params.limit = options.limit.toString();
+    if (options?.offset) params.offset = options.offset.toString();
+
+    return this.http.get<Jai1gentReferralDetailResponse>(
+      `${this.apiUrl}/jai1gents/admin/${userId}/referrals`,
+      { params }
+    );
+  }
+
+  /**
+   * Update a JAI1GENT's referral code (admin only)
+   */
+  updateReferralCode(userId: string, referralCode: string): Observable<{ message: string; referral_code: string }> {
+    return this.http.patch<{ message: string; referral_code: string }>(
+      `${this.apiUrl}/jai1gents/admin/${userId}/referral-code`,
+      { referral_code: referralCode }
+    );
+  }
+
+  /**
+   * Toggle JAI1GENT active status (admin only)
+   */
+  toggleActive(userId: string, isActive: boolean): Observable<{ message: string; is_active: boolean }> {
+    return this.http.patch<{ message: string; is_active: boolean }>(
+      `${this.apiUrl}/jai1gents/admin/${userId}/toggle-active`,
+      { is_active: isActive }
+    );
+  }
+
+  /**
+   * Create a JAI1GENT account directly (admin only, no invite code needed)
+   */
+  adminCreateJai1gent(data: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+  }): Observable<{
+    message: string;
+    jai1gent: { id: string; user_id: string; email: string; name: string; referral_code: string };
+  }> {
+    return this.http.post<{
+      message: string;
+      jai1gent: { id: string; user_id: string; email: string; name: string; referral_code: string };
+    }>(
+      `${this.apiUrl}/jai1gents/admin/create`,
+      data
     );
   }
 
