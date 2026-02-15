@@ -8,7 +8,7 @@ import {
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
-import { Jai1gentService, Jai1gentDashboardResponse } from '../../core/services/jai1gent.service';
+import { Jai1gentService, Jai1gentDashboardResponse, Jai1gentReferral } from '../../core/services/jai1gent.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 
@@ -31,6 +31,8 @@ export class Jai1gentDashboard implements OnInit {
   hasLoaded = false;
   errorMessage = '';
   copySuccess = false;
+  showAllReferrals = false;
+  showHowItWorks = false;
 
   ngOnInit() {
     this.loadDashboard();
@@ -97,6 +99,22 @@ export class Jai1gentDashboard implements OnInit {
 
   getStatusClass(status: string): string {
     return this.jai1gentService.getStatusColor(status as any);
+  }
+
+  toggleAllReferrals() {
+    this.showAllReferrals = !this.showAllReferrals;
+    this.cdr.detectChanges();
+  }
+
+  toggleHowItWorks() {
+    this.showHowItWorks = !this.showHowItWorks;
+    this.cdr.detectChanges();
+  }
+
+  get displayedReferrals(): Jai1gentReferral[] {
+    if (!this.dashboard) return [];
+    if (this.showAllReferrals) return this.dashboard.recent_referrals;
+    return this.dashboard.recent_referrals.slice(0, 5);
   }
 
   goToProfile() {

@@ -44,6 +44,46 @@
         <p class="code-hint">Comparte este código con tus amigos para ganar comisiones</p>
       </section>
 
+      <!-- How It Works -->
+      <section class="how-it-works-card">
+        <button class="how-it-works-toggle" (click)="toggleHowItWorks()">
+          <span>Como funciona el programa</span>
+          <span class="toggle-arrow" [class.open]="showHowItWorks">v</span>
+        </button>
+        @if (showHowItWorks) {
+          <div class="how-it-works-content">
+            <div class="step">
+              <span class="step-number">1</span>
+              <div class="step-text">
+                <strong>Comparte tu código</strong>
+                <p>Envia tu código de referido a personas que necesiten hacer sus taxes.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <div class="step-text">
+                <strong>El cliente se registra</strong>
+                <p>Cuando se registran con tu código, aparecen como "Pendiente" en tu lista de referidos.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <div class="step-text">
+                <strong>Taxes presentados</strong>
+                <p>Cuando JAI1 presenta sus taxes, el estado cambia a "Taxes presentados".</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <div class="step-text">
+                <strong>Ganas tu comisión</strong>
+                <p>Una vez completado el proceso, recibis tu comisión ({{ dashboard.tier.current.percent }}% del fee de JAI1). Mientras mas referidos completes, mayor es tu porcentaje.</p>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+
       <!-- Stats Grid -->
       <section class="stats-grid">
         <div class="stat-card">
@@ -111,16 +151,23 @@
         </div>
       </section>
 
-      <!-- Recent Referrals -->
+      <!-- Referrals -->
       <section class="referrals-card">
-        <h3>Últimos referidos</h3>
+        <div class="referrals-header">
+          <h3>Tus referidos</h3>
+          @if (dashboard.recent_referrals.length > 5) {
+            <button class="btn-toggle-all" (click)="toggleAllReferrals()">
+              {{ showAllReferrals ? 'Ver menos' : 'Ver todos (' + dashboard.recent_referrals.length + ')' }}
+            </button>
+          }
+        </div>
         @if (dashboard.recent_referrals.length === 0) {
           <div class="empty-state">
-            <p>Aun no tienes referidos. Comparte tu código para empezar a ganar!</p>
+            <p>Aun no tenes referidos. Comparte tu código para empezar a ganar!</p>
           </div>
         } @else {
           <div class="referrals-list">
-            @for (referral of dashboard.recent_referrals; track referral.id) {
+            @for (referral of displayedReferrals; track referral.id) {
               <div class="referral-item">
                 <div class="referral-info">
                   <span class="referral-name">{{ referral.referred_name }}</span>
@@ -137,6 +184,11 @@
               </div>
             }
           </div>
+          @if (!showAllReferrals && dashboard.recent_referrals.length > 5) {
+            <button class="btn-show-all-bottom" (click)="toggleAllReferrals()">
+              Ver todos los referidos ({{ dashboard.recent_referrals.length }})
+            </button>
+          }
         }
       </section>
 

@@ -227,6 +227,84 @@
   opacity: 0.7;
 }
 
+/* ==================== HOW IT WORKS ==================== */
+.how-it-works-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.how-it-works-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-primary);
+  transition: background 0.2s;
+}
+
+.how-it-works-toggle:hover {
+  background: #f8f9fb;
+}
+
+.toggle-arrow {
+  font-size: 14px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
+.how-it-works-content {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #B21B43, #d32f5a);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--color-primary);
+  margin-bottom: 2px;
+}
+
+.step-text p {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 /* ==================== STATS GRID ==================== */
 .stats-grid {
   display: grid;
@@ -393,11 +471,53 @@
   margin-bottom: 24px;
 }
 
+.referrals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .referrals-card h3 {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-primary);
-  margin-bottom: 16px;
+}
+
+.btn-toggle-all {
+  padding: 6px 14px;
+  background: #f3f4f6;
+  color: var(--color-accent);
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-toggle-all:hover {
+  background: #e5e7eb;
+}
+
+.btn-show-all-bottom {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fb;
+  color: var(--color-accent);
+  border: 1px dashed #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-show-all-bottom:hover {
+  background: #f1f5f9;
+  border-color: var(--color-accent);
 }
 
 .empty-state {
