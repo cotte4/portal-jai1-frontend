@@ -577,6 +577,30 @@ export class AdminService {
     );
   }
 
+  /**
+   * Upload a document on behalf of a client (admin only)
+   */
+  uploadDocumentForClient(
+    clientProfileId: string,
+    file: File,
+    type: string,
+    taxYear?: number
+  ): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    if (taxYear) {
+      formData.append('tax_year', taxYear.toString());
+    }
+
+    return this.http.post(
+      `${this.apiUrl}/documents/upload-for-client/${clientProfileId}`,
+      formData
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

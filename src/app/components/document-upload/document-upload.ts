@@ -317,19 +317,11 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
         // Mark this document type as uploaded (for green checkmark)
         this.uploadedTypes.add(this.selectedType);
 
-        // If it's a W2, only show calculator popup if user doesn't have an existing estimate
+        // If it's a W2, always show calculator popup so user can recalculate
+        // This ensures multi-W2 uploads aggregate correctly
         if (this.selectedType === DocumentType.W2) {
-          const existingResult = this.calculatorResultService.getResult();
-          const hasValidEstimate = existingResult && existingResult.estimatedRefund > 0;
-
-          if (!hasValidEstimate) {
-            // No estimate or estimate is 0 - offer to calculate
-            this.lastUploadedW2 = response.document;
-            this.showW2Popup = true;
-          } else {
-            // User already has an estimate - just upload the document, don't ask
-            // Keep existing estimatedRefund value
-          }
+          this.lastUploadedW2 = response.document;
+          this.showW2Popup = true;
         }
         this.cdr.detectChanges();
       },

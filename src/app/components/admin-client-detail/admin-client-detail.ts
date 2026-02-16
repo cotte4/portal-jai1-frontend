@@ -132,6 +132,11 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Document tabs
   selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other' = 'all';
 
+  // Admin document upload
+  isUploadingDocument: boolean = false;
+  selectedUploadType: string = 'w2';
+  selectedUploadFile: File | null = null;
+
   // Profile and Documents Modal
   showProfileModal: boolean = false;
   showDocumentsModal: boolean = false;
@@ -552,6 +557,37 @@ export class AdminClientDetail implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.errorMessage = getErrorMessage(error, 'Error al descargar documento');
+      }
+    });
+  }
+
+  onUploadFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedUploadFile = input.files?.[0] || null;
+  }
+
+  uploadDocumentForClient() {
+    if (!this.selectedUploadFile || !this.clientId || this.isUploadingDocument) return;
+
+    this.isUploadingDocument = true;
+    this.adminService.uploadDocumentForClient(
+      this.clientId,
+      this.selectedUploadFile,
+      this.selectedUploadType,
+      new Date().getFullYear()
+    ).subscribe({
+      next: () => {
+        this.toastService.success('Documento subido correctamente');
+        this.isUploadingDocument = false;
+        this.selectedUploadFile = null;
+        // Refresh client data to show new document
+        this.loadClientData();
+        this.cdr.markForCheck();
+      },
+      error: (error: any) => {
+        this.toastService.error(getErrorMessage(error, 'Error al subir documento'));
+        this.isUploadingDocument = false;
+        this.cdr.markForCheck();
       }
     });
   }

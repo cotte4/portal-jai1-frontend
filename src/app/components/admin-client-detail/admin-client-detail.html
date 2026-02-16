@@ -746,6 +746,29 @@
             </div>
           </div>
 
+          <!-- Admin Upload -->
+          <div class="admin-upload-row" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+            <select [(ngModel)]="selectedUploadType"
+                    style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-color, #e0e0e0);font-size:13px;background:var(--bg-secondary, #fff);">
+              <option value="w2">W2</option>
+              <option value="payment_proof">Comprobante de Pago</option>
+              <option value="consent_form">Formulario de Consentimiento</option>
+              <option value="commission_proof_federal">Comisión Federal</option>
+              <option value="commission_proof_state">Comisión Estatal</option>
+              <option value="other">Otro</option>
+            </select>
+            <input type="file"
+                   (change)="onUploadFileSelected($event)"
+                   accept=".pdf,.jpg,.jpeg,.png"
+                   style="font-size:13px;">
+            <button class="btn-primary"
+                    (click)="uploadDocumentForClient()"
+                    [disabled]="!selectedUploadFile || isUploadingDocument"
+                    style="padding:6px 14px;font-size:13px;border-radius:8px;">
+              {{ isUploadingDocument ? 'Subiendo...' : 'Subir Documento' }}
+            </button>
+          </div>
+
           <!-- Document Type Tabs -->
           <div class="document-tabs" *ngIf="client.documents && client.documents.length > 0">
             <button class="doc-tab" [class.active]="selectedDocumentTab === 'all'"

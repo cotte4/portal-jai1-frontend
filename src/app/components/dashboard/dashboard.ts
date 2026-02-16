@@ -256,6 +256,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         if (backendData?.hasEstimate && backendData?.estimate) {
           const estimate = backendData.estimate;
           // Use syncFromBackend to properly populate all fields and update BehaviorSubject
+          // Pass totalEstimatedRefund for multi-W2 aggregation support
           this.calculatorResultService.syncFromBackend({
             estimatedRefund: estimate.estimatedRefund,
             w2FileName: estimate.w2FileName,
@@ -263,7 +264,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
             box17State: estimate.box17State,
             ocrConfidence: estimate.ocrConfidence,
             createdAt: estimate.createdAt,
-            requiresReview: estimate.requiresReview
+            requiresReview: backendData.requiresReview ?? estimate.requiresReview,
+            totalEstimatedRefund: backendData.totalEstimatedRefund,
           });
         }
 

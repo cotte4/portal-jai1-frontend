@@ -47,6 +47,7 @@ export class CalculatorResultService {
   /**
    * Sync result from backend API response
    * Used when loading existing estimate from server (cross-device sync)
+   * Supports both single estimate and aggregated multi-W2 response
    */
   syncFromBackend(backendEstimate: {
     estimatedRefund: number;
@@ -56,9 +57,13 @@ export class CalculatorResultService {
     ocrConfidence?: string;
     createdAt?: string;
     requiresReview?: boolean;
+    totalEstimatedRefund?: number;
   }): void {
+    // Use aggregated total if available (multi-W2 support), otherwise fall back to single estimate
+    const displayRefund = backendEstimate.totalEstimatedRefund ?? backendEstimate.estimatedRefund;
+
     const result: CalculatorResult = {
-      estimatedRefund: backendEstimate.estimatedRefund,
+      estimatedRefund: displayRefund,
       calculatedAt: backendEstimate.createdAt || new Date().toISOString(),
       documentName: backendEstimate.w2FileName,
       box2Federal: backendEstimate.box2Federal,
