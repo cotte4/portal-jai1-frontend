@@ -787,6 +787,10 @@
                     (click)="selectDocumentTab('commission_proof')">
               Comision <span class="tab-count">{{ getDocumentCountByType('commission_proof') }}</span>
             </button>
+            <button class="doc-tab" [class.active]="selectedDocumentTab === 'consent_form'"
+                    (click)="selectDocumentTab('consent_form')">
+              Consentimiento <span class="tab-count">{{ getDocumentCountByType('consent_form') }}</span>
+            </button>
             <button class="doc-tab" [class.active]="selectedDocumentTab === 'other'"
                     (click)="selectDocumentTab('other')">
               Otros <span class="tab-count">{{ getDocumentCountByType('other') }}</span>
@@ -1514,6 +1518,10 @@
           <button class="modal-doc-tab" [class.active]="modalDocumentTab === 'commission_proof'"
                   (click)="modalDocumentTab = 'commission_proof'">
             Comision <span class="tab-count">{{ getDocumentCountByType('commission_proof') }}</span>
+          </button>
+          <button class="modal-doc-tab" [class.active]="modalDocumentTab === 'consent_form'"
+                  (click)="modalDocumentTab = 'consent_form'">
+            Consentimiento <span class="tab-count">{{ getDocumentCountByType('consent_form') }}</span>
           </button>
           <button class="modal-doc-tab" [class.active]="modalDocumentTab === 'other'"
                   (click)="modalDocumentTab = 'other'">

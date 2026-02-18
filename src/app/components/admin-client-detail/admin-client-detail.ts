@@ -130,7 +130,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   problemDescription: string = '';
 
   // Document tabs
-  selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other' = 'all';
+  selectedDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'consent_form' | 'other' = 'all';
 
   // Admin document upload
   isUploadingDocument: boolean = false;
@@ -140,7 +140,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
   // Profile and Documents Modal
   showProfileModal: boolean = false;
   showDocumentsModal: boolean = false;
-  modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other' = 'all';
+  modalDocumentTab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'consent_form' | 'other' = 'all';
 
   // Visual Review Game
   showVisualReview: boolean = false;
@@ -844,7 +844,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return this.client.documents.filter(doc => doc.type === this.selectedDocumentTab);
   }
 
-  getDocumentCountByType(type: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other'): number {
+  getDocumentCountByType(type: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'consent_form' | 'other'): number {
     if (!this.client?.documents) return 0;
     if (type === 'all') return this.client.documents.length;
     if (type === 'commission_proof') {
@@ -853,7 +853,7 @@ export class AdminClientDetail implements OnInit, OnDestroy {
     return this.client.documents.filter(doc => doc.type === type).length;
   }
 
-  selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'other') {
+  selectDocumentTab(tab: 'all' | 'w2' | 'payment_proof' | 'commission_proof' | 'consent_form' | 'other') {
     this.selectedDocumentTab = tab;
   }
 

@@ -76,7 +76,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // Sorting (server-side for name/createdAt, client-side for refunds)
   sortColumn: string = 'createdAt';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   // Missing docs check
   isCheckingMissingDocs: boolean = false;
@@ -590,8 +590,8 @@ export class AdminDashboard implements OnInit, OnDestroy {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
       this.sortColumn = column;
-      // Name/email defaults to A-Z (asc), dates default to newest first (desc)
-      this.sortDirection = (column === 'name' || column === 'email') ? 'asc' : 'desc';
+      // Name/email defaults to A-Z (asc), dates default to oldest first (asc)
+      this.sortDirection = 'asc';
     }
     // Reload with server-side sorting
     this.syncFiltersToUrl();
@@ -600,7 +600,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   clearSort() {
     this.sortColumn = 'createdAt';
-    this.sortDirection = 'desc';
+    this.sortDirection = 'asc';
     this.syncFiltersToUrl();
     this.loadClients();
   }
@@ -925,7 +925,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     }
 
     // Sorting (only if not default)
-    if (this.sortColumn !== 'createdAt' || this.sortDirection !== 'desc') {
+    if (this.sortColumn !== 'createdAt' || this.sortDirection !== 'asc') {
       params['sortBy'] = this.sortColumn;
       params['sortOrder'] = this.sortDirection;
     }
