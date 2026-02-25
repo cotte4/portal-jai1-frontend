@@ -96,6 +96,9 @@
       >
         {{ isRunningAll ? '⏳ Iniciando...' : '🔍 Verificar Todos' }}
       </button>
+      <button class="btn-export-csv" (click)="exportCsv()" [disabled]="isExportingCsv || isLoading" title="Exportar historial completo a CSV">
+        {{ isExportingCsv ? '⏳' : '📥' }} CSV
+      </button>
       <button class="btn-refresh" (click)="loadClients()" [disabled]="isLoading || isRunningBatch">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6M1 20v-6h6"/>
@@ -162,6 +165,7 @@
             <th>Cliente</th>
             <th>SSN</th>
             <th>Año</th>
+            <th>Filing</th>
             <th>Reembolso Federal</th>
             <th>Estado JAI1</th>
             <th>Último Check IRS</th>
@@ -195,6 +199,11 @@
               <span class="ssn-badge">{{ client.ssnMasked ?? '—' }}</span>
             </td>
             <td>{{ client.taxYear }}</td>
+            <td class="filing-cell">
+              <span class="filing-badge" [title]="client.filingStatus">
+                {{ getFilingStatusLabel(client.filingStatus) }}
+              </span>
+            </td>
             <td class="amount-cell">
               <ng-container *ngIf="client.irsRefundAmount; else noRefund">
                 <span>${{ client.irsRefundAmount }}</span>
@@ -332,7 +341,7 @@
               {{ getIrsDetailExcerpt(check.irsRawStatus, check.irsDetails) }}
             </div>
 
-            <!-- Screenshot button -->
+            <!-- Screenshot inline viewer -->
             <div class="tl-screenshot" *ngIf="check.screenshotPath">
               <button
                 *ngIf="!screenshotUrls[check.id]"
@@ -345,12 +354,13 @@
               <span *ngIf="screenshotUrls[check.id] === 'error'" class="tl-screenshot-error">
                 Error al cargar
               </span>
-              <a
+              <div
                 *ngIf="screenshotUrls[check.id] && screenshotUrls[check.id] !== 'loading' && screenshotUrls[check.id] !== 'error'"
-                [href]="screenshotUrls[check.id]"
-                target="_blank"
-                class="btn-screenshot btn-screenshot-open"
-              >🔗 Abrir captura</a>
+                class="tl-screenshot-preview"
+              >
+                <img [src]="screenshotUrls[check.id]" alt="IRS WMR screenshot" class="screenshot-img" />
+                <a [href]="screenshotUrls[check.id]" target="_blank" class="screenshot-fullscreen">↗ Pantalla completa</a>
+              </div>
             </div>
           </div>
         </li>

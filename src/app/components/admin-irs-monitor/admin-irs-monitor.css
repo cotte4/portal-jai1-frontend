@@ -955,3 +955,63 @@
   height: 10px;
   border-width: 2px;
 }
+
+/* ===== CSV EXPORT BUTTON ===== */
+.btn-export-csv {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: #f5f5f7;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: #1d1d1f;
+}
+.btn-export-csv:hover:not(:disabled) { background: #e8e8ed; }
+.btn-export-csv:disabled { opacity: 0.5; cursor: not-allowed; }
+.dark-mode .btn-export-csv { background: #3a3a3c; border-color: #48484a; color: #f2f2f7; }
+.dark-mode .btn-export-csv:hover:not(:disabled) { background: #48484a; }
+
+/* ===== FILING STATUS CELL ===== */
+.filing-cell { white-space: nowrap; }
+.filing-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 7px;
+  background: #f0f0f5;
+  border-radius: 5px;
+  color: #636366;
+}
+.dark-mode .filing-badge { background: #3a3a3c; color: #ebebf5; }
+
+/* ===== INLINE SCREENSHOT ===== */
+.tl-screenshot-preview {
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e5ea;
+}
+.dark-mode .tl-screenshot-preview { border-color: #3a3a3c; }
+
+.screenshot-img {
+  width: 100%;
+  display: block;
+  border-radius: 8px 8px 0 0;
+}
+
+.screenshot-fullscreen {
+  display: block;
+  text-align: center;
+  padding: 5px;
+  font-size: 11px;
+  color: #0071e3;
+  background: #f5f5f7;
+  text-decoration: none;
+  border-top: 1px solid #e5e5ea;
+}
+.screenshot-fullscreen:hover { background: #e8e8ed; }
+.dark-mode .screenshot-fullscreen { background: #2c2c2e; border-color: #3a3a3c; color: #0a84ff; }

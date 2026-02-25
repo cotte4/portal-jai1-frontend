@@ -54,6 +54,8 @@ export class AdminIrsMonitor implements OnInit {
   // Screenshot loading state per checkId
   screenshotUrls: Record<string, string | 'loading' | 'error'> = {};
 
+  isExportingCsv = false;
+
   get darkMode() {
     return this.themeService.darkMode();
   }
@@ -262,6 +264,14 @@ export class AdminIrsMonitor implements OnInit {
       });
   }
 
+  // ---- CSV export ----
+
+  exportCsv() {
+    this.isExportingCsv = true;
+    this.irsMonitorService.exportCsv();
+    setTimeout(() => { this.isExportingCsv = false; }, 2000);
+  }
+
   // ---- Display helpers ----
 
   getStatusLabel(status: string | null): string {
@@ -309,6 +319,16 @@ export class AdminIrsMonitor implements OnInit {
    * the front (since it's already shown), collapses whitespace, and truncates.
    * Used as the subtitle line under the IRS heading in the table.
    */
+  getFilingStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      single:            'Single',
+      married_joint:     'Married Joint',
+      married_separate:  'Married Sep.',
+      head_of_household: 'Head of HH',
+    };
+    return labels[status] ?? status;
+  }
+
   getIrsDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
     if (!details) return '';
     // Remove the heading (already shown above), collapse whitespace — CSS clips the rest

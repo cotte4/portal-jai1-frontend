@@ -16,6 +16,7 @@ export interface IrsClient {
   federalActualRefund: number | null;
   irsRefundAmount: number | null;   // what will actually be sent to IRS WMR
   paymentMethod: string | null;
+  filingStatus: 'single' | 'married_joint' | 'married_separate' | 'head_of_household';
   lastCheck: IrsCheck | null;
 }
 
@@ -77,6 +78,23 @@ export class IrsMonitorService {
     return this.http
       .get<{ changesLast24h: number }>(`${this.apiUrl}/stats`)
       .pipe(catchError(this.handleError));
+  }
+
+  exportCsv(): void {
+    const url = `${this.apiUrl}/export`;
+    // Trigger browser download via hidden anchor
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `irs-checks-${new Date().toISOString().slice(0, 10)}.csv`;
+    // Auth header can't be set on anchor — use fetch + blob instead
+    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    });
   }
 
   getScreenshotUrl(checkId: string): Observable<{ url: string }> {
