@@ -1,0 +1,257 @@
+<div class="admin-layout" [class.dark-mode]="darkMode">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-text">JAI1</span>
+        <span class="logo-badge">Admin</span>
+      </div>
+      <button class="sidebar-close-mobile" (click)="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-title">Principal</span>
+        <a class="nav-item" (click)="goToDashboard()">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Clientes</span>
+        <a class="nav-item" (click)="goToDelays()">
+          <span class="nav-icon">⏰</span>
+          <span class="nav-label">Demoras</span>
+        </a>
+        <a class="nav-item" (click)="goToAlarms()">
+          <span class="nav-icon">🔔</span>
+          <span class="nav-label">Alarmas</span>
+        </a>
+        <a class="nav-item" (click)="goToTickets()">
+          <span class="nav-icon">🎫</span>
+          <span class="nav-label">Tickets</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Finanzas</span>
+        <a class="nav-item" (click)="goToPayments()">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Pagos</span>
+        </a>
+        <a class="nav-item" (click)="goToReferrals()">
+          <span class="nav-icon">🎁</span>
+          <span class="nav-label">Referidos</span>
+        </a>
+        <a class="nav-item" (click)="goToAccounts()">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">Cuentas</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Programa</span>
+        <a class="nav-item" (click)="goToJai1gents()">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-label">JAI1GENTS</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Herramientas</span>
+        <a class="nav-item active">
+          <span class="nav-icon">🏛️</span>
+          <span class="nav-label">IRS Monitor</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-main">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <button class="sidebar-toggle" (click)="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+      <div class="top-bar-title">
+        <span class="page-title">IRS Monitor</span>
+        <span class="page-subtitle">Verificación automática en IRS WMR</span>
+      </div>
+      <button class="btn-refresh" (click)="loadClients()" [disabled]="isLoading || isRunningBatch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Recargar
+      </button>
+    </div>
+
+    <!-- Error banner -->
+    <div class="error-banner" *ngIf="error">
+      <span>⚠️ {{ error }}</span>
+      <button (click)="loadClients()">Reintentar</button>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div class="skeleton-wrapper" *ngIf="isLoading && !hasLoaded">
+      <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!isLoading && clients.length === 0 && !error">
+      <span class="empty-icon">🏛️</span>
+      <p>No hay clientes con taxes_filed en este momento.</p>
+      <p class="empty-sub">Los clientes aparecen aquí una vez que su estado sea <strong>taxes_filed</strong>.</p>
+    </div>
+
+    <!-- Batch action bar — visible when items selected or batch is running -->
+    <div class="batch-bar" *ngIf="(selectedCount > 0 || isRunningBatch) && !isLoading">
+
+      <ng-container *ngIf="isRunningBatch; else selectionActions">
+        <!-- Running state -->
+        <div class="batch-progress">
+          <span class="spinner spinner-dark"></span>
+          <span class="batch-progress-text">
+            Verificando {{ batchProgress?.current }} de {{ batchProgress?.total }}...
+          </span>
+        </div>
+        <button class="btn-cancel" (click)="cancelBatch()">Cancelar</button>
+      </ng-container>
+
+      <ng-template #selectionActions>
+        <!-- Selection state -->
+        <span class="batch-count">
+          {{ selectedCount }} seleccionado{{ selectedCount !== 1 ? 's' : '' }}
+          <span class="batch-max">(máx. 10)</span>
+        </span>
+        <div class="batch-actions">
+          <button class="btn-clear" (click)="clearSelection()">Limpiar</button>
+          <button class="btn-run-batch" (click)="runSelected()" [disabled]="selectedCount === 0">
+            🔍 Verificar {{ selectedCount }}
+          </button>
+        </div>
+      </ng-template>
+
+    </div>
+
+    <!-- Clients table -->
+    <div class="table-wrapper" *ngIf="!isLoading && clients.length > 0">
+      <table class="clients-table">
+        <thead>
+          <tr>
+            <th class="checkbox-th"></th>
+            <th>Cliente</th>
+            <th>SSN</th>
+            <th>Año</th>
+            <th>Reembolso Federal</th>
+            <th>Estado JAI1</th>
+            <th>Último Check IRS</th>
+            <th>Fecha Check</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let client of clients"
+            [class.changed]="client.lastCheckResult?.statusChanged"
+            [class.selected]="isSelected(client)"
+          >
+            <td class="checkbox-td">
+              <label class="row-checkbox" [class.disabled]="client.isChecking || isRunningBatch">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(client)"
+                  [disabled]="client.isChecking || isRunningBatch"
+                  (change)="toggleSelect(client)"
+                />
+                <span class="checkmark"></span>
+              </label>
+            </td>
+            <td class="client-name-cell">
+              <span class="client-name">{{ client.clientName }}</span>
+              <span class="client-email">{{ client.clientEmail }}</span>
+            </td>
+            <td class="ssn-cell">
+              <span class="ssn-badge">{{ client.ssnMasked ?? '—' }}</span>
+            </td>
+            <td>{{ client.taxYear }}</td>
+            <td class="amount-cell">
+              <ng-container *ngIf="client.irsRefundAmount; else noRefund">
+                <span>${{ client.irsRefundAmount }}</span>
+                <span
+                  *ngIf="!client.federalActualRefund && client.estimatedRefund"
+                  class="refund-estimate-badge"
+                  title="Usando estimado — ingresa el monto federal real para mayor precisión"
+                >est.</span>
+              </ng-container>
+              <ng-template #noRefund>
+                <span class="refund-missing" title="Sin monto federal — el check IRS fallará">⚠️ —</span>
+              </ng-template>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(client.federalStatusNew)">
+                {{ getStatusLabel(client.federalStatusNew) }}
+              </span>
+            </td>
+            <td class="irs-result-cell">
+              <ng-container *ngIf="client.lastCheckResult; else lastCheckFallback">
+                <div class="irs-result-wrap" [title]="client.lastCheckResult.check.irsDetails ?? client.lastCheckResult.rawStatus">
+                  <div class="irs-result-heading">
+                    <span class="result-icon">{{ getCheckResultIcon(client.lastCheckResult) }}</span>
+                    <span class="result-text">{{ client.lastCheckResult.rawStatus }}</span>
+                  </div>
+                  <div
+                    *ngIf="getIrsDetailExcerpt(client.lastCheckResult.rawStatus, client.lastCheckResult.check.irsDetails) as excerpt"
+                    class="irs-detail-excerpt"
+                  >{{ excerpt }}</div>
+                </div>
+              </ng-container>
+              <ng-template #lastCheckFallback>
+                <ng-container *ngIf="client.lastCheck; else noCheck">
+                  <div class="irs-result-wrap" [title]="client.lastCheck.irsDetails ?? client.lastCheck.irsRawStatus">
+                    <div class="irs-result-heading">
+                      <span class="result-text muted">{{ client.lastCheck.irsRawStatus }}</span>
+                    </div>
+                    <div
+                      *ngIf="getIrsDetailExcerpt(client.lastCheck.irsRawStatus, client.lastCheck.irsDetails) as excerpt"
+                      class="irs-detail-excerpt"
+                    >{{ excerpt }}</div>
+                  </div>
+                </ng-container>
+                <ng-template #noCheck>
+                  <span class="result-text muted">—</span>
+                </ng-template>
+              </ng-template>
+            </td>
+            <td class="date-cell">
+              {{ formatDate(client.lastCheck?.createdAt ?? null) }}
+            </td>
+            <td class="action-cell">
+              <button
+                class="btn-check"
+                (click)="runCheck(client)"
+                [disabled]="client.isChecking || isRunningBatch"
+              >
+                <span *ngIf="!client.isChecking">🔍 Verificar</span>
+                <span *ngIf="client.isChecking" class="checking-text">
+                  <span class="spinner"></span> Verificando...
+                </span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>

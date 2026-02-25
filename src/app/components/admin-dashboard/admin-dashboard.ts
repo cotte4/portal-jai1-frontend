@@ -503,6 +503,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/jai1gents']);
   }
 
+  goToIrsMonitor() {
+    this.router.navigate(['/admin/irs-monitor']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 

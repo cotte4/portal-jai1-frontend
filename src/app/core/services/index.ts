@@ -11,3 +11,4 @@ export * from './toast.service';
 export * from './chatbot.service';
 export * from './consent-form.service';
 export * from './animation.service';
+export * from './irs-monitor.service';

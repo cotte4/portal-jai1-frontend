@@ -86,6 +86,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-jai1gents/admin-jai1gents').then(m => m.AdminJai1gents),
     canActivate: [adminGuard]
   },
+  {
+    path: 'admin/irs-monitor',
+    loadComponent: () => import('./components/admin-irs-monitor/admin-irs-monitor').then(m => m.AdminIrsMonitor),
+    canActivate: [adminGuard]
+  },
 
   // JAI1GENT routes - lazy loaded
   {
