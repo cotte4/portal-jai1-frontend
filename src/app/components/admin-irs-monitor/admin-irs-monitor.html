@@ -156,6 +156,14 @@
 
     </div>
 
+    <!-- Icon legend -->
+    <div class="icon-legend" *ngIf="!isLoading && clients.length > 0">
+      <span class="legend-item"><span class="legend-icon">✅</span> Estado actualizado</span>
+      <span class="legend-item"><span class="legend-icon">🔄</span> Cambio detectado</span>
+      <span class="legend-item"><span class="legend-icon">❌</span> Error / timeout</span>
+      <span class="legend-item"><span class="legend-icon">❓</span> Estado no reconocido — revisar detalle</span>
+    </div>
+
     <!-- Clients table -->
     <div class="table-wrapper" *ngIf="!isLoading && clients.length > 0">
       <table class="clients-table">

@@ -31,6 +31,7 @@ export interface IrsCheck {
   previousStatus: string | null;
   checkResult: 'success' | 'not_found' | 'error' | 'timeout';
   triggeredBy: 'manual' | 'schedule';
+  triggeredByUserId: string | null;
   errorMessage: string | null;
   createdAt: string;
 }
