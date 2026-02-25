@@ -67,6 +67,24 @@ export class IrsMonitorService {
       .pipe(catchError(this.handleError));
   }
 
+  runCheckAll(): Observable<{ started: boolean }> {
+    return this.http
+      .post<{ started: boolean }>(`${this.apiUrl}/check-all`, {})
+      .pipe(catchError(this.handleError));
+  }
+
+  getStats(): Observable<{ changesLast24h: number }> {
+    return this.http
+      .get<{ changesLast24h: number }>(`${this.apiUrl}/stats`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getScreenshotUrl(checkId: string): Observable<{ url: string }> {
+    return this.http
+      .get<{ url: string }>(`${this.apiUrl}/screenshot/${checkId}`)
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     const message = error.error?.message ?? error.message ?? 'Unknown error';
     return throwError(() => new Error(message));

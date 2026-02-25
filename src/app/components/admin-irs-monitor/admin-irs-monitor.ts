@@ -5,6 +5,7 @@ import { finalize, lastValueFrom } from 'rxjs';
 import {
   IrsMonitorService,
   IrsClient,
+  IrsCheck,
   RunCheckResponse,
 } from '../../core/services/irs-monitor.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -38,8 +39,20 @@ export class AdminIrsMonitor implements OnInit {
   // Batch state
   selectedIds = new Set<string>();
   isRunningBatch = false;
+  isRunningAll = false;
   private cancelBatchFlag = false;
   batchProgress: { current: number; total: number } | null = null;
+
+  // Stats badge
+  changesLast24h = 0;
+
+  // History drawer
+  historyClient: ClientRow | null = null;
+  historyChecks: IrsCheck[] = [];
+  isLoadingHistory = false;
+
+  // Screenshot loading state per checkId
+  screenshotUrls: Record<string, string | 'loading' | 'error'> = {};
 
   get darkMode() {
     return this.themeService.darkMode();
@@ -51,6 +64,14 @@ export class AdminIrsMonitor implements OnInit {
 
   ngOnInit() {
     this.loadClients();
+    this.loadStats();
+  }
+
+  loadStats() {
+    this.irsMonitorService.getStats().subscribe({
+      next: (s) => { this.changesLast24h = s.changesLast24h; },
+      error: () => {},
+    });
   }
 
   loadClients() {
@@ -148,6 +169,61 @@ export class AdminIrsMonitor implements OnInit {
       const n = selected.length;
       this.toastService.show(`Batch completado: ${n} cliente${n !== 1 ? 's' : ''} verificado${n !== 1 ? 's' : ''}`, 'success');
     }
+  }
+
+  // ---- Run all ----
+
+  runCheckAll() {
+    if (this.isRunningAll || this.isRunningBatch) return;
+    this.isRunningAll = true;
+    this.irsMonitorService.runCheckAll().subscribe({
+      next: () => {
+        this.toastService.show(
+          '🔍 Verificación de todos los clientes iniciada en segundo plano',
+          'info',
+        );
+      },
+      error: (err) => {
+        this.toastService.show(`Error al iniciar verificación: ${err.message}`, 'error');
+      },
+      complete: () => { this.isRunningAll = false; },
+    });
+  }
+
+  // ---- History drawer ----
+
+  openHistory(client: ClientRow) {
+    this.historyClient = client;
+    this.historyChecks = [];
+    this.isLoadingHistory = true;
+    this.irsMonitorService.getChecksForClient(client.taxCaseId).subscribe({
+      next: (checks) => { this.historyChecks = checks; },
+      error: () => { this.historyChecks = []; },
+      complete: () => { this.isLoadingHistory = false; },
+    });
+  }
+
+  closeHistory() {
+    this.historyClient = null;
+    this.historyChecks = [];
+    this.screenshotUrls = {};
+  }
+
+  loadScreenshot(check: IrsCheck) {
+    if (!check.screenshotPath || this.screenshotUrls[check.id]) return;
+    this.screenshotUrls[check.id] = 'loading';
+    this.irsMonitorService.getScreenshotUrl(check.id).subscribe({
+      next: ({ url }) => { this.screenshotUrls[check.id] = url; },
+      error: () => { this.screenshotUrls[check.id] = 'error'; },
+    });
+  }
+
+  getHistoryCheckIcon(check: IrsCheck): string {
+    if (check.statusChanged) return '🔄';
+    if (check.checkResult === 'not_found') return '🔍';
+    if (check.checkResult === 'error' || check.checkResult === 'timeout') return '❌';
+    if (!check.mappedStatus) return '❓';
+    return '✅';
   }
 
   // ---- Single run ----

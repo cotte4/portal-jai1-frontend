@@ -68,6 +68,7 @@
         <a class="nav-item active">
           <span class="nav-icon">🏛️</span>
           <span class="nav-label">IRS Monitor</span>
+          <span class="nav-badge" *ngIf="changesLast24h > 0">{{ changesLast24h }}</span>
         </a>
       </div>
     </nav>
@@ -87,6 +88,14 @@
         <span class="page-title">IRS Monitor</span>
         <span class="page-subtitle">Verificación automática en IRS WMR</span>
       </div>
+      <button
+        class="btn-run-all"
+        (click)="runCheckAll()"
+        [disabled]="isLoading || isRunningBatch || isRunningAll"
+        title="Verificar todos los clientes en segundo plano"
+      >
+        {{ isRunningAll ? '⏳ Iniciando...' : '🔍 Verificar Todos' }}
+      </button>
       <button class="btn-refresh" (click)="loadClients()" [disabled]="isLoading || isRunningBatch">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6M1 20v-6h6"/>
@@ -157,6 +166,7 @@
             <th>Estado JAI1</th>
             <th>Último Check IRS</th>
             <th>Fecha Check</th>
+            <th>Historial</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -236,6 +246,14 @@
             <td class="date-cell">
               {{ formatDate(client.lastCheck?.createdAt ?? null) }}
             </td>
+            <td class="action-cell history-cell">
+              <button
+                class="btn-history"
+                (click)="openHistory(client)"
+                [disabled]="isRunningBatch"
+                title="Ver historial de checks"
+              >📋</button>
+            </td>
             <td class="action-cell">
               <button
                 class="btn-check"
@@ -254,4 +272,90 @@
     </div>
 
   </main>
+
+  <!-- History Drawer Overlay -->
+  <div class="drawer-overlay" *ngIf="historyClient" (click)="closeHistory()"></div>
+
+  <!-- History Drawer Panel -->
+  <aside class="history-drawer" *ngIf="historyClient">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span class="drawer-icon">📋</span>
+        <div>
+          <div class="drawer-name">{{ historyClient.clientName }}</div>
+          <div class="drawer-sub">Historial de verificaciones IRS</div>
+        </div>
+      </div>
+      <button class="drawer-close" (click)="closeHistory()">✕</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Loading -->
+      <div class="drawer-loading" *ngIf="isLoadingHistory">
+        <span class="spinner spinner-dark"></span>
+        <span>Cargando historial...</span>
+      </div>
+
+      <!-- Empty -->
+      <div class="drawer-empty" *ngIf="!isLoadingHistory && historyChecks.length === 0">
+        <span>Sin checks registrados para este cliente.</span>
+      </div>
+
+      <!-- Timeline -->
+      <ul class="timeline" *ngIf="!isLoadingHistory && historyChecks.length > 0">
+        <li class="timeline-item" *ngFor="let check of historyChecks">
+          <div class="tl-dot" [ngClass]="{
+            'tl-changed': check.statusChanged,
+            'tl-error': check.checkResult === 'error' || check.checkResult === 'timeout',
+            'tl-unknown': !check.mappedStatus && check.checkResult === 'success'
+          }">{{ getHistoryCheckIcon(check) }}</div>
+
+          <div class="tl-content">
+            <div class="tl-header">
+              <span class="tl-status">{{ check.irsRawStatus }}</span>
+              <span class="tl-date">{{ formatDate(check.createdAt) }}</span>
+            </div>
+
+            <div class="tl-meta">
+              <span class="tl-trigger" [class.tl-auto]="check.triggeredBy === 'schedule'">
+                {{ check.triggeredBy === 'schedule' ? '⏰ Auto' : '👤 Manual' }}
+              </span>
+              <span *ngIf="check.statusChanged" class="tl-changed-badge">
+                {{ getStatusLabel(check.previousStatus) }} → {{ getStatusLabel(check.mappedStatus) }}
+              </span>
+              <span *ngIf="check.checkResult === 'error' || check.checkResult === 'timeout'" class="tl-error-msg">
+                {{ check.errorMessage ?? check.checkResult }}
+              </span>
+            </div>
+
+            <div class="tl-details" *ngIf="check.irsDetails">
+              {{ getIrsDetailExcerpt(check.irsRawStatus, check.irsDetails) }}
+            </div>
+
+            <!-- Screenshot button -->
+            <div class="tl-screenshot" *ngIf="check.screenshotPath">
+              <button
+                *ngIf="!screenshotUrls[check.id]"
+                class="btn-screenshot"
+                (click)="loadScreenshot(check)"
+              >📸 Ver captura</button>
+              <span *ngIf="screenshotUrls[check.id] === 'loading'" class="tl-screenshot-loading">
+                <span class="spinner spinner-sm"></span> Cargando...
+              </span>
+              <span *ngIf="screenshotUrls[check.id] === 'error'" class="tl-screenshot-error">
+                Error al cargar
+              </span>
+              <a
+                *ngIf="screenshotUrls[check.id] && screenshotUrls[check.id] !== 'loading' && screenshotUrls[check.id] !== 'error'"
+                [href]="screenshotUrls[check.id]"
+                target="_blank"
+                class="btn-screenshot btn-screenshot-open"
+              >🔗 Abrir captura</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
 </div>

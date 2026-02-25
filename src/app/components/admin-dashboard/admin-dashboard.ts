@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription, filter, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService, SeasonStats } from '../../core/services/admin.service';
+import { IrsMonitorService } from '../../core/services/irs-monitor.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -34,6 +35,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   private dataRefreshService = inject(DataRefreshService);
   private cdr = inject(ChangeDetectorRef);
   themeService = inject(ThemeService);
+  private irsMonitorService = inject(IrsMonitorService);
+
+  irsChangesLast24h = 0;
   private subscriptions = new Subscription();
   private isInitialLoad = true; // Prevents URL sync on initial load from URL
   private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -174,6 +178,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadClients();
     this.loadSeasonStats();
     this.loadMissingDocsCronStatus();
+    this.irsMonitorService.getStats().subscribe({
+      next: (s) => { this.irsChangesLast24h = s.changesLast24h; this.cdr.markForCheck(); },
+      error: () => {},
+    });
 
     // Mark initial load complete after first load
     this.refreshTimeout = setTimeout(() => { this.isInitialLoad = false; }, 100);
