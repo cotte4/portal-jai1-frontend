@@ -12,6 +12,7 @@ import { ToastService } from '../../core/services/toast.service';
 
 interface ClientRow extends IrsClient {
   isChecking: boolean;
+  checkStatusLabel: string;
   lastCheckResult: IrsCheck | null;
   hasLoaded: boolean;
 }
@@ -94,6 +95,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
           this.clients = clients.map((c) => ({
             ...c,
             isChecking: false,
+            checkStatusLabel: '',
             lastCheckResult: null,
             hasLoaded: true,
           }));
@@ -150,12 +152,17 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
       this.batchProgress = { current: this.batchProgress!.current + 1, total: selected.length };
 
       try {
+        client.checkStatusLabel = 'Iniciando...';
         const since = new Date();
         await lastValueFrom(this.irsMonitorService.runCheck(client.taxCaseId));
-        const check = await this.pollForResult(client.taxCaseId, since);
+        client.checkStatusLabel = 'Abriendo navegador...';
+        const check = await this.pollForResult(
+          client.taxCaseId, since, label => { client.checkStatusLabel = label; },
+        );
         this.handleCheckResult(client, check);
       } catch {
         client.isChecking = false;
+        client.checkStatusLabel = '';
         this.toastService.show(`❌ ${client.clientName}: error`, 'error');
       }
     }
@@ -232,11 +239,22 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   // ---- Poll helper ----
 
   // Polls getChecksForClient every 4s until a check newer than `since` appears
-  // or 3 minutes elapse. Keeps client.isChecking=true during the wait.
-  private async pollForResult(taxCaseId: string, since: Date): Promise<IrsCheck | null> {
+  // or 3 minutes elapse. Calls onStatus() at each stage so the UI can show
+  // what the automation is doing.
+  private async pollForResult(
+    taxCaseId: string,
+    since: Date,
+    onStatus: (label: string) => void,
+  ): Promise<IrsCheck | null> {
     const deadline = Date.now() + 3 * 60 * 1000;
+    let attempt = 0;
     while (Date.now() < deadline && !this.destroyed) {
       await new Promise(resolve => setTimeout(resolve, 4000));
+      attempt++;
+      if (attempt === 1) onStatus('Consultando IRS...');
+      else if (attempt === 6) onStatus('Esperando respuesta IRS...');
+      else if (attempt === 12) onStatus('Reintentando...');
+      else if (attempt === 20) onStatus('Tomando más tiempo del usual...');
       try {
         const checks = await lastValueFrom(
           this.irsMonitorService.getChecksForClient(taxCaseId),
@@ -250,6 +268,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   private handleCheckResult(client: ClientRow, check: IrsCheck | null) {
     client.isChecking = false;
+    client.checkStatusLabel = '';
     if (!check) {
       this.toastService.show(`⏱ ${client.clientName}: sin respuesta (timeout 3 min)`, 'error');
       return;
@@ -276,16 +295,18 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   runCheck(client: ClientRow) {
     if (client.isChecking) return;
     client.isChecking = true;
+    client.checkStatusLabel = 'Iniciando...';
     const since = new Date();
 
     this.irsMonitorService.runCheck(client.taxCaseId).subscribe({
       next: () => {
-        // Backend returned immediately — poll for the actual check record
-        this.pollForResult(client.taxCaseId, since)
+        client.checkStatusLabel = 'Abriendo navegador...';
+        this.pollForResult(client.taxCaseId, since, label => { client.checkStatusLabel = label; })
           .then(check => this.handleCheckResult(client, check));
       },
       error: (err) => {
         client.isChecking = false;
+        client.checkStatusLabel = '';
         this.toastService.show(`Error: ${err.message}`, 'error');
       },
     });

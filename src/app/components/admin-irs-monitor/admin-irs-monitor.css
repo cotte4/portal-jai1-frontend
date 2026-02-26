@@ -603,7 +603,45 @@
 .btn-check:hover { background: #0077ed; }
 .btn-check:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.checking-text { display: flex; align-items: center; gap: 6px; }
+.checking-text { display: flex; align-items: center; gap: 6px; font-size: 11px; white-space: nowrap; }
+
+/* Live status label shown in the IRS result cell while a check is running */
+.checking-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.checking-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0071e3;
+  flex-shrink: 0;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.dark-mode .checking-dot { background: #4da3ff; }
+
+.checking-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0071e3;
+  animation: fade-label 0.4s ease;
+}
+
+.dark-mode .checking-label { color: #4da3ff; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+@keyframes fade-label {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .spinner {
   width: 12px;

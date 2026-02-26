@@ -231,6 +231,13 @@
               </span>
             </td>
             <td class="irs-result-cell">
+              <ng-container *ngIf="client.isChecking; else checkResultContent">
+                <div class="checking-status">
+                  <span class="checking-dot"></span>
+                  <span class="checking-label">{{ client.checkStatusLabel }}</span>
+                </div>
+              </ng-container>
+              <ng-template #checkResultContent>
               <ng-container *ngIf="client.lastCheckResult; else lastCheckFallback">
                 <div class="irs-result-wrap" [title]="client.lastCheckResult.check.irsDetails ?? client.lastCheckResult.rawStatus">
                   <div class="irs-result-heading">
@@ -259,6 +266,7 @@
                   <span class="result-text muted">—</span>
                 </ng-template>
               </ng-template>
+              </ng-template>
             </td>
             <td class="date-cell">
               {{ formatDate(client.lastCheck?.createdAt ?? null) }}
@@ -279,7 +287,7 @@
               >
                 <span *ngIf="!client.isChecking">🔍 Verificar</span>
                 <span *ngIf="client.isChecking" class="checking-text">
-                  <span class="spinner"></span> Verificando...
+                  <span class="spinner"></span> {{ client.checkStatusLabel || 'Iniciando...' }}
                 </span>
               </button>
             </td>
