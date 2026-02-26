@@ -57,9 +57,9 @@ export class IrsMonitorService {
       .pipe(catchError(this.handleError));
   }
 
-  runCheck(taxCaseId: string): Observable<RunCheckResponse> {
+  runCheck(taxCaseId: string): Observable<{ started: boolean }> {
     return this.http
-      .post<RunCheckResponse>(`${this.apiUrl}/check/${taxCaseId}`, {})
+      .post<{ started: boolean }>(`${this.apiUrl}/check/${taxCaseId}`, {})
       .pipe(catchError(this.handleError));
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize, lastValueFrom } from 'rxjs';
@@ -6,14 +6,13 @@ import {
   IrsMonitorService,
   IrsClient,
   IrsCheck,
-  RunCheckResponse,
 } from '../../core/services/irs-monitor.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
 
 interface ClientRow extends IrsClient {
   isChecking: boolean;
-  lastCheckResult: RunCheckResponse | null;
+  lastCheckResult: IrsCheck | null;
   hasLoaded: boolean;
 }
 
@@ -24,7 +23,7 @@ interface ClientRow extends IrsClient {
   templateUrl: './admin-irs-monitor.html',
   styleUrls: ['./admin-irs-monitor.css'],
 })
-export class AdminIrsMonitor implements OnInit {
+export class AdminIrsMonitor implements OnInit, OnDestroy {
   private irsMonitorService = inject(IrsMonitorService);
   private router = inject(Router);
   private toastService = inject(ToastService);
@@ -64,9 +63,15 @@ export class AdminIrsMonitor implements OnInit {
     return this.selectedIds.size;
   }
 
+  private destroyed = false;
+
   ngOnInit() {
     this.loadClients();
     this.loadStats();
+  }
+
+  ngOnDestroy() {
+    this.destroyed = true;
   }
 
   loadStats() {
@@ -145,19 +150,13 @@ export class AdminIrsMonitor implements OnInit {
       this.batchProgress = { current: this.batchProgress!.current + 1, total: selected.length };
 
       try {
-        const result = await lastValueFrom(this.irsMonitorService.runCheck(client.taxCaseId));
-        client.lastCheckResult = result;
-        if (result.statusChanged) {
-          client.federalStatusNew = result.newStatus;
-          this.toastService.show(
-            `✅ ${client.clientName}: ${result.newStatus?.replace(/_/g, ' ')}`,
-            'success',
-          );
-        }
+        const since = new Date();
+        await lastValueFrom(this.irsMonitorService.runCheck(client.taxCaseId));
+        const check = await this.pollForResult(client.taxCaseId, since);
+        this.handleCheckResult(client, check);
       } catch {
-        this.toastService.show(`❌ ${client.clientName}: error`, 'error');
-      } finally {
         client.isChecking = false;
+        this.toastService.show(`❌ ${client.clientName}: error`, 'error');
       }
     }
 
@@ -198,11 +197,13 @@ export class AdminIrsMonitor implements OnInit {
     this.historyClient = client;
     this.historyChecks = [];
     this.isLoadingHistory = true;
-    this.irsMonitorService.getChecksForClient(client.taxCaseId).subscribe({
-      next: (checks) => { this.historyChecks = checks; },
-      error: () => { this.historyChecks = []; },
-      complete: () => { this.isLoadingHistory = false; },
-    });
+    this.irsMonitorService
+      .getChecksForClient(client.taxCaseId)
+      .pipe(finalize(() => { this.isLoadingHistory = false; }))
+      .subscribe({
+        next: (checks) => { this.historyChecks = checks; },
+        error: () => { this.historyChecks = []; },
+      });
   }
 
   closeHistory() {
@@ -228,40 +229,66 @@ export class AdminIrsMonitor implements OnInit {
     return '✅';
   }
 
+  // ---- Poll helper ----
+
+  // Polls getChecksForClient every 4s until a check newer than `since` appears
+  // or 3 minutes elapse. Keeps client.isChecking=true during the wait.
+  private async pollForResult(taxCaseId: string, since: Date): Promise<IrsCheck | null> {
+    const deadline = Date.now() + 3 * 60 * 1000;
+    while (Date.now() < deadline && !this.destroyed) {
+      await new Promise(resolve => setTimeout(resolve, 4000));
+      try {
+        const checks = await lastValueFrom(
+          this.irsMonitorService.getChecksForClient(taxCaseId),
+        );
+        const found = checks.find(c => new Date(c.createdAt) > since);
+        if (found) return found;
+      } catch { /* keep trying */ }
+    }
+    return null;
+  }
+
+  private handleCheckResult(client: ClientRow, check: IrsCheck | null) {
+    client.isChecking = false;
+    if (!check) {
+      this.toastService.show(`⏱ ${client.clientName}: sin respuesta (timeout 3 min)`, 'error');
+      return;
+    }
+    client.lastCheckResult = check;
+    if (check.statusChanged && check.mappedStatus) {
+      client.federalStatusNew = check.mappedStatus;
+      this.toastService.show(
+        `✅ ${client.clientName}: estado → ${check.mappedStatus.replace(/_/g, ' ')}`,
+        'success',
+      );
+    } else if (check.checkResult === 'success' || check.checkResult === 'not_found') {
+      this.toastService.show(`${client.clientName}: sin cambios (${check.irsRawStatus})`, 'info');
+    } else {
+      this.toastService.show(
+        `❌ ${client.clientName}: ${check.errorMessage ?? check.irsRawStatus}`,
+        'error',
+      );
+    }
+  }
+
   // ---- Single run ----
 
   runCheck(client: ClientRow) {
     if (client.isChecking) return;
     client.isChecking = true;
+    const since = new Date();
 
-    this.irsMonitorService
-      .runCheck(client.taxCaseId)
-      .pipe(finalize(() => { client.isChecking = false; }))
-      .subscribe({
-        next: (result) => {
-          client.lastCheckResult = result;
-          if (result.statusChanged) {
-            client.federalStatusNew = result.newStatus;
-            this.toastService.show(
-              `✅ ${client.clientName}: estado actualizado a ${result.newStatus?.replace(/_/g, ' ')}`,
-              'success',
-            );
-          } else if (result.success) {
-            this.toastService.show(
-              `${client.clientName}: sin cambios (${result.rawStatus})`,
-              'info',
-            );
-          } else {
-            this.toastService.show(
-              `❌ ${client.clientName}: ${result.error ?? result.rawStatus}`,
-              'error',
-            );
-          }
-        },
-        error: (err) => {
-          this.toastService.show(`Error: ${err.message}`, 'error');
-        },
-      });
+    this.irsMonitorService.runCheck(client.taxCaseId).subscribe({
+      next: () => {
+        // Backend returned immediately — poll for the actual check record
+        this.pollForResult(client.taxCaseId, since)
+          .then(check => this.handleCheckResult(client, check));
+      },
+      error: (err) => {
+        client.isChecking = false;
+        this.toastService.show(`Error: ${err.message}`, 'error');
+      },
+    });
   }
 
   // ---- CSV export ----
@@ -305,12 +332,11 @@ export class AdminIrsMonitor implements OnInit {
     return classes[status] ?? 'status-none';
   }
 
-  getCheckResultIcon(result: ClientRow['lastCheckResult']): string {
+  getCheckResultIcon(result: IrsCheck | null): string {
     if (!result) return '';
     if (result.statusChanged) return '🔄';
-    if (!result.success) return '❌';
-    // Scraper worked but mapper didn't recognize the IRS text — admin should read the detail
-    if (result.newStatus === null) return '❓';
+    if (result.checkResult === 'error' || result.checkResult === 'timeout') return '❌';
+    if (!result.mappedStatus) return '❓';
     return '✅';
   }
 
