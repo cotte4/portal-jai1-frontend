@@ -239,13 +239,13 @@
               </ng-container>
               <ng-template #checkResultContent>
               <ng-container *ngIf="client.lastCheckResult; else lastCheckFallback">
-                <div class="irs-result-wrap" [title]="client.lastCheckResult.check.irsDetails ?? client.lastCheckResult.rawStatus">
+                <div class="irs-result-wrap" [title]="client.lastCheckResult.irsDetails ?? client.lastCheckResult.irsRawStatus">
                   <div class="irs-result-heading">
                     <span class="result-icon">{{ getCheckResultIcon(client.lastCheckResult) }}</span>
-                    <span class="result-text">{{ client.lastCheckResult.rawStatus }}</span>
+                    <span class="result-text">{{ client.lastCheckResult.irsRawStatus }}</span>
                   </div>
                   <div
-                    *ngIf="getIrsDetailExcerpt(client.lastCheckResult.rawStatus, client.lastCheckResult.check.irsDetails) as excerpt"
+                    *ngIf="getIrsDetailExcerpt(client.lastCheckResult.irsRawStatus, client.lastCheckResult.irsDetails) as excerpt"
                     class="irs-detail-excerpt"
                   >{{ excerpt }}</div>
                 </div>
