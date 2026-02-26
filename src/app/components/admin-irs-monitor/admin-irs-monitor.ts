@@ -246,7 +246,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     since: Date,
     onStatus: (label: string) => void,
   ): Promise<IrsCheck | null> {
-    const deadline = Date.now() + 3 * 60 * 1000;
+    const deadline = Date.now() + 90 * 1000;
     let attempt = 0;
     while (Date.now() < deadline && !this.destroyed) {
       await new Promise(resolve => setTimeout(resolve, 4000));
