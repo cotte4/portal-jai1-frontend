@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize, lastValueFrom } from 'rxjs';
@@ -28,6 +28,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   private irsMonitorService = inject(IrsMonitorService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
   themeService = inject(ThemeService);
 
   clients: ClientRow[] = [];
@@ -77,7 +78,10 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   loadStats() {
     this.irsMonitorService.getStats().subscribe({
-      next: (s) => { this.changesLast24h = s.changesLast24h; },
+      next: (s) => {
+        this.changesLast24h = s.changesLast24h;
+        this.cdr.detectChanges();
+      },
       error: () => {},
     });
   }
@@ -89,7 +93,11 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
     this.irsMonitorService
       .getFiledClients()
-      .pipe(finalize(() => { this.isLoading = false; this.hasLoaded = true; }))
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.hasLoaded = true;
+        this.cdr.detectChanges();
+      }))
       .subscribe({
         next: (clients) => {
           this.clients = clients.map((c) => ({
@@ -144,26 +152,34 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.isRunningBatch = true;
     this.cancelBatchFlag = false;
     this.batchProgress = { current: 0, total: selected.length };
+    this.cdr.detectChanges();
 
     for (const client of selected) {
       if (this.cancelBatchFlag) break;
 
       client.isChecking = true;
       this.batchProgress = { current: this.batchProgress!.current + 1, total: selected.length };
+      this.cdr.detectChanges();
 
       try {
         client.checkStatusLabel = 'Iniciando...';
+        this.cdr.detectChanges();
         const since = new Date();
         await lastValueFrom(this.irsMonitorService.runCheck(client.taxCaseId));
         client.checkStatusLabel = 'Abriendo navegador...';
+        this.cdr.detectChanges();
         const check = await this.pollForResult(
-          client.taxCaseId, since, label => { client.checkStatusLabel = label; },
+          client.taxCaseId, since, label => {
+            client.checkStatusLabel = label;
+            this.cdr.detectChanges();
+          },
         );
         this.handleCheckResult(client, check);
       } catch {
         client.isChecking = false;
         client.checkStatusLabel = '';
         this.toastService.show(`❌ ${client.clientName}: error`, 'error');
+        this.cdr.detectChanges();
       }
     }
 
@@ -171,6 +187,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.isRunningBatch = false;
     this.batchProgress = null;
     this.cancelBatchFlag = false;
+    this.cdr.detectChanges();
 
     if (!wasCancelled) {
       this.selectedIds.clear();
@@ -184,18 +201,22 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   runCheckAll() {
     if (this.isRunningAll || this.isRunningBatch) return;
     this.isRunningAll = true;
-    this.irsMonitorService.runCheckAll().subscribe({
-      next: () => {
-        this.toastService.show(
-          '🔍 Verificación de todos los clientes iniciada en segundo plano',
-          'info',
-        );
-      },
-      error: (err) => {
-        this.toastService.show(`Error al iniciar verificación: ${err.message}`, 'error');
-      },
-      complete: () => { this.isRunningAll = false; },
-    });
+    this.irsMonitorService.runCheckAll()
+      .pipe(finalize(() => {
+        this.isRunningAll = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: () => {
+          this.toastService.show(
+            '🔍 Verificación de todos los clientes iniciada en segundo plano',
+            'info',
+          );
+        },
+        error: (err) => {
+          this.toastService.show(`Error al iniciar verificación: ${err.message}`, 'error');
+        },
+      });
   }
 
   // ---- History drawer ----
@@ -204,9 +225,13 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.historyClient = client;
     this.historyChecks = [];
     this.isLoadingHistory = true;
+    this.cdr.detectChanges();
     this.irsMonitorService
       .getChecksForClient(client.taxCaseId)
-      .pipe(finalize(() => { this.isLoadingHistory = false; }))
+      .pipe(finalize(() => {
+        this.isLoadingHistory = false;
+        this.cdr.detectChanges();
+      }))
       .subscribe({
         next: (checks) => { this.historyChecks = checks; },
         error: () => { this.historyChecks = []; },
@@ -222,9 +247,16 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   loadScreenshot(check: IrsCheck) {
     if (!check.screenshotPath || this.screenshotUrls[check.id]) return;
     this.screenshotUrls[check.id] = 'loading';
+    this.cdr.detectChanges();
     this.irsMonitorService.getScreenshotUrl(check.id).subscribe({
-      next: ({ url }) => { this.screenshotUrls[check.id] = url; },
-      error: () => { this.screenshotUrls[check.id] = 'error'; },
+      next: ({ url }) => {
+        this.screenshotUrls[check.id] = url;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.screenshotUrls[check.id] = 'error';
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -238,9 +270,6 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   // ---- Poll helper ----
 
-  // Polls getChecksForClient every 4s until a check newer than `since` appears
-  // or 3 minutes elapse. Calls onStatus() at each stage so the UI can show
-  // what the automation is doing.
   private async pollForResult(
     taxCaseId: string,
     since: Date,
@@ -270,7 +299,8 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     client.isChecking = false;
     client.checkStatusLabel = '';
     if (!check) {
-      this.toastService.show(`⏱ ${client.clientName}: sin respuesta (timeout 3 min)`, 'error');
+      this.toastService.show(`⏱ ${client.clientName}: sin respuesta (timeout 90s)`, 'error');
+      this.cdr.detectChanges();
       return;
     }
     client.lastCheckResult = check;
@@ -288,6 +318,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
         'error',
       );
     }
+    this.cdr.detectChanges();
   }
 
   // ---- Single run ----
@@ -296,18 +327,23 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     if (client.isChecking) return;
     client.isChecking = true;
     client.checkStatusLabel = 'Iniciando...';
+    this.cdr.detectChanges();
     const since = new Date();
 
     this.irsMonitorService.runCheck(client.taxCaseId).subscribe({
       next: () => {
         client.checkStatusLabel = 'Abriendo navegador...';
-        this.pollForResult(client.taxCaseId, since, label => { client.checkStatusLabel = label; })
-          .then(check => this.handleCheckResult(client, check));
+        this.cdr.detectChanges();
+        this.pollForResult(client.taxCaseId, since, label => {
+          client.checkStatusLabel = label;
+          this.cdr.detectChanges();
+        }).then(check => this.handleCheckResult(client, check));
       },
       error: (err) => {
         client.isChecking = false;
         client.checkStatusLabel = '';
         this.toastService.show(`Error: ${err.message}`, 'error');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -317,7 +353,10 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   exportCsv() {
     this.isExportingCsv = true;
     this.irsMonitorService.exportCsv();
-    setTimeout(() => { this.isExportingCsv = false; }, 2000);
+    setTimeout(() => {
+      this.isExportingCsv = false;
+      this.cdr.detectChanges();
+    }, 2000);
   }
 
   // ---- Display helpers ----
@@ -361,11 +400,6 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     return '✅';
   }
 
-  /**
-   * Returns the meaningful content from irsDetails — strips the heading from
-   * the front (since it's already shown), collapses whitespace, and truncates.
-   * Used as the subtitle line under the IRS heading in the table.
-   */
   getFilingStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       single:            'Single',
@@ -378,7 +412,6 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   getIrsDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
     if (!details) return '';
-    // Remove the heading (already shown above), collapse whitespace — CSS clips the rest
     return details.replace(rawStatus ?? '', '').replace(/\s+/g, ' ').trim();
   }
 
