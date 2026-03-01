@@ -90,6 +90,9 @@
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+  overscroll-behavior: contain;     /* prevent scroll from propagating to body */
+  touch-action: pan-y;              /* explicitly allow vertical panning */
   padding: 16px 0;
 }
 
@@ -484,6 +487,9 @@
 
   .sidebar-overlay.active {
     display: block;
+    /* Only cover content area — NOT the sidebar (260px) so the sidebar
+       receives touch events correctly on iOS Safari */
+    left: 260px;
   }
 }
 

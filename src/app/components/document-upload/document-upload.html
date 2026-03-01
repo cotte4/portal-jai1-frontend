@@ -115,6 +115,45 @@
   </div>
 </div>
 
+<!-- W2 Info Modal -->
+<div class="popup-overlay" *ngIf="showInfoModal === 'w2'" (click)="closeInfoModal()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeInfoModal()">×</button>
+    <div class="popup-icon">📋</div>
+    <h2>¿Qué es el W2?</h2>
+    <p>El formulario W-2 es emitido por tu empleador y refleja tus ingresos y las retenciones de impuestos del año fiscal. Es el documento principal necesario para tu declaración.</p>
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closeInfoModal()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Consent Info Modal -->
+<div class="popup-overlay" *ngIf="showInfoModal === 'consent'" (click)="closeInfoModal()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeInfoModal()">×</button>
+    <div class="popup-icon">✍️</div>
+    <h2>¿Qué es el Consentimiento?</h2>
+    <p>El Acuerdo de Consentimiento autoriza a JAI1 a preparar y presentar tu declaración de impuestos. Es un requisito legal para que podamos procesar tu declaración.</p>
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closeInfoModal()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Other Info Modal -->
+<div class="popup-overlay" *ngIf="showInfoModal === 'other'" (click)="closeInfoModal()">
+  <div class="popup-card" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeInfoModal()">×</button>
+    <div class="popup-icon">📎</div>
+    <h2>Documentos Adicionales</h2>
+    <p>Aquí puedes subir cualquier otro documento relevante para tu declaración: 1099, formularios de gastos deducibles, comprobantes de donaciones, u otros documentos que consideres importantes.</p>
+    <div class="popup-actions">
+      <button class="btn-popup-primary" (click)="closeInfoModal()">Entendido</button>
+    </div>
+  </div>
+</div>
+
 <!-- Initial Loading Screen -->
 <div class="initial-loading" *ngIf="!hasLoaded">
   <div class="loading-spinner"></div>
@@ -183,110 +222,116 @@
       <p>{{ canComplete ? 'Gestiona tus documentos fiscales' : 'Carga tus documentos fiscales relacionados (W-2, comprobantes y mas)' }}</p>
     </div>
 
-  <!-- Document Type Tabs -->
-  <div class="document-type-tabs">
-    <button
-      *ngFor="let type of documentTypes"
-      class="doc-tab"
-      [class.active]="selectedType === type.value"
-      [class.uploaded]="uploadedTypes.has(type.value)"
-      (click)="selectedType = type.value">
-      <span class="tab-icon">{{ type.value === 'w2' ? '📋' : type.value === 'payment_proof' ? '💳' : '📎' }}</span>
-      <span class="tab-label">{{ type.label }}</span>
-      <span class="tab-check" *ngIf="uploadedTypes.has(type.value)">✓</span>
-    </button>
-  </div>
+  <!-- Document Grid -->
+  <div class="doc-grid">
 
-  <!-- W2 Multiple Upload Hint -->
-  <div class="w2-hint" *ngIf="selectedType === 'w2'">
-    <span class="w2-hint-icon">i</span>
-    <span class="w2-hint-text">Si tenes mas de un W2, podes subir todos aca. Se guardaran todos correctamente.</span>
-  </div>
-
-  <!-- Payment Instructions Info Card (visible when payment_proof tab is selected) -->
-  <div class="payment-info-card" *ngIf="isPaymentProofSelected">
-    <div class="payment-info-header">
-      <span class="payment-info-icon">💵</span>
-      <div class="payment-info-title">
-        <h3>Pago Inicial Requerido</h3>
-        <p class="payment-amount">$30 USD</p>
+    <!-- W2 Card -->
+    <div class="doc-card"
+         [class.has-files]="getFilesForType(DocumentType.W2).length > 0"
+         (click)="onCardClick(DocumentType.W2)">
+      <div class="doc-card-thumb">📋</div>
+      <div class="doc-card-body">
+        <h3 class="doc-card-title">W2</h3>
+      </div>
+      <!-- Desktop buttons -->
+      <div class="doc-card-actions">
+        <button class="btn-card-upload" (click)="onCardClick(DocumentType.W2); $event.stopPropagation()">
+          Subir W2
+        </button>
+        <button class="btn-card-info" (click)="openInfoModal('w2'); $event.stopPropagation()">
+          ¿Qué es esto?
+        </button>
+      </div>
+      <!-- Mobile circular buttons -->
+      <div class="doc-card-mobile-btns">
+        <button class="btn-circle-info" (click)="openInfoModal('w2'); $event.stopPropagation()">?</button>
+        <button class="btn-circle-action" (click)="onCardClick(DocumentType.W2); $event.stopPropagation()"><img src="assets/images/upload-icon.png" class="btn-upload-icon" alt="upload"></button>
+      </div>
+      <div class="card-files" *ngIf="getFilesForType(DocumentType.W2).length > 0">
+        <div class="card-file-item" *ngFor="let file of getFilesForType(DocumentType.W2)">
+          <span class="card-file-check">✓</span>
+          <span class="card-file-name">{{ file.fileName }}</span>
+          <button class="card-file-download" (click)="downloadFile(file); $event.stopPropagation()">⬇️</button>
+        </div>
       </div>
     </div>
-    <p class="payment-info-description">
-      Antes de subir tu comprobante, realiza el pago inicial de <strong>$30 USD</strong> como reserva del servicio.
-    </p>
-    <button class="btn-payment-instructions" (click)="openPaymentInstructions()">
-      <span>Ver instrucciones de pago</span>
-      <span class="btn-arrow">→</span>
-    </button>
-  </div>
 
-  <!-- Consent Form Section - Compact Horizontal (above upload for visibility) -->
-  <div class="consent-form-compact" [class.signed]="isConsentFormSigned">
-    <div class="consent-compact-content">
-      <div class="consent-compact-left">
-        <span class="consent-compact-icon" [class.signed]="isConsentFormSigned">
-          {{ isConsentFormSigned ? '✓' : '✍️' }}
-        </span>
-        <span class="consent-compact-title">Acuerdo de Consentimiento</span>
-        <span class="consent-compact-status" *ngIf="isConsentFormSigned">
-          Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy':'UTC' }}
-        </span>
+    <!-- Consentimiento Card -->
+    <div class="doc-card consent-card"
+         [class.has-files]="isConsentFormSigned"
+         (click)="openConsentForm()">
+      <div class="doc-card-thumb">✍️</div>
+      <div class="doc-card-body">
+        <h3 class="doc-card-title">Consentimiento</h3>
       </div>
-      <button
-        *ngIf="!isConsentFormSigned"
-        class="btn-consent-compact"
-        (click)="openConsentForm()">
-        Firmar
-      </button>
-      <button
-        *ngIf="isConsentFormSigned && consentFormStatus?.canDownload"
-        class="btn-consent-compact secondary"
-        (click)="downloadSignedConsentForm()">
-        PDF ⬇️
-      </button>
+      <!-- Desktop buttons -->
+      <div class="doc-card-actions">
+        <button class="btn-card-upload" (click)="openConsentForm(); $event.stopPropagation()">
+          {{ isConsentFormSigned ? 'Ver acuerdo' : 'Firmar' }}
+        </button>
+        <button class="btn-card-info" (click)="openInfoModal('consent'); $event.stopPropagation()">
+          ¿Qué es esto?
+        </button>
+      </div>
+      <!-- Mobile circular buttons -->
+      <div class="doc-card-mobile-btns">
+        <button class="btn-circle-info" (click)="openInfoModal('consent'); $event.stopPropagation()">?</button>
+        <button class="btn-circle-action" (click)="openConsentForm(); $event.stopPropagation()"><img src="assets/images/upload-icon.png" class="btn-upload-icon" alt="upload"></button>
+      </div>
+      <div class="card-files" *ngIf="isConsentFormSigned">
+        <div class="card-file-item signed">
+          <span class="card-file-check">✓</span>
+          <span class="card-file-name">Firmado {{ consentFormStatus?.signedAt | date:'dd/MM/yyyy':'UTC' }}</span>
+          <button *ngIf="consentFormStatus?.canDownload" class="card-file-download"
+                  (click)="downloadSignedConsentForm(); $event.stopPropagation()">⬇️</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Pago Card -->
+    <div class="doc-card"
+         [class.has-files]="getFilesForType(DocumentType.PAYMENT_PROOF).length > 0"
+         (click)="onCardClick(DocumentType.PAYMENT_PROOF)">
+      <div class="doc-card-thumb">💳</div>
+      <div class="doc-card-body">
+        <h3 class="doc-card-title">Pago</h3>
+      </div>
+      <!-- Desktop buttons -->
+      <div class="doc-card-actions">
+        <button class="btn-card-upload" (click)="onCardClick(DocumentType.PAYMENT_PROOF); $event.stopPropagation()">
+          Subir comprobante
+        </button>
+        <button class="btn-card-info" (click)="openInfoModal('payment'); $event.stopPropagation()">
+          Ver instrucciones
+        </button>
+      </div>
+      <!-- Mobile circular buttons -->
+      <div class="doc-card-mobile-btns">
+        <button class="btn-circle-info" (click)="openInfoModal('payment'); $event.stopPropagation()">?</button>
+        <button class="btn-circle-action" (click)="onCardClick(DocumentType.PAYMENT_PROOF); $event.stopPropagation()"><img src="assets/images/upload-icon.png" class="btn-upload-icon" alt="upload"></button>
+      </div>
+      <div class="card-files" *ngIf="getFilesForType(DocumentType.PAYMENT_PROOF).length > 0">
+        <div class="card-file-item" *ngFor="let file of getFilesForType(DocumentType.PAYMENT_PROOF)">
+          <span class="card-file-check">✓</span>
+          <span class="card-file-name">{{ file.fileName }}</span>
+          <button class="card-file-download" (click)="downloadFile(file); $event.stopPropagation()">⬇️</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Upload Zone -->
-  <div
-    class="upload-zone"
-    #uploadZone
-    [class.drag-over]="dragOver"
-    [class.uploading]="isUploading"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
+  <!-- Hidden file input -->
+  <input
+    type="file"
+    id="fileInput"
+    #fileInput
+    (change)="onFileSelected($event)"
+    accept=".pdf,.png,.jpg,.jpeg"
+    multiple
+    hidden
+    [disabled]="isUploading"
   >
-    <div class="upload-icon-wrapper">
-      <span class="upload-icon">{{ isUploading ? '⏳' : '📤' }}</span>
-    </div>
-    <h2>{{ isUploading ? 'Subiendo archivo...' : 'Arrastra y suelta tus archivos aqui' }}</h2>
-    <p class="upload-or" *ngIf="!isUploading">o</p>
-    <label for="fileInput" class="btn-browse" *ngIf="!isUploading">
-      <span>Seleccionar archivos</span>
-    </label>
-    <input
-      type="file"
-      id="fileInput"
-      #fileInput
-      (change)="onFileSelected($event)"
-      accept=".pdf,.png,.jpg,.jpeg"
-      multiple
-      hidden
-      [disabled]="isUploading"
-    >
-    <div class="upload-info">
-      <div class="info-item">
-        <span class="info-icon">📄</span>
-        <span>PDF, PNG, JPG</span>
-      </div>
-      <div class="info-item">
-        <span class="info-icon">💾</span>
-        <span>Maximo 25MB por archivo</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Messages -->
   <div class="message success-message" *ngIf="successMessage">
@@ -332,53 +377,5 @@
     </div>
   </div>
 
-  <!-- Uploaded Files Section -->
-  <div class="files-section" *ngIf="uploadedFiles.length > 0 && !isLoading">
-    <div class="section-header">
-      <h2>Documentos cargados</h2>
-      <span class="file-count">{{ uploadedFiles.length }} archivo<span *ngIf="uploadedFiles.length !== 1">s</span></span>
-    </div>
-
-    <div class="files-list">
-      <div class="file-card" #fileCard *ngFor="let file of uploadedFiles; let i = index">
-        <div class="file-icon">{{ getFileIcon(file.mimeType) }}</div>
-        <div class="file-details">
-          <div class="file-name">{{ file.fileName }}</div>
-          <div class="file-meta">
-            <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
-            <span class="file-separator">|</span>
-            <span class="file-date">{{ file.uploadedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</span>
-            <span class="file-separator">|</span>
-            <span class="file-type">{{ getDocumentTypeLabel(file.type) }}</span>
-            <span *ngIf="file.isReviewed" class="reviewed-badge">Revisado</span>
-          </div>
-        </div>
-        <button class="btn-download" (click)="downloadFile(file)" title="Descargar">
-          <span>⬇️</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="uploadedFiles.length === 0 && !isLoading">
-    <div class="empty-icon">📁</div>
-    <h3>No hay documentos cargados todavia</h3>
-    <p>Comienza subiendo tus primeros archivos usando el area de arriba</p>
-  </div>
-
-  <!-- Tips Section -->
-  <div class="tips-card">
-    <div class="tips-header">
-      <span class="tips-icon">💡</span>
-      <h3>Consejos para subir documentos</h3>
-    </div>
-    <ul class="tips-list">
-      <li>Asegurate de que los documentos sean legibles y esten completos</li>
-      <li>Nombra tus archivos de forma clara (ej: "W2-2024.pdf")</li>
-      <li>Si tienes dudas sobre que documentos necesitas, contactanos</li>
-      <li>Puedes subir multiples archivos a la vez</li>
-    </ul>
-  </div>
   </div><!-- End of regular upload view -->
 </div>

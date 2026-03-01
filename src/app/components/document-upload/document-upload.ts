@@ -42,6 +42,9 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren('fileCard') fileCards!: QueryList<ElementRef<HTMLElement>>;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
+  // Expose enum to template
+  DocumentType = DocumentType;
+
   uploadedFiles: Document[] = [];
   dragOver: boolean = false;
   successMessage: string = '';
@@ -81,6 +84,9 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
   consentFormStatus: ConsentFormStatusResponse | null = null;
   showConsentFormModal: boolean = false;
 
+  // Info Modal
+  showInfoModal: 'w2' | 'consent' | 'payment' | 'other' | null = null;
+
   // Profile/Declaration status
   isFormComplete: boolean = false;
 
@@ -95,6 +101,29 @@ export class DocumentUpload implements OnInit, OnDestroy, AfterViewInit {
 
   closePaymentInstructions() {
     this.showPaymentInstructions = false;
+  }
+
+  openInfoModal(type: 'w2' | 'consent' | 'payment' | 'other') {
+    if (type === 'payment') {
+      this.showPaymentInstructions = true;
+    } else {
+      this.showInfoModal = type;
+    }
+    this.cdr.detectChanges();
+  }
+
+  closeInfoModal() {
+    this.showInfoModal = null;
+    this.cdr.detectChanges();
+  }
+
+  onCardClick(type: DocumentType) {
+    this.selectedType = type;
+    this.openFilePicker();
+  }
+
+  getFilesForType(type: DocumentType): Document[] {
+    return this.uploadedFiles.filter(f => f.type === type);
   }
 
   ngOnInit() {

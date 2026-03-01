@@ -1755,3 +1755,388 @@
     text-align: center;
   }
 }
+
+/* ============ DOCUMENT CARD GRID ============ */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── Desktop card (column, centered) ── */
+.doc-card {
+  background: white;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  padding: 24px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.doc-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(29, 52, 93, 0.15);
+  transform: translateY(-2px);
+}
+
+.doc-card.has-files {
+  border-color: #22c55e;
+  background: linear-gradient(180deg, #f0fdf4 0%, white 40%);
+}
+
+.doc-card.has-files::after {
+  content: '✓';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Desktop thumb = large emoji, no box */
+.doc-card-thumb {
+  font-size: 36px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+/* Desktop: body and actions are layout pass-throughs */
+.doc-card-body    { display: contents; }
+.doc-card-actions { display: contents; }
+
+/* Mobile circular buttons hidden on desktop */
+.doc-card-mobile-btns { display: none; }
+
+.doc-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 6px;
+}
+
+.doc-card-desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.btn-card-upload {
+  width: 100%;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-bottom: 8px;
+}
+
+.btn-card-upload:hover { opacity: 0.9; }
+
+.btn-card-info {
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-card-info:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.card-files {
+  width: 100%;
+  margin-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.card-file-check {
+  color: #22c55e;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.card-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.card-file-download {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ── Card entrance animation ── */
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Mobile: professional iOS list design ── */
+@media (max-width: 767px) {
+  .doc-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* iOS-style floating card row */
+  .doc-card {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: left;
+    padding: 14px 16px;
+    gap: 0;
+    border-radius: 18px;
+    border: none;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
+    /* Staggered entrance */
+    animation: cardSlideIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+    /* iOS tap highlight removal */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .doc-card:nth-child(1) { animation-delay: 0.05s; }
+  .doc-card:nth-child(2) { animation-delay: 0.13s; }
+  .doc-card:nth-child(3) { animation-delay: 0.21s; }
+
+  /* iOS press feedback */
+  .doc-card:active {
+    transform: scale(0.975) !important;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  /* Uploaded state — green glow ring */
+  .doc-card.has-files {
+    border: none;
+    background: white;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.08),
+      0 0 0 1.5px rgba(52, 199, 89, 0.45);
+  }
+
+  .doc-card.has-files::after {
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    background: #34C759;
+    box-shadow: 0 2px 6px rgba(52, 199, 89, 0.45);
+  }
+
+  /* Branded icon square — each card gets a unique gradient */
+  .doc-card-thumb {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin: 0 14px 0 0;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  /* W2 — navy */
+  .doc-card:nth-child(1) .doc-card-thumb {
+    background: linear-gradient(145deg, #1D345D 0%, #2D5FA0 100%);
+  }
+  /* Consentimiento — crimson */
+  .doc-card:nth-child(2) .doc-card-thumb {
+    background: linear-gradient(145deg, #B21B43 0%, #E04472 100%);
+  }
+  /* Pago — emerald */
+  .doc-card:nth-child(3) .doc-card-thumb {
+    background: linear-gradient(145deg, #047857 0%, #10b981 100%);
+  }
+
+  /* Body: title + subtitle */
+  .doc-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .doc-card-title {
+    font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1C1C1E;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.2px;
+  }
+
+  /* Show subtitle on mobile */
+  .doc-card-desc {
+    display: block;
+    font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #8E8E93;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.1px;
+  }
+
+  /* Hide desktop text buttons */
+  .doc-card-actions { display: none; }
+
+  /* Mobile icon buttons */
+  .doc-card-mobile-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+
+  /* Info button — ghost circle */
+  .btn-circle-info {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid #D1D1D6;
+    background: transparent;
+    color: #8E8E93;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .btn-circle-info:active {
+    background: #F2F2F7;
+    border-color: #8E8E93;
+  }
+
+  /* Action button — brand gradient filled */
+  .btn-circle-action {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #B21B43 0%, #1D345D 100%);
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(178, 27, 67, 0.38);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .btn-circle-action:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 6px rgba(178, 27, 67, 0.25);
+  }
+
+  .btn-upload-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+    display: block;
+    pointer-events: none;
+  }
+
+  /* Uploaded files — full-width second line */
+  .card-files {
+    flex: 0 0 100%;
+    margin-top: 10px;
+    border-top: 1px solid #F2F2F7;
+    padding-top: 8px;
+  }
+
+  .card-file-item {
+    font-size: 12px;
+    color: #3C3C43;
+  }
+
+  .card-file-check { color: #34C759; }
+}
+
+/* Info modals: single-button popup-actions */
+.popup-card .popup-actions:has(.btn-popup-primary:only-child) {
+  justify-content: center;
+}
+
+/* Popup card needs position for close button */
+.popup-card {
+  position: relative;
+}
+
+/* Legacy duplicate removed — kept once above */
+.popup-card {
+  position: relative;
+}

@@ -102,6 +102,17 @@
       </div>
     </div>
 
+    <!-- Action Buttons -->
+    <div class="success-actions">
+      <button class="btn-continue" (click)="docsAllComplete ? goToTracking() : continueToDocuments()">
+        <span>{{ docsAllComplete ? 'Ver estado de mis taxes' : 'Continuar → Mis Documentos' }}</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <button class="btn-later" (click)="goToDashboard()">
+        Volver al inicio
+      </button>
+    </div>
+
     <!-- Info Card -->
     <div class="next-steps-card info-card">
       <div class="next-step-icon">💡</div>
@@ -109,17 +120,7 @@
         <h3>Necesitas hacer cambios?</h3>
         <p>Por seguridad, los cambios en tu información fiscal deben ser solicitados a traves de soporte</p>
       </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="success-actions">
-      <button class="btn-continue" (click)="goToSupport()">
-        <span>Contactar Soporte</span>
-        <span class="btn-arrow">→</span>
-      </button>
-      <button class="btn-later" (click)="goToDashboard()">
-        Volver al inicio
-      </button>
+      <button class="btn-support-link" (click)="goToSupport()">Contactar Soporte →</button>
     </div>
   </div>
 </div>

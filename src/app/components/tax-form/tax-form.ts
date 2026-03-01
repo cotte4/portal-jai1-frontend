@@ -9,7 +9,9 @@ import { DataRefreshService } from '../../core/services/data-refresh.service';
 import { ReferralService } from '../../core/services/referral.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CompleteProfileRequest } from '../../core/models';
+import { DocumentService } from '../../core/services/document.service';
+import { ConsentFormService } from '../../core/services/consent-form.service';
+import { CompleteProfileRequest, DocumentType } from '../../core/models';
 
 const TAX_FORM_CACHE_KEY = 'jai1_tax_form_draft';
 
@@ -76,6 +78,8 @@ export class TaxForm implements OnInit, OnDestroy {
   private referralService = inject(ReferralService);
   private toastService = inject(ToastService);
   private authService = inject(AuthService);
+  private documentService = inject(DocumentService);
+  private consentFormService = inject(ConsentFormService);
   private cdr = inject(ChangeDetectorRef);
   private subscriptions = new Subscription();
   private autoSaveSubject = new Subject<void>();
@@ -122,6 +126,7 @@ export class TaxForm implements OnInit, OnDestroy {
   showAlreadyCompletedScreen: boolean = false; // Show info for users who already completed the form
   private justSubmitted: boolean = false; // Prevent redirect race condition after submit
   private isLoadingInProgress: boolean = false; // Prevent concurrent API calls
+  docsAllComplete: boolean = false; // True when payment proof + consent are both done
 
   // Referral code state
   referralCode: string = '';
@@ -217,8 +222,9 @@ export class TaxForm implements OnInit, OnDestroy {
 
         // Determine which screen to show based on profile state
         if (profile && profile.profileComplete && !profile.isDraft) {
-          // Profile is complete - show info screen
+          // Profile is complete - show info screen, then check doc/consent status
           this.showAlreadyCompletedScreen = true;
+          this.checkDocsComplete();
         } else {
           // Profile is draft, incomplete, or doesn't exist - show form
           this.showAlreadyCompletedScreen = false;
@@ -435,6 +441,22 @@ export class TaxForm implements OnInit, OnDestroy {
 
   goToSupport() {
     this.router.navigate(['/messages']);
+  }
+
+  goToTracking() {
+    this.router.navigate(['/tax-tracking']);
+  }
+
+  private checkDocsComplete() {
+    forkJoin({
+      documents: this.documentService.getDocuments().pipe(catchError(() => of([]))),
+      consent: this.consentFormService.getStatus().pipe(catchError(() => of(null)))
+    }).subscribe(({ documents, consent }) => {
+      const hasPayment = (documents as any[]).some((d: any) => d.type === DocumentType.PAYMENT_PROOF);
+      const hasSigned = (consent as any)?.status === 'signed';
+      this.docsAllComplete = hasPayment && hasSigned;
+      this.cdr.detectChanges();
+    });
   }
 
   // Referral code methods

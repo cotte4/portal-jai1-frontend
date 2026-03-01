@@ -397,6 +397,23 @@
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
 }
 
+.btn-support-link {
+  background: none;
+  border: none;
+  color: var(--color-primary, #1D345D);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0 0;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+
+.btn-support-link:hover { opacity: 1; }
+
 /* =============================================
    REFERRAL CODE SECTION - COMPACT STYLE
    ============================================= */
