@@ -65,14 +65,14 @@
 
       <div class="nav-section">
         <span class="nav-section-title">Herramientas</span>
-        <a class="nav-item active">
+        <a class="nav-item" (click)="goToIrsMonitor()">
           <span class="nav-icon">🏛️</span>
           <span class="nav-label">IRS Monitor</span>
-          <span class="nav-badge" *ngIf="changesLast24h > 0">{{ changesLast24h }}</span>
         </a>
-        <a class="nav-item" (click)="goToColoradoMonitor()">
+        <a class="nav-item active">
           <span class="nav-icon">🏔️</span>
           <span class="nav-label">CO Monitor</span>
+          <span class="nav-badge" *ngIf="changesLast24h > 0">{{ changesLast24h }}</span>
         </a>
       </div>
     </nav>
@@ -89,19 +89,19 @@
         </svg>
       </button>
       <div class="top-bar-title">
-        <span class="page-title">IRS Monitor</span>
-        <span class="page-subtitle">Verificación automática en IRS WMR</span>
+        <span class="page-title">Colorado Monitor</span>
+        <span class="page-subtitle">Verificacion automatica en Colorado Revenue Online</span>
       </div>
       <button
         class="btn-run-all"
         (click)="runCheckAll()"
         [disabled]="isLoading || isRunningBatch || isRunningAll"
-        title="Verificar todos los clientes en segundo plano"
+        title="Verificar todos los clientes CO en segundo plano"
       >
-        {{ isRunningAll ? '⏳ Iniciando...' : '🔍 Verificar Todos' }}
+        {{ isRunningAll ? 'Iniciando...' : 'Verificar Todos' }}
       </button>
       <button class="btn-export-csv" (click)="exportCsv()" [disabled]="isExportingCsv || isLoading" title="Exportar historial completo a CSV">
-        {{ isExportingCsv ? '⏳' : '📥' }} CSV
+        CSV
       </button>
       <button class="btn-refresh" (click)="loadClients()" [disabled]="isLoading || isRunningBatch">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -114,7 +114,7 @@
 
     <!-- Error banner -->
     <div class="error-banner" *ngIf="error">
-      <span>⚠️ {{ error }}</span>
+      <span>{{ error }}</span>
       <button (click)="loadClients()">Reintentar</button>
     </div>
 
@@ -125,16 +125,15 @@
 
     <!-- Empty state -->
     <div class="empty-state" *ngIf="!isLoading && clients.length === 0 && !error">
-      <span class="empty-icon">🏛️</span>
-      <p>No hay clientes con taxes_filed en este momento.</p>
-      <p class="empty-sub">Los clientes aparecen aquí una vez que su estado sea <strong>taxes_filed</strong>.</p>
+      <span class="empty-icon">🏔️</span>
+      <p>No hay clientes de Colorado con taxes presentados en este momento.</p>
+      <p class="empty-sub">Los clientes aparecen aqui una vez que sus taxes hayan sido presentados y su workState sea <strong>Colorado</strong>.</p>
     </div>
 
-    <!-- Batch action bar — visible when items selected or batch is running -->
+    <!-- Batch action bar -->
     <div class="batch-bar" *ngIf="(selectedCount > 0 || isRunningBatch) && !isLoading">
 
       <ng-container *ngIf="isRunningBatch; else selectionActions">
-        <!-- Running state -->
         <div class="batch-progress">
           <span class="spinner spinner-dark"></span>
           <span class="batch-progress-text">
@@ -145,15 +144,14 @@
       </ng-container>
 
       <ng-template #selectionActions>
-        <!-- Selection state -->
         <span class="batch-count">
           {{ selectedCount }} seleccionado{{ selectedCount !== 1 ? 's' : '' }}
-          <span class="batch-max">(máx. 10)</span>
+          <span class="batch-max">(max. 10)</span>
         </span>
         <div class="batch-actions">
           <button class="btn-clear" (click)="clearSelection()">Limpiar</button>
           <button class="btn-run-batch" (click)="runSelected()" [disabled]="selectedCount === 0">
-            🔍 Verificar {{ selectedCount }}
+            Verificar {{ selectedCount }}
           </button>
         </div>
       </ng-template>
@@ -165,7 +163,7 @@
       <span class="legend-item"><span class="legend-icon">✅</span> Estado actualizado</span>
       <span class="legend-item"><span class="legend-icon">🔄</span> Cambio detectado</span>
       <span class="legend-item"><span class="legend-icon">❌</span> Error / timeout</span>
-      <span class="legend-item"><span class="legend-icon">❓</span> Estado no reconocido — revisar detalle</span>
+      <span class="legend-item"><span class="legend-icon">❓</span> Estado no reconocido</span>
     </div>
 
     <!-- Clients table -->
@@ -176,14 +174,12 @@
             <th class="checkbox-th"></th>
             <th>Cliente</th>
             <th>SSN</th>
-            <th>Año</th>
-            <th>Filing</th>
-            <th>Reembolso Federal</th>
-            <th>Estado JAI1</th>
-            <th>Último Check IRS</th>
+            <th>Reembolso Estatal</th>
+            <th>Estado CO</th>
+            <th>Ultimo Check CO</th>
             <th>Fecha Check</th>
             <th>Historial</th>
-            <th>Acción</th>
+            <th>Accion</th>
           </tr>
         </thead>
         <tbody>
@@ -210,42 +206,31 @@
             <td class="ssn-cell">
               <span class="ssn-badge">{{ client.ssnMasked ?? '—' }}</span>
             </td>
-            <td>{{ client.taxYear }}</td>
-            <td class="filing-cell">
-              <span class="filing-badge" [title]="client.filingStatus">
-                {{ getFilingStatusLabel(client.filingStatus) }}
-              </span>
-            </td>
             <td class="amount-cell">
-              <ng-container *ngIf="client.irsRefundAmount; else noRefund">
-                <span>${{ client.irsRefundAmount }}</span>
-                <span
-                  *ngIf="!client.federalActualRefund && client.estimatedRefund"
-                  class="refund-estimate-badge"
-                  title="Usando estimado — ingresa el monto federal real para mayor precisión"
-                >est.</span>
+              <ng-container *ngIf="client.stateActualRefund; else noRefund">
+                <span>${{ client.stateActualRefund }}</span>
               </ng-container>
               <ng-template #noRefund>
-                <span class="refund-missing" title="Sin monto federal — el check IRS fallará">⚠️ —</span>
+                <span class="refund-missing" title="Sin monto estatal — el check CO fallara">⚠️ —</span>
               </ng-template>
             </td>
             <td>
-              <span class="status-badge" [ngClass]="getStatusClass(client.federalStatusNew)">
-                {{ getStatusLabel(client.federalStatusNew) }}
+              <span class="status-badge" [ngClass]="getStatusClass(client.stateStatusNew)">
+                {{ getStatusLabel(client.stateStatusNew) }}
               </span>
-              <!-- Pending recommendation from IRS check -->
+              <!-- Pending recommendation from CO check -->
               <div class="recommendation-badge" *ngIf="hasPendingRecommendation(client)">
-                <span class="rec-label">IRS recomienda:</span>
+                <span class="rec-label">CO recomienda:</span>
                 <span class="rec-status" [ngClass]="getStatusClass(getPendingCheck(client)?.mappedStatus ?? null)">
                   {{ getStatusLabel(getPendingCheck(client)?.mappedStatus ?? null) }}
                 </span>
                 <div class="rec-actions">
                   <button class="btn-approve" (click)="approveRecommendation(client)" title="Aprobar cambio de estado">✓</button>
-                  <button class="btn-dismiss" (click)="dismissRecommendation(client)" title="Descartar recomendación">✕</button>
+                  <button class="btn-dismiss" (click)="dismissRecommendation(client)" title="Descartar recomendacion">✕</button>
                 </div>
               </div>
             </td>
-            <td class="irs-result-cell">
+            <td class="co-result-cell">
               <ng-container *ngIf="client.isChecking; else checkResultContent">
                 <div class="checking-status">
                   <span class="checking-dot"></span>
@@ -254,26 +239,26 @@
               </ng-container>
               <ng-template #checkResultContent>
               <ng-container *ngIf="client.lastCheckResult; else lastCheckFallback">
-                <div class="irs-result-wrap" [title]="client.lastCheckResult.irsDetails ?? client.lastCheckResult.irsRawStatus">
-                  <div class="irs-result-heading">
+                <div class="co-result-wrap" [title]="client.lastCheckResult.coDetails ?? client.lastCheckResult.coRawStatus">
+                  <div class="co-result-heading">
                     <span class="result-icon">{{ getCheckResultIcon(client.lastCheckResult) }}</span>
-                    <span class="result-text">{{ client.lastCheckResult.irsRawStatus }}</span>
+                    <span class="result-text">{{ client.lastCheckResult.coRawStatus }}</span>
                   </div>
                   <div
-                    *ngIf="getIrsDetailExcerpt(client.lastCheckResult.irsRawStatus, client.lastCheckResult.irsDetails) as excerpt"
-                    class="irs-detail-excerpt"
+                    *ngIf="getCoDetailExcerpt(client.lastCheckResult.coRawStatus, client.lastCheckResult.coDetails) as excerpt"
+                    class="co-detail-excerpt"
                   >{{ excerpt }}</div>
                 </div>
               </ng-container>
               <ng-template #lastCheckFallback>
                 <ng-container *ngIf="client.lastCheck; else noCheck">
-                  <div class="irs-result-wrap" [title]="client.lastCheck.irsDetails ?? client.lastCheck.irsRawStatus">
-                    <div class="irs-result-heading">
-                      <span class="result-text muted">{{ client.lastCheck.irsRawStatus }}</span>
+                  <div class="co-result-wrap" [title]="client.lastCheck.coDetails ?? client.lastCheck.coRawStatus">
+                    <div class="co-result-heading">
+                      <span class="result-text muted">{{ client.lastCheck.coRawStatus }}</span>
                     </div>
                     <div
-                      *ngIf="getIrsDetailExcerpt(client.lastCheck.irsRawStatus, client.lastCheck.irsDetails) as excerpt"
-                      class="irs-detail-excerpt"
+                      *ngIf="getCoDetailExcerpt(client.lastCheck.coRawStatus, client.lastCheck.coDetails) as excerpt"
+                      class="co-detail-excerpt"
                     >{{ excerpt }}</div>
                   </div>
                 </ng-container>
@@ -300,7 +285,7 @@
                 (click)="runCheck(client)"
                 [disabled]="client.isChecking || isRunningBatch"
               >
-                <span *ngIf="!client.isChecking">🔍 Verificar</span>
+                <span *ngIf="!client.isChecking">Verificar</span>
                 <span *ngIf="client.isChecking" class="checking-text">
                   <span class="spinner"></span> {{ client.checkStatusLabel || 'Iniciando...' }}
                 </span>
@@ -323,7 +308,7 @@
         <span class="drawer-icon">📋</span>
         <div>
           <div class="drawer-name">{{ historyClient.clientName }}</div>
-          <div class="drawer-sub">Historial de verificaciones IRS</div>
+          <div class="drawer-sub">Historial de verificaciones Colorado</div>
         </div>
       </div>
       <button class="drawer-close" (click)="closeHistory()">✕</button>
@@ -352,13 +337,13 @@
 
           <div class="tl-content">
             <div class="tl-header">
-              <span class="tl-status">{{ check.irsRawStatus }}</span>
+              <span class="tl-status">{{ check.coRawStatus }}</span>
               <span class="tl-date">{{ formatDate(check.createdAt) }}</span>
             </div>
 
             <div class="tl-meta">
               <span class="tl-trigger" [class.tl-auto]="check.triggeredBy === 'schedule'">
-                {{ check.triggeredBy === 'schedule' ? '⏰ Auto' : '👤 Manual' }}
+                {{ check.triggeredBy === 'schedule' ? 'Auto' : 'Manual' }}
               </span>
               <span *ngIf="check.statusChanged" class="tl-changed-badge">
                 {{ getStatusLabel(check.previousStatus) }} → {{ getStatusLabel(check.mappedStatus) }}
@@ -368,8 +353,8 @@
               </span>
             </div>
 
-            <div class="tl-details" *ngIf="check.irsDetails">
-              {{ getIrsDetailExcerpt(check.irsRawStatus, check.irsDetails) }}
+            <div class="tl-details" *ngIf="check.coDetails">
+              {{ getCoDetailExcerpt(check.coRawStatus, check.coDetails) }}
             </div>
 
             <!-- Screenshot inline viewer -->
@@ -378,7 +363,7 @@
                 *ngIf="!screenshotUrls[check.id]"
                 class="btn-screenshot"
                 (click)="loadScreenshot(check)"
-              >📸 Ver captura</button>
+              >Ver captura</button>
               <span *ngIf="screenshotUrls[check.id] === 'loading'" class="tl-screenshot-loading">
                 <span class="spinner spinner-sm"></span> Cargando...
               </span>
@@ -389,8 +374,8 @@
                 *ngIf="screenshotUrls[check.id] && screenshotUrls[check.id] !== 'loading' && screenshotUrls[check.id] !== 'error'"
                 class="tl-screenshot-preview"
               >
-                <img [src]="screenshotUrls[check.id]" alt="IRS WMR screenshot" class="screenshot-img" />
-                <a [href]="screenshotUrls[check.id]" target="_blank" class="screenshot-fullscreen">↗ Pantalla completa</a>
+                <img [src]="screenshotUrls[check.id]" alt="Colorado screenshot" class="screenshot-img" />
+                <a [href]="screenshotUrls[check.id]" target="_blank" class="screenshot-fullscreen">Pantalla completa</a>
               </div>
             </div>
           </div>

@@ -515,6 +515,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/admin/irs-monitor']);
   }
 
+  goToColoradoMonitor() {
+    this.router.navigate(['/admin/colorado-monitor']);
+  }
+
   exportToExcel() {
     if (this.isExporting) return;
 

@@ -307,7 +307,6 @@
 .btn-run-batch:hover { background: #0077ed; }
 .btn-run-batch:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Running state inside batch bar */
 .batch-progress {
   display: flex;
   align-items: center;
@@ -486,38 +485,21 @@
 
 .amount-cell { font-weight: 600; color: #34c759; }
 
-.refund-estimate-badge {
-  font-size: 10px;
-  font-weight: 600;
-  background: #fff3cd;
-  color: #856404;
-  padding: 1px 5px;
-  border-radius: 4px;
-  margin-left: 4px;
-  vertical-align: middle;
-  cursor: default;
-}
-
-.dark-mode .refund-estimate-badge {
-  background: rgba(255,193,7,0.15);
-  color: #ffd60a;
-}
-
 .refund-missing {
   color: #ff3b30;
   font-size: 13px;
 }
 
-.irs-result-cell { max-width: 260px; overflow: hidden; }
+.co-result-cell { max-width: 260px; overflow: hidden; }
 
-.irs-result-wrap {
+.co-result-wrap {
   display: flex;
   flex-direction: column;
   gap: 2px;
   cursor: default;
 }
 
-.irs-result-heading {
+.co-result-heading {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -539,7 +521,7 @@
 .dark-mode .result-text { color: #ebebf5; }
 .result-text.muted { color: #8e8e93; font-weight: 400; }
 
-.irs-detail-excerpt {
+.co-detail-excerpt {
   font-size: 11px;
   color: #8e8e93;
   white-space: nowrap;
@@ -605,7 +587,6 @@
 
 .checking-text { display: flex; align-items: center; gap: 6px; font-size: 11px; white-space: nowrap; }
 
-/* Live status label shown in the IRS result cell while a check is running */
 .checking-status {
   display: flex;
   align-items: center;
@@ -654,7 +635,6 @@
   flex-shrink: 0;
 }
 
-/* Dark spinner variant (used in batch bar) */
 .spinner-dark {
   width: 16px;
   height: 16px;
@@ -976,7 +956,6 @@
   transition: background 0.15s;
 }
 .btn-screenshot:hover { background: #e5e5ea; }
-.btn-screenshot-open { color: #0071e3; text-decoration: none; display: inline-block; }
 .dark-mode .btn-screenshot { background: #3a3a3c; border-color: #48484a; color: #f2f2f7; }
 
 .tl-screenshot-loading {
@@ -1013,18 +992,6 @@
 .btn-export-csv:disabled { opacity: 0.5; cursor: not-allowed; }
 .dark-mode .btn-export-csv { background: #3a3a3c; border-color: #48484a; color: #f2f2f7; }
 .dark-mode .btn-export-csv:hover:not(:disabled) { background: #48484a; }
-
-/* ===== FILING STATUS CELL ===== */
-.filing-cell { white-space: nowrap; }
-.filing-badge {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 7px;
-  background: #f0f0f5;
-  border-radius: 5px;
-  color: #636366;
-}
-.dark-mode .filing-badge { background: #3a3a3c; color: #ebebf5; }
 
 /* ===== INLINE SCREENSHOT ===== */
 .tl-screenshot-preview {

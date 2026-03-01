@@ -3,28 +3,24 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface IrsClient {
+export interface ColoradoClient {
   taxCaseId: string;
-  taxYear: number;
   clientName: string;
   clientEmail: string;
   userId: string;
   ssnMasked: string | null;
-  federalStatusNew: string | null;
-  federalStatusNewChangedAt: string | null;
-  estimatedRefund: number | null;
-  federalActualRefund: number | null;
-  irsRefundAmount: number | null;   // what will actually be sent to IRS WMR
+  stateStatusNew: string | null;
+  stateStatusNewChangedAt: string | null;
+  stateActualRefund: number | null;
   paymentMethod: string | null;
-  filingStatus: 'single' | 'married_joint' | 'married_separate' | 'head_of_household';
-  lastCheck: IrsCheck | null;
+  lastCheck: ColoradoCheck | null;
 }
 
-export interface IrsCheck {
+export interface ColoradoCheck {
   id: string;
   taxCaseId: string;
-  irsRawStatus: string;
-  irsDetails: string | null;
+  coRawStatus: string;
+  coDetails: string | null;
   screenshotPath: string | null;
   mappedStatus: string | null;
   statusChanged: boolean;
@@ -36,24 +32,14 @@ export interface IrsCheck {
   createdAt: string;
 }
 
-export interface RunCheckResponse {
-  success: boolean;
-  statusChanged: boolean;
-  previousStatus: string | null;
-  newStatus: string | null;
-  rawStatus: string;
-  error?: string;
-  check: IrsCheck;
-}
-
 @Injectable({ providedIn: 'root' })
-export class IrsMonitorService {
+export class ColoradoMonitorService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/irs-monitor`;
+  private apiUrl = `${environment.apiUrl}/colorado-monitor`;
 
-  getFiledClients(): Observable<IrsClient[]> {
+  getFiledClients(): Observable<ColoradoClient[]> {
     return this.http
-      .get<IrsClient[]>(`${this.apiUrl}/clients`)
+      .get<ColoradoClient[]>(`${this.apiUrl}/clients`)
       .pipe(catchError(this.handleError));
   }
 
@@ -63,9 +49,9 @@ export class IrsMonitorService {
       .pipe(catchError(this.handleError));
   }
 
-  getChecksForClient(taxCaseId: string): Observable<IrsCheck[]> {
+  getChecksForClient(taxCaseId: string): Observable<ColoradoCheck[]> {
     return this.http
-      .get<IrsCheck[]>(`${this.apiUrl}/checks/${taxCaseId}`)
+      .get<ColoradoCheck[]>(`${this.apiUrl}/checks/${taxCaseId}`)
       .pipe(catchError(this.handleError));
   }
 
@@ -83,11 +69,8 @@ export class IrsMonitorService {
 
   exportCsv(): void {
     const url = `${this.apiUrl}/export`;
-    // Trigger browser download via hidden anchor
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `irs-checks-${new Date().toISOString().slice(0, 10)}.csv`;
-    // Auth header can't be set on anchor — use fetch + blob instead
+    a.download = `colorado-checks-${new Date().toISOString().slice(0, 10)}.csv`;
     this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
       const objectUrl = URL.createObjectURL(blob);
       a.href = objectUrl;

@@ -3,29 +3,29 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize, lastValueFrom } from 'rxjs';
 import {
-  IrsMonitorService,
-  IrsClient,
-  IrsCheck,
-} from '../../core/services/irs-monitor.service';
+  ColoradoMonitorService,
+  ColoradoClient,
+  ColoradoCheck,
+} from '../../core/services/colorado-monitor.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
 
-interface ClientRow extends IrsClient {
+interface ClientRow extends ColoradoClient {
   isChecking: boolean;
   checkStatusLabel: string;
-  lastCheckResult: IrsCheck | null;
+  lastCheckResult: ColoradoCheck | null;
   hasLoaded: boolean;
 }
 
 @Component({
-  selector: 'app-admin-irs-monitor',
+  selector: 'app-admin-colorado-monitor',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './admin-irs-monitor.html',
-  styleUrls: ['./admin-irs-monitor.css'],
+  templateUrl: './admin-colorado-monitor.html',
+  styleUrls: ['./admin-colorado-monitor.css'],
 })
-export class AdminIrsMonitor implements OnInit, OnDestroy {
-  private irsMonitorService = inject(IrsMonitorService);
+export class AdminColoradoMonitor implements OnInit, OnDestroy {
+  private coloradoMonitorService = inject(ColoradoMonitorService);
   private router = inject(Router);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
@@ -49,7 +49,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   // History drawer
   historyClient: ClientRow | null = null;
-  historyChecks: IrsCheck[] = [];
+  historyChecks: ColoradoCheck[] = [];
   isLoadingHistory = false;
 
   // Screenshot loading state per checkId
@@ -77,7 +77,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   }
 
   loadStats() {
-    this.irsMonitorService.getStats().subscribe({
+    this.coloradoMonitorService.getStats().subscribe({
       next: (s) => {
         this.changesLast24h = s.changesLast24h;
         this.cdr.detectChanges();
@@ -91,7 +91,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.error = null;
     this.selectedIds.clear();
 
-    this.irsMonitorService
+    this.coloradoMonitorService
       .getFiledClients()
       .pipe(finalize(() => {
         this.isLoading = false;
@@ -122,7 +122,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
       this.selectedIds.delete(client.taxCaseId);
     } else {
       if (this.selectedIds.size >= 10) {
-        this.toastService.show('Máximo 10 clientes por batch', 'info');
+        this.toastService.show('Maximo 10 clientes por batch', 'info');
         return;
       }
       this.selectedIds.add(client.taxCaseId);
@@ -165,7 +165,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
         client.checkStatusLabel = 'Iniciando...';
         this.cdr.detectChanges();
         const since = new Date();
-        await lastValueFrom(this.irsMonitorService.runCheck(client.taxCaseId));
+        await lastValueFrom(this.coloradoMonitorService.runCheck(client.taxCaseId));
         client.checkStatusLabel = 'Abriendo navegador...';
         this.cdr.detectChanges();
         const check = await this.pollForResult(
@@ -178,7 +178,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
       } catch {
         client.isChecking = false;
         client.checkStatusLabel = '';
-        this.toastService.show(`❌ ${client.clientName}: error`, 'error');
+        this.toastService.show(`${client.clientName}: error`, 'error');
         this.cdr.detectChanges();
       }
     }
@@ -201,7 +201,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   runCheckAll() {
     if (this.isRunningAll || this.isRunningBatch) return;
     this.isRunningAll = true;
-    this.irsMonitorService.runCheckAll()
+    this.coloradoMonitorService.runCheckAll()
       .pipe(finalize(() => {
         this.isRunningAll = false;
         this.cdr.detectChanges();
@@ -209,12 +209,12 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastService.show(
-            '🔍 Verificación de todos los clientes iniciada en segundo plano',
+            'Verificacion de todos los clientes CO iniciada en segundo plano',
             'info',
           );
         },
         error: (err) => {
-          this.toastService.show(`Error al iniciar verificación: ${err.message}`, 'error');
+          this.toastService.show(`Error al iniciar verificacion: ${err.message}`, 'error');
         },
       });
   }
@@ -226,7 +226,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.historyChecks = [];
     this.isLoadingHistory = true;
     this.cdr.detectChanges();
-    this.irsMonitorService
+    this.coloradoMonitorService
       .getChecksForClient(client.taxCaseId)
       .pipe(finalize(() => {
         this.isLoadingHistory = false;
@@ -244,11 +244,11 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.screenshotUrls = {};
   }
 
-  loadScreenshot(check: IrsCheck) {
+  loadScreenshot(check: ColoradoCheck) {
     if (!check.screenshotPath || this.screenshotUrls[check.id]) return;
     this.screenshotUrls[check.id] = 'loading';
     this.cdr.detectChanges();
-    this.irsMonitorService.getScreenshotUrl(check.id).subscribe({
+    this.coloradoMonitorService.getScreenshotUrl(check.id).subscribe({
       next: ({ url }) => {
         this.screenshotUrls[check.id] = url;
         this.cdr.detectChanges();
@@ -260,7 +260,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     });
   }
 
-  getHistoryCheckIcon(check: IrsCheck): string {
+  getHistoryCheckIcon(check: ColoradoCheck): string {
     if (check.statusChanged) return '🔄';
     if (check.checkResult === 'not_found') return '🔍';
     if (check.checkResult === 'error' || check.checkResult === 'timeout') return '❌';
@@ -274,19 +274,19 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     taxCaseId: string,
     since: Date,
     onStatus: (label: string) => void,
-  ): Promise<IrsCheck | null> {
+  ): Promise<ColoradoCheck | null> {
     const deadline = Date.now() + 90 * 1000;
     let attempt = 0;
     while (Date.now() < deadline && !this.destroyed) {
       await new Promise(resolve => setTimeout(resolve, 4000));
       attempt++;
-      if (attempt === 1) onStatus('Consultando IRS...');
-      else if (attempt === 6) onStatus('Esperando respuesta IRS...');
+      if (attempt === 1) onStatus('Consultando Colorado...');
+      else if (attempt === 6) onStatus('Esperando respuesta...');
       else if (attempt === 12) onStatus('Reintentando...');
-      else if (attempt === 20) onStatus('Tomando más tiempo del usual...');
+      else if (attempt === 20) onStatus('Tomando mas tiempo del usual...');
       try {
         const checks = await lastValueFrom(
-          this.irsMonitorService.getChecksForClient(taxCaseId),
+          this.coloradoMonitorService.getChecksForClient(taxCaseId),
         );
         const found = checks.find(c => new Date(c.createdAt) > since);
         if (found) return found;
@@ -295,26 +295,26 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     return null;
   }
 
-  private handleCheckResult(client: ClientRow, check: IrsCheck | null) {
+  private handleCheckResult(client: ClientRow, check: ColoradoCheck | null) {
     client.isChecking = false;
     client.checkStatusLabel = '';
     if (!check) {
-      this.toastService.show(`⏱ ${client.clientName}: sin respuesta (timeout 90s)`, 'error');
+      this.toastService.show(`${client.clientName}: sin respuesta (timeout 90s)`, 'error');
       this.cdr.detectChanges();
       return;
     }
     client.lastCheckResult = check;
     if (check.statusChanged && check.mappedStatus) {
-      client.federalStatusNew = check.mappedStatus;
+      client.stateStatusNew = check.mappedStatus;
       this.toastService.show(
-        `✅ ${client.clientName}: estado → ${check.mappedStatus.replace(/_/g, ' ')}`,
+        `${client.clientName}: estado -> ${check.mappedStatus.replace(/_/g, ' ')}`,
         'success',
       );
     } else if (check.checkResult === 'success' || check.checkResult === 'not_found') {
-      this.toastService.show(`${client.clientName}: sin cambios (${check.irsRawStatus})`, 'info');
+      this.toastService.show(`${client.clientName}: sin cambios (${check.coRawStatus})`, 'info');
     } else {
       this.toastService.show(
-        `❌ ${client.clientName}: ${check.errorMessage ?? check.irsRawStatus}`,
+        `${client.clientName}: ${check.errorMessage ?? check.coRawStatus}`,
         'error',
       );
     }
@@ -330,7 +330,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.cdr.detectChanges();
     const since = new Date();
 
-    this.irsMonitorService.runCheck(client.taxCaseId).subscribe({
+    this.coloradoMonitorService.runCheck(client.taxCaseId).subscribe({
       next: () => {
         client.checkStatusLabel = 'Abriendo navegador...';
         this.cdr.detectChanges();
@@ -353,26 +353,26 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   hasPendingRecommendation(client: ClientRow): boolean {
     const check = client.lastCheckResult ?? client.lastCheck;
     if (!check) return false;
-    return check.statusChanged && !!check.mappedStatus && check.mappedStatus !== client.federalStatusNew;
+    return check.statusChanged && !!check.mappedStatus && check.mappedStatus !== client.stateStatusNew;
   }
 
-  getPendingCheck(client: ClientRow): IrsCheck | null {
+  getPendingCheck(client: ClientRow): ColoradoCheck | null {
     const check = client.lastCheckResult ?? client.lastCheck;
     if (!check) return null;
-    if (check.statusChanged && check.mappedStatus && check.mappedStatus !== client.federalStatusNew) return check;
+    if (check.statusChanged && check.mappedStatus && check.mappedStatus !== client.stateStatusNew) return check;
     return null;
   }
 
   approveRecommendation(client: ClientRow) {
     const check = this.getPendingCheck(client);
     if (!check) return;
-    this.irsMonitorService.approveCheck(check.id).subscribe({
+    this.coloradoMonitorService.approveCheck(check.id).subscribe({
       next: (res) => {
         if (res.applied) {
-          client.federalStatusNew = check.mappedStatus;
+          client.stateStatusNew = check.mappedStatus;
           this.toastService.show(`${client.clientName}: estado actualizado a ${this.getStatusLabel(check.mappedStatus)}`, 'success');
         } else {
-          this.toastService.show(`${client.clientName}: no se aplicó el cambio`, 'info');
+          this.toastService.show(`${client.clientName}: no se aplico el cambio`, 'info');
         }
         this.cdr.detectChanges();
       },
@@ -385,10 +385,10 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   dismissRecommendation(client: ClientRow) {
     const check = this.getPendingCheck(client);
     if (!check) return;
-    this.irsMonitorService.dismissCheck(check.id).subscribe({
+    this.coloradoMonitorService.dismissCheck(check.id).subscribe({
       next: () => {
         check.statusChanged = false;
-        this.toastService.show(`${client.clientName}: recomendación descartada`, 'info');
+        this.toastService.show(`${client.clientName}: recomendacion descartada`, 'info');
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -401,7 +401,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   exportCsv() {
     this.isExportingCsv = true;
-    this.irsMonitorService.exportCsv();
+    this.coloradoMonitorService.exportCsv();
     setTimeout(() => {
       this.isExportingCsv = false;
       this.cdr.detectChanges();
@@ -413,13 +413,13 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   getStatusLabel(status: string | null): string {
     const labels: Record<string, string> = {
       taxes_en_proceso: 'En Proceso',
-      en_verificacion: 'En Verificación',
-      verificacion_en_progreso: 'Verificación en Progreso',
+      en_verificacion: 'En Verificacion',
+      verificacion_en_progreso: 'Verificacion en Progreso',
       problemas: 'Problemas',
-      verificacion_rechazada: 'Verificación Rechazada',
-      deposito_directo: 'Depósito Directo',
+      verificacion_rechazada: 'Verificacion Rechazada',
+      deposito_directo: 'Deposito Directo',
       cheque_en_camino: 'Cheque en Camino',
-      comision_pendiente: 'Comisión Pendiente',
+      comision_pendiente: 'Comision Pendiente',
       taxes_completados: 'Completado',
     };
     return status ? (labels[status] ?? status) : '—';
@@ -441,7 +441,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     return classes[status] ?? 'status-none';
   }
 
-  getCheckResultIcon(result: IrsCheck | null): string {
+  getCheckResultIcon(result: ColoradoCheck | null): string {
     if (!result) return '';
     if (result.statusChanged) return '🔄';
     if (result.checkResult === 'error' || result.checkResult === 'timeout') return '❌';
@@ -449,19 +449,47 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     return '✅';
   }
 
-  getFilingStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      single:            'Single',
-      married_joint:     'Married Joint',
-      married_separate:  'Married Sep.',
-      head_of_household: 'Head of HH',
-    };
-    return labels[status] ?? status;
-  }
-
-  getIrsDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
+  getCoDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
     if (!details) return '';
-    return details.replace(rawStatus ?? '', '').replace(/\s+/g, ' ').trim();
+
+    let text = details;
+    if (rawStatus) text = text.replace(rawStatus, '');
+
+    const noisePatterns = [
+      /Go\s*back\s*to\s*Home/gi,
+      /Check\s*Refund\s*Status/gi,
+      /Where'?s\s*My\s*Refund/gi,
+      /Colorado\s*Revenue\s*Online/gi,
+      /Colorado\s*Department\s*of\s*Revenue/gi,
+      /Skip\s*to\s*main\s*content/gi,
+      /Log\s*[Ii]n/gi,
+      /Sign\s*[Oo]ut/gi,
+      /Privacy\s*Policy/gi,
+      /Terms\s*of\s*Use/gi,
+      /Contact\s*Us/gi,
+      /©\s*\d{4}/gi,
+      /All\s*Rights\s*Reserved/gi,
+      // Form field labels (scraped from input page on old checks)
+      /TypeId\s*Type\s*SSN/gi,
+      /Refund\s*Amount[:\s-]*/gi,
+      /OR\s*-?\s*PIN\/?/gi,
+      /Let.*$/gi,
+      /Return Not Received or Not Yet Processed/gi,
+      /Return Received\s*&?\s*Being Processed/gi,
+      /Refund Reviewed/gi,
+      /Refund Approved and Sent/gi,
+      /Your refund status will be updated daily[^.]*\./gi,
+      /Please feel free to check back periodically[^.]*\./gi,
+    ];
+    for (const pattern of noisePatterns) {
+      text = text.replace(pattern, '');
+    }
+
+    text = text.replace(/\s*\|\s*$/, '').replace(/^\s*\|\s*/, '').replace(/\s+/g, ' ').trim();
+
+    if (text.length > 160) text = text.slice(0, 160).replace(/\s\S*$/, '…');
+
+    return text;
   }
 
   formatDate(date: string | null): string {
@@ -491,5 +519,5 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   goToReferrals() { this.router.navigate(['/admin/referrals']); }
   goToAccounts() { this.router.navigate(['/admin/accounts']); }
   goToJai1gents() { this.router.navigate(['/admin/jai1gents']); }
-  goToColoradoMonitor() { this.router.navigate(['/admin/colorado-monitor']); }
+  goToIrsMonitor() { this.router.navigate(['/admin/irs-monitor']); }
 }
