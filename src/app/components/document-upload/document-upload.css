@@ -1640,10 +1640,15 @@
     justify-content: center;
   }
 
+  .consent-form-modal {
+    align-items: flex-end;
+  }
+
   .consent-form-modal .consent-form-modal-content {
     width: 100%;
     border-radius: 16px 16px 0 0;
-    max-height: calc(100vh - var(--bottom-nav-height, 64px));
+    max-height: calc(100dvh - var(--bottom-nav-height, 64px));
+    margin-bottom: 0;
   }
 }
 

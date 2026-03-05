@@ -91,6 +91,8 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   private lastY = 0;
   hasSignature = false;
   canvasReady = false;
+  private canvasCssWidth = 0;
+  private canvasCssHeight = 0;
 
   // Clauses
   clauses = CONSENT_CLAUSES;
@@ -110,7 +112,7 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
           this.cdr.detectChanges();
           // Initialize signature canvas after DOM renders the form
           if (!this.isSigned) {
-            setTimeout(() => this.initCanvas(), 100);
+            requestAnimationFrame(() => requestAnimationFrame(() => this.initCanvas()));
           }
         })
       ).subscribe({
@@ -170,39 +172,38 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initCanvas() {
-    if (!this.signatureCanvas?.nativeElement) {
-      console.warn('Canvas element not found');
+    const canvas = this.signatureCanvas?.nativeElement;
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) {
+      // Canvas not yet rendered, retry
+      requestAnimationFrame(() => this.initCanvas());
       return;
     }
 
-    const canvas = this.signatureCanvas.nativeElement;
-    const wrapper = canvas.parentElement;
+    // Store CSS dimensions for use in clearSignature
+    this.canvasCssWidth = rect.width;
+    this.canvasCssHeight = rect.height;
 
-    // Get actual dimensions from wrapper
-    const width = wrapper?.clientWidth || 400;
-    const height = 120;
-
-    // Set canvas dimensions
-    canvas.width = width - 4; // Account for border
-    canvas.height = height;
+    // Set buffer dimensions scaled by DPR
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
 
     this.ctx = canvas.getContext('2d');
-    if (!this.ctx) {
-      console.warn('Could not get canvas context');
-      return;
-    }
+    if (!this.ctx) return;
 
-    // Configure drawing style
+    // Scale context so drawing coordinates are in CSS pixels
+    this.ctx.scale(dpr, dpr);
     this.ctx.strokeStyle = '#1D345D';
     this.ctx.lineWidth = 2;
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
-
-    // Fill with white background
     this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+    this.ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // Add event listeners
     this.addCanvasListeners();
 
     this.canvasReady = true;
@@ -299,10 +300,8 @@ export class ConsentForm implements OnInit, OnDestroy, AfterViewInit {
 
   clearSignature() {
     if (!this.ctx || !this.signatureCanvas?.nativeElement) return;
-
-    const canvas = this.signatureCanvas.nativeElement;
     this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+    this.ctx.fillRect(0, 0, this.canvasCssWidth, this.canvasCssHeight);
     this.hasSignature = false;
     this.cdr.detectChanges();
   }

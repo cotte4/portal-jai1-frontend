@@ -206,6 +206,66 @@
   font-weight: 600;
   color: var(--color-primary);
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Tooltip on Dirección / Ciudad fields */
+.field-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip-icon {
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.tooltip-icon:hover,
+.tooltip-icon:focus {
+  color: var(--color-primary);
+  outline: none;
+}
+
+.tooltip-text {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1D345D;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+
+/* Small arrow */
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1D345D;
+}
+
+/* Show on hover or focus (desktop + mobile tap) */
+.field-tooltip:hover .tooltip-text,
+.tooltip-icon:focus + .tooltip-text {
+  opacity: 1;
 }
 
 .form-input {
@@ -548,6 +608,10 @@
 
   .footer-actions {
     flex-direction: column;
+  }
+
+  .footer-actions .btn-primary {
+    order: -1;
   }
 
   .btn-secondary,
