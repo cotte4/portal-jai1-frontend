@@ -409,6 +409,7 @@ export class TaxForm implements OnInit, OnDestroy {
           this.dataRefreshService.refreshDashboard();
           // Show success screen with animation
           this.showSuccessScreen = true;
+          this.checkDocsComplete(); // Check if payment proof + consent already done
           this.cdr.detectChanges(); // Force Angular to update the view immediately
           window.scrollTo(0, 0);
         }

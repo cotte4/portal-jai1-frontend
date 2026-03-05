@@ -232,6 +232,13 @@
           <span>Observaciones</span>
         </div>
 
+        @if (showPaymentDeductionBanner) {
+          <div class="payment-deduction-banner">
+            <span class="payment-deduction-icon">💡</span>
+            <p class="payment-deduction-text">El pago inicial y los beneficios obtenidos por el programa de referidos se descontarán del último pago de taxes que realices.</p>
+          </div>
+        }
+
         <div class="obs-grid">
           <!-- Federal Card -->
           <div class="obs-card" [class.obs-pending]="federalCategory === 'pending'" [class.obs-in-progress]="federalCategory === 'in_progress'" [class.obs-completed]="federalCategory === 'completed'" [class.obs-issues]="federalCategory === 'issues'">

@@ -596,11 +596,10 @@
    FORM CONTENT STYLES
    ============================================= */
 
-/* Form Content */
+/* Form Content — scrolling is handled by the parent .page-content container,
+   so we must NOT set overflow here (it would break position: sticky on the header) */
 .form-content {
   padding: 24px;
-  height: 100%;
-  overflow-y: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
 }
 

@@ -485,6 +485,12 @@
     display: block;
   }
 
+  /* Fix: flex child needs min-height: 0 to shrink below content size
+     inside a fixed-height (100vh) container, enabling overflow scroll on mobile */
+  .sidebar-nav {
+    min-height: 0;
+  }
+
   .sidebar-overlay.active {
     display: block;
     /* Only cover content area — NOT the sidebar (260px) so the sidebar

@@ -25,14 +25,14 @@
       <div class="next-step-icon">📄</div>
       <div class="next-step-content">
         <h3>Siguiente paso</h3>
-        <p>Sube tu documento W2 para que podamos procesar tu declaración de impuestos</p>
+        <p>Sube tu comprobante de pago y firma el consentimiento para que podamos procesar tu declaración</p>
       </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="success-actions">
-      <button class="btn-continue" (click)="continueToDocuments()">
-        <span>Continuar a Documentos</span>
+      <button class="btn-continue" (click)="docsAllComplete ? goToTracking() : continueToDocuments()">
+        <span>{{ docsAllComplete ? 'Ver estado de mis taxes' : 'Continuar → Mis Documentos' }}</span>
         <span class="btn-arrow">→</span>
       </button>
       <button class="btn-later" (click)="goToDashboard()">
@@ -120,7 +120,7 @@
         <h3>Necesitas hacer cambios?</h3>
         <p>Por seguridad, los cambios en tu información fiscal deben ser solicitados a traves de soporte</p>
       </div>
-      <button class="btn-support-link" (click)="goToSupport()">Contactar Soporte →</button>
+      <button class="btn-support-link" (click)="goToSupport()">Contactar Soporte</button>
     </div>
   </div>
 </div>

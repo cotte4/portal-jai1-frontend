@@ -440,6 +440,19 @@ export class TaxTracking implements OnInit, OnDestroy, AfterViewInit {
     return isFederalDeposited(taxCase?.federalStatusNew) && isStateDeposited(taxCase?.stateStatusNew);
   }
 
+  get showPaymentDeductionBanner(): boolean {
+    const taxCase = this.profileData?.taxCase;
+    if (!taxCase) return false;
+    const refundStatuses: string[] = [
+      FederalStatusNew.DEPOSITO_DIRECTO,
+      FederalStatusNew.CHEQUE_EN_CAMINO,
+      StateStatusNew.DEPOSITO_DIRECTO,
+      StateStatusNew.CHEQUE_EN_CAMINO,
+    ];
+    return refundStatuses.includes(taxCase.federalStatusNew as string)
+      || refundStatuses.includes(taxCase.stateStatusNew as string);
+  }
+
   get hasFederalStatus(): boolean {
     return !!this.profileData?.taxCase?.federalStatusNew;
   }
