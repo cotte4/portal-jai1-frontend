@@ -90,7 +90,18 @@
       </button>
       <div class="top-bar-title">
         <span class="page-title">Colorado Monitor</span>
-        <span class="page-subtitle">Verificacion automatica en Colorado Revenue Online</span>
+        <span class="page-subtitle">
+          Verificacion automatica en Colorado Revenue Online
+          <span class="filed-counter" *ngIf="totalFiledCount > 0">
+            &nbsp;·&nbsp;
+            <span [class.filed-counter-warn]="coloradoFiledCount < totalFiledCount">
+              {{ coloradoFiledCount }} de {{ totalFiledCount }} clientes filed
+            </span>
+            <span class="filed-counter-tip" *ngIf="coloradoFiledCount < totalFiledCount">
+              &nbsp;({{ totalFiledCount - coloradoFiledCount }} sin estado CO)
+            </span>
+          </span>
+        </span>
       </div>
       <button
         class="btn-run-all"
@@ -99,6 +110,14 @@
         title="Verificar todos los clientes CO en segundo plano"
       >
         {{ isRunningAll ? 'Iniciando...' : 'Verificar Todos' }}
+      </button>
+      <button
+        class="btn-toggle-completed"
+        [class.active]="!hideCompleted"
+        (click)="hideCompleted = !hideCompleted"
+        [title]="hideCompleted ? 'Mostrar completados' : 'Ocultar completados'"
+      >
+        {{ hideCompleted ? '👁 Mostrar completados' : '🙈 Ocultar completados' }}
       </button>
       <button class="btn-export-csv" (click)="exportCsv()" [disabled]="isExportingCsv || isLoading" title="Exportar historial completo a CSV">
         CSV
@@ -124,7 +143,7 @@
     </div>
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="!isLoading && clients.length === 0 && !error">
+    <div class="empty-state" *ngIf="!isLoading && filteredClients.length === 0 && !error">
       <span class="empty-icon">🏔️</span>
       <p>No hay clientes de Colorado con taxes presentados en este momento.</p>
       <p class="empty-sub">Los clientes aparecen aqui una vez que sus taxes hayan sido presentados y su workState sea <strong>Colorado</strong>.</p>
@@ -159,7 +178,7 @@
     </div>
 
     <!-- Icon legend -->
-    <div class="icon-legend" *ngIf="!isLoading && clients.length > 0">
+    <div class="icon-legend" *ngIf="!isLoading && filteredClients.length > 0">
       <span class="legend-item"><span class="legend-icon">✅</span> Estado actualizado</span>
       <span class="legend-item"><span class="legend-icon">🔄</span> Cambio detectado</span>
       <span class="legend-item"><span class="legend-icon">❌</span> Error / timeout</span>
@@ -167,7 +186,7 @@
     </div>
 
     <!-- Clients table -->
-    <div class="table-wrapper" *ngIf="!isLoading && clients.length > 0">
+    <div class="table-wrapper" *ngIf="!isLoading && filteredClients.length > 0">
       <table class="clients-table">
         <thead>
           <tr>
@@ -184,7 +203,7 @@
         </thead>
         <tbody>
           <tr
-            *ngFor="let client of clients"
+            *ngFor="let client of filteredClients"
             [class.changed]="client.lastCheckResult?.statusChanged"
             [class.selected]="isSelected(client)"
           >

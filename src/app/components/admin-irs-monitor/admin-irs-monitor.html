@@ -100,6 +100,14 @@
       >
         {{ isRunningAll ? '⏳ Iniciando...' : '🔍 Verificar Todos' }}
       </button>
+      <button
+        class="btn-toggle-completed"
+        [class.active]="!hideCompleted"
+        (click)="hideCompleted = !hideCompleted"
+        [title]="hideCompleted ? 'Mostrar completados' : 'Ocultar completados'"
+      >
+        {{ hideCompleted ? '👁 Mostrar completados' : '🙈 Ocultar completados' }}
+      </button>
       <button class="btn-export-csv" (click)="exportCsv()" [disabled]="isExportingCsv || isLoading" title="Exportar historial completo a CSV">
         {{ isExportingCsv ? '⏳' : '📥' }} CSV
       </button>
@@ -124,7 +132,7 @@
     </div>
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="!isLoading && clients.length === 0 && !error">
+    <div class="empty-state" *ngIf="!isLoading && filteredClients.length === 0 && !error">
       <span class="empty-icon">🏛️</span>
       <p>No hay clientes con taxes_filed en este momento.</p>
       <p class="empty-sub">Los clientes aparecen aquí una vez que su estado sea <strong>taxes_filed</strong>.</p>
@@ -161,7 +169,7 @@
     </div>
 
     <!-- Icon legend -->
-    <div class="icon-legend" *ngIf="!isLoading && clients.length > 0">
+    <div class="icon-legend" *ngIf="!isLoading && filteredClients.length > 0">
       <span class="legend-item"><span class="legend-icon">✅</span> Estado actualizado</span>
       <span class="legend-item"><span class="legend-icon">🔄</span> Cambio detectado</span>
       <span class="legend-item"><span class="legend-icon">❌</span> Error / timeout</span>
@@ -169,7 +177,7 @@
     </div>
 
     <!-- Clients table -->
-    <div class="table-wrapper" *ngIf="!isLoading && clients.length > 0">
+    <div class="table-wrapper" *ngIf="!isLoading && filteredClients.length > 0">
       <table class="clients-table">
         <thead>
           <tr>
@@ -188,7 +196,7 @@
         </thead>
         <tbody>
           <tr
-            *ngFor="let client of clients"
+            *ngFor="let client of filteredClients"
             [class.changed]="client.lastCheckResult?.statusChanged"
             [class.selected]="isSelected(client)"
           >

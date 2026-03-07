@@ -1,6 +1,6 @@
 <div class="toast-container">
   @for (toast of toasts; track toast.id) {
-    <div class="toast" [class]="'toast-' + toast.type" (click)="removeToast(toast.id)">
+    <div class="toast" [ngClass]="'toast-' + toast.type" (click)="removeToast(toast.id)">
       <div class="toast-icon">{{ getIcon(toast.type) }}</div>
       <div class="toast-content">
         @if (toast.title) {

@@ -341,7 +341,7 @@
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .dark-mode .table-wrapper {
@@ -993,6 +993,32 @@
   height: 10px;
   border-width: 2px;
 }
+
+/* ===== TOGGLE COMPLETED BUTTON ===== */
+.btn-toggle-completed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: #f5f5f7;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: #3a3a3c;
+  white-space: nowrap;
+}
+.btn-toggle-completed:hover { background: #e8e8ed; }
+.btn-toggle-completed.active {
+  background: #e8f0fe;
+  border-color: #0071e3;
+  color: #0071e3;
+}
+.dark-mode .btn-toggle-completed { background: #3a3a3c; border-color: #48484a; color: #ebebf5; }
+.dark-mode .btn-toggle-completed:hover { background: #48484a; }
+.dark-mode .btn-toggle-completed.active { background: rgba(0,113,227,0.15); border-color: #4da3ff; color: #4da3ff; }
 
 /* ===== CSV EXPORT BUTTON ===== */
 .btn-export-csv {

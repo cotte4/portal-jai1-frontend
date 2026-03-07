@@ -61,9 +61,9 @@ export class ColoradoMonitorService {
       .pipe(catchError(this.handleError));
   }
 
-  getStats(): Observable<{ changesLast24h: number }> {
+  getStats(): Observable<{ changesLast24h: number; coloradoFiledCount: number; totalFiledCount: number }> {
     return this.http
-      .get<{ changesLast24h: number }>(`${this.apiUrl}/stats`)
+      .get<{ changesLast24h: number; coloradoFiledCount: number; totalFiledCount: number }>(`${this.apiUrl}/stats`)
       .pipe(catchError(this.handleError));
   }
 

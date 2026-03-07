@@ -56,6 +56,14 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   screenshotUrls: Record<string, string | 'loading' | 'error'> = {};
 
   isExportingCsv = false;
+  hideCompleted = true;
+
+  private readonly COMPLETED_STATUSES = ['taxes_completados', 'deposito_directo', 'cheque_en_camino'];
+
+  get filteredClients(): ClientRow[] {
+    if (!this.hideCompleted) return this.clients;
+    return this.clients.filter(c => !this.COMPLETED_STATUSES.includes(c.federalStatusNew ?? ''));
+  }
 
   get darkMode() {
     return this.themeService.darkMode();
@@ -305,10 +313,9 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     }
     client.lastCheckResult = check;
     if (check.statusChanged && check.mappedStatus) {
-      client.federalStatusNew = check.mappedStatus;
       this.toastService.show(
-        `✅ ${client.clientName}: estado → ${check.mappedStatus.replace(/_/g, ' ')}`,
-        'success',
+        `🔔 ${client.clientName}: recomendación → ${check.mappedStatus.replace(/_/g, ' ')} (pendiente de aprobación)`,
+        'info',
       );
     } else if (check.checkResult === 'success' || check.checkResult === 'not_found') {
       this.toastService.show(`${client.clientName}: sin cambios (${check.irsRawStatus})`, 'info');
