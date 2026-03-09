@@ -1,0 +1,363 @@
+<div class="admin-layout" [class.dark-mode]="darkMode">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-text">JAI1</span>
+        <span class="logo-badge">Admin</span>
+      </div>
+      <button class="sidebar-close-mobile" (click)="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-title">Principal</span>
+        <a class="nav-item" (click)="goToDashboard()">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item active" (click)="$event.preventDefault()">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Estadísticas</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Clientes</span>
+        <a class="nav-item" (click)="goToDelays()">
+          <span class="nav-icon">⏰</span>
+          <span class="nav-label">Demoras</span>
+        </a>
+        <a class="nav-item" (click)="goToAlarms()">
+          <span class="nav-icon">🔔</span>
+          <span class="nav-label">Alarmas</span>
+        </a>
+        <a class="nav-item" (click)="goToTickets()">
+          <span class="nav-icon">🎫</span>
+          <span class="nav-label">Tickets</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Finanzas</span>
+        <a class="nav-item" (click)="goToPayments()">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Pagos</span>
+        </a>
+        <a class="nav-item" (click)="goToReferrals()">
+          <span class="nav-icon">🎁</span>
+          <span class="nav-label">Referidos</span>
+        </a>
+        <a class="nav-item" (click)="goToAccounts()">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">Cuentas</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Programa</span>
+        <a class="nav-item" (click)="goToJai1gents()">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-label">JAI1GENTS</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-title">Herramientas</span>
+        <a class="nav-item" (click)="goToIrsMonitor()">
+          <span class="nav-icon">🏛️</span>
+          <span class="nav-label">IRS Monitor</span>
+        </a>
+        <a class="nav-item" (click)="goToColoradoMonitor()">
+          <span class="nav-icon">🏔️</span>
+          <span class="nav-label">CO Monitor</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-user">
+        <span class="admin-avatar">👤</span>
+        <span class="admin-name">Administrador</span>
+      </div>
+      <button class="btn-sidebar-logout" (click)="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="admin-main-container">
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-toggle" (click)="toggleSidebar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+        <h1 class="topbar-title">Estadísticas</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-topbar btn-refresh" (click)="loadAll()" [disabled]="isLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span>{{ isLoading ? 'Cargando...' : 'Actualizar' }}</span>
+        </button>
+        <div class="topbar-dark-mode-toggle" (click)="toggleDarkMode()">
+          <span class="dark-mode-icon">{{ darkMode ? '☀️' : '🌙' }}</span>
+          <div class="topbar-toggle-switch" [class.active]="darkMode">
+            <div class="topbar-toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <!-- Loading -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Calculando estadísticas...</p>
+      </div>
+
+      <ng-container *ngIf="!isLoading && dashboardStats">
+
+        <!-- ===== SEASON SUMMARY ROW ===== -->
+        <section class="stats-section">
+          <h2 class="section-title">Resumen de Temporada</h2>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="summary-icon clients-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div class="summary-value">{{ dashboardStats.groupStats.total }}</div>
+              <div class="summary-label">Total Clientes</div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon completed-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="summary-value">{{ seasonStats?.taxesCompletedPercent || 0 }}%</div>
+              <div class="summary-label">Taxes Completados</div>
+            </div>
+
+            <div class="summary-card highlight-green">
+              <div class="summary-icon earnings-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2"/>
+                  <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+              </div>
+              <div class="summary-value">${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</div>
+              <div class="summary-label">Ganancias Realizadas</div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon projected-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div class="summary-value">${{ (seasonStats?.projectedEarnings || 0) | number:'1.0-0' }}</div>
+              <div class="summary-label">Ganancias Proyectadas</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PIPELINE FUNNEL ===== -->
+        <section class="stats-section">
+          <h2 class="section-title">Pipeline de Clientes</h2>
+          <div class="pipeline-grid">
+            <div class="pipeline-card pending">
+              <div class="pipeline-number">{{ dashboardStats.groupStats.pending }}</div>
+              <div class="pipeline-label">Pendientes</div>
+              <div class="pipeline-desc">Sin presentar aún</div>
+              <div class="pipeline-bar">
+                <div class="pipeline-bar-fill" [style.width.%]="dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.pending / dashboardStats.groupStats.total * 100) : 0"></div>
+              </div>
+              <div class="pipeline-pct">{{ dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.pending / dashboardStats.groupStats.total * 100 | number:'1.0-0') : 0 }}%</div>
+            </div>
+
+            <div class="pipeline-card review">
+              <div class="pipeline-number">{{ dashboardStats.groupStats.inReview }}</div>
+              <div class="pipeline-label">En Proceso</div>
+              <div class="pipeline-desc">Presentados, esperando</div>
+              <div class="pipeline-bar">
+                <div class="pipeline-bar-fill" [style.width.%]="dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.inReview / dashboardStats.groupStats.total * 100) : 0"></div>
+              </div>
+              <div class="pipeline-pct">{{ dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.inReview / dashboardStats.groupStats.total * 100 | number:'1.0-0') : 0 }}%</div>
+            </div>
+
+            <div class="pipeline-card attention">
+              <div class="pipeline-number">{{ dashboardStats.groupStats.needsAttention }}</div>
+              <div class="pipeline-label">Requieren Atención</div>
+              <div class="pipeline-desc">Con problemas activos</div>
+              <div class="pipeline-bar">
+                <div class="pipeline-bar-fill" [style.width.%]="dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.needsAttention / dashboardStats.groupStats.total * 100) : 0"></div>
+              </div>
+              <div class="pipeline-pct">{{ dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.needsAttention / dashboardStats.groupStats.total * 100 | number:'1.0-0') : 0 }}%</div>
+            </div>
+
+            <div class="pipeline-card completed">
+              <div class="pipeline-number">{{ dashboardStats.groupStats.completed }}</div>
+              <div class="pipeline-label">Completados</div>
+              <div class="pipeline-desc">Taxes finalizados</div>
+              <div class="pipeline-bar">
+                <div class="pipeline-bar-fill" [style.width.%]="dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.completed / dashboardStats.groupStats.total * 100) : 0"></div>
+              </div>
+              <div class="pipeline-pct">{{ dashboardStats.groupStats.total > 0 ? (dashboardStats.groupStats.completed / dashboardStats.groupStats.total * 100 | number:'1.0-0') : 0 }}%</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== STATUS BREAKDOWNS ===== -->
+        <div class="charts-row">
+
+          <!-- Case Status -->
+          <section class="stats-section chart-card">
+            <h2 class="section-title">Estado del Caso</h2>
+            <p class="chart-subtitle">Distribución de todos los casos</p>
+            <div class="bar-chart" *ngIf="caseStatusBars.length > 0; else noData">
+              <div class="bar-item" *ngFor="let item of caseStatusBars; trackBy: trackByKey">
+                <div class="bar-label-row">
+                  <span class="bar-label">{{ item.label }}</span>
+                  <span class="bar-count">{{ item.count }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" [class]="item.colorClass" [style.width.%]="item.percent"></div>
+                </div>
+                <span class="bar-pct">{{ item.percent }}%</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Federal Status -->
+          <section class="stats-section chart-card">
+            <h2 class="section-title">Estado Federal</h2>
+            <p class="chart-subtitle">Solo casos presentados</p>
+            <div class="bar-chart" *ngIf="federalStatusBars.length > 0; else noData">
+              <div class="bar-item" *ngFor="let item of federalStatusBars; trackBy: trackByKey">
+                <div class="bar-label-row">
+                  <span class="bar-label">{{ item.label }}</span>
+                  <span class="bar-count">{{ item.count }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" [class]="item.colorClass" [style.width.%]="item.percent"></div>
+                </div>
+                <span class="bar-pct">{{ item.percent }}%</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- State Status -->
+          <section class="stats-section chart-card">
+            <h2 class="section-title">Estado Estatal</h2>
+            <p class="chart-subtitle">Solo casos presentados</p>
+            <div class="bar-chart" *ngIf="stateStatusBars.length > 0; else noData">
+              <div class="bar-item" *ngFor="let item of stateStatusBars; trackBy: trackByKey">
+                <div class="bar-label-row">
+                  <span class="bar-label">{{ item.label }}</span>
+                  <span class="bar-count">{{ item.count }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" [class]="item.colorClass" [style.width.%]="item.percent"></div>
+                </div>
+                <span class="bar-pct">{{ item.percent }}%</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===== FINANCIAL DETAILS ===== -->
+        <section class="stats-section">
+          <h2 class="section-title">Resumen de Reembolsos</h2>
+          <div class="financials-grid">
+            <div class="financial-card federal">
+              <div class="fin-header">
+                <span class="fin-icon">🏛️</span>
+                <span class="fin-title">Federal</span>
+              </div>
+              <div class="fin-total">${{ dashboardStats.financials.totalFederalRefunds | number:'1.0-0' }}</div>
+              <div class="fin-subtitle">Total reembolsos federales</div>
+              <div class="fin-details">
+                <div class="fin-detail-row">
+                  <span>Clientes con reembolso</span>
+                  <strong>{{ dashboardStats.financials.clientsWithFederalRefund }}</strong>
+                </div>
+                <div class="fin-detail-row">
+                  <span>Promedio por cliente</span>
+                  <strong>${{ dashboardStats.financials.avgFederalRefund | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="financial-card state">
+              <div class="fin-header">
+                <span class="fin-icon">🏔️</span>
+                <span class="fin-title">Estatal</span>
+              </div>
+              <div class="fin-total">${{ dashboardStats.financials.totalStateRefunds | number:'1.0-0' }}</div>
+              <div class="fin-subtitle">Total reembolsos estatales</div>
+              <div class="fin-details">
+                <div class="fin-detail-row">
+                  <span>Clientes con reembolso</span>
+                  <strong>{{ dashboardStats.financials.clientsWithStateRefund }}</strong>
+                </div>
+                <div class="fin-detail-row">
+                  <span>Promedio por cliente</span>
+                  <strong>${{ dashboardStats.financials.avgStateRefund | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="financial-card total highlight-green">
+              <div class="fin-header">
+                <span class="fin-icon">💵</span>
+                <span class="fin-title">Total Combinado</span>
+              </div>
+              <div class="fin-total">${{ dashboardStats.financials.totalRefunds | number:'1.0-0' }}</div>
+              <div class="fin-subtitle">Federal + Estatal</div>
+              <div class="fin-details">
+                <div class="fin-detail-row">
+                  <span>Comisión est. (11%)</span>
+                  <strong>${{ (dashboardStats.financials.totalRefunds * 0.11) | number:'1.0-0' }}</strong>
+                </div>
+                <div class="fin-detail-row">
+                  <span>Ganancias realizadas</span>
+                  <strong>${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </ng-container>
+
+      <ng-template #noData>
+        <div class="no-data">Sin datos disponibles</div>
+      </ng-template>
+    </main>
+  </div>
+</div>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" [class.active]="!sidebarCollapsed" (click)="toggleSidebar()"></div>

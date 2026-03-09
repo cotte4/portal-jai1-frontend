@@ -96,6 +96,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-colorado-monitor/admin-colorado-monitor').then(m => m.AdminColoradoMonitor),
     canActivate: [adminGuard]
   },
+  {
+    path: 'admin/statistics',
+    loadComponent: () => import('./components/admin-statistics/admin-statistics').then(m => m.AdminStatistics),
+    canActivate: [adminGuard]
+  },
 
   // JAI1GENT routes - lazy loaded
   {

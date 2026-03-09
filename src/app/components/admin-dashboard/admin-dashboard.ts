@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { AdminService, SeasonStats } from '../../core/services/admin.service';
+import { AdminService, SeasonStats, DashboardStats } from '../../core/services/admin.service';
 import { IrsMonitorService } from '../../core/services/irs-monitor.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
@@ -56,6 +56,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   // Season summary stats
   seasonStats: SeasonStats | null = null;
+  dashboardStats: DashboardStats | null = null;
   nextCursor: string | undefined;
   hasMore: boolean = false;
   totalLoaded: number = 0;
@@ -177,6 +178,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
     this.loadClients();
     this.loadSeasonStats();
+    this.loadDashboardStats();
     this.loadMissingDocsCronStatus();
     this.irsMonitorService.getStats().subscribe({
       next: (s) => { this.irsChangesLast24h = s.changesLast24h; this.cdr.markForCheck(); },
@@ -295,6 +297,25 @@ export class AdminDashboard implements OnInit, OnDestroy {
       },
       error: () => {
         // Stats loading failure is non-critical, ignore
+      }
+    });
+  }
+
+  // Load dashboard stats from backend (group counts + breakdowns)
+  loadDashboardStats() {
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.dashboardStats = stats;
+        // Override client-side stats with accurate backend counts
+        this.stats.total = stats.groupStats.total;
+        this.stats.pending = stats.groupStats.pending;
+        this.stats.inReview = stats.groupStats.inReview;
+        this.stats.completed = stats.groupStats.completed;
+        this.stats.needsAttention = stats.groupStats.needsAttention;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Non-critical: fall back to client-side calculation
       }
     });
   }
@@ -421,6 +442,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   refreshData() {
     this.loadClients(true);
     this.loadSeasonStats();
+    this.loadDashboardStats();
   }
 
   // V2 status label mapping
@@ -517,6 +539,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   goToColoradoMonitor() {
     this.router.navigate(['/admin/colorado-monitor']);
+  }
+
+  goToStatistics() {
+    this.router.navigate(['/admin/statistics']);
   }
 
   exportToExcel() {

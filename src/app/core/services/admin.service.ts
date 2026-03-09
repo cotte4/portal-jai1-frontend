@@ -26,6 +26,28 @@ export interface SeasonStats {
   earningsToDate: number;
 }
 
+export interface DashboardStats {
+  groupStats: {
+    total: number;
+    pending: number;
+    inReview: number;
+    completed: number;
+    needsAttention: number;
+  };
+  caseStatusBreakdown: Record<string, number>;
+  federalStatusBreakdown: Record<string, number>;
+  stateStatusBreakdown: Record<string, number>;
+  financials: {
+    totalFederalRefunds: number;
+    totalStateRefunds: number;
+    totalRefunds: number;
+    clientsWithFederalRefund: number;
+    clientsWithStateRefund: number;
+    avgFederalRefund: number;
+    avgStateRefund: number;
+  };
+}
+
 export interface PaymentClient {
   id: string;
   name: string;
@@ -260,6 +282,13 @@ export class AdminService {
 
   getSeasonStats(): Observable<SeasonStats> {
     return this.http.get<SeasonStats>(`${this.apiUrl}/admin/stats/season`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
+  getDashboardStats(): Observable<DashboardStats> {
+    return this.http.get<DashboardStats>(`${this.apiUrl}/admin/stats/dashboard`).pipe(
       catchError(this.handleError),
       shareReplay(1)
     );
