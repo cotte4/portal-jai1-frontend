@@ -31,6 +31,7 @@ export class AdminStatistics implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   isLoading = true;
+  errorMessage: string = '';
   dashboardStats: DashboardStats | null = null;
   seasonStats: SeasonStats | null = null;
 
@@ -91,17 +92,26 @@ export class AdminStatistics implements OnInit, OnDestroy {
 
   loadAll() {
     this.isLoading = true;
+    this.errorMessage = '';
     let pending = 2;
     const done = () => { if (--pending === 0) { this.isLoading = false; this.cdr.detectChanges(); } };
 
     this.adminService.getDashboardStats().subscribe({
       next: (stats) => { this.dashboardStats = stats; done(); },
-      error: () => { done(); }
+      error: (err) => {
+        this.errorMessage = `getDashboardStats falló: HTTP ${err?.status || 'desconocido'} — ${err?.error?.message || err?.message || 'sin detalle'}`;
+        done();
+      }
     });
 
     this.adminService.getSeasonStats().subscribe({
       next: (stats) => { this.seasonStats = stats; done(); },
-      error: () => { done(); }
+      error: (err) => {
+        if (!this.errorMessage) {
+          this.errorMessage = `getSeasonStats falló: HTTP ${err?.status || 'desconocido'} — ${err?.error?.message || err?.message || 'sin detalle'}`;
+        }
+        done();
+      }
     });
   }
 

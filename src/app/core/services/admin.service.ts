@@ -26,6 +26,28 @@ export interface SeasonStats {
   earningsToDate: number;
 }
 
+
+export interface EarningsBreakdownItem {
+  clientId: string;
+  name: string;
+  federalRefund: number | null;
+  federalCommissionRate: number | null;
+  federalCommission: number | null;
+  federalCommissionPaidAt: string | null;
+  stateRefund: number | null;
+  stateCommissionRate: number | null;
+  stateCommission: number | null;
+  stateCommissionPaidAt: string | null;
+  totalCommission: number;
+}
+
+export interface EarningsBreakdown {
+  clients: EarningsBreakdownItem[];
+  totalFederalCommission: number;
+  totalStateCommission: number;
+  totalEarnings: number;
+}
+
 export interface DashboardStats {
   groupStats: {
     total: number;
@@ -282,6 +304,13 @@ export class AdminService {
 
   getSeasonStats(): Observable<SeasonStats> {
     return this.http.get<SeasonStats>(`${this.apiUrl}/admin/stats/season`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
+  }
+
+  getEarningsBreakdown(): Observable<EarningsBreakdown> {
+    return this.http.get<EarningsBreakdown>(`${this.apiUrl}/admin/stats/earnings-breakdown`).pipe(
       catchError(this.handleError),
       shareReplay(1)
     );

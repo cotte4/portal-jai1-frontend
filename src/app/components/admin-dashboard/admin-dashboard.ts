@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, filter, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { AdminService, SeasonStats, DashboardStats } from '../../core/services/admin.service';
+import { AdminService, SeasonStats, DashboardStats, EarningsBreakdown } from '../../core/services/admin.service';
 import { IrsMonitorService } from '../../core/services/irs-monitor.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataRefreshService } from '../../core/services/data-refresh.service';
@@ -57,6 +57,11 @@ export class AdminDashboard implements OnInit, OnDestroy {
   // Season summary stats
   seasonStats: SeasonStats | null = null;
   dashboardStats: DashboardStats | null = null;
+  // Earnings breakdown modal
+  showEarningsModal: boolean = false;
+  earningsBreakdown: EarningsBreakdown | null = null;
+  isLoadingEarnings: boolean = false;
+
   nextCursor: string | undefined;
   hasMore: boolean = false;
   totalLoaded: number = 0;
@@ -214,6 +219,32 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.loadClients();
       })
     );
+  }
+
+  openEarningsModal() {
+    this.showEarningsModal = true;
+    if (!this.earningsBreakdown) {
+      this.isLoadingEarnings = true;
+      this.cdr.markForCheck();
+      this.adminService.getEarningsBreakdown().subscribe({
+        next: (data) => {
+          this.earningsBreakdown = data;
+          this.isLoadingEarnings = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoadingEarnings = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.cdr.markForCheck();
+    }
+  }
+
+  closeEarningsModal() {
+    this.showEarningsModal = false;
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy() {

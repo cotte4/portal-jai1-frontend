@@ -130,6 +130,16 @@
         <p>Calculando estadísticas...</p>
       </div>
 
+      <!-- Error state -->
+      <div class="error-banner" *ngIf="!isLoading && errorMessage">
+        <span class="error-icon">⚠️</span>
+        <div class="error-text">
+          <strong>Error al cargar estadísticas</strong>
+          <p>{{ errorMessage }}</p>
+        </div>
+        <button class="btn-retry" (click)="loadAll()">Reintentar</button>
+      </div>
+
       <ng-container *ngIf="!isLoading && dashboardStats">
 
         <!-- ===== SEASON SUMMARY ROW ===== -->

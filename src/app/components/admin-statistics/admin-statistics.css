@@ -407,3 +407,32 @@
   .pipeline-grid { grid-template-columns: 1fr 1fr; }
   .topbar-title { font-size: 18px; }
 }
+
+/* Error banner */
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  color: #991b1b;
+}
+.error-icon { font-size: 20px; flex-shrink: 0; }
+.error-text { flex: 1; }
+.error-text strong { display: block; margin-bottom: 4px; }
+.error-text p { font-size: 13px; color: #b91c1c; margin: 0; word-break: break-all; }
+.btn-retry {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-retry:hover { background: #b91c1c; }

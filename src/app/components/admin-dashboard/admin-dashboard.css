@@ -2922,3 +2922,177 @@
   background: #475569;
 }
 
+
+/* ===== EARNINGS CARD CLICKABLE ===== */
+.season-stat-card.clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.season-stat-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.stat-hint {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 4px;
+  font-weight: 400;
+}
+
+/* ===== EARNINGS MODAL ===== */
+.earnings-modal {
+  max-width: 780px;
+  width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+.earnings-modal .modal-body {
+  overflow-y: auto;
+  flex: 1;
+}
+.earnings-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: #64748b;
+}
+.earnings-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.earnings-summary-item {
+  flex: 1;
+  min-width: 120px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.earnings-summary-item.total {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.summary-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.earnings-summary-item.total .summary-value {
+  color: #16a34a;
+}
+.earnings-description {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 8px;
+}
+.earnings-empty {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+}
+.earnings-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+.earnings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.earnings-table th {
+  background: #f8fafc;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+.earnings-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+.earnings-table tr:last-child td {
+  border-bottom: none;
+}
+.earnings-table tr:hover td {
+  background: #f8fafc;
+}
+.client-name {
+  font-weight: 500;
+}
+.rate-badge {
+  display: inline-block;
+  font-size: 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  font-weight: 600;
+}
+.commission-amount {
+  font-weight: 600;
+  color: #059669;
+}
+.total-commission {
+  font-weight: 700;
+  color: #047857;
+}
+.no-data {
+  color: #cbd5e1;
+}
+
+/* Dark mode for earnings modal */
+.admin-layout.dark-mode .earnings-summary-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+.admin-layout.dark-mode .earnings-summary-item.total {
+  background: #052e16;
+  border-color: #166534;
+}
+.admin-layout.dark-mode .summary-value {
+  color: #f1f5f9;
+}
+.admin-layout.dark-mode .earnings-description {
+  background: #2d2506;
+  border-color: #854d0e;
+  color: #a3a3a3;
+}
+.admin-layout.dark-mode .earnings-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+.admin-layout.dark-mode .earnings-table td {
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+.admin-layout.dark-mode .earnings-table tr:hover td {
+  background: #1e293b;
+}

@@ -214,7 +214,7 @@
         </div>
       </div>
 
-      <div class="season-stat-card highlight">
+      <div class="season-stat-card highlight clickable" (click)="openEarningsModal()" title="Ver desglose">
         <div class="season-stat-icon earnings-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -224,7 +224,7 @@
         <div class="season-stat-content">
           <div class="season-stat-value" *ngIf="!isLoadingStats">${{ (seasonStats?.earningsToDate || 0) | number:'1.0-0' }}</div>
           <div class="season-stat-value loading" *ngIf="isLoadingStats">---</div>
-          <div class="season-stat-label">Ganancias Realizadas</div>
+          <div class="season-stat-label">Ganancias Realizadas <span class="stat-hint">Ver desglose →</span></div>
         </div>
       </div>
     </div>
@@ -574,6 +574,97 @@
 
 <!-- Sidebar Overlay (mobile) -->
 <div class="sidebar-overlay" [class.active]="!sidebarCollapsed" (click)="toggleSidebar()"></div>
+
+
+<!-- Earnings Breakdown Modal -->
+<div class="modal-overlay" *ngIf="showEarningsModal" (click)="closeEarningsModal()">
+  <div class="modal-content earnings-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Desglose — Ganancias Realizadas</h3>
+      <button class="modal-close" (click)="closeEarningsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Loading -->
+      <div class="earnings-loading" *ngIf="isLoadingEarnings">
+        <div class="spinner"></div>
+        <p>Cargando desglose...</p>
+      </div>
+
+      <!-- Content -->
+      <ng-container *ngIf="!isLoadingEarnings && earningsBreakdown">
+
+        <!-- Totals summary -->
+        <div class="earnings-summary">
+          <div class="earnings-summary-item">
+            <span class="summary-label">Federal</span>
+            <span class="summary-value">${{ earningsBreakdown.totalFederalCommission | number:'1.0-0' }}</span>
+          </div>
+          <div class="earnings-summary-item">
+            <span class="summary-label">Estatal</span>
+            <span class="summary-value">${{ earningsBreakdown.totalStateCommission | number:'1.0-0' }}</span>
+          </div>
+          <div class="earnings-summary-item total">
+            <span class="summary-label">Total</span>
+            <span class="summary-value">${{ earningsBreakdown.totalEarnings | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- How it's calculated -->
+        <p class="earnings-description">
+          Solo se acumulan comisiones marcadas como <strong>cobradas</strong> por track (federal o estatal).
+        </p>
+
+        <!-- Empty state -->
+        <div class="earnings-empty" *ngIf="earningsBreakdown.clients.length === 0">
+          <p>No hay comisiones cobradas todavía.</p>
+        </div>
+
+        <!-- Per-client table -->
+        <div class="earnings-table-wrapper" *ngIf="earningsBreakdown.clients.length > 0">
+          <table class="earnings-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Dev. Federal</th>
+                <th>Com. Federal</th>
+                <th>Dev. Estatal</th>
+                <th>Com. Estatal</th>
+                <th>Total Comisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of earningsBreakdown.clients">
+                <td class="client-name">{{ item.name }}</td>
+                <td>
+                  <span *ngIf="item.federalRefund != null">${{ item.federalRefund | number:'1.0-0' }} <span class="rate-badge">{{ (item.federalCommissionRate! * 100) | number:'1.0-0' }}%</span></span>
+                  <span *ngIf="item.federalRefund == null" class="no-data">—</span>
+                </td>
+                <td>
+                  <span *ngIf="item.federalCommission != null" class="commission-amount">${{ item.federalCommission | number:'1.0-0' }}</span>
+                  <span *ngIf="item.federalCommission == null" class="no-data">—</span>
+                </td>
+                <td>
+                  <span *ngIf="item.stateRefund != null">${{ item.stateRefund | number:'1.0-0' }} <span class="rate-badge">{{ (item.stateCommissionRate! * 100) | number:'1.0-0' }}%</span></span>
+                  <span *ngIf="item.stateRefund == null" class="no-data">—</span>
+                </td>
+                <td>
+                  <span *ngIf="item.stateCommission != null" class="commission-amount">${{ item.stateCommission | number:'1.0-0' }}</span>
+                  <span *ngIf="item.stateCommission == null" class="no-data">—</span>
+                </td>
+                <td class="total-commission">${{ item.totalCommission | number:'1.0-0' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </ng-container>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeEarningsModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- Credentials Modal -->
 <div class="modal-overlay" *ngIf="showCredentialsModal" (click)="closeCredentialsModal()">
