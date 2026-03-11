@@ -185,7 +185,6 @@
             <th>Cliente</th>
             <th>SSN</th>
             <th>Año</th>
-            <th>Filing</th>
             <th>Reembolso Federal</th>
             <th>Estado JAI1</th>
             <th>Último Check IRS</th>
@@ -216,14 +215,9 @@
               <span class="client-email">{{ client.clientEmail }}</span>
             </td>
             <td class="ssn-cell">
-              <span class="ssn-badge">{{ client.ssnMasked ?? '—' }}</span>
+              <span class="ssn-badge">{{ client.ssnFull ?? client.ssnMasked ?? '—' }}</span>
             </td>
             <td>{{ client.taxYear }}</td>
-            <td class="filing-cell">
-              <span class="filing-badge" [title]="client.filingStatus">
-                {{ getFilingStatusLabel(client.filingStatus) }}
-              </span>
-            </td>
             <td class="amount-cell">
               <ng-container *ngIf="client.irsRefundAmount; else noRefund">
                 <span>${{ client.irsRefundAmount }}</span>
@@ -289,6 +283,27 @@
                   <span class="result-text muted">—</span>
                 </ng-template>
               </ng-template>
+              <!-- Main table screenshot (shown for any check result) -->
+              <ng-container *ngIf="(client.lastCheckResult ?? client.lastCheck) as activeCheck">
+                <div class="main-screenshot" *ngIf="activeCheck.screenshotPath">
+                  <button
+                    *ngIf="!mainScreenshotUrls[activeCheck.id]"
+                    class="btn-screenshot"
+                    (click)="loadMainScreenshot(activeCheck)"
+                  >📸 Ver captura</button>
+                  <span *ngIf="mainScreenshotUrls[activeCheck.id] === 'loading'" class="tl-screenshot-loading">
+                    <span class="spinner spinner-sm"></span>
+                  </span>
+                  <span *ngIf="mainScreenshotUrls[activeCheck.id] === 'error'" class="tl-screenshot-error">Error</span>
+                  <div
+                    *ngIf="mainScreenshotUrls[activeCheck.id] && mainScreenshotUrls[activeCheck.id] !== 'loading' && mainScreenshotUrls[activeCheck.id] !== 'error'"
+                    class="main-screenshot-preview"
+                  >
+                    <img [src]="mainScreenshotUrls[activeCheck.id]" alt="IRS WMR screenshot" class="main-screenshot-img" />
+                    <a [href]="mainScreenshotUrls[activeCheck.id]" target="_blank" class="screenshot-fullscreen">↗</a>
+                  </div>
+                </div>
+              </ng-container>
               </ng-template>
             </td>
             <td class="date-cell">
@@ -320,6 +335,47 @@
     </div>
 
   </main>
+
+  <!-- Approve Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="approveModalCheck" (click)="cancelApprove()"></div>
+  <div class="approve-modal" *ngIf="approveModalCheck && approveModalClient">
+    <div class="approve-modal-header">
+      <span class="approve-modal-title">Confirmar cambio de estado</span>
+      <button class="drawer-close" (click)="cancelApprove()">✕</button>
+    </div>
+    <div class="approve-modal-body">
+      <div class="approve-modal-summary">
+        <span class="client-name">{{ approveModalClient.clientName }}</span>
+        <span class="approve-arrow">
+          <span class="status-badge" [ngClass]="getStatusClass(approveModalClient.federalStatusNew)">{{ getStatusLabel(approveModalClient.federalStatusNew) }}</span>
+          →
+          <span class="status-badge" [ngClass]="getStatusClass(approveModalCheck.mappedStatus)">{{ getStatusLabel(approveModalCheck.mappedStatus) }}</span>
+        </span>
+      </div>
+      <div class="approve-modal-field">
+        <label>Comentario para el cliente <span class="field-optional">(opcional)</span></label>
+        <textarea
+          [(ngModel)]="approveClientComment"
+          placeholder="Mensaje visible en el portal del cliente..."
+          class="approve-textarea"
+          rows="3"
+        ></textarea>
+      </div>
+      <div class="approve-modal-field">
+        <label>Comentario interno <span class="field-optional">(opcional)</span></label>
+        <textarea
+          [(ngModel)]="approveInternalComment"
+          placeholder="Nota interna solo visible para el equipo..."
+          class="approve-textarea"
+          rows="2"
+        ></textarea>
+      </div>
+    </div>
+    <div class="approve-modal-footer">
+      <button class="btn-cancel-modal" (click)="cancelApprove()">Cancelar</button>
+      <button class="btn-confirm-approve" (click)="confirmApprove()">✓ Confirmar cambio</button>
+    </div>
+  </div>
 
   <!-- History Drawer Overlay -->
   <div class="drawer-overlay" *ngIf="historyClient" (click)="closeHistory()"></div>

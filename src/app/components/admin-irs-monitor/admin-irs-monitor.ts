@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, lastValueFrom } from 'rxjs';
 import {
@@ -20,7 +21,7 @@ interface ClientRow extends IrsClient {
 @Component({
   selector: 'app-admin-irs-monitor',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-irs-monitor.html',
   styleUrls: ['./admin-irs-monitor.css'],
 })
@@ -52,8 +53,17 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   historyChecks: IrsCheck[] = [];
   isLoadingHistory = false;
 
-  // Screenshot loading state per checkId
+  // Screenshot loading state per checkId (history drawer)
   screenshotUrls: Record<string, string | 'loading' | 'error'> = {};
+
+  // Screenshot loading state for main table rows
+  mainScreenshotUrls: Record<string, string | 'loading' | 'error'> = {};
+
+  // Approve modal state
+  approveModalCheck: IrsCheck | null = null;
+  approveModalClient: ClientRow | null = null;
+  approveClientComment = '';
+  approveInternalComment = '';
 
   isExportingCsv = false;
   hideCompleted = true;
@@ -252,6 +262,22 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.screenshotUrls = {};
   }
 
+  loadMainScreenshot(check: IrsCheck) {
+    if (!check.screenshotPath || this.mainScreenshotUrls[check.id]) return;
+    this.mainScreenshotUrls[check.id] = 'loading';
+    this.cdr.detectChanges();
+    this.irsMonitorService.getScreenshotUrl(check.id).subscribe({
+      next: ({ url }) => {
+        this.mainScreenshotUrls[check.id] = url;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.mainScreenshotUrls[check.id] = 'error';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   loadScreenshot(check: IrsCheck) {
     if (!check.screenshotPath || this.screenshotUrls[check.id]) return;
     this.screenshotUrls[check.id] = 'loading';
@@ -373,7 +399,18 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   approveRecommendation(client: ClientRow) {
     const check = this.getPendingCheck(client);
     if (!check) return;
-    this.irsMonitorService.approveCheck(check.id).subscribe({
+    this.approveModalCheck = check;
+    this.approveModalClient = client;
+    this.approveClientComment = '';
+    this.approveInternalComment = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmApprove() {
+    const check = this.approveModalCheck;
+    const client = this.approveModalClient;
+    if (!check || !client) return;
+    this.irsMonitorService.approveCheck(check.id, this.approveClientComment || undefined, this.approveInternalComment || undefined).subscribe({
       next: (res) => {
         if (res.applied) {
           client.federalStatusNew = check.mappedStatus;
@@ -381,12 +418,22 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
         } else {
           this.toastService.show(`${client.clientName}: no se aplicó el cambio`, 'info');
         }
+        this.cancelApprove();
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.toastService.show(`Error: ${err.message}`, 'error');
+        this.cancelApprove();
       },
     });
+  }
+
+  cancelApprove() {
+    this.approveModalCheck = null;
+    this.approveModalClient = null;
+    this.approveClientComment = '';
+    this.approveInternalComment = '';
+    this.cdr.detectChanges();
   }
 
   dismissRecommendation(client: ClientRow) {
@@ -456,17 +503,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     return '✅';
   }
 
-  getFilingStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      single:            'Single',
-      married_joint:     'Married Joint',
-      married_separate:  'Married Sep.',
-      head_of_household: 'Head of HH',
-    };
-    return labels[status] ?? status;
-  }
-
-  getIrsDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
+getIrsDetailExcerpt(rawStatus: string | null | undefined, details: string | null | undefined): string {
     if (!details) return '';
     return details.replace(rawStatus ?? '', '').replace(/\s+/g, ' ').trim();
   }

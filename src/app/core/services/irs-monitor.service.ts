@@ -10,6 +10,7 @@ export interface IrsClient {
   clientEmail: string;
   userId: string;
   ssnMasked: string | null;
+  ssnFull: string | null;
   federalStatusNew: string | null;
   federalStatusNewChangedAt: string | null;
   estimatedRefund: number | null;
@@ -98,9 +99,9 @@ export class IrsMonitorService {
     });
   }
 
-  approveCheck(checkId: string): Observable<{ applied: boolean; previousStatus?: string; newStatus?: string }> {
+  approveCheck(checkId: string, clientComment?: string, internalComment?: string): Observable<{ applied: boolean; previousStatus?: string; newStatus?: string }> {
     return this.http
-      .post<{ applied: boolean }>(`${this.apiUrl}/checks/${checkId}/approve`, {})
+      .post<{ applied: boolean }>(`${this.apiUrl}/checks/${checkId}/approve`, { clientComment, internalComment })
       .pipe(catchError(this.handleError));
   }
 
