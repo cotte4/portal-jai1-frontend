@@ -45,6 +45,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   allClients: AdminClientListItem[] = [];
   filteredClients: AdminClientListItem[] = [];
   selectedFilter: ClientStatusFilter = 'all';
+  selectedTrack: 'both' | 'federal' | 'state' = 'both';
   searchQuery: string = '';
   isLoading: boolean = false;
   isLoadingMore: boolean = false;
@@ -278,7 +279,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     // Build advanced filters object (only include non-null values)
     const advFilters = this.buildActiveAdvancedFilters();
 
-    this.adminService.getClients(statusFilter, searchFilter, undefined, 500, advFilters, this.sortColumn, this.sortDirection).subscribe({
+    this.adminService.getClients(statusFilter, searchFilter, undefined, 500, advFilters, this.sortColumn, this.sortDirection, this.selectedTrack).subscribe({
       next: (response) => {
         this.filteredClients = response.clients;
         this.nextCursor = response.nextCursor;
@@ -436,6 +437,12 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.selectedFilter = filter;
     this.syncFiltersToUrl();
     this.loadClients(); // Server-side filtering
+  }
+
+  selectTrack(track: 'both' | 'federal' | 'state') {
+    this.selectedTrack = track;
+    this.loadClients();
+    this.cdr.markForCheck();
   }
 
   // Get info about current group filter (for active filter indicator)

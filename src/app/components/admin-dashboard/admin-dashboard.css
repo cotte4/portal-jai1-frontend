@@ -1014,6 +1014,32 @@
   color: white;
 }
 
+/* Track Toggle */
+.track-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.track-btn {
+  padding: 8px 18px;
+  border: 1.5px solid #d1d1d6;
+  border-radius: 20px;
+  background: white;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.track-btn:hover { border-color: #9ca3af; color: #374151; }
+.track-btn.active { background: #1c1c1e; color: white; border-color: #1c1c1e; }
+.track-btn.federal.active { background: #1d4ed8; border-color: #1d4ed8; }
+.track-btn.state.active { background: #15803d; border-color: #15803d; }
+.admin-layout.dark-mode .track-btn { background: #2c2c2e; border-color: #3a3a3c; color: #a1a1aa; }
+.admin-layout.dark-mode .track-btn.active { background: #f5f5f7; color: #1c1c1e; border-color: #f5f5f7; }
+.admin-layout.dark-mode .track-btn.federal.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+.admin-layout.dark-mode .track-btn.state.active { background: #22c55e; color: white; border-color: #22c55e; }
+
 /* Stats Grid */
 .stats-grid {
   display: grid;

@@ -143,12 +143,14 @@ export class AdminService {
     limit = 20,
     filters?: AdvancedFilters,
     sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc',
+    track?: 'federal' | 'state' | 'both'
   ): Observable<AdminClientListResponse> {
     const params: Record<string, string> = { limit: limit.toString() };
     if (status) params['status'] = status;
     if (search) params['search'] = search;
     if (cursor) params['cursor'] = cursor;
+    if (track && track !== 'both') params['track'] = track;
 
     // Sorting
     if (sortBy) params['sortBy'] = sortBy;

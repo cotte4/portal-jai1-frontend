@@ -252,6 +252,19 @@
       </div>
     </div>
 
+    <!-- Track Toggle -->
+    <div class="track-toggle">
+      <button class="track-btn" [class.active]="selectedTrack === 'both'" (click)="selectTrack('both')">
+        Ambos
+      </button>
+      <button class="track-btn federal" [class.active]="selectedTrack === 'federal'" (click)="selectTrack('federal')">
+        🇺🇸 Federal
+      </button>
+      <button class="track-btn state" [class.active]="selectedTrack === 'state'" (click)="selectTrack('state')">
+        🏛️ Estatal
+      </button>
+    </div>
+
     <!-- Stats Cards -->
     <div class="stats-grid">
       <div class="stat-card pending" [class.active]="selectedFilter === 'group_pending'" (click)="filterClients('group_pending')">
