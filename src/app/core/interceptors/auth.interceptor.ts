@@ -14,10 +14,11 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Skip auth header for auth endpoints (except logout and refresh)
+  // Skip auth header for public auth endpoints (except protected ones)
   const isAuthEndpoint = req.url.includes('/auth/') &&
     !req.url.includes('/auth/logout') &&
-    !req.url.includes('/auth/refresh');
+    !req.url.includes('/auth/refresh') &&
+    !req.url.includes('/auth/demo/');
 
   if (isAuthEndpoint) {
     return next(req);
