@@ -28,7 +28,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminDashboard implements OnInit, OnDestroy {
-  private router = inject(Router);
+  router = inject(Router);
   private route = inject(ActivatedRoute);
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
