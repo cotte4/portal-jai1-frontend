@@ -93,6 +93,10 @@
           <span class="nav-icon">📄</span>
           <span class="nav-label">{{ isCheckingMissingDocs ? 'Verificando...' : 'Recordar Docs' }}</span>
         </a>
+        <a class="nav-item" (click)="onIngestKnowledge()" [class.disabled]="isIngestingKnowledge">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">{{ isIngestingKnowledge ? 'Ingesting...' : 'Bot KB' }}</span>
+        </a>
         <div class="nav-item-sub">
           <span class="cron-status" [class.enabled]="missingDocsCronEnabled" (click)="toggleMissingDocsCron()">
             {{ missingDocsCronEnabled ? '⏰ Auto: ON' : '⏸️ Auto: OFF' }}
@@ -876,6 +880,39 @@
     </div>
     <div class="modal-footer">
       <button class="btn-primary" (click)="showMissingDocsInfoModal = false">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Knowledge Base Ingest Result Modal -->
+<div class="modal-overlay" *ngIf="showIngestModal" (click)="closeIngestModal()">
+  <div class="modal-content missing-docs-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🤖 Base de Conocimiento del Chatbot</h3>
+      <button class="modal-close" (click)="closeIngestModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="ingestResult" class="missing-docs-results">
+        <div class="result-item success">
+          <span class="result-icon">✅</span>
+          <span class="result-label">Chunks ingresados:</span>
+          <span class="result-value">{{ ingestResult.chunksIngested }}</span>
+        </div>
+        <div class="result-item skipped">
+          <span class="result-icon">⚡</span>
+          <span class="result-label">Tiempo:</span>
+          <span class="result-value">{{ (ingestResult.durationMs / 1000).toFixed(1) }}s</span>
+        </div>
+        <p class="missing-docs-info">El chatbot ya está usando la nueva base de conocimiento.</p>
+      </div>
+      <div *ngIf="ingestError" class="result-item skipped">
+        <span class="result-icon">❌</span>
+        <span class="result-label">Error:</span>
+        <span class="result-value">{{ ingestError }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeIngestModal()">Cerrar</button>
     </div>
   </div>
 </div>

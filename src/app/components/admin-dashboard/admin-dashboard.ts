@@ -100,6 +100,12 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isTogglingCron: boolean = false;
   showMissingDocsInfoModal: boolean = false;
 
+  // Knowledge base ingest
+  isIngestingKnowledge: boolean = false;
+  showIngestModal: boolean = false;
+  ingestResult: { chunksIngested: number; durationMs: number } | null = null;
+  ingestError: string = '';
+
   // Sidebar - collapsed by default on mobile
   sidebarCollapsed: boolean = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
@@ -636,6 +642,40 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ===== KNOWLEDGE BASE INGEST =====
+
+  onIngestKnowledge() {
+    if (this.isIngestingKnowledge) return;
+    if (!confirm('¿Re-ingestar la base de conocimiento del chatbot? Esto puede tardar 10-30 segundos.')) return;
+
+    this.isIngestingKnowledge = true;
+    this.ingestResult = null;
+    this.ingestError = '';
+    this.cdr.detectChanges();
+
+    this.adminService.ingestKnowledge().subscribe({
+      next: (result) => {
+        this.ingestResult = { chunksIngested: result.chunksIngested, durationMs: result.durationMs };
+        this.showIngestModal = true;
+        this.isIngestingKnowledge = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.ingestError = error?.error?.message || 'Error al ingestar la base de conocimiento';
+        this.showIngestModal = true;
+        this.isIngestingKnowledge = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeIngestModal() {
+    this.showIngestModal = false;
+    this.ingestResult = null;
+    this.ingestError = '';
+    this.cdr.detectChanges();
   }
 
   logout() {

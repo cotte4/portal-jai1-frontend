@@ -665,6 +665,20 @@ export class AdminService {
       .pipe(catchError(this.handleError));
   }
 
+  // ===== KNOWLEDGE BASE =====
+
+  getKnowledgeStatus(): Observable<{ chunkCount: number }> {
+    return this.http
+      .get<{ chunkCount: number }>(`${this.apiUrl}/admin/knowledge/status`)
+      .pipe(catchError(this.handleError));
+  }
+
+  ingestKnowledge(): Observable<{ success: boolean; chunksIngested: number; durationMs: number }> {
+    return this.http
+      .post<{ success: boolean; chunksIngested: number; durationMs: number }>(`${this.apiUrl}/admin/knowledge/ingest`, {})
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);
