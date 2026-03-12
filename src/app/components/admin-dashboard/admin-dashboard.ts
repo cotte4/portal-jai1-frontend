@@ -345,12 +345,14 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.adminService.getDashboardStats().subscribe({
       next: (stats) => {
         this.dashboardStats = stats;
-        // Override client-side stats with accurate backend counts
-        this.stats.total = stats.groupStats.total;
-        this.stats.pending = stats.groupStats.pending;
-        this.stats.inReview = stats.groupStats.inReview;
-        this.stats.completed = stats.groupStats.completed;
-        this.stats.needsAttention = stats.groupStats.needsAttention;
+        // Only override client-side stats when showing both tracks (backend counts are track-unaware)
+        if (this.selectedTrack === 'both') {
+          this.stats.total = stats.groupStats.total;
+          this.stats.pending = stats.groupStats.pending;
+          this.stats.inReview = stats.groupStats.inReview;
+          this.stats.completed = stats.groupStats.completed;
+          this.stats.needsAttention = stats.groupStats.needsAttention;
+        }
         this.cdr.detectChanges();
       },
       error: () => {
@@ -404,32 +406,45 @@ export class AdminDashboard implements OnInit, OnDestroy {
   }
 
   calculateStats() {
-    // Reset stats
+    const IN_REVIEW = [
+      FederalStatusNew.TAXES_EN_PROCESO, FederalStatusNew.EN_VERIFICACION,
+      FederalStatusNew.VERIFICACION_EN_PROGRESO, FederalStatusNew.CHEQUE_EN_CAMINO,
+      FederalStatusNew.DEPOSITO_DIRECTO, FederalStatusNew.COMISION_PENDIENTE,
+    ] as string[];
+
     this.stats.total = this.allClients.length;
     this.stats.pending = 0;
     this.stats.inReview = 0;
     this.stats.completed = 0;
     this.stats.needsAttention = 0;
 
-    // Single pass through clients using new phase-based status system (v2)
     for (const client of this.allClients) {
       const taxesFiled = client.caseStatus === CaseStatus.TAXES_FILED;
-      const federalStatusNew = client.federalStatusNew;
-      const stateStatusNew = client.stateStatusNew;
+      const fed = client.federalStatusNew;
+      const state = client.stateStatusNew;
 
       if (!taxesFiled) {
-        // Pending: not yet filed
         this.stats.pending++;
-      } else if (federalStatusNew === FederalStatusNew.TAXES_COMPLETADOS || stateStatusNew === StateStatusNew.TAXES_COMPLETADOS) {
-        // Completed: at least one completed
-        this.stats.completed++;
-      } else if (federalStatusNew === FederalStatusNew.PROBLEMAS || stateStatusNew === StateStatusNew.PROBLEMAS) {
-        // Needs Attention: has issues
-        this.stats.needsAttention++;
-      } else {
-        // In Review: filed but not yet completed or with issues
-        this.stats.inReview++;
+        continue;
       }
+
+      const t = this.selectedTrack;
+      const isCompleted = t === 'federal' ? fed === FederalStatusNew.TAXES_COMPLETADOS
+        : t === 'state' ? state === StateStatusNew.TAXES_COMPLETADOS
+        : fed === FederalStatusNew.TAXES_COMPLETADOS || state === StateStatusNew.TAXES_COMPLETADOS;
+
+      const isProblema = t === 'federal' ? fed === FederalStatusNew.PROBLEMAS
+        : t === 'state' ? state === StateStatusNew.PROBLEMAS
+        : fed === FederalStatusNew.PROBLEMAS || state === StateStatusNew.PROBLEMAS;
+
+      const isInReview = t === 'federal' ? IN_REVIEW.includes(fed || '')
+        : t === 'state' ? IN_REVIEW.includes(state || '')
+        : IN_REVIEW.includes(fed || '') || IN_REVIEW.includes(state || '');
+
+      if (isCompleted) this.stats.completed++;
+      else if (isProblema) this.stats.needsAttention++;
+      else if (isInReview) this.stats.inReview++;
+      else this.stats.inReview++;
     }
   }
 
@@ -441,6 +456,16 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   selectTrack(track: 'both' | 'federal' | 'state') {
     this.selectedTrack = track;
+    if (track === 'both' && this.dashboardStats) {
+      // Restore accurate backend counts for "both" view
+      this.stats.total = this.dashboardStats.groupStats.total;
+      this.stats.pending = this.dashboardStats.groupStats.pending;
+      this.stats.inReview = this.dashboardStats.groupStats.inReview;
+      this.stats.completed = this.dashboardStats.groupStats.completed;
+      this.stats.needsAttention = this.dashboardStats.groupStats.needsAttention;
+    } else {
+      this.calculateStats();
+    }
     this.loadClients();
     this.cdr.markForCheck();
   }
