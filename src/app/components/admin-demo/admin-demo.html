@@ -1,0 +1,162 @@
+<div class="admin-demo-wrapper" [class.dark]="darkMode">
+
+  <!-- Header -->
+  <div class="demo-header">
+    <button class="btn-back" (click)="goBack()">← Dashboard</button>
+    <h1>🎭 Demo Mode</h1>
+    <button class="btn-open-demo" (click)="openDemo()" [disabled]="isOpeningDemo">
+      {{ isOpeningDemo ? 'Abriendo...' : '▶ Abrir Demo' }}
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="msg success" *ngIf="successMessage" (click)="clearMessages()">✅ {{ successMessage }}</div>
+  <div class="msg error" *ngIf="errorMessage" (click)="clearMessages()">❌ {{ errorMessage }}</div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">Cargando estado demo...</div>
+
+  <div class="demo-grid" *ngIf="!isLoading && demoStatus">
+
+    <!-- Account Info -->
+    <div class="card">
+      <h2>👤 Cuenta Demo</h2>
+      <div class="info-row">
+        <span class="label">Email</span>
+        <span class="value">{{ demoStatus.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Nombre</span>
+        <span class="value">{{ demoStatus.firstName }} {{ demoStatus.lastName }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Estado cuenta</span>
+        <span class="badge" [class.active]="demoStatus.isActive" [class.inactive]="!demoStatus.isActive">
+          {{ demoStatus.isActive ? 'Activa' : 'Inactiva' }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Perfil cliente</span>
+        <span class="value mono">{{ demoStatus.clientProfileId ? '✅ Existe' : '❌ Sin perfil' }}</span>
+      </div>
+    </div>
+
+    <!-- Current Tax Status -->
+    <div class="card">
+      <h2>📊 Estado Actual del Caso</h2>
+      <div *ngIf="demoStatus.taxCase; else noTaxCase">
+        <div class="info-row">
+          <span class="label">Caso</span>
+          <span class="status-pill case">{{ getStatusLabel(demoStatus.taxCase.caseStatus) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Federal</span>
+          <span class="status-pill federal">{{ getStatusLabel(demoStatus.taxCase.federalStatusNew) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Estatal</span>
+          <span class="status-pill state">{{ getStatusLabel(demoStatus.taxCase.stateStatusNew) }}</span>
+        </div>
+        <div class="info-row" *ngIf="demoStatus.taxCase.estimatedRefund">
+          <span class="label">Reembolso est.</span>
+          <span class="value">${{ demoStatus.taxCase.estimatedRefund | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-row" *ngIf="demoStatus.taxCase.federalActualRefund">
+          <span class="label">Federal real</span>
+          <span class="value">${{ demoStatus.taxCase.federalActualRefund | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-row" *ngIf="demoStatus.taxCase.stateActualRefund">
+          <span class="label">Estatal real</span>
+          <span class="value">${{ demoStatus.taxCase.stateActualRefund | number:'1.2-2' }}</span>
+        </div>
+      </div>
+      <ng-template #noTaxCase>
+        <p class="empty-state">Sin caso de taxes. Resetear y configurar manualmente.</p>
+      </ng-template>
+    </div>
+
+    <!-- Change Status -->
+    <div class="card" *ngIf="demoStatus.clientProfileId">
+      <h2>⚙️ Cambiar Estado</h2>
+      <div class="form-group">
+        <label>Estado del Caso</label>
+        <select [(ngModel)]="selectedCaseStatus">
+          <option *ngFor="let opt of caseStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado Federal</label>
+        <select [(ngModel)]="selectedFederalStatus">
+          <option *ngFor="let opt of federalStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado Estatal</label>
+        <select [(ngModel)]="selectedStateStatus">
+          <option *ngFor="let opt of stateStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <button class="btn-primary" (click)="applyStatus()" [disabled]="isUpdatingStatus">
+        {{ isUpdatingStatus ? 'Aplicando...' : 'Aplicar Cambios' }}
+      </button>
+    </div>
+
+    <!-- Send Notification -->
+    <div class="card" *ngIf="demoStatus.clientProfileId">
+      <h2>🔔 Enviar Notificación</h2>
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" [(ngModel)]="notifTitle" placeholder="ej: Tu reembolso fue aprobado" />
+      </div>
+      <div class="form-group">
+        <label>Mensaje</label>
+        <textarea [(ngModel)]="notifMessage" rows="3" placeholder="ej: El IRS aprobó tu reembolso federal de $2,500 USD."></textarea>
+      </div>
+      <button class="btn-primary" (click)="sendNotification()" [disabled]="isSendingNotif">
+        {{ isSendingNotif ? 'Enviando...' : 'Enviar' }}
+      </button>
+    </div>
+
+    <!-- Quick Scenarios -->
+    <div class="card scenarios-card" *ngIf="demoStatus.clientProfileId">
+      <h2>⚡ Escenarios Rápidos</h2>
+      <p class="hint">Aplicá un estado predefinido con un click para testear diferentes vistas.</p>
+      <div class="scenario-buttons">
+        <button class="btn-scenario" (click)="selectedCaseStatus='awaiting_docs'; selectedFederalStatus=''; selectedStateStatus=''; applyStatus()">
+          📄 Pendiente de Documentos
+        </button>
+        <button class="btn-scenario" (click)="selectedCaseStatus='taxes_filed'; selectedFederalStatus='taxes_en_proceso'; selectedStateStatus='taxes_en_proceso'; applyStatus()">
+          🚀 Taxes Presentados
+        </button>
+        <button class="btn-scenario" (click)="selectedCaseStatus=''; selectedFederalStatus='en_verificacion'; selectedStateStatus='taxes_en_proceso'; applyStatus()">
+          🔍 Federal en Verificación
+        </button>
+        <button class="btn-scenario" (click)="selectedCaseStatus=''; selectedFederalStatus='deposito_directo'; selectedStateStatus='taxes_en_proceso'; applyStatus()">
+          💰 Federal Depositado
+        </button>
+        <button class="btn-scenario" (click)="selectedCaseStatus=''; selectedFederalStatus='taxes_completados'; selectedStateStatus='taxes_completados'; applyStatus()">
+          ✅ Todo Completado
+        </button>
+        <button class="btn-scenario danger" (click)="selectedCaseStatus=''; selectedFederalStatus='problemas'; selectedStateStatus=''; applyStatus()">
+          ⚠️ Federal con Problemas
+        </button>
+      </div>
+    </div>
+
+    <!-- Reset -->
+    <div class="card reset-card">
+      <h2>🔄 Reset Completo</h2>
+      <p>Borra todos los datos del cliente demo (perfil, documentos, taxes, mensajes, notificaciones). La cuenta de usuario se mantiene.</p>
+      <button class="btn-danger" (click)="resetDemo()" [disabled]="isResetting">
+        {{ isResetting ? 'Reseteando...' : 'Resetear Demo' }}
+      </button>
+    </div>
+
+  </div>
+
+  <!-- No demo account -->
+  <div class="empty-page" *ngIf="!isLoading && !demoStatus && !errorMessage">
+    <p>No se encontró la cuenta demo@jai1.com en la base de datos.</p>
+  </div>
+
+</div>

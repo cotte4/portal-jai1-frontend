@@ -665,6 +665,34 @@ export class AdminService {
       .pipe(catchError(this.handleError));
   }
 
+  getDemoStatus(): Observable<{
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    clientProfileId: string | null;
+    taxCase: {
+      id: string;
+      caseStatus: string | null;
+      federalStatusNew: string | null;
+      stateStatusNew: string | null;
+      estimatedRefund: number | null;
+      federalActualRefund: number | null;
+      stateActualRefund: number | null;
+    } | null;
+  }> {
+    return this.http
+      .get<any>(`${this.apiUrl}/auth/demo/status`)
+      .pipe(catchError(this.handleError));
+  }
+
+  startDemoSession(): Observable<any> {
+    return this.http
+      .post<any>(`${this.apiUrl}/auth/demo-session`, {})
+      .pipe(catchError(this.handleError));
+  }
+
   // ===== KNOWLEDGE BASE =====
 
   getKnowledgeStatus(): Observable<{ chunkCount: number }> {

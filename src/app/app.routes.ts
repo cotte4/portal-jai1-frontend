@@ -101,6 +101,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-statistics/admin-statistics').then(m => m.AdminStatistics),
     canActivate: [adminGuard]
   },
+  {
+    path: 'admin/demo',
+    loadComponent: () => import('./components/admin-demo/admin-demo').then(m => m.AdminDemo),
+    canActivate: [adminGuard]
+  },
 
   // JAI1GENT routes - lazy loaded
   {

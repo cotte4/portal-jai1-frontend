@@ -85,9 +85,9 @@
           <span class="nav-icon">🏔️</span>
           <span class="nav-label">CO Monitor</span>
         </a>
-        <a class="nav-item" (click)="onResetDemo()" [class.disabled]="isResettingDemo">
-          <span class="nav-icon">🔄</span>
-          <span class="nav-label">{{ isResettingDemo ? 'Reseteando...' : 'Reset Demo' }}</span>
+        <a class="nav-item" (click)="router.navigate(['/admin/demo'])">
+          <span class="nav-icon">🎭</span>
+          <span class="nav-label">Demo Mode</span>
         </a>
         <a class="nav-item" (click)="checkMissingDocuments()" [class.disabled]="isCheckingMissingDocs">
           <span class="nav-icon">📄</span>
