@@ -659,6 +659,12 @@ export class AdminService {
     );
   }
 
+  resetDemo(): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/auth/demo/reset`, {})
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Admin error:', error);
     return throwError(() => error);

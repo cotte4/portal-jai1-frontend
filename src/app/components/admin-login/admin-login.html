@@ -39,10 +39,19 @@
         >
       </div>
 
-      <button type="submit" class="btn-primary">
-        <span>Acceder al Panel</span>
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span>{{ isLoading ? 'Ingresando...' : 'Acceder al Panel' }}</span>
         <span class="btn-icon">→</span>
       </button>
     </form>
+
+    <div class="demo-divider">
+      <span>o</span>
+    </div>
+
+    <button type="button" class="btn-demo" (click)="onDemoMode()" [disabled]="isDemoLoading">
+      <span class="demo-icon">👁</span>
+      <span>{{ isDemoLoading ? 'Iniciando demo...' : 'Modo Demo' }}</span>
+    </button>
   </div>
 </div>

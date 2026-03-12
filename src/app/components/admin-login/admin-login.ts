@@ -19,6 +19,7 @@ export class AdminLogin {
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
+  isDemoLoading: boolean = false;
 
   constructor() {
     // If already logged in as admin, redirect
@@ -63,6 +64,22 @@ export class AdminLogin {
       error: (error) => {
         this.isLoading = false;
         this.errorMessage = error.message || 'Credenciales de administrador invalidas';
+      }
+    });
+  }
+
+  onDemoMode() {
+    this.errorMessage = '';
+    this.isDemoLoading = true;
+
+    this.authService.demoLogin().subscribe({
+      next: () => {
+        this.isDemoLoading = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        this.isDemoLoading = false;
+        this.errorMessage = 'No se pudo iniciar el modo demo. Verificá que la cuenta demo esté configurada.';
       }
     });
   }

@@ -51,6 +51,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
   isRefreshing: boolean = false;
   isExporting: boolean = false;
   isLoadingStats: boolean = false;
+  isResettingDemo: boolean = false;
   errorMessage: string = '';
   errorCode: string = '';
 
@@ -616,6 +617,25 @@ export class AdminDashboard implements OnInit, OnDestroy {
   toggleDarkMode() {
     this.themeService.toggleDarkMode();
     this.cdr.detectChanges();
+  }
+
+  onResetDemo() {
+    if (!confirm('¿Resetear la cuenta demo? Se borrarán todos los datos del cliente demo.')) return;
+    this.isResettingDemo = true;
+    this.cdr.detectChanges();
+
+    this.adminService.resetDemo().subscribe({
+      next: () => {
+        this.isResettingDemo = false;
+        alert('Cuenta demo reseteada correctamente.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isResettingDemo = false;
+        alert('Error al resetear la cuenta demo.');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   logout() {

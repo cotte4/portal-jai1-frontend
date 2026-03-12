@@ -138,6 +138,63 @@
   transform: translateX(4px);
 }
 
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.demo-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 0 0;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.btn-demo {
+  width: 100%;
+  background: transparent;
+  color: var(--color-text-secondary, #666);
+  padding: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-demo:hover {
+  border-color: #1D345D;
+  color: #1D345D;
+  background: rgba(29, 52, 93, 0.04);
+}
+
+.btn-demo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.demo-icon {
+  font-size: 16px;
+}
+
 
 /* ==================== RESPONSIVE STYLES ==================== */
 

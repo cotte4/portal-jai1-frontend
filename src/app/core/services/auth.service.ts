@@ -210,6 +210,14 @@ export class AuthService {
     );
   }
 
+  demoLogin(): Observable<AuthResponse> {
+    this.storage.setRememberMe(false);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/demo-session`, {}).pipe(
+      tap((response) => this.handleAuthResponse(response)),
+      catchError((error) => this.handleError(error))
+    );
+  }
+
   logout(): Observable<void> {
     // Send the refresh token so the server can revoke this specific session
     const refreshToken = this.storage.getRefreshToken();
