@@ -159,10 +159,17 @@
 .dark-mode .page-title { color: #f2f2f7; }
 
 .page-subtitle {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   color: #8e8e93;
   margin-top: 2px;
+}
+.monitored-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #34c759;
 }
 
 .btn-refresh {
@@ -725,6 +732,74 @@
 .dark-mode .btn-run-all { background: #30d158; }
 .dark-mode .btn-run-all:hover:not(:disabled) { background: #25b34a; }
 
+/* ===== SCHEDULER CONTROL ===== */
+.scheduler-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #f0f0f5;
+  border: 1px solid #e5e5ea;
+}
+
+.dark-mode .scheduler-control {
+  background: #2c2c2e;
+  border-color: #3a3a3c;
+}
+
+.scheduler-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b30;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.scheduler-dot.active {
+  background: #34c759;
+  box-shadow: 0 0 6px rgba(52, 199, 89, 0.5);
+}
+
+.scheduler-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #636366;
+  white-space: nowrap;
+}
+
+.dark-mode .scheduler-label { color: #aeaeb2; }
+
+.btn-scheduler-toggle {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #ff3b30;
+  background: transparent;
+  color: #ff3b30;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-scheduler-toggle.active {
+  border-color: #34c759;
+  color: #34c759;
+}
+
+.btn-scheduler-toggle:hover:not(:disabled) {
+  background: #ff3b30;
+  color: #fff;
+}
+
+.btn-scheduler-toggle.active:hover:not(:disabled) {
+  background: #34c759;
+  color: #fff;
+}
+
+.btn-scheduler-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ===== SIDEBAR BADGE ===== */
 .nav-badge {
   margin-left: auto;
@@ -756,6 +831,63 @@
 .btn-history:disabled { opacity: 0.4; cursor: not-allowed; }
 .dark-mode .btn-history { background: #3a3a3c; border-color: #48484a; color: #f2f2f7; }
 .dark-mode .btn-history:hover:not(:disabled) { background: #48484a; }
+
+/* ===== MONITOR TOGGLE ===== */
+.monitor-cell { width: 52px; text-align: center; }
+
+.btn-monitor-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  border: none;
+  background: #d1d1d6;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  padding: 0;
+  position: relative;
+}
+.btn-monitor-toggle.active { background: #34c759; }
+.btn-monitor-toggle:hover { opacity: 0.85; }
+
+.monitor-dot {
+  position: absolute;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: left 0.2s ease;
+}
+.btn-monitor-toggle.active .monitor-dot { left: 19px; }
+
+.dark-mode .btn-monitor-toggle { background: #48484a; }
+.dark-mode .btn-monitor-toggle.active { background: #30d158; }
+
+.monitor-interval {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+.interval-input {
+  width: 38px;
+  padding: 2px 4px;
+  font-size: 11px;
+  border: 1px solid #d1d1d6;
+  border-radius: 5px;
+  background: #f5f5f7;
+  color: #1c1c1e;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.interval-input::-webkit-inner-spin-button,
+.interval-input::-webkit-outer-spin-button { opacity: 1; }
+.interval-label { font-size: 10px; color: #8e8e93; }
+.dark-mode .interval-input { background: #3a3a3c; border-color: #48484a; color: #f2f2f7; }
 
 /* ===== DRAWER ===== */
 .drawer-overlay {
@@ -1297,3 +1429,56 @@
   cursor: pointer;
 }
 .dark-mode .main-screenshot-img { border-color: #3a3a3c; }
+
+/* ===== IRS RESULT HOVER ===== */
+.irs-result-wrap.has-screenshot { cursor: default; }
+
+.screenshot-hint {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-left: 4px;
+}
+
+/* ===== SCREENSHOT HOVER TOOLTIP ===== */
+.screenshot-tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.35));
+  animation: tooltip-fade-in 0.12s ease;
+}
+
+@keyframes tooltip-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.screenshot-tooltip-inner {
+  background: #1c1c1e;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 820px;
+  max-width: 90vw;
+}
+
+.tooltip-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.tooltip-loading,
+.tooltip-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 20px;
+  color: #aeaeb2;
+  font-size: 13px;
+}
+
+.tooltip-error { color: #ff453a; }

@@ -90,7 +90,24 @@
       </button>
       <div class="top-bar-title">
         <span class="page-title">IRS Monitor</span>
-        <span class="page-subtitle">Verificación automática en IRS WMR</span>
+        <span class="page-subtitle">
+          Verificación automática en IRS WMR
+          <span *ngIf="hasLoaded && monitoredCount > 0" class="monitored-badge">
+            🟢 {{ monitoredCount }} en auto
+          </span>
+        </span>
+      </div>
+      <div class="scheduler-control">
+        <span class="scheduler-dot" [class.active]="schedulerActive"></span>
+        <span class="scheduler-label">{{ schedulerActive ? 'Monitoreo activo' : 'Monitoreo detenido' }}</span>
+        <button
+          class="btn-scheduler-toggle"
+          [class.active]="schedulerActive"
+          (click)="toggleScheduler()"
+          [disabled]="isTogglingScheduler"
+        >
+          {{ isTogglingScheduler ? '...' : schedulerActive ? 'Detener' : 'Iniciar' }}
+        </button>
       </div>
       <button
         class="btn-run-all"
@@ -190,6 +207,7 @@
             <th>Último Check IRS</th>
             <th>Fecha Check</th>
             <th>Historial</th>
+            <th title="Monitoreo automático cada 30 min">Auto</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -255,55 +273,28 @@
                 </div>
               </ng-container>
               <ng-template #checkResultContent>
-              <ng-container *ngIf="client.lastCheckResult; else lastCheckFallback">
-                <div class="irs-result-wrap" [title]="client.lastCheckResult.irsDetails ?? client.lastCheckResult.irsRawStatus">
+              <ng-container *ngIf="(client.lastCheckResult ?? client.lastCheck) as activeCheck; else noCheck">
+                <div
+                  class="irs-result-wrap"
+                  [class.has-screenshot]="!!activeCheck.screenshotPath"
+                  (mouseenter)="onCheckHover($event, activeCheck)"
+                  (mousemove)="onCheckMove($event)"
+                  (mouseleave)="onCheckLeave()"
+                >
                   <div class="irs-result-heading">
-                    <span class="result-icon">{{ getCheckResultIcon(client.lastCheckResult) }}</span>
-                    <span class="result-text">{{ client.lastCheckResult.irsRawStatus }}</span>
+                    <span class="result-icon">{{ getCheckResultIcon(activeCheck) }}</span>
+                    <span class="result-text" [class.muted]="!client.lastCheckResult">{{ activeCheck.irsRawStatus }}</span>
+                    <span *ngIf="activeCheck.screenshotPath" class="screenshot-hint">📸</span>
                   </div>
                   <div
-                    *ngIf="getIrsDetailExcerpt(client.lastCheckResult.irsRawStatus, client.lastCheckResult.irsDetails) as excerpt"
+                    *ngIf="getIrsDetailExcerpt(activeCheck.irsRawStatus, activeCheck.irsDetails) as excerpt"
                     class="irs-detail-excerpt"
                   >{{ excerpt }}</div>
                 </div>
               </ng-container>
-              <ng-template #lastCheckFallback>
-                <ng-container *ngIf="client.lastCheck; else noCheck">
-                  <div class="irs-result-wrap" [title]="client.lastCheck.irsDetails ?? client.lastCheck.irsRawStatus">
-                    <div class="irs-result-heading">
-                      <span class="result-text muted">{{ client.lastCheck.irsRawStatus }}</span>
-                    </div>
-                    <div
-                      *ngIf="getIrsDetailExcerpt(client.lastCheck.irsRawStatus, client.lastCheck.irsDetails) as excerpt"
-                      class="irs-detail-excerpt"
-                    >{{ excerpt }}</div>
-                  </div>
-                </ng-container>
-                <ng-template #noCheck>
-                  <span class="result-text muted">—</span>
-                </ng-template>
+              <ng-template #noCheck>
+                <span class="result-text muted">—</span>
               </ng-template>
-              <!-- Main table screenshot (shown for any check result) -->
-              <ng-container *ngIf="(client.lastCheckResult ?? client.lastCheck) as activeCheck">
-                <div class="main-screenshot" *ngIf="activeCheck.screenshotPath">
-                  <button
-                    *ngIf="!mainScreenshotUrls[activeCheck.id]"
-                    class="btn-screenshot"
-                    (click)="loadMainScreenshot(activeCheck)"
-                  >📸 Ver captura</button>
-                  <span *ngIf="mainScreenshotUrls[activeCheck.id] === 'loading'" class="tl-screenshot-loading">
-                    <span class="spinner spinner-sm"></span>
-                  </span>
-                  <span *ngIf="mainScreenshotUrls[activeCheck.id] === 'error'" class="tl-screenshot-error">Error</span>
-                  <div
-                    *ngIf="mainScreenshotUrls[activeCheck.id] && mainScreenshotUrls[activeCheck.id] !== 'loading' && mainScreenshotUrls[activeCheck.id] !== 'error'"
-                    class="main-screenshot-preview"
-                  >
-                    <img [src]="mainScreenshotUrls[activeCheck.id]" alt="IRS WMR screenshot" class="main-screenshot-img" />
-                    <a [href]="mainScreenshotUrls[activeCheck.id]" target="_blank" class="screenshot-fullscreen">↗</a>
-                  </div>
-                </div>
-              </ng-container>
               </ng-template>
             </td>
             <td class="date-cell">
@@ -316,6 +307,28 @@
                 [disabled]="isRunningBatch"
                 title="Ver historial de checks"
               >📋</button>
+            </td>
+            <td class="action-cell monitor-cell">
+              <button
+                class="btn-monitor-toggle"
+                [class.active]="client.irsMonitorEnabled"
+                (click)="toggleMonitor(client)"
+                [title]="client.irsMonitorEnabled ? 'Desactivar auto-monitoreo' : 'Activar auto-monitoreo'"
+              >
+                <span class="monitor-dot"></span>
+              </button>
+              <div class="monitor-interval" *ngIf="client.irsMonitorEnabled">
+                <input
+                  type="number"
+                  class="interval-input"
+                  [value]="client.irsMonitorIntervalHours"
+                  min="1"
+                  max="168"
+                  title="Horas entre checks"
+                  (change)="updateInterval(client, +$any($event.target).value)"
+                />
+                <span class="interval-label">h</span>
+              </div>
             </td>
             <td class="action-cell">
               <button
@@ -463,4 +476,34 @@
     </div>
   </aside>
 
+</div>
+
+<!-- Screenshot hover tooltip (global, fixed) -->
+<div
+  class="screenshot-tooltip"
+  *ngIf="tooltipVisible && tooltipCheckId"
+  [style.left.px]="tooltipX"
+  [style.top.px]="tooltipY"
+>
+  <div class="screenshot-tooltip-inner">
+    <ng-container [ngSwitch]="mainScreenshotUrls[tooltipCheckId]">
+      <div *ngSwitchCase="'loading'" class="tooltip-loading">
+        <span class="spinner"></span>
+        <span>Cargando captura...</span>
+      </div>
+      <div *ngSwitchCase="'error'" class="tooltip-error">No se pudo cargar la captura</div>
+      <ng-container *ngSwitchDefault>
+        <img
+          *ngIf="mainScreenshotUrls[tooltipCheckId] && mainScreenshotUrls[tooltipCheckId] !== 'loading' && mainScreenshotUrls[tooltipCheckId] !== 'error'"
+          [src]="mainScreenshotUrls[tooltipCheckId]"
+          alt="IRS WMR screenshot"
+          class="tooltip-img"
+        />
+        <div *ngIf="!mainScreenshotUrls[tooltipCheckId]" class="tooltip-loading">
+          <span class="spinner"></span>
+          <span>Cargando...</span>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
 </div>

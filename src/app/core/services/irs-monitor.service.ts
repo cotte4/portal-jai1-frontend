@@ -15,10 +15,12 @@ export interface IrsClient {
   federalStatusNewChangedAt: string | null;
   estimatedRefund: number | null;
   federalActualRefund: number | null;
-  irsRefundAmount: number | null;   // what will actually be sent to IRS WMR
+  irsRefundAmount: number | null;
   paymentMethod: string | null;
   filingStatus: 'single' | 'married_joint' | 'married_separate' | 'head_of_household';
   lastCheck: IrsCheck | null;
+  irsMonitorEnabled: boolean;
+  irsMonitorIntervalHours: number;
 }
 
 export interface IrsCheck {
@@ -70,6 +72,15 @@ export class IrsMonitorService {
       .pipe(catchError(this.handleError));
   }
 
+  toggleMonitor(taxCaseId: string, enabled: boolean, intervalHours?: number): Observable<{ taxCaseId: string; irsMonitorEnabled: boolean; irsMonitorIntervalHours: number }> {
+    return this.http
+      .patch<{ taxCaseId: string; irsMonitorEnabled: boolean; irsMonitorIntervalHours: number }>(
+        `${this.apiUrl}/clients/${taxCaseId}/monitor`,
+        { enabled, intervalHours },
+      )
+      .pipe(catchError(this.handleError));
+  }
+
   runCheckAll(): Observable<{ started: boolean }> {
     return this.http
       .post<{ started: boolean }>(`${this.apiUrl}/check-all`, {})
@@ -114,6 +125,24 @@ export class IrsMonitorService {
   getScreenshotUrl(checkId: string): Observable<{ url: string }> {
     return this.http
       .get<{ url: string }>(`${this.apiUrl}/screenshot/${checkId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getSchedulerStatus(): Observable<{ active: boolean }> {
+    return this.http
+      .get<{ active: boolean }>(`${this.apiUrl}/scheduler/status`)
+      .pipe(catchError(this.handleError));
+  }
+
+  startScheduler(): Observable<{ active: boolean }> {
+    return this.http
+      .post<{ active: boolean }>(`${this.apiUrl}/scheduler/start`, {})
+      .pipe(catchError(this.handleError));
+  }
+
+  stopScheduler(): Observable<{ active: boolean }> {
+    return this.http
+      .post<{ active: boolean }>(`${this.apiUrl}/scheduler/stop`, {})
       .pipe(catchError(this.handleError));
   }
 

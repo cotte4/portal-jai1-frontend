@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, lastValueFrom } from 'rxjs';
+import { finalize, lastValueFrom, interval, Subscription } from 'rxjs';
 import {
   IrsMonitorService,
   IrsClient,
@@ -45,6 +45,11 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   private cancelBatchFlag = false;
   batchProgress: { current: number; total: number } | null = null;
 
+  // Scheduler state
+  schedulerActive = false;
+  isTogglingScheduler = false;
+  private schedulerPollSub: Subscription | null = null;
+
   // Stats badge
   changesLast24h = 0;
 
@@ -58,6 +63,12 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
 
   // Screenshot loading state for main table rows
   mainScreenshotUrls: Record<string, string | 'loading' | 'error'> = {};
+
+  // Hover screenshot tooltip
+  tooltipCheckId: string | null = null;
+  tooltipVisible = false;
+  tooltipX = 0;
+  tooltipY = 0;
 
   // Approve modal state
   approveModalCheck: IrsCheck | null = null;
@@ -88,10 +99,49 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadClients();
     this.loadStats();
+    this.loadSchedulerStatus();
+    this.schedulerPollSub = interval(30_000).subscribe(() => this.loadSchedulerStatus());
   }
 
   ngOnDestroy() {
     this.destroyed = true;
+    this.schedulerPollSub?.unsubscribe();
+  }
+
+  loadSchedulerStatus() {
+    this.irsMonitorService.getSchedulerStatus().subscribe({
+      next: (s) => {
+        this.schedulerActive = s.active;
+        this.cdr.detectChanges();
+      },
+      error: () => {},
+    });
+  }
+
+  toggleScheduler() {
+    if (this.isTogglingScheduler) return;
+    this.isTogglingScheduler = true;
+    const action = this.schedulerActive
+      ? this.irsMonitorService.stopScheduler()
+      : this.irsMonitorService.startScheduler();
+    action
+      .pipe(finalize(() => {
+        this.isTogglingScheduler = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (res) => {
+          this.schedulerActive = res.active;
+          this.toastService.show(
+            res.active ? 'Monitoreo automático iniciado' : 'Monitoreo automático detenido',
+            res.active ? 'success' : 'info',
+          );
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.toastService.show(`Error: ${err.message}`, 'error');
+        },
+      });
   }
 
   loadStats() {
@@ -262,6 +312,38 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
     this.screenshotUrls = {};
   }
 
+  onCheckHover(event: MouseEvent, check: IrsCheck) {
+    if (!check.screenshotPath) return;
+    this.tooltipCheckId = check.id;
+    this.tooltipVisible = true;
+    this.updateTooltipPos(event);
+    if (!this.mainScreenshotUrls[check.id]) {
+      this.loadMainScreenshot(check);
+    }
+    this.cdr.detectChanges();
+  }
+
+  onCheckMove(event: MouseEvent) {
+    if (!this.tooltipVisible) return;
+    this.updateTooltipPos(event);
+  }
+
+  onCheckLeave() {
+    this.tooltipVisible = false;
+    this.tooltipCheckId = null;
+    this.cdr.detectChanges();
+  }
+
+  private updateTooltipPos(event: MouseEvent) {
+    const tooltipW = 820;
+    const margin = 16;
+    const x = event.clientX + margin + tooltipW > window.innerWidth
+      ? event.clientX - tooltipW - margin
+      : event.clientX + margin;
+    this.tooltipX = x;
+    this.tooltipY = Math.min(event.clientY - 20, window.innerHeight - 500);
+  }
+
   loadMainScreenshot(check: IrsCheck) {
     if (!check.screenshotPath || this.mainScreenshotUrls[check.id]) return;
     this.mainScreenshotUrls[check.id] = 'loading';
@@ -311,7 +393,7 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
   ): Promise<IrsCheck | null> {
     const deadline = Date.now() + 90 * 1000;
     let attempt = 0;
-    while (Date.now() < deadline && !this.destroyed) {
+    while (Date.now() < deadline && !this.destroyed && !this.cancelBatchFlag) {
       await new Promise(resolve => setTimeout(resolve, 4000));
       attempt++;
       if (attempt === 1) onStatus('Consultando IRS...');
@@ -352,6 +434,45 @@ export class AdminIrsMonitor implements OnInit, OnDestroy {
       );
     }
     this.cdr.detectChanges();
+  }
+
+  // ---- Monitor toggle ----
+
+  toggleMonitor(client: ClientRow) {
+    const newValue = !client.irsMonitorEnabled;
+    this.irsMonitorService.toggleMonitor(client.taxCaseId, newValue, client.irsMonitorIntervalHours).subscribe({
+      next: (res) => {
+        client.irsMonitorEnabled = res.irsMonitorEnabled;
+        client.irsMonitorIntervalHours = res.irsMonitorIntervalHours;
+        this.toastService.show(
+          newValue
+            ? `${client.clientName}: auto-monitoreo activado (cada ${res.irsMonitorIntervalHours}h)`
+            : `${client.clientName}: auto-monitoreo desactivado`,
+          'info',
+        );
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.toastService.show(`Error: ${err.message}`, 'error');
+      },
+    });
+  }
+
+  updateInterval(client: ClientRow, hours: number) {
+    if (!hours || hours < 1) return;
+    this.irsMonitorService.toggleMonitor(client.taxCaseId, client.irsMonitorEnabled, hours).subscribe({
+      next: (res) => {
+        client.irsMonitorIntervalHours = res.irsMonitorIntervalHours;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.toastService.show(`Error: ${err.message}`, 'error');
+      },
+    });
+  }
+
+  get monitoredCount(): number {
+    return this.clients.filter(c => c.irsMonitorEnabled).length;
   }
 
   // ---- Single run ----
